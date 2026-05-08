@@ -1,0 +1,3 @@
+# Darker Than Darness
+Este es un juego multijugador asimetrico que debes sobrevivir con tus amigos (o escapar de uno de ellos), en un juego de rol asimetrico...
+###### ya no se que poner
