@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dhd7arioj21ik"]
+
+[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/ability_bar.gd" id="1_iobi7"]
+
+[node name="AbilityBar" type="HBoxContainer" unique_id=1515368518]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1100.0
+offset_bottom = -760.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+script = ExtResource("1_iobi7")

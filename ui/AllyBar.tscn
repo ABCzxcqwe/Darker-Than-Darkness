@@ -1,0 +1,120 @@
+[gd_scene format=3 uid="uid://bn8s76q8w3pxs"]
+
+[ext_resource type="Script" uid="uid://bf8aaqucipntj" path="res://ui/ally_bar.gd" id="1_2cvtt"]
+[ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Deltarune.tres" id="1_odoif"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2cvtt"]
+content_margin_bottom = 0.0
+bg_color = Color(0.05, 0.05, 0.08, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_color = Color(0.27, 0.78, 0.95, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_odoif"]
+bg_color = Color(0.1, 0.1, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hbs2a"]
+bg_color = Color(0.27, 0.78, 0.95, 1)
+
+[node name="AllyBar" type="Control" unique_id=2126214105]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1340.0
+offset_bottom = -850.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("1_odoif")
+script = ExtResource("1_2cvtt")
+
+[node name="BGPanel" type="Panel" parent="." unique_id=1363690043]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cvtt")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=646874371]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 10.0
+offset_right = -5.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=708802650]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1578330605]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 20
+text = "KRIS"
+vertical_alignment = 1
+
+[node name="InfoColumn" type="VBoxContainer" parent="HBoxContainer" unique_id=1676256915]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="NameRow" type="HBoxContainer" parent="HBoxContainer/InfoColumn" unique_id=1382500005]
+layout_direction = 3
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HPLabel" type="Label" parent="HBoxContainer/InfoColumn/NameRow" unique_id=11649142]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
+text = "100/ 100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HPTag" type="Label" parent="HBoxContainer/InfoColumn/NameRow" unique_id=1358216026]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 13
+text = "HP"
+vertical_alignment = 1
+
+[node name="HPBar" type="ProgressBar" parent="HBoxContainer/InfoColumn" unique_id=117803035]
+custom_minimum_size = Vector2(150, 15)
+layout_direction = 3
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_odoif")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hbs2a")
+value = 100.0
+show_percentage = false

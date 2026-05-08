@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://41013wnbmcjx"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/AbilityData.gd" id="1_4n1ku"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_trrl4"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/CharacterData.gd" id="2_wntgj"]
+[ext_resource type="Script" uid="uid://bpuepejaqe5ji" path="res://abilities/kris/Slash.gd" id="3_frl8g"]
+[ext_resource type="SpriteFrames" uid="uid://dpclmxtjigax0" path="res://Characters/0/animations.tres" id="4_trrl4"]
+
+[sub_resource type="Resource" id="Resource_trrl4"]
+script = ExtResource("1_4n1ku")
+display_name = "Slash"
+description = "Ataque con la espada"
+ability_script = ExtResource("3_frl8g")
+ability_scene = ExtResource("2_trrl4")
+tp_gain = 15
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("2_wntgj")
+display_name = "kris"
+speed = 500.0
+max_health = 300
+ability_slots = Array[ExtResource("1_4n1ku")]([null, SubResource("Resource_trrl4"), null, null, null])
+animation_frames = ExtResource("4_trrl4")

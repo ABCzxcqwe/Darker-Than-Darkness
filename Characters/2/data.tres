@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://bkm6pvtm64t4n"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/AbilityData.gd" id="1_fedl2"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_anr0g"]
+[ext_resource type="Script" uid="uid://bpuepejaqe5ji" path="res://abilities/kris/Slash.gd" id="3_md753"]
+[ext_resource type="SpriteFrames" uid="uid://dkpd5bcb2pw5p" path="res://Characters/2/animations.tres" id="4_fedl2"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/CharacterData.gd" id="5_2o8nh"]
+
+[sub_resource type="Resource" id="Resource_62m7r"]
+script = ExtResource("1_fedl2")
+display_name = "Axe Atack"
+ability_script = ExtResource("3_md753")
+ability_scene = ExtResource("2_anr0g")
+cooldown = 20.0
+tp_gain = 15
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("5_2o8nh")
+id = 2
+display_name = "Ralsei"
+speed = 600.0
+max_health = 70
+invincibility_frames = 1.5
+bleed_out_time = 30.0
+can_be_executed = false
+revive_health = 30
+revive_time = 1.5
+ability_slots = Array[ExtResource("1_fedl2")]([null, SubResource("Resource_62m7r")])
+animation_frames = ExtResource("4_fedl2")
+theme_color = Color(3.465414e-06, 0.99162096, 0.37983203, 1)

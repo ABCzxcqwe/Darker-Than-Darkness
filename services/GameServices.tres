@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="GameServicesConfig" format=3 uid="uid://opc3oct12aw7"]
+
+[ext_resource type="Script" uid="uid://d2k546jgdjt66" path="res://services/ServiceEntry.gd" id="1_lfoov"]
+[ext_resource type="Script" uid="uid://ci6122xh2uxof" path="res://services/GameStateService.gd" id="2_57q87"]
+[ext_resource type="Script" uid="uid://bdnbmwqnvaq0k" path="res://services/GameServicesConfig.gd" id="3_47pdd"]
+[ext_resource type="Script" uid="uid://cmggw3asix1b8" path="res://services/CooldownService.gd" id="3_57q87"]
+[ext_resource type="Script" uid="uid://bwfplb1sccgao" path="res://services/Hitboxservice.gd" id="4_47pdd"]
+[ext_resource type="Script" uid="uid://cvlkeksypfhgh" path="res://services/HealthService.gd" id="5_h33ef"]
+[ext_resource type="Script" uid="uid://cuq68y5n8jke0" path="res://services/ReviveService.gd" id="6_jl308"]
+[ext_resource type="Script" uid="uid://mlr2f4hkq14q" path="res://services/StatusEffectService.gd" id="7_ox8nq"]
+[ext_resource type="Script" uid="uid://bs26m0eh22tvl" path="res://services/TPService.gd" id="8_ju6ul"]
+[ext_resource type="Script" uid="uid://dmg1e0o5ff3t5" path="res://services/EvolutionService.gd" id="9_b743d"]
+
+[sub_resource type="Resource" id="Resource_h33ef"]
+script = ExtResource("1_lfoov")
+service_name = "GameStateService"
+service_script = ExtResource("2_57q87")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_47pdd"]
+script = ExtResource("1_lfoov")
+service_name = "CooldownService"
+service_script = ExtResource("3_57q87")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_jl308"]
+script = ExtResource("1_lfoov")
+service_name = "HitboxService"
+service_script = ExtResource("4_47pdd")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_ox8nq"]
+script = ExtResource("1_lfoov")
+service_name = "HealthService"
+service_script = ExtResource("5_h33ef")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_ymc8w"]
+script = ExtResource("1_lfoov")
+service_name = "ReviveService"
+service_script = ExtResource("6_jl308")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_ju6ul"]
+script = ExtResource("1_lfoov")
+service_name = "StatusEffectService"
+service_script = ExtResource("7_ox8nq")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_scjup"]
+script = ExtResource("1_lfoov")
+service_name = "TPService"
+service_script = ExtResource("8_ju6ul")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[sub_resource type="Resource" id="Resource_uirkg"]
+script = ExtResource("1_lfoov")
+service_name = "EvolutionService"
+service_script = ExtResource("9_b743d")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
+[resource]
+script = ExtResource("3_47pdd")
+entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg")])

@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://du07rrw0bna8l"]
+
+[ext_resource type="Script" uid="uid://dx3k368w0kkv6" path="res://scripts/main_menu.gd" id="1_vjtqc"]
+
+[node name="MainMenu" type="Control" unique_id=2039280906]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_vjtqc")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1867195352]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1959855263]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1653838080]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Darker Than Darkeness"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreateRoomButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1562611053]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Host"
+
+[node name="JoinRoomButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=193804125]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Join"
+
+[node name="QuitButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=550910203]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Salir"
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/CreateRoomButton" to="." method="_on_create_room_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/JoinRoomButton" to="." method="_on_join_room_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/QuitButton" to="." method="_on_quit_pressed"]

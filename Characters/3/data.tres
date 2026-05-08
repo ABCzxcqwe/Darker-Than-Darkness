@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://caqegmigjryoh"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/AbilityData.gd" id="1_csoxv"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_eliwn"]
+[ext_resource type="Script" uid="uid://bpuepejaqe5ji" path="res://abilities/kris/Slash.gd" id="3_84bl7"]
+[ext_resource type="SpriteFrames" uid="uid://ded0ylsvrvy3p" path="res://Characters/3/animations.tres" id="4_eliwn"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/CharacterData.gd" id="4_jy1g8"]
+
+[sub_resource type="Resource" id="Resource_6qr6v"]
+script = ExtResource("1_csoxv")
+display_name = "M1"
+description = "Ataque basico con la guadaña"
+ability_script = ExtResource("3_84bl7")
+ability_scene = ExtResource("2_eliwn")
+cooldown = 1.5
+stun_time = 5.0
+tp_gain = 5
+damage = 20
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("4_jy1g8")
+id = 3
+display_name = "Jevil"
+team = "killer"
+speed = 650.0
+max_health = 1000
+invincibility_frames = 0.5
+can_take_damage = false
+terror_radius = 300.0
+ability_slots = Array[ExtResource("1_csoxv")]([SubResource("Resource_6qr6v"), null, null, null, null])
+animation_frames = ExtResource("4_eliwn")

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://cfl3fq404e1kx"]
+
+[ext_resource type="SpriteFrames" uid="uid://b2tsf3wfliskg" path="res://Characters/1/animations.tres" id="1_m8qif"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/AbilityData.gd" id="1_us4bl"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_u3kyc"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/CharacterData.gd" id="2_us4bl"]
+[ext_resource type="Script" uid="uid://bpuepejaqe5ji" path="res://abilities/kris/Slash.gd" id="3_13lgx"]
+
+[sub_resource type="Resource" id="Resource_62m7r"]
+script = ExtResource("1_us4bl")
+display_name = "Axe Atack"
+ability_script = ExtResource("3_13lgx")
+ability_scene = ExtResource("2_u3kyc")
+cooldown = 20.0
+tp_gain = 15
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("2_us4bl")
+id = 1
+display_name = "Susie"
+speed = 600.0
+max_health = 180
+bleed_out_time = 30.0
+can_be_executed = false
+revive_health = 30
+revive_time = 1.5
+ability_slots = Array[ExtResource("1_us4bl")]([null, SubResource("Resource_62m7r")])
+animation_frames = ExtResource("1_m8qif")
+theme_color = Color(0.9999998, 0.1576243, 0.87583625, 1)

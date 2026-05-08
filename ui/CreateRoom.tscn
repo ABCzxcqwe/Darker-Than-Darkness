@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://bc8iwwguiwisp"]
+
+[ext_resource type="Script" uid="uid://6ftaq4i1ibhm" path="res://scripts/create_room.gd" id="1_3nu6e"]
+
+[node name="CreateRoom" type="Control" unique_id=880270965]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3nu6e")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=974622813]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=235739947]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=360488002]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Crear Sala"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerNameInput" type="LineEdit" parent="MarginContainer/VBoxContainer" unique_id=859245377]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+placeholder_text = "Ingresar Nombre"
+max_length = 20
+
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1506388583]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+text = "Seleccionar Mapa"
+vertical_alignment = 1
+
+[node name="MapOption" type="OptionButton" parent="MarginContainer/VBoxContainer" unique_id=515227290]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+
+[node name="CreateButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=428278941]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Crear Servidor"
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=2102941696]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Volver"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=557362192]
+modulate = Color(0.8804722, 0.8804717, 0, 1)
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="MapIcon" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=848298755]
+texture_filter = 1
+texture_repeat = 1
+custom_minimum_size = Vector2(200, 400)
+layout_mode = 2
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/CreateButton" to="." method="_on_create_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_pressed"]

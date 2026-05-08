@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://dpa14wapsdfno"]
+
+[ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://scripts/join_room.gd" id="1_uwibm"]
+
+[node name="JoinRoom" type="Control" unique_id=633730766]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_uwibm")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=460744096]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1797419880]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1267778965]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Unirse a sala"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerNameInput" type="LineEdit" parent="MarginContainer/VBoxContainer" unique_id=2108416669]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+placeholder_text = "Ingresar Nombre"
+max_length = 20
+
+[node name="IPInput" type="LineEdit" parent="MarginContainer/VBoxContainer" unique_id=1326188274]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+text = "127.0.0.1"
+placeholder_text = "IP del servidor (ej: 192.168.1.100)"
+max_length = 20
+
+[node name="JoinButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1285223474]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Conectar"
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=741992625]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+text = "Volver"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1104377534]
+modulate = Color(0.8804722, 0.8804717, 0, 1)
+layout_mode = 2
+horizontal_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/JoinButton" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_pressed"]
