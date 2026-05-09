@@ -18,7 +18,7 @@ func _ready():
 func _on_join_pressed():
 	var _name = player_name_input.text.strip_edges()
 	var ip = ip_input.text.strip_edges()
-	if NetworkManager.join_server(name, ip):
+	if NetworkManager.join_server(_name, ip):
 		# Ya no conectamos _goto_lobby aquí; la señal ya está conectada
 		status_label.text = "Conectando..."
 		join_btn.disabled = true
