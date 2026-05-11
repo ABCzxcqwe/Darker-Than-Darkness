@@ -1,6 +1,6 @@
 extends Node
 
-const WORLD_SCENE := preload("res://World.tscn")
+const WORLD_SCENE := preload("res://Maps/World.tscn")
 var world_instance: Node = null
 
 func _ready():
