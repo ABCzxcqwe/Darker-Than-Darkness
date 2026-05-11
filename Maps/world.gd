@@ -3,7 +3,7 @@
 # Inicializa servicios, carga el mapa seleccionado e instancia el HUD.
 extends Node2D
 
-const GAME_HUD_SCENE := preload("res://ui/GameHUD.tscn")
+const GAME_HUD_SCENE := preload("res://ui/GameUI/Scenes/GameHUD.tscn")
 
 @export var services_config: GameServicesConfig = null
 

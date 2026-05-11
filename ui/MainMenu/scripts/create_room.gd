@@ -61,10 +61,10 @@ func _on_create_pressed() -> void:
 
 func _on_server_created() -> void:
 	print("[CreateRoom] Servidor creado, cambiando a lobby...")
-	get_tree().change_scene_to_file("res://ui/Lobby.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://ui/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree() -> void:
 	if NetworkManager.connection_succeeded.is_connected(_on_server_created):

@@ -3,7 +3,7 @@
 # Excluye al jugador local. Se actualiza dinámicamente.
 extends VBoxContainer
 
-const ALLY_BAR_SCENE := preload("res://ui/AllyBar.tscn")
+const ALLY_BAR_SCENE := preload("res://ui/GameUI/Scenes/AllyBar.tscn")
 
 var _my_peer_id: int = -1
 

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bc8iwwguiwisp"]
 
-[ext_resource type="Script" uid="uid://6ftaq4i1ibhm" path="res://scripts/create_room.gd" id="1_3nu6e"]
+[ext_resource type="Script" uid="uid://6ftaq4i1ibhm" path="res://ui/MainMenu/scripts/create_room.gd" id="1_3nu6e"]
 
 [node name="CreateRoom" type="Control" unique_id=880270965]
 layout_mode = 3

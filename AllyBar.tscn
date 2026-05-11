@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://ally_bar_hud"]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://ui/ally_bar.gd" id="1_allybar"]
+[ext_resource type="Script" uid="uid://bf8aaqucipntj" path="res://ui/GameUI/scripts/ally_bar.gd" id="1_allybar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.05, 0.05, 0.08, 0.88)

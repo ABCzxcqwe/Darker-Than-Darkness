@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dhd7arioj21ik"]
 
-[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/ability_bar.gd" id="1_iobi7"]
+[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/scripts/ability_bar.gd" id="1_iobi7"]
 
 [node name="AbilityBar" type="HBoxContainer" unique_id=1515368518]
 anchors_preset = 15

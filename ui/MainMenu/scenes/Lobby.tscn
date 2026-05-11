@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bttebyji40434"]
 
-[ext_resource type="Script" uid="uid://bqc1rn3i34t1q" path="res://scripts/lobby.gd" id="1_j7rk1"]
+[ext_resource type="Script" uid="uid://bqc1rn3i34t1q" path="res://ui/MainMenu/scripts/lobby.gd" id="1_j7rk1"]
 
 [node name="Lobby" type="Control" unique_id=444361842]
 layout_mode = 3

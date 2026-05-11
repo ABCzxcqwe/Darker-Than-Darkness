@@ -27,7 +27,7 @@ func _on_join_pressed():
 
 func _on_connection_succeeded():
 	print("Conexión exitosa, cambiando a lobby...")
-	get_tree().change_scene_to_file("res://ui/Lobby.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_connection_failed():
 	status_label.text = "Error: No se pudo conectar al servidor"
@@ -41,7 +41,7 @@ func _on_server_disconnected():
 
 func _on_back_pressed():
 	NetworkManager.disconnect_from_server()
-	get_tree().change_scene_to_file("res://ui/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree():
 	# Limpiar conexiones

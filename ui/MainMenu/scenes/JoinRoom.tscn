@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dpa14wapsdfno"]
 
-[ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://scripts/join_room.gd" id="1_uwibm"]
+[ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://ui/MainMenu/scripts/join_room.gd" id="1_rtag2"]
 
 [node name="JoinRoom" type="Control" unique_id=633730766]
 layout_mode = 3
@@ -9,7 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_uwibm")
+script = ExtResource("1_rtag2")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=460744096]
 layout_mode = 1

@@ -5,7 +5,7 @@
 # La barra NO lee cooldowns desde character_data por su cuenta.
 extends HBoxContainer
 
-const ABILITY_BUTTON_SCENE := preload("res://ui/AbilityButton.tscn")
+const ABILITY_BUTTON_SCENE := preload("res://ui/GameUI/Scenes/AbilityButton.tscn")
 
 # Teclas visibles por slot (0=M1, 1-4=habilidades)
 const KEY_NAMES := {

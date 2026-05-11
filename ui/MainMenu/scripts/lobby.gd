@@ -83,4 +83,4 @@ func _on_leave_pressed():
 func _return_to_menu():
 	if is_inside_tree():
 		# Limpiar NetworkManager antes de cambiar de escena
-		get_tree().change_scene_to_file("res://ui/MainMenu.tscn")
+		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")

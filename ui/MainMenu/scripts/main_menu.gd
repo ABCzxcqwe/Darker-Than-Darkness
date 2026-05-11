@@ -32,11 +32,11 @@ func _full_network_reset():
 	
 func _on_create_room_pressed():
 	await _full_network_reset()
-	get_tree().change_scene_to_file("res://ui/CreateRoom.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/CreateRoom.tscn")
 
 func _on_join_room_pressed():
 	await _full_network_reset()
-	get_tree().change_scene_to_file("res://ui/JoinRoom.tscn")
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/JoinRoom.tscn")
 
 
 func _on_quit_pressed():
