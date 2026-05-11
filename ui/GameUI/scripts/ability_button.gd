@@ -10,7 +10,7 @@ extends Control
 @onready var cooldown_label:    Label       = $CooldownLabel
 @onready var name_label:        Label       = $CooldownLabel  # muestra display_name
 @onready var key_label:         Label       = $Panel/KeyLabel
-@onready var evolved_indicator: Control     = $EvolvedIndicator  # puede ser null
+#@onready var evolved_indicator: Control     = $EvolvedIndicator  # puede ser null
 
 # ── Datos ──────────────────────────────────────────────────────────────
 var ability_data:        AbilityData = null
@@ -30,7 +30,7 @@ func setup(data: AbilityData, index: int, key_name: String) -> void:
 		name_label.text = data.display_name
 
 	_set_cooldown_visible(false)
-	set_evolved(false)
+#	set_evolved(false)
 
 
 func _process(delta: float) -> void:
@@ -64,11 +64,11 @@ func start_cooldown(duration: float) -> void:
 
 
 ## Muestra u oculta el indicador de habilidad evolucionada.
-func set_evolved(is_evolved: bool) -> void:
-	if evolved_indicator:
-		evolved_indicator.visible = is_evolved
-	if icon_rect:
-		icon_rect.modulate = Color(1.0, 0.85, 0.2) if is_evolved else Color.WHITE
+#func set_evolved(is_evolved: bool) -> void:
+#	if evolved_indicator:
+#		evolved_indicator.visible = is_evolved
+#	if icon_rect:
+#		icon_rect.modulate = Color(1.0, 0.85, 0.2) if is_evolved else Color.WHITE
 
 
 func _set_cooldown_visible(active: bool) -> void:
