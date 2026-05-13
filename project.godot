@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Perosnajes (Copy)"
+config/name="Darker Than Darkness"
 run/main_scene="uid://du07rrw0bna8l"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
