@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://cchcul8dpr64e"
-path="res://.godot/imported/deltarune-battle-dialogue.ttf-88fdbaceefde60877e67107567c3b34c.fontdata"
+path="res://.godot/imported/deltarune-battle-dialogue.ttf-eea049f36ded539efbad384adbd8b61f.fontdata"
 
 [deps]
 
-source_file="res://deltarune-battle-dialogue.ttf"
-dest_files=["res://.godot/imported/deltarune-battle-dialogue.ttf-88fdbaceefde60877e67107567c3b34c.fontdata"]
+source_file="res://Fonts/deltarune-battle-dialogue.ttf"
+dest_files=["res://.godot/imported/deltarune-battle-dialogue.ttf-eea049f36ded539efbad384adbd8b61f.fontdata"]
 
 [params]
 

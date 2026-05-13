@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dnabcwd1w0s5a"]
 
 [ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/scripts/ability_button.gd" id="1_6pl12"]
-[ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Deltarune.tres" id="1_eu371"]
+[ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Fonts/Deltarune.tres" id="1_eu371"]
 
 [node name="AbilityButton" type="Control" unique_id=172959363]
 custom_minimum_size = Vector2(120, 120)

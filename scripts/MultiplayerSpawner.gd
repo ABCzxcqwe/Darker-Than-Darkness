@@ -3,7 +3,7 @@
 # ya esté en el árbol cuando se acceda a $AbilityComponent (nodo @onready).
 extends MultiplayerSpawner
 
-const PLAYER_SCENE := preload("res://player.tscn")
+const PLAYER_SCENE := preload("res://Characters/player.tscn")
 
 func _ready() -> void:
 	spawn_function = _custom_spawn

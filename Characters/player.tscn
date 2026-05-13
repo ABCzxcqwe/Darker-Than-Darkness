@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://csh822kwn5s2e"]
 
-[ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://Player.gd" id="1_onrkg"]
+[ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://scripts/Player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://boe4w0re5gmse" path="res://ui/MainMenu/scripts/Hurtbox.gd" id="2_onrkg"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]

@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://cs54k1wya0lgn"
-path="res://.godot/imported/deltarune.ttf-9328be18202f92ff88b02456d2597039.fontdata"
+path="res://.godot/imported/deltarune.ttf-d6051c9510bec1ad2f462f16487c63b8.fontdata"
 
 [deps]
 
-source_file="res://deltarune.ttf"
-dest_files=["res://.godot/imported/deltarune.ttf-9328be18202f92ff88b02456d2597039.fontdata"]
+source_file="res://Fonts/deltarune.ttf"
+dest_files=["res://.godot/imported/deltarune.ttf-d6051c9510bec1ad2f462f16487c63b8.fontdata"]
 
 [params]
 
