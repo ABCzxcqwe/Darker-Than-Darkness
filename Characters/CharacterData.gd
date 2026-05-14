@@ -11,6 +11,7 @@ const SURVIVOR_ONLY := [
 const KILLER_ONLY := [
 	"can_take_damage", "terror_radius", "chase_radius",
 	"terror_music", "chase_music",
+	"lms_music_", "lms_duration_",
 ]
 
 @export_group("Información Básica")
@@ -42,6 +43,8 @@ const KILLER_ONLY := [
 @export var chase_radius: float = 200.0
 @export var terror_music: AudioStream
 @export var chase_music: AudioStream
+@export var lms_music_: AudioStream
+@export var lms_duration_: float = 140.0
 
 @export_group("Habilidades")
 @export var ability_slots: Array[AbilityData] = [null, null, null, null, null]

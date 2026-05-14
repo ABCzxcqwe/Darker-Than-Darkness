@@ -26,6 +26,6 @@ bleed_out_time = 30.0
 can_be_executed = false
 revive_health = 30
 revive_time = 1.5
-ability_slots = Array[ExtResource("1_fedl2")]([null, SubResource("Resource_62m7r")])
+ability_slots = Array[ExtResource("1_fedl2")]([null, SubResource("Resource_62m7r"), null, null, null])
 animation_frames = ExtResource("4_fedl2")
 theme_color = Color(3.465414e-06, 0.99162096, 0.37983203, 1)

@@ -77,6 +77,15 @@ theme_override_font_sizes/font_size = 20
 text = "KRIS"
 vertical_alignment = 1
 
+[node name="HPTag" type="Label" parent="HBoxContainer" unique_id=1358216026]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 13
+text = "HP"
+vertical_alignment = 1
+
 [node name="InfoColumn" type="VBoxContainer" parent="HBoxContainer" unique_id=1676256915]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -96,20 +105,10 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 12
 text = "100/ 100"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="HPTag" type="Label" parent="HBoxContainer/InfoColumn/NameRow" unique_id=1358216026]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 13
-text = "HP"
 vertical_alignment = 1
 
 [node name="HPBar" type="ProgressBar" parent="HBoxContainer/InfoColumn" unique_id=117803035]
-custom_minimum_size = Vector2(150, 15)
+custom_minimum_size = Vector2(80, 15)
 layout_direction = 3
 layout_mode = 2
 size_flags_horizontal = 3

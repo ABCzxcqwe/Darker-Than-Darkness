@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://bpuepejaqe5ji" path="res://abilities/kris/Slash.gd" id="3_frl8g"]
 [ext_resource type="Texture2D" uid="uid://ctlg753ov13tb" path="res://Characters/0/assets/Sprites/down1.png" id="4_fymq6"]
 [ext_resource type="SpriteFrames" uid="uid://dpclmxtjigax0" path="res://Characters/0/animations.tres" id="4_trrl4"]
-[ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="6_07qm3"]
 
 [sub_resource type="Resource" id="Resource_bdh88"]
 script = ExtResource("1_4n1ku")
@@ -18,6 +17,8 @@ stun_time = 5.0
 tp_gain = 15
 metadata/_custom_type_script = "uid://bodks86qovy6s"
 
+[sub_resource type="AudioStreamMP3" id="AudioStreamMP3_frl8g"]
+
 [resource]
 script = ExtResource("2_wntgj")
 display_name = "Kris"
@@ -25,6 +26,6 @@ speed = 500.0
 max_health = 120
 bleed_out_time = 20.0
 revive_time = 1.0
-lms_music = ExtResource("6_07qm3")
+lms_music = SubResource("AudioStreamMP3_frl8g")
 ability_slots = Array[ExtResource("1_4n1ku")]([null, SubResource("Resource_bdh88"), null, null, null])
 animation_frames = ExtResource("4_trrl4")
