@@ -5,7 +5,7 @@ class_name CharacterData
 const SURVIVOR_ONLY := [
 	"bleed_out_time", "can_be_executed",
 	"revive_health", "revive_time", "revive_range",
-	"lms_music",
+	"lms_music", "lms_duration",
 ]
 
 const KILLER_ONLY := [
@@ -34,6 +34,7 @@ const KILLER_ONLY := [
 @export var revive_time: float = 3.0
 @export var revive_range: float = 80.0
 @export var lms_music: AudioStream
+@export var lms_duration: float = 140.0
 
 @export_group("Killer State")
 @export var can_take_damage: bool = true
