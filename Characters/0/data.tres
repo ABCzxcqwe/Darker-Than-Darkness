@@ -17,6 +17,10 @@ stun_time = 5.0
 tp_gain = 15
 metadata/_custom_type_script = "uid://bodks86qovy6s"
 
+[sub_resource type="Resource" id="Resource_frl8g"]
+script = ExtResource("1_4n1ku")
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
 [sub_resource type="AudioStreamMP3" id="AudioStreamMP3_frl8g"]
 
 [resource]
@@ -27,6 +31,6 @@ max_health = 120
 bleed_out_time = 20.0
 revive_time = 1.0
 lms_music = SubResource("AudioStreamMP3_frl8g")
-ability_slots = Array[ExtResource("1_4n1ku")]([null, SubResource("Resource_bdh88"), null, null, null])
+ability_slots = Array[ExtResource("1_4n1ku")]([null, SubResource("Resource_bdh88"), SubResource("Resource_frl8g"), null, null])
 tp_gain_time = 3.0
 animation_frames = ExtResource("4_trrl4")
