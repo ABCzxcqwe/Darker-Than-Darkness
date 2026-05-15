@@ -28,4 +28,5 @@ bleed_out_time = 20.0
 revive_time = 1.0
 lms_music = SubResource("AudioStreamMP3_frl8g")
 ability_slots = Array[ExtResource("1_4n1ku")]([null, SubResource("Resource_bdh88"), null, null, null])
+tp_gain_time = 3.0
 animation_frames = ExtResource("4_trrl4")

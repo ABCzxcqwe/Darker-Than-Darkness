@@ -1,28 +1,5 @@
 # player_panel.gd
 # Panel del jugador local — replica el layout del HUD de Deltarune:
-#
-#  ┌──────────────────────────────────────────────┐
-#  │ [ICONO]  NOMBRE  HP [████████████]  160/ 160 │
-#  └──────────────────────────────────────────────┘
-#
-# El color de la barra y el borde del panel vienen de CharacterData.theme_color.
-# Estados:
-#   alive  → theme_color del personaje
-#   downed → naranja
-#   dead   → gris
-#
-# Estructura de nodos esperada en PlayerPanel.tscn:
-#   PlayerPanel (Control)
-#   ├── BGPanel (Panel)            ← fondo oscuro con borde de color
-#   └── HBoxContainer
-#       ├── IconRect (TextureRect) ← icono del personaje
-#       └── InfoColumn (VBoxContainer)
-#           ├── NameRow (HBoxContainer)
-#           │   └── NameLabel (Label)
-#           └── HPRow (HBoxContainer)
-#               ├── HPLabel_tag (Label)   ← texto fijo "HP"
-#               ├── HPBar (ProgressBar)
-#               └── HPLabel (Label)       ← "160/ 160"
 extends Control
 
 @onready var icon_rect:  TextureRect = $HBoxContainer/IconRect

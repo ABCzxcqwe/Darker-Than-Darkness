@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://3j07aacjoijc" path="res://ui/GameUI/Scenes/PlayerPanel.tscn" id="2_mpdc4"]
 [ext_resource type="PackedScene" uid="uid://e7tuvcoflr57" path="res://ui/GameUI/Scenes/AlliesPanel.tscn" id="3_o4xvh"]
 [ext_resource type="PackedScene" uid="uid://dhd7arioj21ik" path="res://ui/GameUI/Scenes/AbilityBar.tscn" id="4_mpdc4"]
+[ext_resource type="PackedScene" uid="uid://cts4ts76vmdcm" path="res://ui/GameUI/Scenes/TpBar.tscn" id="5_su3ou"]
 
 [node name="GameHud" type="CanvasLayer" unique_id=1045031915]
 script = ExtResource("1_o4xvh")
@@ -32,3 +33,5 @@ offset_left = 7.0
 offset_top = 728.0
 offset_right = -1223.0
 offset_bottom = -102.0
+
+[node name="TpBar" parent="." unique_id=438257633 instance=ExtResource("5_su3ou")]

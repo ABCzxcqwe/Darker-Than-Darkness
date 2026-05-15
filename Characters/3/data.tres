@@ -29,4 +29,5 @@ invincibility_frames = 0.5
 can_take_damage = false
 terror_radius = 300.0
 ability_slots = Array[ExtResource("1_csoxv")]([SubResource("Resource_6qr6v"), null, null, null, null])
+tp_gain_time = 2.0
 animation_frames = ExtResource("4_eliwn")
