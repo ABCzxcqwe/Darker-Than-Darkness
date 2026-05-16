@@ -113,7 +113,7 @@ func _exit_tree() -> void:
 			hs.unregister(peer_id)
 		var ss := GameServiceLocator.get_service("StatusEffectService")
 		if ss:
-			ss.unregister(peer_id)
+			ss.unregister(self)
 		var tp := GameServiceLocator.get_service("TPService")
 		if tp:
 			tp.unregister_player(peer_id)

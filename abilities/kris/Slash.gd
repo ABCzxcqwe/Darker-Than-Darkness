@@ -14,26 +14,28 @@ extends AbilityBase
 
 const STUN_DURATION := 3.0
 
-func activate(player_node: Node, data: AbilityData, _direction: Vector2) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[SwordSlash] player_node inválido.")
 		return
-
 	var hs := GameServiceLocator.get_service("HitboxService")
 	if not hs:
 		push_error("[SwordSlash] HitboxService no disponible.")
 		return
-
-	var attacker_id: int    = player_node.get_multiplayer_authority()
-	var dmg:         int    = data.damage      if data else 0
-	var atk_type:    String = data.attack_type if data else "slash"
-	var ability_range: float = data.range * 0.4 if data else 40.0
-
+	var attacker_id:   int    = player_node.get_multiplayer_authority()
+	var dmg:           int    = data.damage      if data else 0
+	var atk_type:      String = data.attack_type if data else "slash"
+	var ability_range: float  = data.range       if data else 100.0
+	# Convertir la dirección del mouse a solo izquierda/derecha
+	# Esto resuelve el problema del cliente: el servidor no necesita
+	# leer facing_right del nodo, lo deriva del vector que mandó el cliente
+	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0 else Vector2.LEFT
 	hs.create({
 		"attacker_id"   : attacker_id,
 		"attacker_node" : player_node,
 		"type"          : "slash",
-		"aim_mode"      : "facing",
+		"aim_mode"      : "fixed",       # fixed porque ya resolvimos la dirección aquí
+		"direction"     : slash_dir,     # solo izquierda o derecha, nunca diagonal
 		"shape_scene"   : data.ability_scene if data else null,
 		"damage"        : dmg,
 		"attack_type"   : atk_type,
@@ -44,23 +46,18 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2) -> void
 		"on_hit": func(target_node: Node) -> void:
 			if not is_instance_valid(target_node):
 				return
-		# 1. Intentar aplicar daño siempre (el HealthService ya filtra internamente si es killer)
 			var health_svc = GameServiceLocator.get_service("HealthService")
 			if health_svc:
 				health_svc.take_damage(target_node, dmg, attacker_id, atk_type)
-			
-			# 2. Lógica específica si el objetivo es un Killer (Stun + TP)
 			if target_node.is_in_group("killer"):
 				var status := GameServiceLocator.get_service("StatusEffectService")
 				if status:
 					status.apply(target_node, "stun", { "duration": STUN_DURATION })
-					
 				var tp := GameServiceLocator.get_service("TPService")
 				if tp:
 					tp.add_tp_custom(attacker_id, 15),
 		"on_end": func(hit_count: int) -> void:
 			print("[SwordSlash] Terminó | golpes: ", hit_count)
 	})
-
 	print("[SwordSlash] Activado | peer: ", attacker_id,
-		  " | facing_right: ", player_node.facing_right)
+		  " | slash_dir: ", slash_dir)
