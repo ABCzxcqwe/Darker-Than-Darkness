@@ -71,19 +71,26 @@ func _check_survivor_deaths() -> void:
 	var active_survivors := 0
 	var dead_survivors := 0
 	
-	# Leemos directamente los jugadores registrados en la sesión desde el NetworkManager
+	# Contamos cuántos supervivientes quedan en los datos de red del NetworkManager
 	for pid in NetworkManager.players:
 		var role = NetworkManager.players[pid]["assigned_role"]
 		if role == "survivor":
 			active_survivors += 1
-			# Consultamos el estado oficial en el HealthService en lugar de variables del Player
+			# Consultamos si el servicio de salud ya lo tiene registrado como muerto definitivo
 			if health_svc.is_dead(pid):
 				dead_survivors += 1
 
-	print("[GameStateService] Conteo: %d survivors en juego | %d muertos permanentemente." % [active_survivors, dead_survivors])
+	print("[GameStateService] Conteo actual -> Survivors Conectados: %d | Muertos: %d" % [active_survivors, dead_survivors])
 
-	# Si todos los supervivientes iniciales ya están marcados como "dead", el Killer gana
+	# CORRECCIÓN: CASO A - Si había supervivientes en la sala pero TODOS se desconectaron de golpe
+	if active_survivors == 0:
+		print("[GameStateService] No quedan supervivientes en la partida. Victoria para el Killer por abandono.")
+		_end_match("killer_elimination") # El Killer gana porque se quedó solo
+		return
+
+	# CASO B - Si quedan supervivientes conectados, pero todos ellos están muertos en el mapa
 	if active_survivors > 0 and dead_survivors == active_survivors:
+		print("[GameStateService] Todos los supervivientes conectados han sido eliminados.")
 		_end_match("killer_elimination")
 
 
