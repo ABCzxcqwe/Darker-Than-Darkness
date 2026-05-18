@@ -76,12 +76,11 @@ func _on_start_pressed():
 	if not NetworkManager.is_host:
 		return
 	if NetworkManager.players.size() < 2:
-		status_label.text = "Se necesitan al menos 2 jugadores"
+		status_label.text = "No hay suficientes jugadores."
 		return
-	status_label.text = "Iniciando partida..."
-	start_btn.disabled = true
-	NetworkManager.start_game()
-	hide() 
+	
+	# LLAMADA AL NUEVO SISTEMA ASIMÉTRICO
+	NetworkManager.host_start_character_selection()
 
 func _on_leave_pressed():
 	if not is_inside_tree():

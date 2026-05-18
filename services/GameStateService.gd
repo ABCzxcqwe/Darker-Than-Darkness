@@ -1,4 +1,4 @@
-# GameStateService.gd
+# res://services/GameStateService.gd
 # Servicio que indica si hay una partida activa.
 # Es el primero que se consulta en AbilityRouter, HitboxService, etc.
 # Se activa cuando el World termina de cargar y se desactiva al destruirse.

@@ -1,4 +1,4 @@
-# GameServiceLocator.gd  (Autoload)
+# res://services/GameServiceLocator.gd (Autoload)
 # Directorio global de servicios. Siempre vivo, pero vacío fuera de partida.
 # El World llama a register_all() al iniciar y clear() al terminar.
 extends Node

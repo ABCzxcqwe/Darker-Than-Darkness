@@ -428,16 +428,14 @@ tile_set = SubResource("TileSet_eg64c")
 [node name="SpawnPoints" type="Node2D" parent="." unique_id=952555422]
 
 [node name="KillerSpawns" type="Node2D" parent="SpawnPoints" unique_id=1431479554]
-position = Vector2(700, 18)
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints/KillerSpawns" unique_id=1100493644]
-position = Vector2(156, 362)
+position = Vector2(1095, 424)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints/KillerSpawns" unique_id=462551639]
-position = Vector2(240, 86)
+position = Vector2(1255, 77)
 
 [node name="SurvivorSpawns" type="Node2D" parent="SpawnPoints" unique_id=231243692]
-position = Vector2(21, 72)
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints/SurvivorSpawns" unique_id=250326943]
 position = Vector2(142, 438)
