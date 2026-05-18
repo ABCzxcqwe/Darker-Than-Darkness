@@ -37,6 +37,14 @@ func _update_player_list():
 			text += " (HOST)"
 		text += " - Personaje: " + _char_name(p.character_id)
 		player_list.add_item(text)
+	
+	# NUEVO: Buscar el mapa en el registro para mostrar su nombre real/bonito
+	var map_id: String = NetworkManager.selected_map as String
+	if MapRegistry.has_map(map_id):
+		var map_data: MapData = MapRegistry.get_map(map_id) as MapData
+		map_label.text = "Mapa: " + map_data.display_name
+	else:
+		map_label.text = "Mapa: " + (map_id if not map_id.is_empty() else "Cargando...")
 	status_label.text = "Jugadores: %d/%d" % [NetworkManager.players.size(), NetworkManager.MAX_PLAYERS]
 
 func _char_name(id: int) -> String:

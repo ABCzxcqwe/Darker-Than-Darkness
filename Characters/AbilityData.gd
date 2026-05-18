@@ -16,7 +16,7 @@ class_name AbilityData
 @export var damage: int = 15
 @export var attack_type: String = "normal"
 
-@export var range: float = 100.0
+@export var range_: float = 100.0
 @export var target_team: String = "enemy"
 
 @export var can_use_while_stunned: bool = false

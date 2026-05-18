@@ -107,5 +107,5 @@ func _apply_border_color(color: Color) -> void:
 		bg_panel.add_theme_stylebox_override("panel", s)
 
 
-func _format_hp(cur: int, max: int) -> String:
-	return "%d/ %d" % [cur, max]
+func _format_hp(cur: int, _max: int) -> String:
+	return "%d/ %d" % [cur, _max]

@@ -25,7 +25,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	var attacker_id:   int    = player_node.get_multiplayer_authority()
 	var dmg:           int    = data.damage      if data else 0
 	var atk_type:      String = data.attack_type if data else "slash"
-	var ability_range: float  = data.range       if data else 100.0
+	var ability_range: float  = data.range_      if data else 100.0
 	# Convertir la dirección del mouse a solo izquierda/derecha
 	# Esto resuelve el problema del cliente: el servidor no necesita
 	# leer facing_right del nodo, lo deriva del vector que mandó el cliente

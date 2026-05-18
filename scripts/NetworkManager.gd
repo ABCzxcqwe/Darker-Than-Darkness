@@ -1,3 +1,4 @@
+# res://scripts/NetworkManager.gd
 extends Node
 
 const MAX_PLAYERS := 4
@@ -163,11 +164,20 @@ func _send_player_info(player_name: String):
 			"character_id": 0
 		}
 		emit_signal("player_joined", sender, players[sender])
-		# Enviar a todos los clientes la lista actualizada
-	for pid in players:
-		if pid != multiplayer.get_unique_id():
-			rpc_id(pid, "_sync_player_list", players)
+		
+		# Enviar a TODOS los clientes la lista actualizada y el mapa seleccionado
+		var self_id = multiplayer.get_unique_id()
+		for pid in players:
+			if pid != self_id:
+				# Pasamos la lista de jugadores Y la variable 'selected_map' del Host
+				rpc_id(pid, "_sync_lobby_state", players, selected_map)
 
+@rpc("authority", "reliable")
+func _sync_lobby_state(all_players: Dictionary, map_id: String):
+	players = all_players
+	selected_map = map_id # <-- ¡Ahora los clientes ya saben qué mapa se juega!
+	emit_signal("lobby_updated")
+	
 @rpc("authority", "reliable")
 func _sync_player_list(all_players: Dictionary):
 	players = all_players
@@ -176,11 +186,11 @@ func _sync_player_list(all_players: Dictionary):
 func _on_peer_disconnected(peer_id: int):
 	if multiplayer.is_server():
 		players.erase(peer_id)
-		emit_signal("player_left", peer_id)   # 👈 debe estar
+		emit_signal("player_left", peer_id)
 		var self_id = multiplayer.get_unique_id()
 		for pid in players:
 			if pid != self_id:
-				rpc_id(pid, "_sync_player_list", players)
+				rpc_id(pid, "_sync_lobby_state", players, selected_map)
 
 func _on_connected_ok():
 	emit_signal("connection_succeeded")

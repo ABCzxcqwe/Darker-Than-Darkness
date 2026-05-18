@@ -23,10 +23,10 @@ func _process(delta: float) -> void:
 			continue
 
 		# Verificar distancia — cancela si se alejan demasiado
-		var range: float = target_node.character_data.revive_range \
+		var _range: float = target_node.character_data.revive_range \
 			if target_node.character_data else 80.0
 		var dist: float = rescuer_node.global_position.distance_to(target_node.global_position)
-		if dist > range:
+		if dist > _range:
 			print("[ReviveService] ", rescuer_id, " se alejó demasiado. Cancelando.")
 			_cancel(rescuer_id, true)
 			continue
@@ -66,10 +66,10 @@ func request_revive(rescuer_node: Node, target_node: Node) -> void:
 		return
 
 	# Verificar rango inicial
-	var range: float = target_node.character_data.revive_range \
+	var _range: float = target_node.character_data.revive_range \
 		if target_node.character_data else 80.0
 	var dist: float = rescuer_node.global_position.distance_to(target_node.global_position)
-	if dist > range:
+	if dist > _range:
 		print("[ReviveService] ", rescuer_id, " demasiado lejos para rescatar.")
 		return
 

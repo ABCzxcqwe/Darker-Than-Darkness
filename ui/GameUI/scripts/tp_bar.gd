@@ -25,7 +25,7 @@ func setup(peer_id: int, max_tp: float) -> void:
 	if tp_service:
 		_update_ui(tp_service.get_tp_for_peer(peer_id))
 
-func _on_tp_changed(peer_id: int, current_tp: float, max_tp: float) -> void:
+func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 	# Debug para que veas el cambio en consola
 	# print("Barra de TP (", _target_peer_id, ") recibió datos de: ", peer_id)
 

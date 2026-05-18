@@ -1,16 +1,14 @@
 # World.gd
-# Script del nodo raíz de la partida.
-# Inicializa servicios, carga el mapa seleccionado e instancia el HUD.
 extends Node2D
 
 const GAME_HUD_SCENE := preload("res://ui/GameUI/Scenes/GameHUD.tscn")
 
 @export var services_config: GameServicesConfig = null
 
-# Nodo vacío donde se instancia la escena del mapa — crearlo en World.tscn
 @onready var map_container: Node2D = $MapContainer
 
 var _hud: CanvasLayer = null
+var current_map_node: BaseMap = null
 
 func _ready() -> void:
 	if not services_config:
@@ -18,14 +16,21 @@ func _ready() -> void:
 		return
 
 	GameServiceLocator.register_all(services_config)
-	_load_map()
+	
+	# Cambiamos esto: hacemos un await aquí para que NO continúe 
+	# hasta que el mapa esté completamente cargado y listo.
+	await _load_map()
+
+	# Si somos el servidor, posicionamos a los personajes en sus respectivos spawns
+	if multiplayer.is_server():
+		# Esperamos un frame adicional para dar tiempo a que los nodos del Spawner se estabilicen
+		await get_tree().process_frame
+		_position_players_in_spawns()
 
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_setup_hud()
 
-	# Iniciar ganancia pasiva de TP una vez que todos los jugadores
-	# ya corrieron set_character() (gracias al call_deferred en el Spawner)
 	if multiplayer.is_server():
 		var tp := GameServiceLocator.get_service("TPService")
 		if tp:
@@ -33,8 +38,7 @@ func _ready() -> void:
 		else:
 			push_warning("[World] TPService no disponible — ganancia pasiva no iniciada.")
 
-
-func _load_map() -> void:
+func _load_map():
 	var map_id: String = GameData.selected_map
 	if map_id == "":
 		push_warning("[World] GameData.selected_map está vacío — no se cargará ningún mapa.")
@@ -51,7 +55,47 @@ func _load_map() -> void:
 
 	var map_instance := map_data.map_scene.instantiate()
 	map_container.add_child(map_instance)
-	print("[World] Mapa '", map_data.display_name, "' cargado correctamente.")
+	
+	# Guardamos la referencia
+	current_map_node = map_instance as BaseMap
+	
+	# ¡LA CLAVE!: Si el mapa aún no está listo en el árbol, esperamos a que su señal 'ready' se emita.
+	# Esto garantiza que todos sus @onready e hijos internos existan antes de que _ready() en World continúe.
+	if not map_instance.is_node_ready():
+		await map_instance.ready
+
+	print("[World] Mapa '", map_data.display_name, "' cargado e inicializado correctamente.")
+
+
+## NUEVA FUNCIÓN: Distribuye los personajes según el bando de su CharacterData
+func _position_players_in_spawns() -> void:
+	if not current_map_node:
+		push_error("[World] Imposible posicionar jugadores: No hay un mapa válido cargado.")
+		return
+
+	# Buscamos a todos los nodos de jugador que el Spawner ya colgó en la escena
+	# Nota: Ajusta la ruta si tus jugadores se spawnean bajo un contenedor específico (ej. $Players)
+	for player_node in get_tree().get_nodes_in_group("players"):
+		# Esperamos a que la lógica diferida de 'set_character' termine para asegurar que 'character_data' exista
+		if player_node.has_method("get_character_data") or "character_data" in player_node:
+			# Si el personaje aún no se asignó en este frame, esperamos al siguiente
+			if player_node.character_data == null:
+				await get_tree().process_frame
+			
+			var data: CharacterData = player_node.character_data
+			if data:
+				var target_position := Vector2.ZERO
+				
+				# Separación asimétrica en base al bando definido en el recurso data.tres del personaje
+				if data.team == "killer":
+					target_position = current_map_node.get_random_killer_spawn()
+					print("[World] Posicionando Killer (Peer: ", player_node.name, ") en: ", target_position)
+				else:
+					target_position = current_map_node.get_random_survivor_spawn()
+					print("[World] Posicionando Survivor (Peer: ", player_node.name, ") en: ", target_position)
+				
+				# Asignamos la posición en el servidor; MultiplayerSynchronizer se encargará de replicarlo a los clientes
+				player_node.global_position = target_position
 
 
 func _setup_hud() -> void:

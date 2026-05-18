@@ -3,7 +3,7 @@ extends CharacterBody2D
 ## Emitida cuando el jugador local usa una habilidad (para actualizar UI)
 signal ability_used(ability_index: int)
 
-@export var speed := 200
+@export var speed = 200
 @onready var synchronizer      := $Synchronizer
 @onready var animated_sprite   := $AnimatedSprite2D
 
@@ -46,10 +46,10 @@ func _ready() -> void:
 func _try_revive() -> void:
 	# Buscar survivor caído en rango
 	var my_data := character_data
-	var range: float = my_data.revive_range if my_data else 80.0
+	var _range: float = my_data.revive_range if my_data else 80.0
 
 	var closest_target: Node = null
-	var closest_dist:   float = range + 1.0
+	var closest_dist:   float = _range + 1.0
 
 	for player in get_tree().get_nodes_in_group("player"):
 		if player == self:

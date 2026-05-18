@@ -1,4 +1,4 @@
-# MapRegistry.gd  (Autoload)
+# res://scripts/MapRegistry.gd
 # Escanea res://Maps/ al iniciar y carga todos los MapData que encuentre.
 # Convención: cada mapa vive en su propia carpeta con un map_data.tres:
 #   res://Maps/NombreDelMapa/map_data.tres
