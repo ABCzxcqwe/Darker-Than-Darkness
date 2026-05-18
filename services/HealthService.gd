@@ -1,9 +1,10 @@
-# HealthService.gd
+# res://services/HealthService.gd
 # Gestiona el estado de vida de los survivors.
 # Killers son invulnerables — este servicio los ignora.
 # Se accede via: GameServiceLocator.get_service("HealthService")
 extends Node
 
+signal survivor_died_permanently(peer_id: int)
 # Estado de vida por peer_id
 # { peer_id: { "state": "alive"/"downed"/"dead", "timer": SceneTreeTimer } }
 var _states: Dictionary = {}
@@ -123,9 +124,10 @@ func register(player_node: Node) -> void:
 
 ## Limpia un jugador al salir.
 func unregister(peer_id: int) -> void:
-	_cancel_bleed_timer(peer_id)
-	_states.erase(peer_id)
-
+	_cancel_bleed_timer(peer_id) 
+	if _states.has(peer_id):
+		_states.erase(peer_id) 
+	print("[HealthService] Peer ", peer_id, " eliminado de los estados de salud.")
 
 # ── Internos ───────────────────────────────────────────────────────────
 
@@ -156,6 +158,9 @@ func _kill(player_node: Node) -> void:
 
 	print("[HealthService] ", peer_id, " ha muerto.")
 	player_node.rpc("_sync_state", "dead", 0)
+
+	# NUEVO: Avisamos al Servidor que este superviviente quedó fuera de juego por completo
+	survivor_died_permanently.emit(peer_id)
 
 	# Dar un frame para que el RPC llegue antes de queue_free
 	await get_tree().process_frame

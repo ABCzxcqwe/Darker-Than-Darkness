@@ -12,12 +12,14 @@ signal player_left(peer_id: int)
 signal player_ready_changed(peer_id: int, is_ready: bool)
 signal lobby_updated()
 
+
 var current_game_manager: Node = null
 var peer: ENetMultiplayerPeer
 var players: Dictionary = {}        # peer_id -> { name, is_host, character_id, killer_points, assigned_role }
 var local_player_name: String = ""
 var selected_map: String = ""
 var is_host: bool = false
+var last_match_results: Dictionary = {}
 
 func _ready():
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -254,8 +256,21 @@ func _sync_lobby_state(all_players: Dictionary, map_id: String):
 
 func _on_peer_disconnected(peer_id: int):
 	if multiplayer.is_server():
+		# Averiguamos qué rol tenía el jugador antes de borrarlo
+		var abandoned_role: String = ""
+		if players.has(peer_id):
+			abandoned_role = players[peer_id]["assigned_role"]
+		
+		# Borramos al jugador del diccionario de red
 		players.erase(peer_id)
 		emit_signal("player_left", peer_id)
+		
+		# NOTIFICACIÓN AL GAMESTATE: Si la partida está activa, informamos la desconexión
+		var game_state = GameServiceLocator.get_service("GameStateService") if GameServiceLocator.has_service("GameStateService") else null
+		if game_state and game_state.is_match_active:
+			game_state.handle_player_disconnect(peer_id, abandoned_role)
+		
+		# Sincronizamos al resto de clientes que quedan
 		var self_id = multiplayer.get_unique_id()
 		for pid in players:
 			if pid != self_id:
@@ -297,3 +312,32 @@ func reset_to_menu():
 func _do_change_to_menu():
 	if is_inside_tree():
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
+
+@rpc("authority", "call_local", "reliable")
+func _go_to_stats_screen(stats_data: Dictionary):
+	last_match_results = stats_data
+	
+	# 1. Limpiamos por completo el Main.tscn / World.tscn y sus personajes en red
+	_cleanup_game_manager()
+	
+	# 2. Cambiamos a la escena de estadísticas
+	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
+
+
+## Función que llamará el Host desde el botón en la pantalla de estadísticas para reiniciar la sala
+@rpc("any_peer", "call_local", "reliable")
+func host_return_to_lobby_reconfigured():
+	if not is_host: return
+	
+	# Ponemos a todos de vuelta con el character_id en -1 para el siguiente bucle
+	for pid in players:
+		players[pid]["character_id"] = -1
+		
+	# Sincronizamos el estado vacío a todos y los mandamos al Lobby principal de vuelta
+	rpc("_back_to_lobby_scene", players)
+
+@rpc("authority", "call_local", "reliable")
+func _back_to_lobby_scene(reseted_players: Dictionary):
+	players = reseted_players
+	# Cambia esta ruta por la de tu escena del Lobby original (ej: res://ui/Lobby/Lobby.tscn)
+	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")

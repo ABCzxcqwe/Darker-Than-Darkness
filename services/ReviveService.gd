@@ -1,4 +1,4 @@
-# ReviveService.gd
+# res://services/ReviveService.gd
 # Gestiona las sesiones de rescate entre survivors.
 # Solo el servidor ejecuta la lógica.
 # Se accede via: GameServiceLocator.get_service("ReviveService")

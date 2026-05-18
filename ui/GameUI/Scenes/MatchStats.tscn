@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://fcamywmkcexd"]
+
+[ext_resource type="Script" uid="uid://dh6hed1af7r5h" path="res://ui/GameUI/scripts/match_stats.gd" id="1_ep4qm"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_yxouq"]
+
+[node name="MatchStats" type="Control" unique_id=1133907657]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ep4qm")
+
+[node name="Label" type="Label" parent="." unique_id=1423824911]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.1
+anchor_right = 0.65
+anchor_bottom = 0.2
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_yxouq")
+theme_override_font_sizes/font_size = 46
+text = "ROUND RESULTS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResultLabel" type="Label" parent="." unique_id=850823394]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.3
+anchor_right = 0.65
+anchor_bottom = 0.8
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_yxouq")
+
+[node name="HostStatusLabel" type="Label" parent="." unique_id=782467359]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.8
+anchor_top = 0.85
+anchor_right = 0.95
+anchor_bottom = 0.95
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_yxouq")
+theme_override_font_sizes/font_size = 16
+text = "Esperando al Host..."
+vertical_alignment = 1
+
+[node name="ResetRoomButton" type="Button" parent="." unique_id=850406175]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+theme_override_fonts/font = ExtResource("2_yxouq")
