@@ -35,7 +35,7 @@ func _ready() -> void:
 			hs.register(self)
 		var ss := GameServiceLocator.get_service("StatusEffectService")
 		if ss:
-			ss.register(get_multiplayer_authority())
+			ss.register(self)
 		var es := GameServiceLocator.get_service("EvolutionService")
 		if es:
 			es.register_player(get_multiplayer_authority())

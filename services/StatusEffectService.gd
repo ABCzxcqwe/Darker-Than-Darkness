@@ -26,21 +26,18 @@ var _last_speed: Dictionary = {}
 func _process(delta: float) -> void:
 	if not multiplayer.is_server():
 		return
-
-	# BUG 3 FIX: iterar sobre copia para evitar crash si unregister()
-	# es llamado durante la iteración (ej: jugador muere mientras tiene stun)
 	for peer_id in _effects.keys().duplicate():
 		var changed := false
-
+	
 		for effect_name in EFFECT_TYPES:
 			# Verificar que el peer sigue registrado (pudo haber sido borrado
 			# por unregister() en otra iteración del mismo frame)
 			if not _effects.has(peer_id):
 				break
-
+	
 			var instances: Array = _effects[peer_id][effect_name]
 			var i := instances.size() - 1
-
+	
 			while i >= 0:
 				instances[i]["timer"] -= delta
 				if instances[i]["timer"] <= 0.0:
@@ -74,6 +71,7 @@ func _process(delta: float) -> void:
 		if _post_stun_dr[peer_id]["timer"] <= 0.0:
 			_post_stun_dr.erase(peer_id)
 			print("[StatusEffectService] DR post-stun expiró para peer ", peer_id)
+			
 
 
 # ── API pública ────────────────────────────────────────────────────────
