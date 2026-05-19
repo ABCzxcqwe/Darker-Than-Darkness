@@ -1,3 +1,4 @@
+# res://scripts/MultiplayerManager.gd
 extends Node
 
 const WORLD_SCENE := preload("res://Maps/World.tscn")

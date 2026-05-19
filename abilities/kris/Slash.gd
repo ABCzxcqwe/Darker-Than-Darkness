@@ -1,4 +1,4 @@
-# sword_slash.gd
+# slash.gd
 # Habilidad 1 de Kris — Sword Slash
 # Golpea en la dirección que mira el personaje (izquierda o derecha).
 # Si golpea al killer: aplica Stun 3s y genera 15 TP al atacante.
@@ -58,6 +58,8 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 					tp.add_tp_custom(attacker_id, 15),
 		"on_end": func(hit_count: int) -> void:
 			print("[SwordSlash] Terminó | golpes: ", hit_count)
-	})
+	}
+	)
+	print("[SwordSlash] Hitbox creado. Esperando colisiones...")
 	print("[SwordSlash] Activado | peer: ", attacker_id,
 		  " | slash_dir: ", slash_dir)

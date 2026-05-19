@@ -1,3 +1,4 @@
+# res://Characters/CharacterData.gd
 @tool
 extends Resource
 class_name CharacterData
@@ -36,6 +37,8 @@ const KILLER_ONLY := [
 @export var revive_range: float = 80.0
 @export var lms_music: AudioStream
 @export var lms_duration: float = 140.0
+@export var lms_heal_amount: int = 60
+@export var lms_damage_resistance: float = 0.0
 
 @export_group("Killer State")
 @export var can_take_damage: bool = true

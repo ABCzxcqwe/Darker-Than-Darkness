@@ -14,13 +14,13 @@ func _ready() -> void:
 		_passive_timer.autostart = true
 		_passive_timer.timeout.connect(_on_passive_tick)
 		add_child(_passive_timer)
-		print("[TPService] Ganancia pasiva iniciada en el Servidor.")
+		# print("[TPService] Ganancia pasiva iniciada en el Servidor.")
 
 ## Registra a un jugador en el sistema de TP
 func register_player(peer_id: int, data: Resource) -> void:
 	_tp[peer_id] = 0.0
 	_character_data[peer_id] = data
-	print("[TPService] ", _get_log_name(peer_id), " Registrado (", data.resource_path.get_file(), ")")
+	# print("[TPService] ", _get_log_name(peer_id), " Registrado (", data.resource_path.get_file(), ")")
 
 ## Elimina los datos de un jugador (Evita el crash al desconectarse)
 func unregister_player(peer_id: int) -> void:
@@ -28,7 +28,7 @@ func unregister_player(peer_id: int) -> void:
 		_tp.erase(peer_id)
 	if _character_data.has(peer_id):
 		_character_data.erase(peer_id)
-	print("[TPService] Datos eliminados para peer: ", peer_id)
+	# print("[TPService] Datos eliminados para peer: ", peer_id)
 
 ## Sincroniza el TP desde el servidor hacia los clientes
 @rpc("any_peer", "reliable")
@@ -65,7 +65,7 @@ func add_tp(peer_id: int, amount_type: String) -> void:
 	sync_tp_to_client.rpc(peer_id, current_tp, max_tp)
 	
 	# Log para debug
-	print("[TPService] ", _get_log_name(peer_id), " +", amount, " TP (", amount_type, ") | Total: ", current_tp)
+	# print("[TPService] ", _get_log_name(peer_id), " +", amount, " TP (", amount_type, ") | Total: ", current_tp)
 
 func _on_passive_tick() -> void:
 	for peer_id in _tp.keys():
@@ -85,7 +85,7 @@ func reset() -> void:
 	_character_data.clear()
 	if _passive_timer:
 		_passive_timer.stop()
-	print("[TPService] Sistema reiniciado por completo.")
+	# print("[TPService] Sistema reiniciado por completo.")
 
 ## Función puente para evitar el error de "Nonexistent function"
 func start_passive_gain() -> void:
@@ -99,10 +99,10 @@ func start_passive_gain() -> void:
 		_passive_timer.autostart = true
 		_passive_timer.timeout.connect(_on_passive_tick)
 		add_child(_passive_timer)
-		print("[TPService] Ganancia pasiva forzada por comando externo.")
+		# print("[TPService] Ganancia pasiva forzada por comando externo.")
 	else:
 		_passive_timer.start()
-		print("[TPService] Timer de ganancia pasiva reanudado.")
+		# print("[TPService] Timer de ganancia pasiva reanudado.")
 		
 ## Función puente para habilidades que usan el nombre antiguo
 func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
@@ -119,4 +119,4 @@ func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
 	tp_changed.emit(peer_id, _tp[peer_id], data.tp_max)
 	sync_tp_to_client.rpc(peer_id, _tp[peer_id], data.tp_max)
 	
-	print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)
+	# print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)

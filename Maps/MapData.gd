@@ -1,4 +1,4 @@
-# MapData.gd
+# res://Maps/MapData.gd
 # Resource que describe un mapa disponible en el juego.
 # Convención: cada mapa vive en su propia carpeta:
 #   res://Maps/NombreDelMapa/map_data.tres

@@ -1,4 +1,4 @@
-# MultiplayerSpawner.gd
+# res://scripts/MultiplayerSpawner.gd
 extends MultiplayerSpawner
 
 const PLAYER_SCENE := preload("res://Characters/player.tscn")

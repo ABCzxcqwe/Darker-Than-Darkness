@@ -7,6 +7,7 @@ signal ability_used(ability_index: int)
 @export var speed = 200
 @onready var synchronizer      := $Synchronizer
 @onready var animated_sprite   := $AnimatedSprite2D
+@onready var hurtbox: Area2D = $Hurtbox
 
 var character_data:   CharacterData
 var health:           int    = 0
@@ -61,7 +62,7 @@ func _try_revive() -> void:
 	var closest_target: Node = null
 	var closest_dist:   float = _range + 1.0
 
-	for player in get_tree().get_nodes_in_group("player"):
+	for player in get_tree().get_nodes_in_group("players"):
 		if player == self:
 			continue
 		if not player.is_in_group("survivor"):
@@ -190,7 +191,7 @@ func set_character(char_id: int) -> void:
 	health         = data.max_health
 	health_state   = "alive"
 	add_to_group(data.team)
-	add_to_group("player")
+	add_to_group("players")
 	
 	# ── ADICIÓN TÁCTICA PARA EL AUDIO ──
 	# Añadir al Killer al grupo para que sea rastreable, y refrescar streams en el AudioManager
@@ -207,21 +208,21 @@ func set_character(char_id: int) -> void:
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
-	var hurtbox := get_node_or_null("Hurtbox")
+	# Usar la variable @onready en lugar de get_node_or_null
+	print("[Player] ", name, " hurtbox layer ANTES: ", hurtbox.collision_layer)
+	
 	if data.team == "killer":
-		# Capa 3 = killer_body, detecta: capa 1 (world) + capa 2 (survivor_body)
-		collision_layer = 4    # bit 3
-		collision_mask  = 1 | 2
-		if hurtbox:
-			hurtbox.collision_layer = 16   # bit 5 = killer_hurtbox
-			hurtbox.collision_mask  = 0
+		collision_layer = 4
+		collision_mask  = 1
+		hurtbox.collision_layer = 16   # killer_hurtbox
+		hurtbox.collision_mask  = 0
+		print("[Player] ", name, " killer hurtbox layer ASIGNADO: ", hurtbox.collision_layer)
 	else:
-		# Capa 2 = survivor_body, detecta: capa 1 (world) + capa 3 (killer_body)
-		collision_layer = 2    # bit 2
-		collision_mask  = 1 | 4
-		if hurtbox:
-			hurtbox.collision_layer = 8    # bit 4 = survivor_hurtbox
-			hurtbox.collision_mask  = 0
+		collision_layer = 2
+		collision_mask  = 1 
+		hurtbox.collision_layer = 8    # survivor_hurtbox
+		hurtbox.collision_mask  = 0
+		print("[Player] ", name, " survivor hurtbox layer ASIGNADO: ", hurtbox.collision_layer)
 
 
 func _physics_process(_delta: float) -> void:

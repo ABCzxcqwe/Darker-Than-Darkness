@@ -27,6 +27,7 @@ func _ready() -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
+	print("[SlashHitbox] Colisión detectada con: ", area.name, " | grupos: ", area.get_groups())
 	if _expired:
 		return
 
@@ -36,7 +37,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 	# El padre de la Hurtbox debe ser el jugador
 	var target: Node = area.get_parent()
-	if not target or not target.is_in_group("player"):
+	if not target or not target.is_in_group("players"):
 		return
 
 	# Sin auto-golpe

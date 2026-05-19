@@ -1,4 +1,4 @@
-# World.gd
+# res://Maps/world.gd
 extends Node2D
 
 const GAME_HUD_SCENE := preload("res://ui/GameUI/Scenes/GameHUD.tscn")
@@ -37,6 +37,11 @@ func _ready() -> void:
 			tp.start_passive_gain()
 		else:
 			push_warning("[World] TPService no disponible — ganancia pasiva no iniciada.")
+	
+	print("[World] Mapa 'Test Map' cargado e inicializado correctamente.")
+	# REGLA DE ORO MULTIPLAYER: Solo el servidor despacha la orden global
+	if multiplayer.is_server():
+		rpc("_sync_start_match_audio", GameData.selected_map)
 
 func _load_map():
 	var map_id: String = GameData.selected_map
@@ -122,3 +127,28 @@ func _setup_hud() -> void:
 
 func _exit_tree() -> void:
 	GameServiceLocator.clear()
+
+@rpc("authority", "call_local", "reliable")
+func _sync_start_match_audio(map_id: String) -> void:
+	# 1. El AudioManager local configura la pista ambiental del mapa base
+	AudioManager.setup_map_audio(map_id)
+	
+	# 2. Buscamos los roles de los peers usando el grupo global de jugadores
+	var local_peer_id: int = multiplayer.get_unique_id()
+	var killer_node: Node2D = null
+	var survivor_node: Node2D = null
+	
+	# Recorremos los jugadores usando el grupo (es mucho más seguro que get_children())
+	var players_nodes := get_tree().get_nodes_in_group("players")
+	for p in players_nodes:
+		if "character_data" in p and p.character_data:
+			if p.character_data.team == "killer":
+				killer_node = p
+			elif p.name == str(local_peer_id):
+				survivor_node = p
+
+	# 3. Registramos los recursos musicales en el manager de audio
+	var killer_data = killer_node.character_data if killer_node else null
+	var survivor_data = survivor_node.character_data if survivor_node else null
+	
+	AudioManager.register_match_character_music(killer_data, survivor_data)

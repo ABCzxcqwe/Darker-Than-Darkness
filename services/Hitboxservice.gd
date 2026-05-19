@@ -106,8 +106,9 @@ func create(config: Dictionary) -> Node:
 	hitbox.set_direction(direction)
 	hitbox.set_multiplayer_authority(1)
 	_setup_hitbox_layers(hitbox, team_filter, attacker_node)
-
+	print("[HitboxService] Hitbox posición final: ", hitbox.global_position, " | direction: ", direction, " | offset: ", offset)
 	add_child(hitbox)
+	print("[HitboxService] Hitbox añadido al árbol. Colisión mask: ", hitbox.collision_mask)
 
 	print("[HitboxService] Hitbox creado | tipo:", type,
 		  " | aim:", aim_mode, " | atacante:", attacker_id,

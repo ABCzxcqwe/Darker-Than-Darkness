@@ -77,7 +77,7 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 
 	var target: Node = area.get_parent()
-	if not target or not target.is_in_group("player"):
+	if not target or not target.is_in_group("players"):
 		return
 
 	# Sin auto-golpe
