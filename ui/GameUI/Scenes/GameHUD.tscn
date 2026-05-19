@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://e7tuvcoflr57" path="res://ui/GameUI/Scenes/AlliesPanel.tscn" id="3_o4xvh"]
 [ext_resource type="PackedScene" uid="uid://dhd7arioj21ik" path="res://ui/GameUI/Scenes/AbilityBar.tscn" id="4_mpdc4"]
 [ext_resource type="PackedScene" uid="uid://cts4ts76vmdcm" path="res://ui/GameUI/Scenes/TpBar.tscn" id="5_su3ou"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="6_kqcow"]
 
 [node name="GameHud" type="CanvasLayer" unique_id=1045031915]
 script = ExtResource("1_o4xvh")
@@ -35,3 +36,14 @@ offset_right = -1223.0
 offset_bottom = -102.0
 
 [node name="TpBar" parent="." unique_id=438257633 instance=ExtResource("5_su3ou")]
+
+[node name="TimerLabel" type="Label" parent="." unique_id=799616018]
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.025
+anchor_right = 0.2
+anchor_bottom = 0.1
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_kqcow")
+theme_override_font_sizes/font_size = 22

@@ -27,6 +27,7 @@ NetworkManager="*uid://bk85boo6f7ln5"
 AbilityRouter="*uid://ryphqnurjury"
 GameServiceLocator="*uid://btt4agmfoo7rx"
 MapRegistry="*uid://dc7fwd2kgom44"
+AudioManager="*uid://cha1sw3egunlu"
 
 [display]
 

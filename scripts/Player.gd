@@ -1,3 +1,4 @@
+# res://scripts/Player.gd
 extends CharacterBody2D
 
 ## Emitida cuando el jugador local usa una habilidad (para actualizar UI)
@@ -27,6 +28,15 @@ func _ready() -> void:
 	if not is_multiplayer_authority():
 		if $Camera2D:
 			$Camera2D.enabled = false
+	else:
+		# ── AQUÍ SE INYECTA EL OÍDO LOCAL ──
+		var listener := AudioListener2D.new()
+		add_child(listener)
+		listener.make_current()
+		
+		# Esperamos un frame para garantizar que character_data ya fue inyectado por el Spawner
+		await get_tree().process_frame
+		_initialize_local_audio_streams()
 
 	# Registrar en servicios al entrar a la partida
 	if multiplayer.is_server():
@@ -181,6 +191,12 @@ func set_character(char_id: int) -> void:
 	health_state   = "alive"
 	add_to_group(data.team)
 	add_to_group("player")
+	
+	# ── ADICIÓN TÁCTICA PARA EL AUDIO ──
+	# Añadir al Killer al grupo para que sea rastreable, y refrescar streams en el AudioManager
+	if data.team == "killer":
+		add_to_group("killers")
+	
 	_setup_collision_layers(data)
 
 	# Registrar TP ahora que tenemos el CharacterData
@@ -222,7 +238,14 @@ func _physics_process(_delta: float) -> void:
 
 	var dir_to_mouse := (get_global_mouse_position() - global_position).normalized()
 	update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
-
+	
+	# ── TRACKER DE AUDIO DE PROXIMIDAD ──
+	# Solo el superviviente local calcula qué tan cerca está el peligro
+	if character_data and character_data.team == "survivor":
+		var killers = get_tree().get_nodes_in_group("killers")
+		if killers.size() > 0 and is_instance_valid(killers[0]):
+			var dist = global_position.distance_to(killers[0].global_position)
+			AudioManager.update_proximities(dist)
 
 func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 	var prefix    := "walk" if is_moving else "idle"
@@ -282,3 +305,21 @@ func _sync_state(new_state: String, new_health: int) -> void:
 			# Fue rescatado — restaurar velocidad normal
 			if character_data:
 				speed = character_data.speed
+				
+func _initialize_local_audio_streams() -> void:
+	if not character_data: return
+	
+	# Si mi personaje local es un Survivor, le mando mi data para registrar mi LMS music
+	if character_data.team == "survivor":
+		# Buscamos al Killer que ya esté spawneado en el mapa para extraer sus canciones
+		var killers = get_tree().get_nodes_in_group("killers")
+		if killers.size() > 0 and is_instance_valid(killers[0]):
+			AudioManager.register_match_character_music(killers[0].character_data, character_data)
+		else:
+			# Si el killer no cargó antes, registramos solo nuestro survivor por ahora
+			AudioManager.register_match_character_music(null, character_data)
+			
+	# Si mi personaje local es el Killer, le mando mis datos de audio al manager
+	elif character_data.team == "killer":
+		add_to_group("killers") # Nos aseguramos de estar en el grupo para que los survivors nos encuentren
+		AudioManager.register_match_character_music(character_data, null)

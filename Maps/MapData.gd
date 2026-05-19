@@ -14,5 +14,7 @@ class_name MapData
 @export var display_name: String = ""
 @export var icon: Texture2D = null
 
+
 # Escena principal del mapa — arrastrá el .tscn desde el FileSystem
 @export var map_scene: PackedScene = null
+@export var map_bgm: AudioStream = null

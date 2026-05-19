@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var ability_bar:  HBoxContainer = $AbilityBar
 # Asumiendo que la TpBar está instanciada en el HUD o dentro del PlayerPanel
 @onready var tp_bar: Control             = find_child("TpBar", true, false)
+@onready var timer_label: Label         = find_child("TimerLabel", true, false)
 
 const PANEL_SLIDE_OFFSET := -80.0
 const SLIDE_DURATION     := 0.15
@@ -120,3 +121,19 @@ func _slide_panel(slide_up: bool) -> void:
 	tw.set_ease(Tween.EASE_OUT)
 	tw.set_trans(Tween.TRANS_QUAD)
 	tw.tween_property(player_panel, "position:y", target_y, SLIDE_DURATION)
+
+func update_timer_display(seconds_left: float) -> void:
+	if not timer_label: return
+	
+	var minutes := int(seconds_left) / 60
+	var seconds := int(seconds_left) % 60
+	
+	# Formatea el texto para que siempre tenga dos dígitos (Ej: "02:05" o "01:30")
+	timer_label.text = "%02d:%02d" % [minutes, seconds]
+	
+	# Estética de tensión: Si quedan 15 segundos o menos, el reloj parpadea/se pone rojo
+	if seconds_left <= 15.0:
+		timer_label.modulate = Color.RED
+		# Opcional: Podrías añadir un efecto de escala sutil aquí si quisieras
+	else:
+		timer_label.modulate = Color.WHITE

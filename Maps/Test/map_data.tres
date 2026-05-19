@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/MapData.gd" id="1_8dnib"]
 [ext_resource type="PackedScene" uid="uid://b84ssskba2436" path="res://Maps/Test/TestMap.tscn" id="1_87aj4"]
 [ext_resource type="Texture2D" uid="uid://dju4or37vmmfe" path="res://Characters/0/assets/Sprites/down2.png" id="1_88b5i"]
+[ext_resource type="AudioStream" uid="uid://cor1ovuylql4t" path="res://Maps/Test/Assets/Deltarune - Scarlet Forest [Orchestral Fusion Remix].mp3" id="2_8a12d"]
 
 [resource]
 script = ExtResource("1_8dnib")
@@ -10,3 +11,4 @@ id = "1"
 display_name = "Test Map"
 icon = ExtResource("1_88b5i")
 map_scene = ExtResource("1_87aj4")
+map_bgm = ExtResource("2_8a12d")

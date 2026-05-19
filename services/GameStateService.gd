@@ -4,8 +4,10 @@ extends Node
 
 var _in_game: bool = false
 
-# Reloj de la partida (Solo procesamiento de Servidor)
-var round_duration: float = 120.0 # 2 minutos por partida
+# Configuración del reloj dinámico
+const BASE_TIME := 90.0         # 1:30 de base
+const TIME_PER_SURVIVOR := 30.0 # +30 segundos por survivor
+
 var time_left: float = 0.0
 var is_match_active: bool = false
 
@@ -15,23 +17,46 @@ func _ready() -> void:
 	print("[GameStateService] Partida activa.")
 	
 	if multiplayer.is_server():
-		time_left = round_duration
-		is_match_active = true
-		print("[GameStateService] Servidor iniciando cronómetro de juego.")
+		# 1. Calcular tiempo inicial según los supervivientes en red
+		var survivor_count := 0
+		for pid in NetworkManager.players:
+			if NetworkManager.players[pid]["assigned_role"] == "survivor":
+				survivor_count += 1
 		
-		# Conectamos diferido para asegurar que HealthService ya esté registrado en el ServiceLocator
+		time_left = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
+		is_match_active = true
+		
+		print("[GameStateService] Survivors detectados: ", survivor_count)
+		print("[GameStateService] Tiempo de ronda calculado: ", time_left, " segundos.")
+		
+		# Conectamos diferido al HealthService
 		call_deferred("_connect_to_health_service")
 
 
 func _process(delta: float) -> void:
-	if not is_match_active or not multiplayer.is_server(): 
-		return
+	if not is_match_active: return
 	
-	# CONDICIÓN 1: El tiempo se agota (Survivors Escapan)
-	time_left -= delta
-	if time_left <= 0:
-		time_left = 0
-		_end_match("survivors_escaped")
+	if multiplayer.is_server():
+		# El servidor procesa el tiempo
+		time_left -= delta
+		if time_left <= 0:
+			time_left = 0
+			is_match_active = false
+			_end_match("survivors_escaped")
+			return
+			
+		# Enviamos el tiempo actualizado a todos
+		_sync_match_timer.rpc(time_left)
+
+
+## CORRECCIÓN DEL HOST: Añadimos "call_local" para que el Servidor también ejecute esta función
+@rpc("authority", "call_local", "unreliable")
+func _sync_match_timer(server_time: float) -> void:
+	time_left = server_time
+	# Buscamos el HUD en la escena actual para actualizar el texto
+	var hud = get_tree().get_first_node_in_group("game_hud")
+	if hud and hud.has_method("update_timer_display"):
+		hud.update_timer_display(time_left)
 
 
 func _exit_tree() -> void:
@@ -40,7 +65,6 @@ func _exit_tree() -> void:
 	print("[GameStateService] Partida terminada (World destruido).")
 
 
-## Devuelve true si hay una partida en curso.
 func is_in_game() -> bool:
 	return _in_game
 
@@ -59,45 +83,59 @@ func _connect_to_health_service() -> void:
 func _on_survivor_died(_dead_peer_id: int) -> void:
 	if not is_match_active or not multiplayer.is_server(): return
 	
-	print("[GameStateService] Reporte de baja recibido. Comprobando sobrevivientes restantes...")
+	print("[GameStateService] Reporte de baja recibido. Comprobando supervivientes restantes...")
 	_check_survivor_deaths()
 
 
-## Verifica si el equipo de supervivientes ha caído por completo basándose en el diccionario de red
+## CORRECCIÓN DE ELIMINACIÓN TOTAL: Comprobación física infalible de nodos vivos en escena
 func _check_survivor_deaths() -> void:
-	var health_svc = GameServiceLocator.get_service("HealthService")
-	if not health_svc: return
-	
-	var active_survivors := 0
-	var dead_survivors := 0
-	
-	# Contamos cuántos supervivientes quedan en los datos de red del NetworkManager
+	# 1. Primero, revisamos si queda algún survivor físicamente conectado en los datos de red
+	var survivors_connected := 0
 	for pid in NetworkManager.players:
-		var role = NetworkManager.players[pid]["assigned_role"]
-		if role == "survivor":
-			active_survivors += 1
-			# Consultamos si el servicio de salud ya lo tiene registrado como muerto definitivo
-			if health_svc.is_dead(pid):
-				dead_survivors += 1
-
-	print("[GameStateService] Conteo actual -> Survivors Conectados: %d | Muertos: %d" % [active_survivors, dead_survivors])
-
-	# CORRECCIÓN: CASO A - Si había supervivientes en la sala pero TODOS se desconectaron de golpe
-	if active_survivors == 0:
-		print("[GameStateService] No quedan supervivientes en la partida. Victoria para el Killer por abandono.")
-		_end_match("killer_elimination") # El Killer gana porque se quedó solo
+		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+			survivors_connected += 1
+			
+	if survivors_connected == 0:
+		print("[GameStateService] Victoria para el Killer: Todos los supervivientes abandonaron.")
+		is_match_active = false
+		_end_match("killer_elimination")
 		return
 
-	# CASO B - Si quedan supervivientes conectados, pero todos ellos están muertos en el mapa
-	if active_survivors > 0 and dead_survivors == active_survivors:
-		print("[GameStateService] Todos los supervivientes conectados han sido eliminados.")
+	# 2. Si hay gente conectada, contamos cuántos personajes supervivientes quedan VIVOS en el mapa
+	var players_in_scene = get_tree().get_nodes_in_group("players")
+	var alive_survivors_in_map := 0
+	
+	for player in players_in_scene:
+		# Verificamos que sea una instancia válida y que tenga los datos de personaje
+		if is_instance_valid(player) and "character_data" in player and player.character_data:
+			if player.character_data.team == "survivor":
+				# Usamos el HealthService para asegurar que su estado no sea "dead"
+				var health_svc = GameServiceLocator.get_service("HealthService")
+				if health_svc:
+					var peer_id = player.get_multiplayer_authority()
+					if not health_svc.is_dead(peer_id):
+						alive_survivors_in_map += 1
+
+	print("[GameStateService] Supervivientes vivos en mapa actual: ", alive_survivors_in_map)
+
+	# ── DISPARADOR RPC DE MÚSICA LMS ──
+	# Si queda exactamente uno solo, el servidor da la orden de encender el LMS BGM
+	if alive_survivors_in_map == 1 and is_match_active:
+		AudioManager.rpc("set_global_music_state", "lms")
+
+	# Si ya no queda NINGÚN superviviente vivo caminando en el mapa, el Killer gana la partida
+	if alive_survivors_in_map == 0:
+		print("[GameStateService] Todos los supervivientes en mapa han sido eliminados. Fin de partida.")
+		is_match_active = false
 		_end_match("killer_elimination")
 
 
 ## Detiene el juego y ordena la migración a la pantalla de estadísticas finales
 func _end_match(reason: String) -> void:
-	is_match_active = false
 	print("[GameStateService] Fin de la partida determinado por el Servidor: ", reason)
+	
+	# ── LIMPIEZA DE AUDIO GLOBAL ──
+	AudioManager.rpc("set_global_music_state", "menu")
 	
 	_calculate_next_killer_points(reason)
 	
@@ -126,22 +164,3 @@ func _calculate_next_killer_points(reason: String) -> void:
 				NetworkManager.players[pid]["killer_points"] += 5
 			else:
 				NetworkManager.players[pid]["killer_points"] += 25
-
-func handle_player_disconnect(abandoned_peer_id: int, role: String) -> void:
-	if not is_match_active or not multiplayer.is_server(): return
-	
-	print("[GameStateService] Alerta: El Peer %d (%s) abandonó la partida en curso." % [abandoned_peer_id, role])
-	
-	# CASO 1: Se salió el Killer -> Fin de partida inmediato (Ganan Survivors)
-	if role == "killer":
-		print("[GameStateService] El Killer abandonó. Cerrando partida por abandono.")
-		_end_match("killer_disconnected")
-		return
-		
-	# CASO 2: Se salió un Survivor -> Reajustamos el HealthService y recalculamos
-	var health_svc = GameServiceLocator.get_service("HealthService")
-	if health_svc:
-		health_svc.unregister(abandoned_peer_id) # Lo quitamos del sistema de salud 
-		
-	# Comprobamos si el abandono de este jugador altera las condiciones de victoria del mapa
-	_check_survivor_deaths()
