@@ -1,7 +1,6 @@
 # res://scripts/Player.gd
 extends CharacterBody2D
 
-## Emitida cuando el jugador local usa una habilidad (para actualizar UI)
 signal ability_used(ability_index: int)
 
 @export var speed = 200
@@ -16,7 +15,6 @@ var last_animation:   String = "idle_down"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
 
-# Dirección de orientación actual — usada por HitboxService para aim_mode "facing"
 var facing: Vector2 = Vector2.RIGHT
 
 
@@ -26,6 +24,14 @@ func _ready() -> void:
 	if not synchronizer:
 		push_error("[Player] No se encontró 'Synchronizer'. Revisa player.tscn")
 
+	# Sincronización de grupos según el rol de red
+	if character_data:
+		add_to_group(character_data.team)
+		if character_data.team == "killer":
+			add_to_group("killer") # Aseguramos consistencia de grupos
+
+	add_to_group("players")
+
 	if not is_multiplayer_authority():
 		if $Camera2D:
 			$Camera2D.enabled = false
@@ -34,28 +40,20 @@ func _ready() -> void:
 		var listener := AudioListener2D.new()
 		add_child(listener)
 		listener.make_current()
-		
-		# Esperamos un frame para garantizar que character_data ya fue inyectado por el Spawner
-		await get_tree().process_frame
-		_initialize_local_audio_streams()
 
-	# Registrar en servicios al entrar a la partida
+	# Registrar en servicios al entrar a la partida (Solo Servidor)
 	if multiplayer.is_server():
 		var hs := GameServiceLocator.get_service("HealthService")
-		if hs:
-			hs.register(self)
+		if hs: hs.register(self)
 		var ss := GameServiceLocator.get_service("StatusEffectService")
-		if ss:
-			ss.register(self)
+		if ss: ss.register(self)
 		var es := GameServiceLocator.get_service("EvolutionService")
-		if es:
-			es.register_player(get_multiplayer_authority())
+		if es: es.register_player(get_multiplayer_authority())
 
 
 # ── Rescate ───────────────────────────────────────────────────────────
 
 func _try_revive() -> void:
-	# Buscar survivor caído en rango
 	var my_data := character_data
 	var _range: float = my_data.revive_range if my_data else 80.0
 
@@ -63,50 +61,41 @@ func _try_revive() -> void:
 	var closest_dist:   float = _range + 1.0
 
 	for player in get_tree().get_nodes_in_group("players"):
-		if player == self:
-			continue
-		if not player.is_in_group("survivor"):
-			continue
-		if player.health_state != "downed":
-			continue
+		if player == self: continue
+		if not player.is_in_group("survivor"): continue
+		if player.health_state != "downed": continue
+		
 		var dist := global_position.distance_to(player.global_position)
 		if dist < closest_dist:
 			closest_dist   = dist
 			closest_target = player
 
-	if not closest_target:
-		return
+	if not closest_target: return
 
 	if multiplayer.is_server():
 		var revive_svc := GameServiceLocator.get_service("ReviveService")
-		if revive_svc:
-			revive_svc.request_revive(self, closest_target)
+		if revive_svc: revive_svc.request_revive(self, closest_target)
 	else:
 		rpc_id(1, "_request_revive", closest_target.get_multiplayer_authority())
 
 
 @rpc("any_peer", "reliable")
 func _request_revive(target_peer_id: int) -> void:
-	# Validar que el que llama es este mismo jugador
 	var caller_id := multiplayer.get_remote_sender_id()
-	if caller_id != get_multiplayer_authority():
-		return
+	if caller_id != get_multiplayer_authority(): return
 
 	var rescuer_node := _get_self_on_server()
 	var target_node  := get_tree().root.find_child(str(target_peer_id), true, false)
-	if not rescuer_node or not target_node:
-		return
+	if not rescuer_node or not target_node: return
 
 	var revive_svc := GameServiceLocator.get_service("ReviveService")
-	if revive_svc:
-		revive_svc.request_revive(rescuer_node, target_node)
+	if revive_svc: revive_svc.request_revive(rescuer_node, target_node)
 
 
 @rpc("any_peer", "reliable")
 func _request_cancel_revive() -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
-	if caller_id != get_multiplayer_authority():
-		return
+	if caller_id != get_multiplayer_authority(): return
 	var revive_svc := GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		revive_svc.cancel_revive(get_multiplayer_authority())
@@ -117,31 +106,27 @@ func _get_self_on_server() -> Node:
 
 
 func _exit_tree() -> void:
-	if multiplayer.is_server():
-		var peer_id := get_multiplayer_authority()
-		var hs := GameServiceLocator.get_service("HealthService")
-		if hs:
-			hs.unregister(peer_id)
-		var ss := GameServiceLocator.get_service("StatusEffectService")
-		if ss:
-			ss.unregister(self)
-		var tp := GameServiceLocator.get_service("TPService")
-		if tp:
-			tp.unregister_player(peer_id)
-		var es := GameServiceLocator.get_service("EvolutionService")
-		if es:
-			es.unregister_player(peer_id)
+	var peer_id : int = -1
+	if multiplayer.multiplayer_peer != null:
+		peer_id = get_multiplayer_authority()
+
+	var hs = GameServiceLocator.get_service("HealthService")
+	if hs and peer_id != -1: hs.unregister(peer_id)
+		
+	var ss = GameServiceLocator.get_service("StatusEffectService")
+	if ss: ss.unregister(self)
+		
+	var tp = GameServiceLocator.get_service("TPService")
+	if tp and peer_id != -1: tp.unregister_player(peer_id)
+		
+	var es = GameServiceLocator.get_service("EvolutionService")
+	if es and peer_id != -1: es.unregister_player(peer_id)
 
 
 func _input(event: InputEvent) -> void:
-	if not is_multiplayer_authority():
-		return
+	if not is_multiplayer_authority(): return
+	if health_state != "alive": return
 
-	# Bloquear habilidades si está caído o muerto
-	if health_state != "alive":
-		return
-
-	# ── Habilidades (slots 0-4) ───────────────────────────────────────
 	var action_map := {
 		"ability_1": 1,
 		"ability_2": 2,
@@ -160,78 +145,58 @@ func _input(event: InputEvent) -> void:
 			ability_used.emit(slot)
 			break
 
-
-	# ── Rescate ───────────────────────────────────────────────────────
 	if event.is_action_pressed("interact"):
 		_try_revive()
 
 	if event.is_action_released("interact"):
-		# Cancelar rescate si se suelta la tecla
 		if multiplayer.is_server():
 			var revive_svc := GameServiceLocator.get_service("ReviveService")
-			if revive_svc:
-				revive_svc.cancel_revive(get_multiplayer_authority())
+			if revive_svc: revive_svc.cancel_revive(get_multiplayer_authority())
 		else:
 			rpc_id(1, "_request_cancel_revive")
 
 
 func set_character(char_id: int) -> void:
 	var data: CharacterData = CharacterRegistry.get_character(char_id)
-	if not data:
-		push_error("[Player] No se encontró CharacterData para ID ", char_id)
-		return
+	if not data: return
 
 	if $AnimatedSprite2D:
 		$AnimatedSprite2D.sprite_frames = data.animation_frames
-	else:
-		push_error("[Player] No hay nodo AnimatedSprite2D")
 
 	speed          = data.speed
 	character_data = data
 	health         = data.max_health
 	health_state   = "alive"
+	
 	add_to_group(data.team)
-	add_to_group("players")
-	
-	# ── ADICIÓN TÁCTICA PARA EL AUDIO ──
-	# Añadir al Killer al grupo para que sea rastreable, y refrescar streams en el AudioManager
 	if data.team == "killer":
-		add_to_group("killers")
-	
+		add_to_group("killer")
+	add_to_group("players")
+		
 	_setup_collision_layers(data)
 
-	# Registrar TP ahora que tenemos el CharacterData
 	if multiplayer.is_server():
 		var tp := GameServiceLocator.get_service("TPService")
-		if tp:
-			tp.register_player(get_multiplayer_authority(), data)
+		if tp: tp.register_player(get_multiplayer_authority(), data)
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
-	# Usar la variable @onready en lugar de get_node_or_null
-	print("[Player] ", name, " hurtbox layer ANTES: ", hurtbox.collision_layer)
-	
 	if data.team == "killer":
 		collision_layer = 4
 		collision_mask  = 1
-		hurtbox.collision_layer = 16   # killer_hurtbox
+		hurtbox.collision_layer = 16
 		hurtbox.collision_mask  = 0
-		print("[Player] ", name, " killer hurtbox layer ASIGNADO: ", hurtbox.collision_layer)
 	else:
 		collision_layer = 2
 		collision_mask  = 1 
-		hurtbox.collision_layer = 8    # survivor_hurtbox
+		hurtbox.collision_layer = 8
 		hurtbox.collision_mask  = 0
-		print("[Player] ", name, " survivor hurtbox layer ASIGNADO: ", hurtbox.collision_layer)
 
 
 func _physics_process(_delta: float) -> void:
-	if not multiplayer.multiplayer_peer:
-		return
-	if not is_multiplayer_authority():
-		return
-	if health_state == "dead":
-		return
+	if not multiplayer.multiplayer_peer: return
+	if not is_multiplayer_authority(): return
+	if health_state == "dead": return
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = input_dir * speed
@@ -240,13 +205,10 @@ func _physics_process(_delta: float) -> void:
 	var dir_to_mouse := (get_global_mouse_position() - global_position).normalized()
 	update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
 	
-	# ── TRACKER DE AUDIO DE PROXIMIDAD ──
-	# Solo el superviviente local calcula qué tan cerca está el peligro
-	if character_data and character_data.team == "survivor":
-		var killers = get_tree().get_nodes_in_group("killers")
-		if killers.size() > 0 and is_instance_valid(killers[0]):
-			var dist = global_position.distance_to(killers[0].global_position)
-			AudioManager.update_proximities(dist)
+	# ── LLAMADA COMPATIBLE AL TRACKER DE AUDIO ──
+	# Simplemente le notificamos al mánager que procese distancias
+	AudioManager.update_proximities()
+
 
 func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 	var prefix    := "walk" if is_moving else "idle"
@@ -273,54 +235,23 @@ func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 func _sync_health(new_health: int, new_invincible_until: int) -> void:
 	health           = new_health
 	invincible_until = new_invincible_until
-	print("[Player] ", name, " | vida: ", health)
 
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_speed(new_speed: float) -> void:
 	speed = new_speed
-	print("[Player] ", name, " | velocidad: ", speed)
 
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_effect(effect_name: String, active: bool) -> void:
-	# TODO: efectos visuales (flash, color, icono de estado)
-	print("[Player] ", name, " | efecto: ", effect_name, " activo: ", active)
+	pass
 
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_state(new_state: String, new_health: int) -> void:
 	health_state = new_state
 	health       = new_health
-	print("[Player] ", name, " | estado: ", health_state)
 
 	match new_state:
-		"downed":
-			# El StatusEffectService aplicará el slow cuando esté listo.
-			# Por ahora solo bloqueamos habilidades (ya lo hace _input).
-			pass
-		"dead":
-			# TODO: activar modo espectador
-			pass
 		"alive":
-			# Fue rescatado — restaurar velocidad normal
-			if character_data:
-				speed = character_data.speed
-				
-func _initialize_local_audio_streams() -> void:
-	if not character_data: return
-	
-	# Si mi personaje local es un Survivor, le mando mi data para registrar mi LMS music
-	if character_data.team == "survivor":
-		# Buscamos al Killer que ya esté spawneado en el mapa para extraer sus canciones
-		var killers = get_tree().get_nodes_in_group("killers")
-		if killers.size() > 0 and is_instance_valid(killers[0]):
-			AudioManager.register_match_character_music(killers[0].character_data, character_data)
-		else:
-			# Si el killer no cargó antes, registramos solo nuestro survivor por ahora
-			AudioManager.register_match_character_music(null, character_data)
-			
-	# Si mi personaje local es el Killer, le mando mis datos de audio al manager
-	elif character_data.team == "killer":
-		add_to_group("killers") # Nos aseguramos de estar en el grupo para que los survivors nos encuentren
-		AudioManager.register_match_character_music(character_data, null)
+			if character_data: speed = character_data.speed

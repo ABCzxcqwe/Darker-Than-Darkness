@@ -1,20 +1,15 @@
 # res://Maps/MapData.gd
-# Resource que describe un mapa disponible en el juego.
-# Convención: cada mapa vive en su propia carpeta:
-#   res://Maps/NombreDelMapa/map_data.tres
-#   res://Maps/NombreDelMapa/nombre_del_mapa.tscn
 extends Resource
 class_name MapData
 
-# Identificador único del mapa — debe ser único entre todos los mapas.
-# Se usa como clave en GameData.selected_map y MapRegistry.
-# Ejemplo: "forest_map", "city_ruins", "abandoned_lab"
 @export var id: String = ""
-
 @export var display_name: String = ""
 @export var icon: Texture2D = null
-
-
-# Escena principal del mapa — arrastrá el .tscn desde el FileSystem
 @export var map_scene: PackedScene = null
+
+@export_group("Audio del Mapa")
+## Música de fondo estándar al iniciar la partida.
 @export var map_bgm: AudioStream = null
+
+## Pista que sonará cuando quede 1 minuto en el temporizador o las salidas estén abiertas.
+@export var final_phase_music: AudioStream = null

@@ -24,7 +24,10 @@ var _last_speed: Dictionary = {}
 
 
 func _process(delta: float) -> void:
-	if not multiplayer.is_server():
+# ── COMPUERTA DE SEGURIDAD ──
+	if multiplayer.multiplayer_peer == null:
+		return
+	if multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		return
 	for peer_id in _effects.keys().duplicate():
 		var changed := false

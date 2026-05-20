@@ -15,4 +15,4 @@ bus = &"Alert Music"
 bus = &"Chase Music"
 
 [node name="LMSMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1276790935]
-bus = &"Alert Music"
+bus = &"LMS Music"

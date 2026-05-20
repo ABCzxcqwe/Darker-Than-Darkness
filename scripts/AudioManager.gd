@@ -1,270 +1,258 @@
 # res://scripts/AudioManager.gd
+# Autoload Global de Audio — Adaptado para recibir música dinámica de mapas y personajes.
 extends Node
 
-# Si los nodos ya existen (porque la escena los tiene), se usan; si no, se crean.
-var map_player: AudioStreamPlayer
-var terror_player: AudioStreamPlayer
-var chase_player: AudioStreamPlayer
-var lms_player: AudioStreamPlayer
-
-const FADE_DURATION: float = 1.0
-const CROSSFADE_ZONE: float = 50.0
-
-var current_terror_stream: AudioStream = null
-var current_chase_stream: AudioStream = null
-var current_lms_stream: AudioStream = null
-
-var _previous_state: String = ""
 var current_global_state: String = "menu"
 
-var killer_terror_radius: float = 400.0
-var killer_chase_radius: float = 200.0
+# Nodos reales de tu escena (.tscn)
+@onready var map_music_player: AudioStreamPlayer = $MapMusicPlayer
+@onready var terror_music_player: AudioStreamPlayer = $TerrorMusicPlayer
+@onready var chase_music_player: AudioStreamPlayer = $ChaseMusicPlayer
+@onready var lms_music_player: AudioStreamPlayer = $LMSMusicPlayer
 
-# Cache del jugador local
-var cached_local_player: Node2D = null
+# Variables de rastreo local
 var cached_local_player_id: int = -1
+var cached_local_player: Node = null
+var lms_bloqueo_activo: bool = false # Interruptor maestro para silenciar el mapa de raíz
+
+# Configuración de transición (Lerp)
+const FADE_SPEED := 4.5 # Un poco más rápido para transiciones más agresivas en LMS
+const MIN_DB := -80.0
+const MAX_DB := 0.0
+
+# Radios de acción (Ajustables)
+const TERROR_RADIUS := 500.0
+const CHASE_RADIUS := 200.0
+
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	# Buscar o crear los AudioStreamPlayer
-	map_player = _get_or_create_player("MapMusicPlayer")
-	terror_player = _get_or_create_player("TerrorMusicPlayer")
-	chase_player = _get_or_create_player("ChaseMusicPlayer")
-	lms_player = _get_or_create_player("LMSMusicPlayer")
-	print("[AudioManager] Inicializado.")
+	if DisplayServer.get_name() == "headless":
+		set_process(false)
+		return
 
-# Helper: obtiene el nodo hijo si existe, o lo crea
-func _get_or_create_player(name: String) -> AudioStreamPlayer:
-	var player = get_node_or_null(name)
-	if not player:
-		player = AudioStreamPlayer.new()
-		player.name = name
-		add_child(player)
-	return player
 
-func setup_map_audio(map_id: String) -> void:
-	stop_all()
-	current_global_state = "map"
+func _process(delta: float) -> void:
+	# ── 1. COMPUERTA DEFENSIVA DE RED ──
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
+		_silence_all_match_audio(delta)
+		return
+		
+	if current_global_state == "menu" or current_global_state == "lobby":
+		_silence_all_match_audio(delta)
+		return
+	# ───────────────────────────────────
+
+	# ── 2. ASIGNACIÓN SEGURA DEL JUGADOR LOCAL ──
+	if cached_local_player_id == -1:
+		cached_local_player_id = multiplayer.get_unique_id()
+		
+	if not is_instance_valid(cached_local_player):
+		cached_local_player = _find_player_node_by_peer_id(cached_local_player_id)
+		return 
+	# ────────────────────────────────────────────
+
+	# ── 3. CÁLCULO DINÁMICO DE DISTANCIAS ──
+	_update_proximities_from_local(cached_local_player, delta)
+
+
+# =======================================================================
+# API PÚBLICA: INYECCIÓN DE AUDIO DESDE MAPAS Y PERSONAJES
+# =======================================================================
+
+func set_character_threat_audio(terror_stream: AudioStream, chase_stream: AudioStream) -> void:
+	if terror_music_player: terror_music_player.stream = terror_stream
+	if chase_music_player: chase_music_player.stream = chase_stream
+	print("[AudioManager] Audio de peligro inyectado correctamente por el personaje.")
+
+
+# =======================================================================
+# LÓGICA DE PROXIMIDAD Y MEZCLA DE AUDIO (CLIENTE)
+# =======================================================================
+
+func _update_proximities_from_local(local_player: Node, delta: float) -> void:
+	var killers = get_tree().get_nodes_in_group("killer")
+	var survivors = get_tree().get_nodes_in_group("survivor")
 	
-	var map_data: MapData = MapRegistry.get_map(map_id)
-	if map_data and map_data.map_bgm != null:
-		print("[AUDIO TEST] Reproduciendo música de mapa: ", map_data.map_bgm.resource_path)
-		map_player.stream = map_data.map_bgm
-		map_player.volume_db = -80.0
-		map_player.play()
-		create_tween().tween_property(map_player, "volume_db", 0.0, FADE_DURATION)
+	var usando_lms: bool = (survivors.size() <= 1 and lms_music_player.stream != null)
+	
+	# ── PRIORIDAD ABSOLUTA PARA LMS ──
+	# Nota: cuando lms_bloqueo_activo es true, los streams de mapa/terror/chase
+	# ya fueron descargados (null) por activate_lms_audio, así que _smooth_fade
+	# no puede reactivarlos. Solo nos ocupamos del player LMS aquí.
+	if usando_lms or lms_bloqueo_activo:
+		if lms_music_player.stream and not lms_music_player.playing:
+			lms_music_player.volume_db = MAX_DB
+			lms_music_player.play()
+			print("[AUDIO DEBUG] LMS iniciado con éxito en proceso continuo.")
+		return
+	# ─────────────────────────────────
+
+	# LÓGICA NORMAL DE LA PARTIDA
+	if lms_music_player.playing:
+		lms_music_player.stop()
+
+	if killers.size() == 0:
+		_smooth_fade(terror_music_player, MIN_DB, delta)
+		_smooth_fade(chase_music_player, MIN_DB, delta)
+		_smooth_fade(map_music_player, MAX_DB, delta)
+		return
+		
+	var killer_node = killers[0]
+	if not is_instance_valid(killer_node): return
+		
+	var distance: float = local_player.global_position.distance_to(killer_node.global_position)
+	
+	if distance <= CHASE_RADIUS:
+		_smooth_fade(chase_music_player, MAX_DB, delta)
+		_smooth_fade(terror_music_player, -6.0, delta)
+		_smooth_fade(map_music_player, -15.0, delta) 
+	elif distance <= TERROR_RADIUS:
+		var factor: float = 1.0 - ((distance - CHASE_RADIUS) / (TERROR_RADIUS - CHASE_RADIUS))
+		var target_db := lerpf(MIN_DB + 20.0, MAX_DB, factor) 
+		
+		_smooth_fade(terror_music_player, target_db, delta)
+		_smooth_fade(chase_music_player, MIN_DB, delta) 
+		_smooth_fade(map_music_player, lerpf(MAX_DB, -10.0, factor), delta)
 	else:
-		print("[AudioManager] ADVERTENCIA: El mapa '", map_id, "' no tiene map_bgm asignado.")
+		_smooth_fade(terror_music_player, MIN_DB, delta)
+		_smooth_fade(chase_music_player, MIN_DB, delta)
+		_smooth_fade(map_music_player, MAX_DB, delta)
 
-func register_match_character_music(killer_data: CharacterData, local_survivor_data: CharacterData = null) -> void:
-	if killer_data and is_instance_valid(killer_data):
-		current_terror_stream = killer_data.terror_music
-		current_chase_stream = killer_data.chase_music
-		killer_terror_radius = killer_data.terror_radius
-		killer_chase_radius = killer_data.chase_radius
+
+func _smooth_fade(player: AudioStreamPlayer, target_db: float, delta: float) -> void:
+	if player.stream == null: return
 		
-		if current_terror_stream != null:
-			terror_player.stream = current_terror_stream
-		else:
-			terror_player.stream = null
-			_stop_player(terror_player)
+	if not player.playing and target_db > MIN_DB:
+		player.play()
+		player.volume_db = MIN_DB 
 		
-		if current_chase_stream != null:
-			chase_player.stream = current_chase_stream
-		else:
-			chase_player.stream = null
-			_stop_player(chase_player)
-		
-	if local_survivor_data and is_instance_valid(local_survivor_data):
-		current_lms_stream = local_survivor_data.lms_music
-		if current_lms_stream != null:
-			lms_player.stream = current_lms_stream
-			print("[AudioManager] LMS music cargado: ", current_lms_stream.resource_path)
-		else:
-			lms_player.stream = null
-			push_error("[AudioManager] LMS music es null para survivor ", local_survivor_data.display_name)
-
-# IMPORTANTE: El servidor replica el estado a todos los clientes
-@rpc("authority", "reliable")
-func set_global_music_state(new_state: String) -> void:
-	print("[AudioManager] set_global_music_state llamado en peer ", multiplayer.get_unique_id(), " con estado: ", new_state)
-	if current_global_state == new_state:
-		return
+	player.volume_db = lerpf(player.volume_db, target_db, FADE_SPEED * delta)
 	
-	_previous_state = current_global_state
-	current_global_state = new_state
-	
-	match current_global_state:
-		"lms":
-			# Asegurar que el LMS tenga stream
-			if lms_player.stream == null:
-				push_error("[AudioManager] No se puede activar LMS: lms_player sin stream")
-				return
-			_fade_between(lms_player, [map_player, terror_player, chase_player])
-		"menu":
-			stop_all()
-		"map":
-			_restore_normal_music()
-
-# Permite salir del modo LMS (llamado desde el servidor cuando termina)
-func exit_lms() -> void:
-	if current_global_state == "lms":
-		set_global_music_state(_previous_state if _previous_state != "" else "map")
-
-func _restore_normal_music() -> void:
-	# Reanudar música de mapa si no está sonando
-	if not map_player.playing and map_player.stream:
-		map_player.volume_db = -80.0
-		map_player.play()
-		create_tween().tween_property(map_player, "volume_db", 0.0, FADE_DURATION)
-
-func update_proximities(distance: float) -> void:
-	if current_global_state != "map":
-		return
-	
-	if distance <= killer_chase_radius:
-		var t = 1.0 - (distance / killer_chase_radius)
-		_mix_two_players(chase_player, terror_player, t, map_player)
-	elif distance <= killer_terror_radius:
-		var d = distance - killer_chase_radius
-		var range_total = killer_terror_radius - killer_chase_radius
-		var t = 1.0 - (d / range_total)
-		_mix_two_players(terror_player, chase_player, t, map_player)
-	else:
-		_fade_out_player_smooth(map_player, 0.0)
-		_fade_out_player_smooth(terror_player, -80.0, true)
-		_fade_out_player_smooth(chase_player, -80.0, true)
-
-func _mix_two_players(active: AudioStreamPlayer, secondary: AudioStreamPlayer, t: float, map_p: AudioStreamPlayer) -> void:
-	if active.stream == null:
-		_fade_out_player_smooth(active, -80.0, true)
-		return
-	
-	if not active.playing:
-		active.volume_db = -80.0
-		active.play()
-	
-	var target_active_vol = lerp(-20.0, 0.0, t)
-	active.volume_db = lerp(active.volume_db, target_active_vol, 0.2)
-	
-	if secondary.stream != null and secondary.playing:
-		var target_secondary_vol = lerp(0.0, -80.0, t)
-		secondary.volume_db = lerp(secondary.volume_db, target_secondary_vol, 0.2)
-		if secondary.volume_db <= -70.0:
-			secondary.stop()
-	
-	var target_map_vol = lerp(0.0, -25.0, t)
-	map_p.volume_db = lerp(map_p.volume_db, target_map_vol, 0.1)
-
-func _fade_out_player_smooth(player: AudioStreamPlayer, target_db: float = -80.0, stop_when_done: bool = true) -> void:
-	if not player.playing:
-		return
-	var tween = create_tween()
-	tween.tween_property(player, "volume_db", target_db, FADE_DURATION)
-	if stop_when_done:
-		tween.tween_callback(_stop_player.bind(player))
-
-func _stop_player(player: AudioStreamPlayer) -> void:
-	if player.playing:
+	if player.playing and player.volume_db <= MIN_DB + 1.0:
 		player.stop()
 
-func _fade_between(active_player: AudioStreamPlayer, inactive_players: Array) -> void:
-	if active_player.stream == null:
-		push_error("[AudioManager] _fade_between: active_player sin stream")
-		return
-	# Verificar que el stream tenga archivo (evita error de MP3 vacío)
-	if active_player.stream is AudioStreamMP3 and active_player.stream.resource_path.is_empty():
-		push_error("[AudioManager] El stream de LMS no tiene archivo asignado.")
-		return
-	
-	var tween = create_tween()
-	tween.set_parallel(true)  # IMPORTANTE: todos los fades al mismo tiempo
-	
-	# Activo: asegurar que suene y subir volumen a 0 dB
-	if not active_player.playing:
-		active_player.volume_db = -80.0
-		active_player.play()
-	tween.tween_property(active_player, "volume_db", 0.0, FADE_DURATION)
-	
-	# Inactivos: bajar volumen a -80 dB
-	for player in inactive_players:
-		if player.playing:  # solo si está sonando (evita errores)
-			tween.tween_property(player, "volume_db", -80.0, FADE_DURATION)
-	
-	# Al terminar todos los fades, detener los que estén en silencio
-	tween.finished.connect(func():
-		for player in inactive_players:
-			if player.playing and player.volume_db <= -70.0:
-				player.stop()
-	)
+
+# =======================================================================
+# CONTROL DE ESTADOS GLOBALES Y FLUJO
+# =======================================================================
+
+func activate_lms_audio() -> void:
+	lms_bloqueo_activo = true
+
+	# Detenemos y descargamos los streams para que _smooth_fade no pueda reactivarlos
+	if map_music_player:
+		map_music_player.stop()
+		map_music_player.stream = null
+	if terror_music_player:
+		terror_music_player.stop()
+		terror_music_player.stream = null
+	if chase_music_player:
+		chase_music_player.stop()
+		chase_music_player.stream = null
+
+	if lms_music_player and lms_music_player.stream and not lms_music_player.playing:
+		lms_music_player.volume_db = MAX_DB
+		lms_music_player.play()
 
 
-func stop_all() -> void:
-	for player in [map_player, terror_player, chase_player, lms_player]:
-		if player.playing:
-			player.stop()
+@rpc("authority", "call_local", "reliable")
+func _rpc_activate_lms_audio() -> void:
+	activate_lms_audio()
 
-func _process(_delta: float) -> void:
-	if current_global_state != "map":
-		return
-	
-	var multiplayer_instance = multiplayer
-	if not multiplayer_instance:
-		var local = get_tree().root.find_child("LocalPlayer", true, false)
-		if local and is_instance_valid(local):
-			_update_proximities_from_local(local)
-		return
-	
-	var local_peer_id: int = multiplayer_instance.get_unique_id()
-	
-	if cached_local_player_id != local_peer_id or not is_instance_valid(cached_local_player):
-		cached_local_player_id = local_peer_id
-		cached_local_player = _find_player_node_by_peer_id(local_peer_id)
-	
-	if not is_instance_valid(cached_local_player):
-		return
-	
-	if cached_local_player.has_method("get_character_data") or "character_data" in cached_local_player:
-		var char_data = cached_local_player.character_data if "character_data" in cached_local_player else null
-		if char_data and char_data.team == "killer":
-			return
-	
-	var killer_node: Node2D = null
-	for p in get_tree().get_nodes_in_group("players"):
-		if p is Node2D and "character_data" in p and p.character_data and p.character_data.team == "killer":
-			killer_node = p
-			break
-	
-	if killer_node and is_instance_valid(killer_node):
-		var distance: float = cached_local_player.global_position.distance_to(killer_node.global_position)
-		update_proximities(distance)
-	else:
-		_fade_out_player_smooth(terror_player, -80.0, true)
-		_fade_out_player_smooth(chase_player, -80.0, true)
 
-func _find_player_node_by_peer_id(peer_id: int) -> Node2D:
-	for node in get_tree().get_nodes_in_group("players"):
-		if node.name == str(peer_id):
-			return node
-		if node.has_meta("peer_id") and node.get_meta("peer_id") == peer_id:
-			return node
+@rpc("authority", "call_local", "reliable")
+func _rpc_deactivate_lms_audio() -> void:
+	lms_bloqueo_activo = false
+
+	if lms_music_player.playing:
+		lms_music_player.stop()
+
+	# Restauramos el stream del mapa desde el registro para que pueda sonar de nuevo
+	var map_id: String = GameData.selected_map if "selected_map" in GameData else ""
+	if map_id != "":
+		var map_data = MapRegistry.get_map(map_id) as MapData
+		if map_data and map_music_player:
+			map_music_player.stream = map_data.map_bgm
+			map_music_player.volume_db = MAX_DB
+			map_music_player.play()
+
+
+func change_audio_state(new_state: String) -> void:
+	current_global_state = new_state
+	print("[AudioManager] Estado cambiado a: ", new_state)
+	
+	if new_state == "ingame" and not lms_bloqueo_activo:
+		if map_music_player.stream and not map_music_player.playing: 
+			map_music_player.play()
+
+
+func _silence_all_match_audio(delta: float) -> void:
+	lms_bloqueo_activo = false
+	_smooth_fade(map_music_player, MIN_DB, delta)
+	_smooth_fade(terror_music_player, MIN_DB, delta)
+	_smooth_fade(chase_music_player, MIN_DB, delta)
+	_smooth_fade(lms_music_player, MIN_DB, delta)
+
+
+func _find_player_node_by_peer_id(peer_id: int) -> Node:
+	var root_scene = get_tree().current_scene
+	if root_scene:
+		return root_scene.find_child(str(peer_id), true, false)
 	return null
 
-func _update_proximities_from_local(local_player: Node2D) -> void:
-	if not local_player or not is_instance_valid(local_player):
-		return
-	if local_player.has_method("get_character_data") or "character_data" in local_player:
-		var char_data = local_player.character_data if "character_data" in local_player else null
-		if char_data and char_data.team == "killer":
-			return
-	var killer_node: Node2D = null
-	for p in get_tree().get_nodes_in_group("players"):
-		if p is Node2D and "character_data" in p and p.character_data and p.character_data.team == "killer":
-			killer_node = p
-			break
-	if killer_node:
-		var distance = local_player.global_position.distance_to(killer_node.global_position)
-		update_proximities(distance)
+func update_proximities(_optional_dist = null) -> void:
+	if is_instance_valid(cached_local_player):
+		_update_proximities_from_local(cached_local_player, 0.016)
+
+func register_match_character_music(killer_terror: AudioStream, killer_chase: AudioStream, survivor_lms: AudioStream) -> void:
+	set_character_threat_audio(killer_terror, killer_chase)
+
+	if lms_music_player and survivor_lms:
+		lms_music_player.stream = survivor_lms
+
+	if current_global_state == "ingame":
+		_verificar_y_reproducir_base()
+
+
+func setup_map_audio(map_id: String) -> void:
+	if map_id == "": return
+	var map_data = MapRegistry.get_map(map_id) as MapData
+	if not map_data: return
+
+	if map_music_player:
+		map_music_player.stream = map_data.map_bgm
+
+	setup_map_audio_finish()
+
+
+func setup_map_audio_finish() -> void:
+	change_audio_state("ingame")
+	_verificar_y_reproducir_base()
+
+
+func _verificar_y_reproducir_base() -> void:
+	var survivors = get_tree().get_nodes_in_group("survivor")
+	
+	if survivors.size() <= 1 and lms_music_player and lms_music_player.stream:
+		activate_lms_audio()
 	else:
-		_fade_out_player_smooth(terror_player, -80.0, true)
-		_fade_out_player_smooth(chase_player, -80.0, true)
+		lms_bloqueo_activo = false
+		if lms_music_player.playing:
+			lms_music_player.stop()
+		
+		if map_music_player and map_music_player.stream and not map_music_player.playing:
+			map_music_player.play()
+			map_music_player.volume_db = MAX_DB
+
+
+func activar_fase_final_del_mapa() -> void:
+	var map_id: String = GameData.selected_map if "selected_map" in GameData else "1"
+	var map_data = MapRegistry.get_map(map_id) as MapData
+	
+	if map_data and map_data.final_phase_music and map_music_player:
+		map_music_player.stream = map_data.final_phase_music
+		
+		if not lms_bloqueo_activo:
+			map_music_player.play()
+			map_music_player.volume_db = MAX_DB
+			print("[AudioManager] Transición: Sonando música de escape del mapa.")

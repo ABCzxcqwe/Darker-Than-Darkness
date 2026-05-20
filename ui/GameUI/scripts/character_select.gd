@@ -6,7 +6,7 @@ extends Control
 @onready var options_container: GridContainer = $CharacterOptionsContainer
 @onready var selections_list: ItemList = $PlayerSelectionsList
 
-var time_left: int = 30
+var time_left: int = 10
 var local_role: String = "survivor"
 var available_char_ids: Array[int] = []
 var selected_char_id: int = -1

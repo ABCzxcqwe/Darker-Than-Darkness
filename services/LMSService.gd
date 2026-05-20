@@ -95,8 +95,8 @@ func _activate_lms(survivor: Node) -> void:
 	_duration_timer.timeout.connect(_deactivate_lms)
 	
 	if _audio_manager:
-		_audio_manager.set_global_music_state("lms")
-	
+		_audio_manager.rpc("_rpc_activate_lms_audio")
+
 	lms_activated.emit(survivor, lms_duration)
 
 
@@ -114,10 +114,10 @@ func _deactivate_lms() -> void:
 	if active_survivor and is_instance_valid(active_survivor) and _status_service:
 		_status_service.remove_modifier(active_survivor, "lms_damage_resistance")
 	
-	# Restaurar música normal
+	# Restaurar música normal en todos los clientes
 	if _audio_manager:
-		_audio_manager.exit_lms()
-	
+		_audio_manager.rpc("_rpc_deactivate_lms_audio")
+
 	is_active = false
 	active_survivor = null
 	lms_ended.emit()

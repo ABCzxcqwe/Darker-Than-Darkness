@@ -1,44 +1,35 @@
-# CooldownService.gd
+# res://services/CooldownService.gd
 # Gestiona cooldowns por jugador y por nombre de habilidad.
-# Corre SOLO en el servidor. Al iniciar un cooldown notifica
-# automáticamente al cliente via RPC para que el HUD lo refleje.
-#
-# Uso (desde un script de habilidad):
-#   var cd := GameServiceLocator.get_service("CooldownService")
-#   cd.start(peer_id, "SlashAbility", 15.0)          # cooldown fijo
-#   cd.start(peer_id, "SlashAbility", duracion_var)   # cooldown variable
-#
-# El cliente NO necesita llamar a start() — recibe _rpc_cooldown_started()
-# automáticamente y AbilityButton lo toma desde ahí.
+# La lógica de control corre SOLO en el servidor. Al iniciar un cooldown,
+# notifica automáticamente al cliente vía RPC para que su HUD local lo refleje.
 extends Node
 
 # { peer_id: { ability_name: expiry_timestamp_ms } }
 var _cooldowns: Dictionary = {}
 
 
-# ── API pública ────────────────────────────────────────────────────────
+# ── API PÚBLICA (SOLO SERVIDOR) ────────────────────────────────────────
 
 ## Inicia el cooldown de una habilidad para un jugador.
 ## duration en segundos — puede ser cualquier valor, lo decide la habilidad.
 ## slot_index es necesario para que el HUD sepa qué botón actualizar.
 func start(peer_id: int, ability_name: String, duration: float, slot_index: int = -1) -> void:
+	if not multiplayer.is_server():
+		return
+		
 	if not _cooldowns.has(peer_id):
 		_cooldowns[peer_id] = {}
+		
 	var expiry := Time.get_ticks_msec() + int(duration * 1000)
 	_cooldowns[peer_id][ability_name] = expiry
 
-	print("[CooldownService] ", peer_id, " | ", ability_name,
-		  " | slot: ", slot_index, " | cooldown: ", duration, "s")
-
-	# Notificar al cliente para que el HUD muestre el cooldown
-	if multiplayer.is_server() and peer_id != 1:
-		rpc_id(peer_id, "_rpc_cooldown_started", ability_name, slot_index, duration)
-	elif multiplayer.is_server() and peer_id == 1:
-		# El servidor es también cliente local (peer 1 = host)
-		_rpc_cooldown_started(ability_name, slot_index, duration)
+	print("[CooldownService] Cooldown iniciado -> Peer: ", peer_id, " | Habilidad: ", ability_name, " | Slot: ", slot_index, " | Duración: ", duration, "s")
+	
+	# Enviamos la señal visual de forma segura únicamente al cliente que le corresponde
+	rpc_id(peer_id, "_rpc_cooldown_started", ability_name, slot_index, duration)
 
 
-## Devuelve true si la habilidad está lista (sin cooldown activo).
+## Devuelve true si la habilidad está lista para usarse (el cooldown expiró o no existe).
 func is_ready(peer_id: int, ability_name: String) -> bool:
 	if not _cooldowns.has(peer_id):
 		return true
@@ -52,36 +43,60 @@ func get_remaining(peer_id: int, ability_name: String) -> float:
 	if is_ready(peer_id, ability_name):
 		return 0.0
 	var remaining_ms: int = _cooldowns[peer_id][ability_name] - Time.get_ticks_msec()
-	return remaining_ms / 1000.0
+	return maxf(remaining_ms / 1000.0, 0.0)
 
 
-## Limpia todos los cooldowns de un jugador (útil al morir o salir).
+## Limpia todos los cooldowns de un jugador (útil al desconectarse o morir).
 func clear_player(peer_id: int) -> void:
-	_cooldowns.erase(peer_id)
-	print("[CooldownService] Cooldowns limpiados para peer ", peer_id)
+	if _cooldowns.has(peer_id):
+		_cooldowns.erase(peer_id)
+		print("[CooldownService] Cooldowns limpiados en el servidor para peer: ", peer_id)
 
 
-## Limpia todo al destruirse el World.
+## Limpia todo al destruirse el servicio.
 func _exit_tree() -> void:
 	_cooldowns.clear()
-	print("[CooldownService] Limpiado.")
+	print("[CooldownService] Destruido y memoria liberada.")
 
 
-# ── RPC al cliente ─────────────────────────────────────────────────────
+# ── RPC AL CLIENTE (PROTEGIDO CONTRA HEADLESS) ──────────────────────────
 
-## Recibido en el CLIENTE. Le dice al HUD que inicie el cooldown visual.
-## ability_name y slot_index identifican el botón. duration es la duración real.
-@rpc("authority", "reliable")
+## Recibido en el CLIENTE correspondiente. Le dice a su HUD que inicie la animación.
+@rpc("authority", "call_local", "reliable")
 func _rpc_cooldown_started(ability_name: String, slot_index: int, duration: float) -> void:
-	# Buscar el HUD activo en la escena local
+	# COMPUERTA CRÍTICA: Si este código se intenta ejecutar en un servidor dedicado sin UI, abortamos.
+	if multiplayer.is_server() and DisplayServer.get_name() == "headless":
+		return
+
+	# Buscar el HUD activo en la escena local de este cliente
 	var hud := _find_local_hud()
-	if hud and hud.has_method("on_cooldown_started"):
-		hud.on_cooldown_started(ability_name, slot_index, duration)
+	if hud:
+		if hud.has_method("start_cooldown"):
+			hud.start_cooldown(ability_name, slot_index, duration)
+		else:
+			# Fallback por si tus botones de habilidad escuchan directamente de forma individual
+			var btn = hud.find_child("AbilityButton_" + str(slot_index), true, false)
+			if btn and btn.has_method("start_cooldown"):
+				btn.start_cooldown(duration)
+	else:
+		push_warning("[CooldownService] RPC recibido en cliente, pero no se encontró el HUD local en el árbol.")
 
 
+## Helper para localizar la interfaz sin generar dependencias duras en el servidor
 func _find_local_hud() -> Node:
-	# El HUD se llama "GameHud" y está en el árbol principal
-	var results := get_tree().get_nodes_in_group("game_hud")
-	if results.size() > 0:
-		return results[0]
-	return null
+	# Buscamos en el árbol de manera dinámica (solo clientes llegarán aquí)
+	var current_scene = get_tree().current_scene
+	if not current_scene:
+		return null
+		
+	# Opción A: Buscar por grupo (la más recomendada y óptima)
+	var huds = get_tree().get_nodes_in_group("hud")
+	if huds.size() > 0:
+		return huds[0]
+		
+	# Opción B: Fallback por nombre directo en la raíz de la escena actual
+	var hud_node = current_scene.find_child("UI", true, false)
+	if not hud_node:
+		hud_node = current_scene.find_child("HUD", true, false)
+		
+	return hud_node

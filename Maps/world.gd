@@ -134,21 +134,19 @@ func _sync_start_match_audio(map_id: String) -> void:
 	AudioManager.setup_map_audio(map_id)
 	
 	# 2. Buscamos los roles de los peers usando el grupo global de jugadores
-	var local_peer_id: int = multiplayer.get_unique_id()
 	var killer_node: Node2D = null
-	var survivor_node: Node2D = null
-	
-	# Recorremos los jugadores usando el grupo (es mucho más seguro que get_children())
-	var players_nodes := get_tree().get_nodes_in_group("players")
-	for p in players_nodes:
+	var any_survivor_node: Node2D = null
+
+	for p in get_tree().get_nodes_in_group("players"):
 		if "character_data" in p and p.character_data:
 			if p.character_data.team == "killer":
 				killer_node = p
-			elif p.name == str(local_peer_id):
-				survivor_node = p
+			elif any_survivor_node == null:
+				any_survivor_node = p
 
-	# 3. Registramos los recursos musicales en el manager de audio
-	var killer_data = killer_node.character_data if killer_node else null
-	var survivor_data = survivor_node.character_data if survivor_node else null
-	
-	AudioManager.register_match_character_music(killer_data, survivor_data)
+	# 3. Extraemos los streams directamente y los pasamos al AudioManager
+	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null
+	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
+	var lms_stream: AudioStream    = any_survivor_node.character_data.lms_music if any_survivor_node else null
+
+	AudioManager.register_match_character_music(terror_stream, chase_stream, lms_stream)
