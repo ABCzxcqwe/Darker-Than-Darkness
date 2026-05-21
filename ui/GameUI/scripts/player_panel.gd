@@ -17,9 +17,9 @@
 extends PanelContainer
 
 @onready var icon_rect:   TextureRect = $HBoxContainer/IconRect
-@onready var name_label:  Label       = $HBoxContainer/InfoColumn/NameLabel
+@onready var name_label:  Label       = $HBoxContainer/NameLabel
 @onready var hp_bar:      ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
-@onready var hp_numbers:  Label       = $HBoxContainer/HpNumbers
+@onready var hp_numbers:  Label       = $HBoxContainer/InfoColumn/HpNumbers
 
 const COLOR_OVER_MAX: Color = Color(0.9, 0.2, 0.9)  # magenta: HP sobre el máximo
 

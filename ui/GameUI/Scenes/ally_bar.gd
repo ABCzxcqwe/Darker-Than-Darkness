@@ -5,13 +5,14 @@
 #   AllyBar (PanelContainer)
 #   └── HBoxContainer
 #       ├── AllyIcon (ColorRect)   ← pequeño cuadrado del color del personaje
+#       ├── AllyName (Label) 
 #       ├── AllyInfo (VBoxContainer)
-#       │   ├── AllyName (Label)
 #       │   └── AllyHpBar (ProgressBar)
+
 extends PanelContainer
 
 @onready var ally_icon:   ColorRect   = $HBoxContainer/AllyIcon
-@onready var ally_name:   Label       = $HBoxContainer/AllyInfo/AllyName
+@onready var ally_name:   Label       = $HBoxContainer/AllyName
 @onready var ally_hp_bar: ProgressBar = $HBoxContainer/AllyInfo/AllyHpBar
 
 var _peer_id:     int   = -1

@@ -1,62 +1,81 @@
 [gd_scene format=3 uid="uid://cn5gwtc14fbgd"]
 
-[ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/scripts/ability_button.gd" id="1_6pl12"]
+[ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/scripts/obsoleto/ability_button.gd" id="1_6pl12"]
 [ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Fonts/Deltarune.tres" id="1_eu371"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_byw6d"]
+bg_color = Color(0, 0, 0, 0.47058824)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.81603175, 0.473885, 1.92523e-07, 1)
+corner_detail = 1
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+anti_aliasing = false
 
 [node name="AbilityButton" type="Control" unique_id=172959363]
 custom_minimum_size = Vector2(38, 38)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 38.0
+offset_bottom = 38.0
 theme = ExtResource("1_eu371")
 script = ExtResource("1_6pl12")
 
 [node name="Panel" type="Panel" parent="." unique_id=723989857]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_byw6d")
 
-[node name="IconRect" type="TextureRect" parent="Panel" unique_id=1529395651]
+[node name="CooldownLabel" type="Label" parent="Panel" unique_id=748613510]
+visible = false
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 5
-
-[node name="KeyLabel" type="Label" parent="Panel" unique_id=1079771203]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 0.0
-offset_left = -18
-offset_right = -2
-offset_top = 2
-offset_bottom = 14
-grow_horizontal = 0
-theme_override_font_sizes/font_size = 7
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CooldownOverlay" type="ColorRect" parent="Panel" unique_id=636058929]
+visible = false
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.39215687)
-visible = false
 
-[node name="CooldownLabel" type="Label" parent="Panel" unique_id=748613510]
+[node name="IconRect" type="TextureRect" parent="Panel" unique_id=1529395651]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KeyLabel" type="Label" parent="Panel" unique_id=1079771203]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -16.0
+offset_bottom = 21.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 10
+text = "M1"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 9
-visible = false

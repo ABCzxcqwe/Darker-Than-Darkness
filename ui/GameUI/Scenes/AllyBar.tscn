@@ -1,30 +1,41 @@
-[gd_scene format=3 uid="uid://bvli1k7p7sxiw"]
+[gd_scene format=3 uid="uid://hn1chvujpfq"]
 
 [ext_resource type="Script" uid="uid://bxaet6syxo1r4" path="res://ui/GameUI/Scenes/ally_bar.gd" id="1_l5k6c"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_f5yb8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f5yb8"]
+bg_color = Color(0, 0, 0, 0.38431373)
+corner_detail = 17
+expand_margin_left = 5.0
+expand_margin_right = 5.0
 
 [node name="AllyBar" type="PanelContainer" unique_id=1230571764]
-custom_minimum_size = Vector2(140, 28)
+custom_minimum_size = Vector2(140, 48)
+theme_override_styles/panel = SubResource("StyleBoxFlat_f5yb8")
 script = ExtResource("1_l5k6c")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1774526866]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="AllyIcon" type="ColorRect" parent="HBoxContainer" unique_id=815410658]
+[node name="AllyIcon" type="ColorRect" parent="HBoxContainer" unique_id=1252657196]
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
-custom_minimum_size = Vector2(12, 12)
+size_flags_horizontal = 4
 size_flags_vertical = 4
+
+[node name="AllyName" type="Label" parent="HBoxContainer" unique_id=489454750]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_f5yb8")
+theme_override_font_sizes/font_size = 16
 
 [node name="AllyInfo" type="VBoxContainer" parent="HBoxContainer" unique_id=35942538]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
-
-[node name="AllyName" type="Label" parent="HBoxContainer/AllyInfo" unique_id=489454750]
-layout_mode = 2
-theme_override_font_sizes/font_size = 9
+alignment = 1
 
 [node name="AllyHpBar" type="ProgressBar" parent="HBoxContainer/AllyInfo" unique_id=112233445]
+custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
-custom_minimum_size = Vector2(80, 5)
 show_percentage = false
