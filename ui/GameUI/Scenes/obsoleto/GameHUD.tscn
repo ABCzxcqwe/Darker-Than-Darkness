@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://deqy6gdbvi7a1"]
+
+[ext_resource type="Script" uid="uid://bl7ewf4g4fabi" path="res://ui/GameUI/scripts/obsoleto/game_hud.gd" id="1_o4xvh"]
+[ext_resource type="PackedScene" uid="uid://3j07aacjoijc" path="res://ui/GameUI/Scenes/obsoleto/PlayerPanel.tscn" id="2_mpdc4"]
+[ext_resource type="PackedScene" uid="uid://e7tuvcoflr57" path="res://ui/GameUI/Scenes/obsoleto/AlliesPanel.tscn" id="3_o4xvh"]
+[ext_resource type="PackedScene" uid="uid://dhd7arioj21ik" path="res://ui/GameUI/Scenes/obsoleto/AbilityBar.tscn" id="4_mpdc4"]
+[ext_resource type="PackedScene" uid="uid://cts4ts76vmdcm" path="res://ui/GameUI/Scenes/obsoleto/TpBar.tscn" id="5_su3ou"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="6_kqcow"]
+
+[node name="GameHud" type="CanvasLayer" unique_id=1045031915]
+script = ExtResource("1_o4xvh")
+
+[node name="AlliesPanel" parent="." unique_id=705538919 instance=ExtResource("3_o4xvh")]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1442.0
+offset_top = 4.0
+offset_right = 102.0
+offset_bottom = -396.0
+scale = Vector2(0.6, 0.6)
+
+[node name="AbilityBar" parent="." unique_id=1352574739 instance=ExtResource("4_mpdc4")]
+anchors_preset = -1
+offset_left = 132.0
+offset_top = 797.0
+offset_right = -868.0
+offset_bottom = 37.0
+scale = Vector2(0.4, 0.4)
+
+[node name="PlayerPanel" parent="." unique_id=300534043 instance=ExtResource("2_mpdc4")]
+offset_left = 7.0
+offset_top = 728.0
+offset_right = -1223.0
+offset_bottom = -102.0
+
+[node name="TpBar" parent="." unique_id=438257633 instance=ExtResource("5_su3ou")]
+
+[node name="TimerLabel" type="Label" parent="." unique_id=799616018]
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.025
+anchor_right = 0.2
+anchor_bottom = 0.1
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_kqcow")
+theme_override_font_sizes/font_size = 22

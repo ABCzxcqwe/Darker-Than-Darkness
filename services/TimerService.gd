@@ -27,6 +27,7 @@ func _process(delta: float) -> void:
 		# Nota: Para optimizar red, puedes enviar un RPC cada 1 segundo 
 		# o dejar que el Synchronizer/RPC actualice el HUD según tu preferencia.
 		rpc_id(0, "_sync_time_client", time_left)
+		
 
 
 ## Inicializa y arranca el reloj con una duración específica

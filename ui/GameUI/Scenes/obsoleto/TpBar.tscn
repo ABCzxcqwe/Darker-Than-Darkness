@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cts4ts76vmdcm"]
 
-[ext_resource type="Script" uid="uid://byvl7ffjmpofr" path="res://ui/GameUI/scripts/tp_bar.gd" id="1_fm743"]
+[ext_resource type="Script" uid="uid://byvl7ffjmpofr" path="res://ui/GameUI/scripts/obsoleto/tp_bar.gd" id="1_rwq6g"]
 
 [node name="TpBar" type="Control" unique_id=438257633]
 layout_mode = 3
@@ -13,7 +13,7 @@ offset_right = 0.40000153
 offset_bottom = 0.19995117
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_fm743")
+script = ExtResource("1_rwq6g")
 
 [node name="TextureProgressBar" type="ProgressBar" parent="." unique_id=2038216183]
 layout_mode = 0

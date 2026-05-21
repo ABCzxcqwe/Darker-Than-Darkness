@@ -16,7 +16,7 @@ var _duration_timer: SceneTreeTimer = null
 # Referencias a servicios (se obtienen al iniciar)
 var _health_service: Node = null
 var _status_service: Node = null
-var _audio_manager: AudioManager = null
+var _audio_manager = null  # AudioManager autoload
 
 
 func _ready() -> void:
@@ -78,25 +78,38 @@ func _activate_lms(survivor: Node) -> void:
 	is_active = true
 	active_survivor = survivor
 	var char_data = survivor.character_data
-	# Usar get() para evitar errores si la propiedad no existe
 	var lms_duration = char_data.lms_duration if char_data else 140.0
 	var heal_amount = char_data.lms_heal_amount if char_data else 60
 	var damage_resist = char_data.lms_damage_resistance if char_data else 0.0
+	var lms_music = char_data.lms_music if char_data else null
 
-	print("[LMSService] LMS activado para ", survivor.name, " duración: ", lms_duration, "s")
+	print("[LMSService] 🎵 LMS activado para ", survivor.name, " duración: ", lms_duration, "s")
 
+	# Registrar la música LMS en el AudioManager ANTES de activar
+	if lms_music and _audio_manager:
+		# Configurar el stream LMS en el AudioManager
+		if _audio_manager.lms_music_player:
+			_audio_manager.lms_music_player.stream = lms_music
+			print("[LMSService] Música LMS registrada en AudioManager")
+	
+	# Aplicar resistencia al daño
 	if damage_resist > 0 and _status_service:
 		_status_service.apply_modifier(survivor, "lms_damage_resistance", damage_resist)
 	
+	# Curar al survivor
 	if _health_service:
+		print("[LMSService] Curación LMS de ", heal_amount, " HP")
 		_health_service.heal(survivor, heal_amount)
 	
+	# 🔧 CORRECCIÓN: Usar el RPC existente del AudioManager
+	if _audio_manager and multiplayer.is_server():
+		print("[LMSService] Enviando RPC para activar LMS audio a todos los clientes")
+		_audio_manager.rpc("_rpc_activate_lms_audio")
+	
+	# Iniciar temporizador de duración
 	_duration_timer = get_tree().create_timer(lms_duration)
 	_duration_timer.timeout.connect(_deactivate_lms)
 	
-	if _audio_manager:
-		_audio_manager.rpc("_rpc_activate_lms_audio")
-
 	lms_activated.emit(survivor, lms_duration)
 
 
@@ -114,10 +127,11 @@ func _deactivate_lms() -> void:
 	if active_survivor and is_instance_valid(active_survivor) and _status_service:
 		_status_service.remove_modifier(active_survivor, "lms_damage_resistance")
 	
-	# Restaurar música normal en todos los clientes
-	if _audio_manager:
+	# 🔧 CORRECCIÓN: Usar el RPC existente del AudioManager para desactivar
+	if _audio_manager and multiplayer.is_server():
+		print("[LMSService] Enviando RPC para desactivar LMS audio")
 		_audio_manager.rpc("_rpc_deactivate_lms_audio")
-
+	
 	is_active = false
 	active_survivor = null
 	lms_ended.emit()

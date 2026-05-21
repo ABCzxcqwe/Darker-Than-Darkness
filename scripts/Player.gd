@@ -233,8 +233,37 @@ func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_health(new_health: int, new_invincible_until: int) -> void:
-	health           = new_health
+	var old_health = health
+	var old_state = health_state
+	
+	health = new_health
 	invincible_until = new_invincible_until
+	
+	# Auto-corregir estado inconsistente basado en la vida
+	var should_be_state = ""
+	if health <= 0:
+		should_be_state = "downed"
+	else:
+		should_be_state = "alive"
+	
+	# Si el estado actual no coincide con la vida, corregirlo
+	if health_state != should_be_state and should_be_state != "":
+		print("[Client] Auto-corrigiendo estado: %s -> %s (health: %d, peer: %s)" % [health_state, should_be_state, health, name])
+		health_state = should_be_state
+		
+		# Emitir señal local para actualizar UI
+		var hs = GameServiceLocator.get_service("HealthService")
+		if hs and hs.has_method("get_player_state"):
+			# Forzar actualización de estado en el HealthService local
+			hs.player_state_changed.emit(get_multiplayer_authority(), health_state)
+	else:
+		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
+	
+	# Si estamos en downed, deshabilitar velocidad
+	if health_state == "downed" or health_state == "dead":
+		speed = 0
+	elif character_data and health_state == "alive":
+		speed = character_data.speed
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -249,9 +278,27 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_state(new_state: String, new_health: int) -> void:
+	var old_state = health_state
+	var old_health = health
+	
+	print("[Client] Sync state: %s -> %s (health: %d -> %d, peer: %s)" % [old_state, new_state, old_health, new_health, name])
+	
 	health_state = new_state
-	health       = new_health
-
+	health = new_health  # Siempre sincronizar vida con estado
+	
 	match new_state:
 		"alive":
-			if character_data: speed = character_data.speed
+			if character_data: 
+				speed = character_data.speed
+			print("[Client] Player %s revivido con %d HP" % [name, health])
+		"downed":
+			speed = 0
+			print("[Client] Player %s está en estado DOWNED con %d HP" % [name, health])
+		"dead":
+			speed = 0
+			print("[Client] Player %s está MUERTO" % name)
+	
+	# Notificar al HealthService local sobre el cambio de estado
+	var hs = GameServiceLocator.get_service("HealthService")
+	if hs:
+		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)

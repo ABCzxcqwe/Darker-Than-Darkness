@@ -1,29 +1,41 @@
 # player_panel.gd
-# Panel del jugador local — replica el layout del HUD de Deltarune:
-extends Control
+# Panel de vida del jugador local.
+#
+# Estructura de nodos esperada en PlayerPanel.tscn:
+#   PlayerPanel (PanelContainer)
+#   └── HBoxContainer
+#       ├── IconRect (TextureRect)
+#       ├── InfoColumn (VBoxContainer)
+#       │   ├── NameLabel (Label)
+#       │   └── HpRow (HBoxContainer)
+#       │       ├── HpTag (Label)       ← texto fijo "HP"
+#       │       └── HpBar (ProgressBar)
+#       └── HpNumbers (Label)           ← "128/ 160"
+#
+# El borde inferior se elimina en el StyleBoxFlat del PanelContainer
+# desde el inspector (border_width_bottom = 0).
+extends PanelContainer
 
-@onready var icon_rect:  TextureRect = $HBoxContainer/IconRect
-@onready var name_label: Label       = $HBoxContainer/NameLabel
-@onready var hp_bar:     ProgressBar = $HBoxContainer/InfoColumn/HPBar
-@onready var hp_label:   Label       = $HBoxContainer/InfoColumn/NameRow/HPLabel
-@onready var bg_panel:   Panel       = $BGPanel
+@onready var icon_rect:   TextureRect = $HBoxContainer/IconRect
+@onready var name_label:  Label       = $HBoxContainer/InfoColumn/NameLabel
+@onready var hp_bar:      ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
+@onready var hp_numbers:  Label       = $HBoxContainer/HpNumbers
 
-const COLOR_DOWNED: Color = Color(1.0, 0.5,  0.0)
-const COLOR_DEAD:   Color = Color(0.4, 0.4,  0.4)
+const COLOR_OVER_MAX: Color = Color(0.9, 0.2, 0.9)  # magenta: HP sobre el máximo
 
-var _player_node:    Node  = null
-var _theme_color:    Color = Color(0.27, 0.78, 0.95)
-var _color_override: Color = Color.TRANSPARENT   # TRANSPARENT = sin override
+var _peer_id:      int   = -1
+var _max_hp:       int   = 100
+var _theme_color:  Color = Color(0.27, 0.78, 0.95)
 
 
 func setup(player_node: Node) -> void:
-	_player_node = player_node
-
 	if not player_node.character_data:
 		push_warning("[PlayerPanel] Player sin character_data.")
 		return
 
+	_peer_id     = player_node.get_multiplayer_authority()
 	var data: CharacterData = player_node.character_data
+	_max_hp      = data.max_health
 	_theme_color = data.theme_color
 
 	if name_label:
@@ -31,81 +43,73 @@ func setup(player_node: Node) -> void:
 	if icon_rect:
 		icon_rect.texture = data.icon if data.icon else null
 	if hp_bar:
-		hp_bar.max_value = data.max_health
+		hp_bar.max_value = _max_hp
 		hp_bar.value     = player_node.health
-	if hp_label:
-		hp_label.text = _format_hp(player_node.health, data.max_health)
+	if hp_numbers:
+		hp_numbers.text = _fmt(player_node.health, _max_hp)
 
-	_apply_theme_color(_theme_color)
+	_apply_border_color(_theme_color)
+	_apply_bar_color(player_node.health)
+
+	# Conectar señales de HealthService
+	var hs: Node = GameServiceLocator.get_service("HealthService")
+	if hs:
+		hs.health_changed.connect(_on_health_changed)
+		hs.player_state_changed.connect(_on_state_changed)
 
 
-func _process(_delta: float) -> void:
-	if not is_instance_valid(_player_node):
+func _on_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:
+	if peer_id != _peer_id:
 		return
-	if not _player_node.character_data:
+	
+	# Validar que el panel aún exista
+	if not is_inside_tree():
 		return
-
-	var max_hp: int = _player_node.character_data.max_health
-	var cur_hp: int = _player_node.health
-
-	if hp_bar:
-		hp_bar.value = cur_hp
-		if _color_override == Color.TRANSPARENT:
-			_apply_bar_color(_player_node.health_state)
-	if hp_label:
-		hp_label.text = _format_hp(cur_hp, max_hp)
+	
+	_max_hp = max_hp
+	if hp_bar and is_instance_valid(hp_bar):
+		hp_bar.max_value = max_hp
+		hp_bar.value = current_hp
+	if hp_numbers and is_instance_valid(hp_numbers):
+		hp_numbers.text = _fmt(current_hp, max_hp)
+	_apply_bar_color(current_hp)
 
 
-# ── API pública ────────────────────────────────────────────────────────
-
-## Sobreescribe el color de la barra desde una habilidad o efecto externo.
-## Pasar Color.TRANSPARENT para volver al automático según health_state.
-func set_bar_color(color: Color) -> void:
-	_color_override = color
-	if not hp_bar:
+func _on_state_changed(peer_id: int, state: String) -> void:
+	if peer_id != _peer_id:
 		return
-	if color == Color.TRANSPARENT:
-		_apply_bar_color(_player_node.health_state if _player_node else "alive")
-	else:
-		hp_bar.modulate = color
-
-
-# ── Internos ───────────────────────────────────────────────────────────
-
-func _apply_theme_color(color: Color) -> void:
-	_apply_bar_color("alive")
-	_apply_border_color(color)
-
-
-func _apply_bar_color(state: String) -> void:
-	if not hp_bar:
-		return
-	var target_color: Color
 	match state:
-		"downed": target_color = COLOR_DOWNED
-		"dead":   target_color = COLOR_DEAD
-		_:        target_color = _theme_color # "alive" o default
-	# Si hay un override manual de color, lo usamos
-	if _color_override != Color.TRANSPARENT:
-		target_color = _color_override
-	# Accedemos al estilo "fill" (la parte de color de la barra)
-	var sb = hp_bar.get_theme_stylebox("fill").duplicate()
+		"downed":
+			_apply_border_color(Color(1.0, 0.5, 0.0))  # naranja
+		"dead":
+			_apply_border_color(Color(0.3, 0.3, 0.3))  # gris
+		"alive":
+			_apply_border_color(_theme_color)
+
+
+# ── Internos ──────────────────────────────────────────────────────────
+
+func _apply_bar_color(current_hp: int) -> void:
+	if not hp_bar:
+		return
+	# Solo cambia a magenta si tiene HP por encima del máximo base
+	var color: Color = COLOR_OVER_MAX if current_hp > _max_hp else _theme_color
+	var sb = hp_bar.get_theme_stylebox("fill")
+	if sb == null:
+		return
+	sb = sb.duplicate()
 	if sb is StyleBoxFlat:
-		sb.bg_color = target_color
+		sb.bg_color = color
 		hp_bar.add_theme_stylebox_override("fill", sb)
 
 
-## Actualiza el color del borde del BGPanel.
-## BGPanel debe tener un StyleBoxFlat en theme_override_styles/panel.
 func _apply_border_color(color: Color) -> void:
-	if not bg_panel:
-		return
-	var style := bg_panel.get_theme_stylebox("panel")
+	var style = get_theme_stylebox("panel")
 	if style is StyleBoxFlat:
 		var s := style.duplicate() as StyleBoxFlat
 		s.border_color = color
-		bg_panel.add_theme_stylebox_override("panel", s)
+		add_theme_stylebox_override("panel", s)
 
 
-func _format_hp(cur: int, _max: int) -> String:
-	return "%d/ %d" % [cur, _max]
+func _fmt(cur: int, max_val: int) -> String:
+	return "%d/ %d" % [cur, max_val]

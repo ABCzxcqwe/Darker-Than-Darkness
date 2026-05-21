@@ -22,7 +22,6 @@ var _buttons: Dictionary = {}
 # { ability_name: slot_index } — para buscar botón por nombre cuando slot_index == -1
 var _name_to_slot: Dictionary = {}
 
-
 func setup(player_node: Node) -> void:
 	_player_node = player_node
 	if not player_node.character_data:

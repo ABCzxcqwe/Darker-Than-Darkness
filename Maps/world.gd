@@ -105,19 +105,30 @@ func _position_players_in_spawns() -> void:
 
 func _setup_hud() -> void:
 	var my_peer_id := multiplayer.get_unique_id()
-	var my_player  := get_tree().root.find_child(str(my_peer_id), true, false)
+	var my_player: Node = null
 
-	if not my_player:
-		# En clientes el spawn puede tardar un poco más — esperar hasta 1s
-		var timeout := 1.0
-		var elapsed := 0.0
-		while not my_player and elapsed < timeout:
-			await get_tree().process_frame
-			elapsed += get_process_delta_time()
-			my_player = get_tree().root.find_child(str(my_peer_id), true, false)
+	# Esperar hasta 2s a que el nodo del jugador local aparezca en el árbol
+	var timeout := 2.0
+	var elapsed := 0.0
+	while not my_player and elapsed < timeout:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+		my_player = get_tree().root.find_child(str(my_peer_id), true, false)
 
 	if not my_player:
 		push_warning("[World] No se encontró el nodo del jugador local tras esperar.")
+		return
+
+	# Esperar a que character_data esté asignado — en clientes puede llegar
+	# uno o dos frames después de que el nodo aparece en el árbol
+	var cd_elapsed := 0.0
+	while (not "character_data" in my_player or my_player.character_data == null) \
+			and cd_elapsed < 1.0:
+		await get_tree().process_frame
+		cd_elapsed += get_process_delta_time()
+
+	if not "character_data" in my_player or my_player.character_data == null:
+		push_warning("[World] character_data nunca llegó al jugador local.")
 		return
 
 	_hud = GAME_HUD_SCENE.instantiate()
@@ -128,25 +139,21 @@ func _setup_hud() -> void:
 func _exit_tree() -> void:
 	GameServiceLocator.clear()
 
-@rpc("authority", "call_local", "reliable")
-func _sync_start_match_audio(map_id: String) -> void:
-	# 1. El AudioManager local configura la pista ambiental del mapa base
-	AudioManager.setup_map_audio(map_id)
-	
+@rpc("authority", "call_local", "reliable") 
+func _sync_start_match_audio(map_id: String) -> void: 
+	# 1. El AudioManager local configura la pista ambiental del mapa base 
+	AudioManager.setup_map_audio(map_id) 
 	# 2. Buscamos los roles de los peers usando el grupo global de jugadores
-	var killer_node: Node2D = null
-	var any_survivor_node: Node2D = null
-
+	var killer_node: Node2D = null 
+	var any_survivor_node: Node2D = null 
 	for p in get_tree().get_nodes_in_group("players"):
 		if "character_data" in p and p.character_data:
-			if p.character_data.team == "killer":
-				killer_node = p
-			elif any_survivor_node == null:
+			if p.character_data.team == "killer": 
+				killer_node = p 
+			elif any_survivor_node == null: 
 				any_survivor_node = p
-
-	# 3. Extraemos los streams directamente y los pasamos al AudioManager
-	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null
+	# 3. Extraemos los streams directamente y los pasamos al AudioManager 
+	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null 
 	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
 	var lms_stream: AudioStream    = any_survivor_node.character_data.lms_music if any_survivor_node else null
-
 	AudioManager.register_match_character_music(terror_stream, chase_stream, lms_stream)
