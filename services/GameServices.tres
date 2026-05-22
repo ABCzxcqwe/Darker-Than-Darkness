@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cvlkeksypfhgh" path="res://services/HealthService.gd" id="5_h33ef"]
 [ext_resource type="Script" uid="uid://cuq68y5n8jke0" path="res://services/ReviveService.gd" id="6_jl308"]
 [ext_resource type="Script" uid="uid://mlr2f4hkq14q" path="res://services/StatusEffectService.gd" id="7_ox8nq"]
+[ext_resource type="Script" uid="uid://delgni5kvvhkq" path="res://services/AbilityStateService.gd" id="7_uirkg"]
 [ext_resource type="Script" uid="uid://bs26m0eh22tvl" path="res://services/TPService.gd" id="8_ju6ul"]
 [ext_resource type="Script" uid="uid://dmg1e0o5ff3t5" path="res://services/EvolutionService.gd" id="9_b743d"]
 [ext_resource type="Script" uid="uid://cwbx7xj4uonve" path="res://services/LMSService.gd" id="10_b743d"]
@@ -43,6 +44,12 @@ service_name = "HealthService"
 service_script = ExtResource("5_h33ef")
 metadata/_custom_type_script = "uid://d2k546jgdjt66"
 
+[sub_resource type="Resource" id="Resource_0nqno"]
+script = ExtResource("1_lfoov")
+service_name = "AbilityStateService"
+service_script = ExtResource("7_uirkg")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
 [sub_resource type="Resource" id="Resource_ymc8w"]
 script = ExtResource("1_lfoov")
 service_name = "ReviveService"
@@ -75,4 +82,4 @@ metadata/_custom_type_script = "uid://d2k546jgdjt66"
 
 [resource]
 script = ExtResource("3_47pdd")
-entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty")])
+entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_0nqno"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty")])

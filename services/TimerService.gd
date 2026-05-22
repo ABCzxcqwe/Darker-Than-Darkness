@@ -10,6 +10,7 @@ var time_left: float = 0.0
 var is_active: bool = false
 var is_paused: bool = false
 
+var _sync_accumulator: float = 0.0
 
 func _process(delta: float) -> void:
 	if not is_active or is_paused:
@@ -20,14 +21,15 @@ func _process(delta: float) -> void:
 		if time_left <= 0.0:
 			time_left = 0.0
 			is_active = false
-			timeout.emit() # Avisa que el tiempo se agotó
+			timeout.emit()
 			
-		# Sincronización periódica o emisión local en el servidor
 		timer_changed.emit(time_left)
-		# Nota: Para optimizar red, puedes enviar un RPC cada 1 segundo 
-		# o dejar que el Synchronizer/RPC actualice el HUD según tu preferencia.
-		rpc_id(0, "_sync_time_client", time_left)
 		
+		# Sincronizar con clientes únicamente cada 1 segundo
+		_sync_accumulator += delta
+		if _sync_accumulator >= 1.0:
+			_sync_accumulator = 0.0
+			rpc_id(0, "_sync_time_client", time_left)
 
 
 ## Inicializa y arranca el reloj con una duración específica

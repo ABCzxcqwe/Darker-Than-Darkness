@@ -120,3 +120,24 @@ func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
 	sync_tp_to_client.rpc(peer_id, _tp[peer_id], data.tp_max)
 	
 	# print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)
+
+func consume_tp(peer_id: int, amount: float) -> bool:
+	if not multiplayer.is_server(): return false
+	if not _tp.has(peer_id) or not _character_data.has(peer_id): return false
+
+	var current_tp = _tp[peer_id]
+	if current_tp < amount:
+		return false # No tiene los puntos necesarios
+
+	var data = _character_data[peer_id]
+	_tp[peer_id] = clamp(current_tp - amount, 0.0, data.tp_max)
+	
+	var new_tp = _tp[peer_id]
+	var max_tp = data.tp_max
+
+	# Sincronización local y remota compartiendo tu pipeline existente
+	tp_changed.emit(peer_id, new_tp, max_tp)
+	sync_tp_to_client.rpc(peer_id, new_tp, max_tp)
+	
+	print("[TPService] %s consumió %d TP | Restante: %d" % [_get_log_name(peer_id), amount, new_tp])
+	return true

@@ -9,6 +9,7 @@ var is_match_active: bool = false
 const BASE_TIME := 90.0         
 const TIME_PER_SURVIVOR := 30.0 
 
+var _ending_sequence_started := false
 var _lms_service: Node = null
 
 
@@ -56,9 +57,6 @@ func _connect_services() -> void:
 		if not health_svc.survivor_died_permanently.is_connected(_on_survivor_permanent_death):
 			health_svc.survivor_died_permanently.connect(_on_survivor_permanent_death)
 			
-	if _lms_service:
-		var alive_survivors = _lms_service._get_alive_survivor_nodes()
-		_lms_service.update_survivors_count(alive_survivors)
 
 
 # REACCIÓN AL TIEMPO: El GameStateService solo actúa cuando el Timer le avisa
@@ -74,9 +72,13 @@ func _on_survivor_permanent_death(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 		
-	if _lms_service and _lms_service.has_method("on_survivor_permanent_death"):
-		_lms_service.on_survivor_permanent_death(peer_id)
+	# 1. Aumentar 15 segundos al reloj de la partida por la baja
+	var timer_svc = GameServiceLocator.get_service("TimerService")
+	if timer_svc and is_match_active:
+		timer_svc.modify_time(15.0)
+		print("[GameStateService] Tiempo de partida extendido por muerte de: ", peer_id)
 		
+	# 2. Contabilizar cuántos quedan para las reglas macro de fin de juego
 	var survivors_alive := 0
 	for pid in NetworkManager.players:
 		if NetworkManager.players[pid]["assigned_role"] == "survivor":
@@ -86,18 +88,14 @@ func _on_survivor_permanent_death(peer_id: int) -> void:
 				
 	if survivors_alive == 0:
 		print("[GameStateService] Todos los survivors han muerto. Fin de la partida.")
-		
-		# Detener el reloj ya que la partida acabó antes por fuerza mayor
-		var timer_svc = GameServiceLocator.get_service("TimerService")
 		if timer_svc:
 			timer_svc.stop_timer()
-			
 		is_match_active = false
 		_end_match("killer_elimination")
 	else:
-		if _lms_service:
-			var alive_nodes = _lms_service._get_alive_survivor_nodes()
-			_lms_service.update_survivors_count(alive_nodes)
+		# SOLUCCIÓN: Avisamos una sola vez. El LMS sabrá qué hacer internamente.
+		if _lms_service and _lms_service.has_method("on_survivor_permanent_death"):
+			_lms_service.on_survivor_permanent_death(peer_id)
 
 
 func _on_network_player_left(peer_id: int) -> void:
@@ -136,6 +134,19 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 		return
 	
 	if abandoned_role == "survivor":
+		print("[GameStateService] Survivor (", peer_id, ") se desconectó. Procesando penalización...")
+		
+		# 1. Notificar al LMSService de la baja por desconexión para limpiar registros
+		if _lms_service and _lms_service.has_method("on_survivor_permanent_death"):
+			_lms_service.on_survivor_permanent_death(peer_id)
+		
+		# 2. Modificar el temporizador de la ronda (+10s por abandono)
+		var timer_svc = GameServiceLocator.get_service("TimerService")
+		if timer_svc and is_match_active:
+			timer_svc.modify_time(10.0)
+			print("[GameStateService] Tiempo aumentado +10s debido al abandono de ", peer_id)
+		
+		# 3. Evaluar si quedan sobrevivientes activos en la partida
 		var survivors_left := 0
 		for pid in NetworkManager.players:
 			if pid == peer_id: 
@@ -145,13 +156,15 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 				if health_svc and not health_svc.is_dead(pid):
 					survivors_left += 1
 		
+		# 4. Resolver el destino de la partida
 		if survivors_left == 0:
-			var timer_svc = GameServiceLocator.get_service("TimerService")
+			print("[GameStateService] No quedan survivors activos en la partida. Fin por abandono masivo.")
 			if timer_svc:
 				timer_svc.stop_timer()
 			is_match_active = false
 			_end_match("killer_elimination")
 		else:
+			# Actualizar la UI de los jugadores restantes
 			if _lms_service:
 				var alive_nodes = _lms_service._get_alive_survivor_nodes()
 				_lms_service.update_survivors_count(alive_nodes)
@@ -195,3 +208,28 @@ func _calculate_next_killer_points(reason: String) -> void:
 				NetworkManager.players[pid]["killer_points"] += 5
 			else:
 				NetworkManager.players[pid]["killer_points"] += 25
+
+func evaluate_sudden_death_condition() -> void:
+	if not multiplayer.is_server() or _ending_sequence_started:
+		return
+
+	var health_svc = GameServiceLocator.get_service("HealthService")
+	if health_svc and health_svc.check_all_survivors_incapacitated():
+		_ending_sequence_started = true
+		print("[GameStateService] ¡Todos los survivors están caídos! Iniciando temporizador de 3s...")
+		
+		# Creamos un timer de 3 segundos directo en el árbol de escenas
+		await get_tree().create_timer(3.0).timeout
+		
+		# Volvemos a verificar después de la espera
+		if health_svc.check_all_survivors_incapacitated():
+			print("[GameStateService] Condición cumplida. Terminando partida por K.O. Total.")
+			# Corregido: Usamos tu función nativa y detenemos el reloj global
+			var timer_svc = GameServiceLocator.get_service("TimerService")
+			if timer_svc:
+				timer_svc.stop_timer()
+			is_match_active = false
+			_end_match("killer_elimination")
+		else:
+			print("[GameStateService] Secuencia cancelada: Un survivor se levantó o revivió.")
+			_ending_sequence_started = false

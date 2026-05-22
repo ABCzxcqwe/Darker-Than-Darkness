@@ -155,27 +155,46 @@ func activate_lms_audio() -> void:
 		lms_music_player.play()
 
 
-@rpc("authority", "call_local", "reliable")
-func _rpc_activate_lms_audio() -> void:
-	activate_lms_audio()
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_activate_lms_audio(survivor_peer_id: int) -> void:
+	print("[AudioManager] RPC Recibido: Activando LMS audio para Peer ID: ", survivor_peer_id)
+	
+	# 1. Buscar al superviviente en el árbol del cliente actual
+	var survivor_node = _find_player_node_by_peer_id(survivor_peer_id)
+	
+	if is_instance_valid(survivor_node) and "character_data" in survivor_node:
+		var char_data = survivor_node.character_data
+		if char_data and char_data.lms_music:
+			# Inyectamos de forma dinámica la música específica de ESTE personaje
+			lms_music_player.stream = char_data.lms_music
+			print("[AudioManager] ✓ Música LMS personalizada cargada del personaje: ", survivor_node.name)
+		else:
+			print("[AudioManager] ⚠️ El personaje no tiene música LMS definida en CharacterData.")
+	else:
+		print("[AudioManager] ❌ No se pudo encontrar el nodo del superviviente en este cliente para extraer su música.")
+
+	# 2. Establecer banderas de bloqueo para el resto de pistas
+	lms_bloqueo_activo = true
+	
+	# Limpiamos los streams normales para forzar el silencio absoluto de proximidad
+	if terror_music_player.playing: terror_music_player.stop()
+	if chase_music_player.playing: chase_music_player.stop()
+	if map_music_player.playing: map_music_player.stop()
+	
+	# 3. Encender el reproductor LMS
+	if lms_music_player.stream:
+		lms_music_player.volume_db = MAX_DB
+		lms_music_player.play()
+		print("[AudioManager] 🔊 Secuencia de música LMS iniciada en el cliente.")
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _rpc_deactivate_lms_audio() -> void:
+	print("[AudioManager] RPC Recibido: Desactivando LMS audio.")
 	lms_bloqueo_activo = false
-
 	if lms_music_player.playing:
 		lms_music_player.stop()
-
-	# Restauramos el stream del mapa desde el registro para que pueda sonar de nuevo
-	var map_id: String = GameData.selected_map if "selected_map" in GameData else ""
-	if map_id != "":
-		var map_data = MapRegistry.get_map(map_id) as MapData
-		if map_data and map_music_player:
-			map_music_player.stream = map_data.map_bgm
-			map_music_player.volume_db = MAX_DB
-			map_music_player.play()
-
+	lms_music_player.stream = null # Limpiar canal
 
 func change_audio_state(new_state: String) -> void:
 	current_global_state = new_state
@@ -195,10 +214,11 @@ func _silence_all_match_audio(delta: float) -> void:
 
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
-	var root_scene = get_tree().current_scene
-	if root_scene:
-		return root_scene.find_child(str(peer_id), true, false)
-	return null
+	# Busca en el grupo global de sobrevivientes
+	for survivor in get_tree().get_nodes_in_group("survivor"):
+		if survivor.name == str(peer_id):
+			return survivor
+	return
 
 func update_proximities(_optional_dist = null) -> void:
 	if is_instance_valid(cached_local_player):

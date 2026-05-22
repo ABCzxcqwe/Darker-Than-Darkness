@@ -254,6 +254,13 @@ func _recalculate_speed(peer_id: int) -> void:
 
 
 func _calculate_speed(peer_id: int, base_speed: float) -> float:
+	# 1. Verificar si el jugador está caído mediante el HealthService
+	var health_svc = GameServiceLocator.get_service("HealthService")
+	if health_svc and health_svc.is_downed(peer_id):
+		# 80% de reducción significa que se queda con el 20% de su base_speed
+		return base_speed * 0.2
+		
+	# 2. Si NO está caído, se aplica la lógica normal de efectos de estado
 	if has_effect(peer_id, "stun"):
 		return 0.0
 	if has_effect(peer_id, "root"):
@@ -264,8 +271,8 @@ func _calculate_speed(peer_id: int, base_speed: float) -> float:
 			total_slow += instance["magnitude"]
 		total_slow = minf(total_slow, 0.9)
 		return base_speed * (1.0 - total_slow)
+		
 	return base_speed
-
 
 func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool) -> void:
 	var player_node := _get_player(peer_id)
@@ -275,6 +282,22 @@ func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool) ->
 
 func _get_player(peer_id: int) -> Node:
 	return get_tree().root.find_child(str(peer_id), true, false)
+
+func remove_modifier(modifier_id: String, player_node: Node = null) -> void:
+	if not multiplayer.is_server():
+		return
+		
+	print("[StatusEffectService] Intento de remover modificador: ", modifier_id)
+	
+	# Si nos pasan el nodo del jugador, forzamos un recálculo de su velocidad 
+	# para asegurarnos de que limpie cualquier rastro visual o mecánico.
+	if is_instance_valid(player_node):
+		var peer_id := player_node.get_multiplayer_authority()
+		_recalculate_speed(peer_id)
+	elif modifier_id == "lms_buff":
+		# Si no hay nodo pero es el buff de LMS, recalculamos a todos los peers activos
+		for peer_id in _effects.keys():
+			_recalculate_speed(peer_id)
 
 
 func _exit_tree() -> void:

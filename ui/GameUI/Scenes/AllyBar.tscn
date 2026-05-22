@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bxaet6syxo1r4" path="res://ui/GameUI/Scenes/ally_bar.gd" id="1_l5k6c"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_f5yb8"]
+[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="3_thlpu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f5yb8"]
 bg_color = Color(0, 0, 0, 0.38431373)
@@ -38,4 +39,6 @@ alignment = 1
 [node name="AllyHpBar" type="ProgressBar" parent="HBoxContainer/AllyInfo" unique_id=112233445]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
-show_percentage = false
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_thlpu")
+theme_override_font_sizes/font_size = 10

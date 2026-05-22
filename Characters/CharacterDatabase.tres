@@ -1,0 +1,153 @@
+[gd_resource type="Resource" script_class="CharacterDatabase" format=3 uid="uid://dkffchesg4of2"]
+
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="1_0fdf6"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="2_wwagk"]
+[ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/SwordSlash.gd" id="3_0fdf6"]
+[ext_resource type="SpriteFrames" uid="uid://dpclmxtjigax0" path="res://Characters/0/animations.tres" id="3_mce4s"]
+[ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="4_0fdf6"]
+[ext_resource type="Script" uid="uid://ld7wt75cafvm" path="res://abilities/kris/Act.gd" id="4_wwagk"]
+[ext_resource type="Script" uid="uid://bv6pwob4jk6qq" path="res://abilities/kris/Soul.gd" id="5_tw7m5"]
+[ext_resource type="SpriteFrames" uid="uid://b2tsf3wfliskg" path="res://Characters/1/animations.tres" id="7_vygkj"]
+[ext_resource type="SpriteFrames" uid="uid://dkpd5bcb2pw5p" path="res://Characters/2/animations.tres" id="8_mce4s"]
+[ext_resource type="AudioStream" uid="uid://ikhiy02k44fb" path="res://Characters/2/assets/Deltarune x X!Tale - Legend of the Dusk [X!Ralsei's Theme].mp3" id="8_p7bi8"]
+[ext_resource type="Script" uid="uid://dk8uk5ymm80gn" path="res://abilities/susie/UltimateHeal.gd" id="9_p7bi8"]
+[ext_resource type="Script" uid="uid://so8csytyk0fw" path="res://abilities/susie/RudeBuster.gd" id="9_wwagk"]
+[ext_resource type="SpriteFrames" uid="uid://ded0ylsvrvy3p" path="res://Characters/3/animations.tres" id="10_0fdf6"]
+[ext_resource type="Script" uid="uid://dn0qwdhb4g3ra" path="res://abilities/ralsei/HealPrayer.gd" id="11_ns7fw"]
+[ext_resource type="Script" uid="uid://cq35o6bhk7xxm" path="res://abilities/ralsei/Pacify.gd" id="12_jh6ir"]
+[ext_resource type="Script" uid="uid://cva4utk4fditj" path="res://Characters/scripts/CharacterDatabase.gd" id="12_vygkj"]
+
+[sub_resource type="Resource" id="Resource_vygkj"]
+script = ExtResource("2_wwagk")
+display_name = "SwordSlash"
+ability_script = ExtResource("3_0fdf6")
+cooldown = 22.0
+tp_reward = 15.0
+consume_tp_on_use = false
+move_restriction = 1
+selection_type = 1
+base_damage = 15
+stun_duration = 3.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_p7bi8"]
+script = ExtResource("2_wwagk")
+display_name = "ACT"
+ability_script = ExtResource("4_wwagk")
+cooldown = 15.0
+tp_cost = 20.0
+can_use_while_stunned = true
+move_restriction = 1
+requires_selection = true
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_8qv3t"]
+script = ExtResource("2_wwagk")
+display_name = "SoulProtect"
+ability_script = ExtResource("5_tw7m5")
+cooldown = 25.0
+tp_cost = 30.0
+can_use_while_stunned = true
+move_restriction = 1
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_jh6ir"]
+script = ExtResource("1_0fdf6")
+display_name = "Kris"
+speed = 500.0
+max_health = 120
+revive_time = 1.5
+lms_music = ExtResource("4_0fdf6")
+lms_duration = 200.0
+ability_slots = Array[ExtResource("2_wwagk")]([null, SubResource("Resource_vygkj"), SubResource("Resource_p7bi8"), SubResource("Resource_8qv3t"), null])
+animation_frames = ExtResource("3_mce4s")
+metadata/_custom_type_script = "uid://2kq331ai6c40"
+
+[sub_resource type="Resource" id="Resource_eooiv"]
+script = ExtResource("2_wwagk")
+display_name = "Slash"
+ability_script = ExtResource("9_wwagk")
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_mgrb0"]
+script = ExtResource("2_wwagk")
+display_name = "UltimateHeal"
+ability_script = ExtResource("9_p7bi8")
+cooldown = 5.0
+tp_cost = 95.0
+move_restriction = 1
+requires_selection = true
+is_scalable = true
+scaling_base_value = 5.0
+scaling_cap = 55.0
+tp_cost_reduction_per_use = 2.0
+tp_cost_floor = 45.0
+cooldown_increase_per_use = 0.5
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_uh6wt"]
+script = ExtResource("1_0fdf6")
+id = 1
+display_name = "Susie"
+speed = 500.0
+ability_slots = Array[ExtResource("2_wwagk")]([null, SubResource("Resource_eooiv"), SubResource("Resource_mgrb0"), null, null])
+animation_frames = ExtResource("7_vygkj")
+theme_color = Color(1, 0.23034188, 0.8216013, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"
+
+[sub_resource type="Resource" id="Resource_ns7fw"]
+script = ExtResource("2_wwagk")
+display_name = "Heal Prayer"
+ability_script = ExtResource("11_ns7fw")
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_gb45w"]
+script = ExtResource("2_wwagk")
+display_name = "Pacify"
+ability_script = ExtResource("12_jh6ir")
+cooldown = 20.0
+tp_cost = 15.0
+move_restriction = 1
+selection_type = 1
+stun_duration = 2.0
+slow_magnitude = 0.3
+slow_duration = 3.0
+hit_count_for_effect = 4
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_hrs3a"]
+script = ExtResource("1_0fdf6")
+id = 2
+display_name = "Ralsei"
+speed = 550.0
+max_health = 80
+revive_time = 1.5
+lms_music = ExtResource("8_p7bi8")
+lms_duration = 170.0
+ability_slots = Array[ExtResource("2_wwagk")]([null, SubResource("Resource_ns7fw"), SubResource("Resource_gb45w"), null, null])
+tp_gain_time = 5.0
+animation_frames = ExtResource("8_mce4s")
+theme_color = Color(0.12078262, 0.8748105, 0, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"
+
+[sub_resource type="Resource" id="Resource_o0onl"]
+script = ExtResource("2_wwagk")
+display_name = "golpe"
+cooldown = 2.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_w32qg"]
+script = ExtResource("1_0fdf6")
+id = 3
+display_name = "Jevil"
+team = "killer"
+speed = 600.0
+can_take_damage = false
+ability_slots = Array[ExtResource("2_wwagk")]([SubResource("Resource_o0onl"), null, null, null, null])
+animation_frames = ExtResource("10_0fdf6")
+theme_color = Color(0.5860059, 0.25085285, 1, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"
+
+[resource]
+script = ExtResource("12_vygkj")
+character_list = Array[ExtResource("1_0fdf6")]([SubResource("Resource_jh6ir"), SubResource("Resource_uh6wt"), SubResource("Resource_hrs3a"), SubResource("Resource_w32qg")])

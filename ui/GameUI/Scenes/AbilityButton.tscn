@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cn5gwtc14fbgd"]
+[gd_scene format=3 uid="uid://bmtkxxhx3sll5"]
 
 [ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/scripts/obsoleto/ability_button.gd" id="1_6pl12"]
 [ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Fonts/Deltarune.tres" id="1_eu371"]
@@ -35,28 +35,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_byw6d")
 
-[node name="CooldownLabel" type="Label" parent="Panel" unique_id=748613510]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 11
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="CooldownOverlay" type="ColorRect" parent="Panel" unique_id=636058929]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.39215687)
-
 [node name="IconRect" type="TextureRect" parent="Panel" unique_id=1529395651]
 layout_mode = 1
 anchors_preset = -1
@@ -79,3 +57,31 @@ theme_override_font_sizes/font_size = 10
 text = "M1"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="CooldownOverlay" type="ColorRect" parent="Panel" unique_id=636058929]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.39215687)
+
+[node name="CooldownLabel" type="Label" parent="Panel" unique_id=748613510]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EvolvedIndicator" type="Control" parent="." unique_id=1284553953]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0

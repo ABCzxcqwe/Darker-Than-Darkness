@@ -1,22 +1,28 @@
 [gd_scene format=3 uid="uid://b8p1jgthpblec"]
 
 [ext_resource type="Script" uid="uid://duo0hmyhki6mw" path="res://ui/GameUI/Scenes/context_item.gd" id="1_ol6vr"]
+[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_lfuxb"]
 
 [node name="ContextItem" type="PanelContainer" unique_id=1850036302]
 custom_minimum_size = Vector2(90, 26)
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 1
 script = ExtResource("1_ol6vr")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=2013171247]
 layout_mode = 2
 theme_override_constants/separation = 5
+alignment = 1
 
 [node name="ColorDot" type="ColorRect" parent="HBoxContainer" unique_id=833757378]
-layout_mode = 2
 custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
 size_flags_vertical = 4
 
 [node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1515262764]
 layout_mode = 2
-theme_override_font_sizes/font_size = 9
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_lfuxb")
+theme_override_font_sizes/font_size = 12

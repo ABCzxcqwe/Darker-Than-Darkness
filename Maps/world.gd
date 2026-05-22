@@ -15,7 +15,19 @@ func _ready() -> void:
 		push_error("[World] No hay services_config asignado.")
 		return
 
+	# 1. Registrar todos los servicios en el localizador
 	GameServiceLocator.register_all(services_config)
+	
+	# ─── AQUÍ ESTÁ LA CORRECCIÓN CRÍTICA ───
+	# Le avisamos al GameStateService que la partida está activa en este instante
+	# para evitar que AbilityRouter bloquee y desconecte el juego.
+	var game_state = GameServiceLocator.get_service("GameStateService")
+	if game_state:
+		game_state.is_match_active = true 
+		print("[World] GameStateService configurado: Partida marcada como ACTIVA.")
+	else:
+		push_warning("[World] GameStateService no disponible en el inicializador.")
+	# ───────────────────────────────────────
 	
 	# Cambiamos esto: hacemos un await aquí para que NO continúe 
 	# hasta que el mapa esté completamente cargado y listo.

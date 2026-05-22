@@ -17,8 +17,9 @@ extends Control
 @onready var tp_fill:     ColorRect   = $TpTrack/TpFill
 @onready var tp_percent:  Label       = $TpPercent
 
-const COLOR_NORMAL: Color = Color(0.8,  0.27, 1.0)   # morado
-const COLOR_MAX:    Color = Color(1.0,  0.87, 0.0)   # amarillo al llegar al máximo
+const COLOR_NORMAL: Color = Color(0.816, 0.592, 0.0, 1.0)   # naranja
+const COLOR_MAX:    Color = Color(1.0,  0.87, 0.0)          # amarillo al llegar al máximo
+const COLOR_WHITE:  Color = Color.WHITE                      # blanco normal
 
 var _peer_id: int   = -1
 var _max_tp:  float = 100.0
@@ -53,12 +54,16 @@ func _update_ui(value: float) -> void:
 	tp_fill.position.y   = track_h - tp_fill.size.y
 
 	var is_max: bool = ratio >= 1.0
-	var color: Color = COLOR_MAX if is_max else COLOR_NORMAL
+	
+	# Color de la barra de llenado
+	var fill_color: Color = COLOR_MAX if is_max else COLOR_NORMAL
+	tp_fill.color = fill_color
 
-	tp_fill.color = color
-
+	# Color de los textos: AMARILLO si está al MAX, si no BLANCO
+	var text_color: Color = COLOR_MAX if is_max else COLOR_WHITE
+	
 	if tp_letters:
-		tp_letters.modulate = color
+		tp_letters.modulate = text_color
 	if tp_percent:
 		tp_percent.text     = "MAX" if is_max else "%d%%" % int(ratio * 100)
-		tp_percent.modulate = color
+		tp_percent.modulate = text_color

@@ -20,7 +20,7 @@ func _ready() -> void:
 	# Escuchar actualizaciones de red cuando otros elijan personaje
 	NetworkManager.lobby_updated.connect(_on_lobby_updated)
 	
-	# 1. Determinar nuestro bando local
+	# 1. Determinar nuestro bando local (Fuente de verdad unificada)
 	var my_id := multiplayer.get_unique_id()
 	if NetworkManager.players.has(my_id):
 		local_role = NetworkManager.players[my_id]["assigned_role"]
@@ -44,6 +44,7 @@ func _ready() -> void:
 
 
 ## Escanea las carpetas numéricas para saber qué personajes pertenecen a tu bando
+## Escanea el CharacterRegistry central en lugar de buscar carpetas en el disco
 func _build_character_options() -> void:
 	# Limpiar botones de prueba si existen
 	for child in options_container.get_children():
@@ -51,14 +52,43 @@ func _build_character_options() -> void:
 		
 	available_char_ids.clear()
 	
-	# Recorremos los IDs conocidos de tus personajes (0 a 3 por ahora)
+	print("[CharacterSelect] Cargando opciones desde CharacterRegistry para el rol: ", local_role)
+	
+	# Recorremos los IDs (0 a 3) preguntándole directamente a tu base de datos central
 	for char_id in range(4):
-		var path := "res://Characters/%d/data.tres" % char_id
-		if ResourceLoader.exists(path):
-			var data := load(path) as CharacterData
-			if data and data.team == local_role:
+		var data: CharacterData = null
+		
+		# Opción A: Si CharacterRegistry es un Autoload (Singleton) con un método get_character o similar
+		if typeof(CharacterRegistry) == TYPE_OBJECT and CharacterRegistry.has_method("get_character_data"):
+			data = CharacterRegistry.get_character_data(char_id) as CharacterData
+		# Opción B: Si se accede a través de tu diccionario/array interno de personajes
+		elif typeof(CharacterRegistry) == TYPE_OBJECT and "characters" in CharacterRegistry:
+			if CharacterRegistry.characters.has(char_id):
+				data = CharacterRegistry.characters[char_id] as CharacterData
+		# Opción C: Si usas tu ServiceLocator (como con HealthService o GameStateService)
+		else:
+			var registry_svc = GameServiceLocator.get_service("CharacterRegistry")
+			if registry_svc and registry_svc.has_method("get_character_data"):
+				data = registry_svc.get_character_data(char_id) as CharacterData
+		
+		# Si logramos extraer la información del personaje desde la base de datos única:
+		if data:
+			# Tolerancia para el bando (team o assigned_role)
+			var char_team: String = ""
+			if "assigned_role" in data:
+				char_team = data.assigned_role
+			elif "team" in data:
+				char_team = data.team
+				
+			# Comparamos contra el rol asignado en el lobby
+			if char_team.to_lower().strip_edges() == local_role.to_lower().strip_edges():
+				print("[CharacterSelect] Personaje viable detectado: ID %d (%s)" % [char_id, data.display_name])
 				available_char_ids.append(char_id)
 				_create_character_button(char_id, data)
+		else:
+			push_error("[CharacterSelect] No se pudo obtener la data para el ID %d desde el CharacterRegistry." % char_id)
+
+	print("[CharacterSelect] Inicialización de botones completa. Total: ", available_char_ids.size())
 
 
 ## Instancia un botón interactivo para cada personaje filtrado
@@ -89,7 +119,6 @@ func _on_character_clicked(char_id: int) -> void:
 	# o marcar cuál está seleccionado.
 	for child in options_container.get_children():
 		if child is Button:
-			# Si quieres que solo sepa cuál presionó, puedes modular su color:
 			if child.get_index() == available_char_ids.find(char_id):
 				child.modulate = Color.GREEN # Se vuelve verde al seleccionarlo
 			else:
@@ -110,11 +139,13 @@ func _on_lobby_updated() -> void:
 		if p.character_id != -1:
 			char_name = _get_char_name_by_id(p.character_id)
 			
-		text += " -> " + char_name + " [" + p.assigned_role.to_upper() + "]"
+		# Corregido de forma segura para usar p.assigned_role directamente
+		var display_role = p.get("assigned_role", "survivor").to_upper()
+		text += " -> " + char_name + " [" + display_role + "]"
 		selections_list.add_item(text)
 
 
-## Temporizador asíncrono controlado de 30 segundos
+## Temporizador asíncrono controlado de 10 segundos (puedes subirlo a 30 si gustas)
 func _start_countdown() -> void:
 	while time_left > 0 and timer_active:
 		timer_label.text = "Tiempo restante: %d" % time_left
@@ -130,7 +161,7 @@ func _on_timeout_expired() -> void:
 	timer_active = false
 	timer_label.text = "¡Tiempo Terminado!"
 	
-	# BLOQUEO AFK: Si el jugador no eligió nada, forzamos uno al azar de su lista filtrada
+	# BLOQUEO AFK: Si el jugador no elegió nada, forzamos uno al azar de su lista filtrada
 	if selected_char_id == -1 and available_char_ids.size() > 0:
 		var random_id = available_char_ids[randi() % available_char_ids.size()]
 		selected_char_id = random_id
@@ -152,7 +183,7 @@ func _host_resolve_missing_selections() -> void:
 	for pid in NetworkManager.players:
 		if NetworkManager.players[pid]["character_id"] == -1:
 			var role = NetworkManager.players[pid]["assigned_role"]
-			# Fallback rápido: 0 (Kris) para survivor, 3 (Jevil) para killer
+			# Fallback seguro ajustado a tu roster: Jevil (3) para killer, Kris (0) para survivor
 			NetworkManager.players[pid]["character_id"] = 3 if role == "killer" else 0
 
 

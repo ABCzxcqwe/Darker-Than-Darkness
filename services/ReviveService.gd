@@ -48,7 +48,7 @@ func _process(delta: float) -> void:
 			continue
 
 		# 3. Verificar distancia — cancela si se alejan demasiado
-		var _range: float = target_node.character_data.revive_range if target_node.character_data else 80.0
+		var _range: float = rescuer_node.character_data.revive_range if rescuer_node.character_data else 80.0
 		var dist: float = rescuer_node.global_position.distance_to(target_node.global_position)
 		if dist > _range:
 			print("[ReviveService] ", rescuer_id, " se alejó demasiado. Cancelando rescate.")
@@ -184,3 +184,33 @@ func _notify_revive_completed(rescuer_id: int, target_id: int) -> void:
 func cancel_revive(peer_id: int) -> void:
 	# Redirige el llamado antiguo a nuestra nueva lógica de interrupción por impacto
 	force_cancel_by_hit(peer_id)
+	
+func request_revive(rescuer: Variant, target: Variant) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var rescuer_node: Node = null
+	var target_node: Node = null
+
+	# 1. Resolver el nodo del Rescatador (rescuer)
+	if rescuer is int:
+		rescuer_node = _get_player(rescuer)
+	elif rescuer is Node:
+		rescuer_node = rescuer
+
+	# 2. Resolver el nodo de la Víctima (target)
+	if target is int:
+		target_node = _get_player(target)
+	elif target is Node:
+		target_node = target
+
+	# 3. Validar de forma segura que las instancias existan antes de proceder
+	if not is_instance_valid(rescuer_node) or not is_instance_valid(target_node):
+		print("[ReviveService] Error: Nodos inválidos en request_revive (Rescatador o Objetivo faltante).")
+		return
+
+	# Obtener la ID de red del rescatador para tu diccionario de sesiones
+	var rescuer_id := rescuer_node.get_multiplayer_authority()
+
+	# Ejecutar tu lógica original usando el nodo de la víctima
+	start_revive(rescuer_id, target_node)

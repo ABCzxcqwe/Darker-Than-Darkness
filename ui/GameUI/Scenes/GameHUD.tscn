@@ -7,6 +7,19 @@
 [ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="4_su3ou"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/scripts/obsoleto/ability_bar.gd" id="6_8ord7"]
+[ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
+bg_color = Color(0.3808012, 0.052263863, 0, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 120
+corner_radius_bottom_right = 120
+corner_detail = 1
+anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
 content_margin_left = 0.0
@@ -36,10 +49,11 @@ anti_aliasing = false
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
 bg_color = Color(0, 0, 0, 1)
 border_width_left = 3
-border_width_top = 4
+border_width_top = 3
 border_width_right = 3
 border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
 expand_margin_left = 9.0
+expand_margin_top = 9.0
 expand_margin_right = 9.0
 expand_margin_bottom = 9.0
 
@@ -100,20 +114,22 @@ grow_vertical = 2
 theme_override_constants/line_spacing = -21
 theme_override_fonts/font = ExtResource("5_8ord7")
 theme_override_font_sizes/font_size = 18
-text = "T
- P"
+text = "TP"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TpTrack" type="PanelContainer" parent="TpBar" unique_id=1188802328]
+clip_children = 2
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.2
 anchor_right = 1.0
 anchor_bottom = 0.8
+theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
 
 [node name="TpFill" type="ColorRect" parent="TpBar/TpTrack" unique_id=1159643669]
+texture_filter = 1
 layout_mode = 2
-color = Color(0.8596067, 0.44258177, 1.92523e-07, 1)
 
 [node name="TpPercent" type="Label" parent="TpBar" unique_id=1310723264]
 layout_mode = 1
@@ -121,6 +137,7 @@ anchors_preset = -1
 anchor_top = 0.8
 anchor_right = 1.0
 anchor_bottom = 0.9
+offset_bottom = 32.399963
 theme_override_fonts/font = ExtResource("5_8ord7")
 theme_override_font_sizes/font_size = 18
 text = "0%"
@@ -172,7 +189,9 @@ anchor_top = 0.88
 anchor_right = 0.225
 anchor_bottom = 1.0
 grow_vertical = 0
-theme_override_constants/separation = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
 [node name="PlayerPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=826925484]
 layout_mode = 2
@@ -231,22 +250,23 @@ show_percentage = false
 [node name="AbilityPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=547767753]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
+script = ExtResource("6_s5e2t")
 
 [node name="AbilityBar" type="HBoxContainer" parent="PlayerPanelWrap/AbilityPanel" unique_id=772607126]
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
 theme_override_constants/separation = 6
 alignment = 1
 script = ExtResource("6_8ord7")
 
 [node name="ContextMenu" type="PanelContainer" parent="." unique_id=1216142140]
-visible = false
 anchors_preset = -1
-anchor_top = 1.0
-anchor_bottom = 1.0
+anchor_left = 0.04
+anchor_top = 0.4
+anchor_right = 0.25
+anchor_bottom = 0.8
 offset_left = 8.0
-offset_top = -230.0
-offset_right = 280.0
-offset_bottom = -118.0
 grow_vertical = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ContextMenu" unique_id=1398842063]
@@ -255,19 +275,21 @@ theme_override_constants/separation = 4
 
 [node name="ContextTitle" type="Label" parent="ContextMenu/VBoxContainer" unique_id=1147891814]
 layout_mode = 2
-theme_override_font_sizes/font_size = 8
+theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_font_sizes/font_size = 20
 text = "SELECCIONAR OBJETIVO"
 
 [node name="ContextGrid" type="GridContainer" parent="ContextMenu/VBoxContainer" unique_id=1436223351]
 layout_mode = 2
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 5
 columns = 2
 
 [node name="ContextHint" type="Label" parent="ContextMenu/VBoxContainer" unique_id=255336458]
 modulate = Color(0.5, 0.5, 0.5, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 7
+theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_font_sizes/font_size = 13
 text = "↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR"
 
 [node name="AlliesPanel" type="VBoxContainer" parent="." unique_id=542984232]

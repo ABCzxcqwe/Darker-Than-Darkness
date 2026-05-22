@@ -44,11 +44,18 @@ func _ready() -> void:
 	# Registrar en servicios al entrar a la partida (Solo Servidor)
 	if multiplayer.is_server():
 		var hs := GameServiceLocator.get_service("HealthService")
-		if hs: hs.register(self)
+		if hs:
+			if hs.has_method("register"):
+				hs.register(self)
+			elif hs.has_method("register_survivor"):
+				hs.call("register_survivor", self)
 		var ss := GameServiceLocator.get_service("StatusEffectService")
 		if ss: ss.register(self)
 		var es := GameServiceLocator.get_service("EvolutionService")
 		if es: es.register_player(get_multiplayer_authority())
+		var abs_svc := GameServiceLocator.get_service("AbilityStateService") 
+		if abs_svc:                                                            
+			abs_svc.register_player(get_multiplayer_authority(), character_data) 
 
 
 # ── Rescate ───────────────────────────────────────────────────────────
@@ -109,18 +116,18 @@ func _exit_tree() -> void:
 	var peer_id : int = -1
 	if multiplayer.multiplayer_peer != null:
 		peer_id = get_multiplayer_authority()
-
+	
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs and peer_id != -1: hs.unregister(peer_id)
-		
 	var ss = GameServiceLocator.get_service("StatusEffectService")
 	if ss: ss.unregister(self)
-		
 	var tp = GameServiceLocator.get_service("TPService")
 	if tp and peer_id != -1: tp.unregister_player(peer_id)
-		
 	var es = GameServiceLocator.get_service("EvolutionService")
 	if es and peer_id != -1: es.unregister_player(peer_id)
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService") # <- NUEVO
+	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)   # <- NUEVO
+
 
 
 func _input(event: InputEvent) -> void:
@@ -134,16 +141,58 @@ func _input(event: InputEvent) -> void:
 		"ability_4": 4,
 		"ability_0": 0,
 	}
+	
 	for action in action_map:
 		if event.is_action_pressed(action):
 			var slot: int = action_map[action]
+			
+			# Extraer el recurso del slot
+			var base_data: AbilityData = character_data.ability_slots[slot] if (character_data and slot < character_data.ability_slots.size()) else null
+			
+			# ── SOLUCIÓN DE LÓGICA: Verificación Dinámica por Recurso ──
+			if base_data and base_data.requires_selection:
+				var hud_nodes := get_tree().get_nodes_in_group("game_hud")
+				if not hud_nodes.is_empty():
+					var hud = hud_nodes[0]
+					
+					# Usamos las propiedades del recurso para armar la interfaz
+					var menu_title = "SELECCIONA: " + base_data.display_name.to_upper()
+					
+					print("[Player-Client] Interceptando habilidad basada en datos. Tipo de selección: ", base_data.selection_type)
+					
+					hud.request_selection(
+						menu_title,
+						# Callback al confirmar la selección
+						func(target_peer_id: int):
+							print("[Player-Client] Objetivo confirmado en HUD: ", target_peer_id)
+							
+							# Dividimos el ID en dos enteros más pequeños usando aritmética básica
+							# (Evita la pérdida de precisión al viajar por el Vector2)
+							var part_high := int(target_peer_id / 65536)
+							var part_low := int(target_peer_id % 65536)
+							var specialized_vector := Vector2(part_high, part_low)
+							
+							if multiplayer.is_server():
+								AbilityRouter.request_ability(slot, specialized_vector)
+							else:
+								AbilityRouter.rpc_id(1, "request_ability", slot, specialized_vector)
+							ability_used.emit(slot),
+						# Callback al cancelar
+						func():
+							print("[Player-Client] Selección de habilidad cancelada por el usuario.")
+					)
+				else:
+					push_warning("[Player] Error: La habilidad requiere selección pero no se encontró el grupo 'game_hud'.")
+				return # Interceptamos el flujo con éxito, evitamos el envío inmediato por mouse
+			
+			# ── Flujo por Defecto (Ataques directos o proyectiles tipo Rude Buster) ──
 			var mouse_dir := (get_global_mouse_position() - global_position).normalized()
 			if multiplayer.is_server():
 				AbilityRouter.request_ability(slot, mouse_dir)
 			else:
 				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
 			ability_used.emit(slot)
-			break
+			break # Rompemos el bucle al procesar la acción detectada
 
 	if event.is_action_pressed("interact"):
 		_try_revive()
@@ -206,7 +255,6 @@ func _physics_process(_delta: float) -> void:
 	update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
 	
 	# ── LLAMADA COMPATIBLE AL TRACKER DE AUDIO ──
-	# Simplemente le notificamos al mánager que procese distancias
 	AudioManager.update_proximities()
 
 
@@ -234,7 +282,7 @@ func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func _sync_health(new_health: int, new_invincible_until: int) -> void:
 	var old_health = health
-	var old_state = health_state
+	var _old_state = health_state
 	
 	health = new_health
 	invincible_until = new_invincible_until
@@ -254,7 +302,6 @@ func _sync_health(new_health: int, new_invincible_until: int) -> void:
 		# Emitir señal local para actualizar UI
 		var hs = GameServiceLocator.get_service("HealthService")
 		if hs and hs.has_method("get_player_state"):
-			# Forzar actualización de estado en el HealthService local
 			hs.player_state_changed.emit(get_multiplayer_authority(), health_state)
 	else:
 		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
@@ -272,7 +319,7 @@ func _sync_speed(new_speed: float) -> void:
 
 
 @rpc("any_peer", "call_local", "reliable")
-func _sync_effect(effect_name: String, active: bool) -> void:
+func _sync_effect(_effect_name: String, _active: bool) -> void:
 	pass
 
 
@@ -284,7 +331,7 @@ func _sync_state(new_state: String, new_health: int) -> void:
 	print("[Client] Sync state: %s -> %s (health: %d -> %d, peer: %s)" % [old_state, new_state, old_health, new_health, name])
 	
 	health_state = new_state
-	health = new_health  # Siempre sincronizar vida con estado
+	health = new_health  
 	
 	match new_state:
 		"alive":

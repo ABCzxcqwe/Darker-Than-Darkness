@@ -64,22 +64,29 @@ func _exit_tree() -> void:
 ## Recibido en el CLIENTE correspondiente. Le dice a su HUD que inicie la animación.
 @rpc("authority", "call_local", "reliable")
 func _rpc_cooldown_started(ability_name: String, slot_index: int, duration: float) -> void:
-	# COMPUERTA CRÍTICA: Si este código se intenta ejecutar en un servidor dedicado sin UI, abortamos.
-	if multiplayer.is_server() and DisplayServer.get_name() == "headless":
+	# 1. Buscamos el HUD en el grupo oficial
+	var huds = get_tree().get_nodes_in_group("game_hud")
+	
+	# ─── AQUÍ ESTÁ LA SOLUCIÓN ASÍNCRONA ───
+	# Si el HUD no está en el grupo, esperamos un par de frames a que aparezca
+	if huds.is_empty():
+		# Intentamos esperar hasta 3 frames de manera segura
+		for i in range(3):
+			await get_tree().process_frame
+			huds = get_tree().get_nodes_in_group("game_hud")
+			if not huds.is_empty():
+				break # ¡Súper! El HUD apareció
+				
+	# Si después de esperar sigue sin aparecer, tiramos el warning original
+	if huds.is_empty():
+		push_warning("[CooldownService] RPC recibido en cliente, pero no se encontró el HUD local tras esperar.")
 		return
+	# ───────────────────────────────────────
 
-	# Buscar el HUD activo en la escena local de este cliente
-	var hud := _find_local_hud()
-	if hud:
-		if hud.has_method("start_cooldown"):
-			hud.start_cooldown(ability_name, slot_index, duration)
-		else:
-			# Fallback por si tus botones de habilidad escuchan directamente de forma individual
-			var btn = hud.find_child("AbilityButton_" + str(slot_index), true, false)
-			if btn and btn.has_method("start_cooldown"):
-				btn.start_cooldown(duration)
-	else:
-		push_warning("[CooldownService] RPC recibido en cliente, pero no se encontró el HUD local en el árbol.")
+	# 2. Si lo encuentra (ya sea de inmediato o tras esperar), despachamos el cooldown
+	var hud = huds[0]
+	if hud.has_method("on_cooldown_started"):
+		hud.on_cooldown_started(ability_name, slot_index, duration)
 
 
 ## Helper para localizar la interfaz sin generar dependencias duras en el servidor
