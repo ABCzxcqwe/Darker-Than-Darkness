@@ -44,6 +44,10 @@ project/assembly_name="Perosnajes"
 version_control/plugin_name="GitPlugin"
 version_control/autoload_on_startup=true
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/claude_3.5_sonnet_chat_api/plugin.cfg")
+
 [input]
 
 move_up={
@@ -100,6 +104,10 @@ interact={
 [physics]
 
 3d/physics_engine="Jolt Physics"
+
+[plugins]
+
+claude_api/api_key=""
 
 [rendering]
 
