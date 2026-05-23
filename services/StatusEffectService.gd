@@ -299,6 +299,25 @@ func remove_modifier(modifier_id: String, player_node: Node = null) -> void:
 		for peer_id in _effects.keys():
 			_recalculate_speed(peer_id)
 
+func remove_effect(player_node: Node, effect_name: String) -> void:
+	if not multiplayer.is_server():
+		return
+	if not effect_name in EFFECT_TYPES:
+		push_warning("[StatusEffectService] remove_effect: efecto desconocido: ", effect_name)
+		return
+ 
+	var peer_id := player_node.get_multiplayer_authority()
+	if not _effects.has(peer_id):
+		return
+	if _effects[peer_id][effect_name].is_empty():
+		return
+ 
+	_effects[peer_id][effect_name].clear()
+	_recalculate_speed(peer_id)
+	_sync_effect_to_clients(peer_id, effect_name, false)
+ 
+	print("[StatusEffectService] ", effect_name, " eliminado manualmente para peer ", peer_id)
+ 
 
 func _exit_tree() -> void:
 	_effects.clear()

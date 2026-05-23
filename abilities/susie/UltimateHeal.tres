@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://n06e5je8jbxx"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_4fdfo"]
+[ext_resource type="Script" uid="uid://dk8uk5ymm80gn" path="res://abilities/susie/scripts/UltimateHeal.gd" id="1_l1irq"]
+
+[resource]
+script = ExtResource("1_4fdfo")
+display_name = "Ultimate heal"
+description = "Mejora con el tiempo"
+ability_script = ExtResource("1_l1irq")
+cooldown = 5.0
+tp_cost = 100.0
+requires_selection = true
+is_scalable = true
+scaling_base_value = 0.01
+scaling_per_use = 0.04
+scaling_cap = 0.55
+tp_cost_reduction_per_use = 2.0
+tp_cost_floor = 45.0
+cooldown_increase_per_use = 0.5
+metadata/_custom_type_script = "uid://bodks86qovy6s"

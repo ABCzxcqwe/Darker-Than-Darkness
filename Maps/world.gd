@@ -1,7 +1,7 @@
 # res://Maps/world.gd
 extends Node2D
 
-const GAME_HUD_SCENE := preload("res://ui/GameUI/Scenes/GameHUD.tscn")
+const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
 
 @export var services_config: GameServicesConfig = null
 

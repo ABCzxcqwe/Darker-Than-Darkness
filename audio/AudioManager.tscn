@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cha1sw3egunlu"]
+
+[ext_resource type="Script" uid="uid://dx6lls8ka1k4k" path="res://audio/AudioManager.gd" id="1_y137g"]
+
+[node name="AudioManager" type="Node" unique_id=252567596]
+script = ExtResource("1_y137g")
+
+[node name="MapMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1484442581]
+bus = &"Map Music"
+
+[node name="TerrorMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1206099196]
+bus = &"Alert Music"
+
+[node name="ChaseMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1759482016]
+bus = &"Chase Music"
+
+[node name="LMSMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1276790935]
+bus = &"LMS Music"

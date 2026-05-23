@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dy3ln7lsee4qh"]
 
 [ext_resource type="Script" uid="uid://daa4836toaqm3" path="res://Maps/world.gd" id="1_eu7l1"]
-[ext_resource type="Script" uid="uid://y6flghru20pp" path="res://scripts/MultiplayerSpawner.gd" id="2_2dftf"]
-[ext_resource type="Script" uid="uid://cg1ribo4sy37w" path="res://scripts/Salir.gd" id="3_bcbcq"]
+[ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
+[ext_resource type="Script" uid="uid://cg1ribo4sy37w" path="res://ui/hud/Salir.gd" id="3_bcbcq"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_eu7l1"]

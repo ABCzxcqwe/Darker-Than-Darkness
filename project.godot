@@ -28,6 +28,7 @@ AbilityRouter="*uid://ryphqnurjury"
 GameServiceLocator="*uid://btt4agmfoo7rx"
 MapRegistry="*uid://dc7fwd2kgom44"
 AudioManager="*uid://cha1sw3egunlu"
+MatchCoordinator="*uid://b8e8e7uvc056"
 
 [display]
 

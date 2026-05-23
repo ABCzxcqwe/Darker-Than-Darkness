@@ -10,9 +10,20 @@ signal health_changed(peer_id: int, current_hp: int, max_hp: int)
 ## Emitida cuando cambia el estado (alive / downed / dead).
 signal player_state_changed(peer_id: int, state: String)
 
+## Tipos de protección genérica.
+enum ProtectionType {
+	DAMAGE_SHARE,    # Divide el daño entre dos jugadores
+	DAMAGE_REDUCE,   # Reduce daño por porcentaje
+	DEATH_SHIELD     # Una vez: evita muerte, deja en 1 HP
+}
+
 # Estado de vida por peer_id
 # { peer_id: { "state": "alive"/"downed"/"dead", "timer": SceneTreeTimer } }
 var _states: Dictionary = {}
+
+# Protecciones registradas
+# { protected_peer_id: [{ protector_id, type: ProtectionType, params: Dictionary }] }
+var _protections: Dictionary = {}
 
 # ── API pública ────────────────────────────────────────────────────────
 
@@ -33,33 +44,37 @@ func get_player_state(peer_id: int) -> String:
 func take_damage(player_node: Node, amount: int, _attacker_id: int, attack_type: String = "normal") -> void:
 	if not multiplayer.is_server():
 		return
-
+ 
 	var peer_id := player_node.get_multiplayer_authority()
-
+ 
 	# Killers son invulnerables
 	if player_node.character_data and player_node.character_data.team == "killer":
 		return
-
+ 
 	if not is_alive(peer_id):
 		return
-
+ 
 	var now := Time.get_ticks_msec()
 	if now < player_node.invincible_until:
 		if player_node.character_data and \
 		   not attack_type in player_node.character_data.special_defense_against:
 			return
-
+ 
+	# ── Protecciones genéricas ──────────────────────────────────────────
+	# Procesa daño compartido, reducción y escudos anti-muerte.
+	amount = _apply_protections(peer_id, player_node, amount)
+ 
 	player_node.health -= amount
 	player_node.invincible_until = now + int(player_node.character_data.invincibility_frames * 1000)
-
+ 
 	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", player_node.health)
-
+ 
 	var revive_svc := GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		revive_svc.cancel_revive(peer_id)
-
+ 
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
-
+ 
 	if player_node.health <= 0:
 		player_node.health = 0
 		_broadcast_health_update(peer_id, 0, max_hp, "downed")
@@ -222,6 +237,102 @@ func _set_state(peer_id: int, state: String) -> void:
 	else:
 		_states[peer_id]["state"] = state
 
+# ── API de protecciones genéricas ─────────────────────────────────────
+
+## Registra una protección para un jugador.
+## @param protected_id: quien recibe el beneficio
+## @param protector_id: quien provee la protección (puede ser el mismo)
+## @param type: ProtectionType
+## @param params: { "share_pct": 0.5 } para DAMAGE_SHARE,
+##                { "reduction_pct": 0.5 } para DAMAGE_REDUCE,
+##                {} para DEATH_SHIELD
+func register_protection(protected_id: int, protector_id: int, type: int, params: Dictionary = {}) -> void:
+	if not _protections.has(protected_id):
+		_protections[protected_id] = []
+	_protections[protected_id].append({
+		"protector_id": protector_id,
+		"type": type,
+		"params": params
+	})
+
+
+## Elimina una protección específica.
+func unregister_protection(protected_id: int, protector_id: int, type: int) -> void:
+	if not _protections.has(protected_id):
+		return
+	_protections[protected_id] = _protections[protected_id].filter(
+		func(p): return not (p.protector_id == protector_id and p.type == type)
+	)
+	if _protections[protected_id].is_empty():
+		_protections.erase(protected_id)
+
+
+## Elimina todas las protecciones de un protector (ej. al expirar duración).
+func unregister_all_for_protector(protector_id: int) -> void:
+	for protected_id in _protections.keys():
+		_protections[protected_id] = _protections[protected_id].filter(
+			func(p): return p.protector_id != protector_id
+		)
+		if _protections[protected_id].is_empty():
+			_protections.erase(protected_id)
+
+
+## Procesa todas las protecciones activas para un jugador.
+## Retorna el monto de daño modificado después de aplicar protecciones.
+func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
+	if not _protections.has(peer_id):
+		return amount
+
+	var current_hp: int = player_node.health
+
+	# Si ya está en 1 HP, las protecciones no aplican
+	if current_hp <= 1:
+		_protections.erase(peer_id)
+		return amount
+
+	var final_amount: int = amount
+	var has_death_shield: bool = false
+
+	for p in _protections[peer_id]:
+		match p.type:
+			ProtectionType.DEATH_SHIELD:
+				has_death_shield = true
+
+			ProtectionType.DAMAGE_REDUCE:
+				var reduction: float = p.params.get("reduction_pct", 0.5)
+				final_amount = ceil(final_amount * (1.0 - reduction))
+
+			ProtectionType.DAMAGE_SHARE:
+				var share_pct: float = p.params.get("share_pct", 0.5)
+				var shared: int = ceil(final_amount * share_pct)
+
+				var protector: Node = _find_player_node_by_peer_id(p.protector_id)
+				if not is_instance_valid(protector) or not is_alive(p.protector_id):
+					continue
+
+				var protector_hp: int = protector.health
+				if protector_hp <= 1:
+					continue
+
+				# Aplicar daño compartido al protector (mínimo 1 HP)
+				var new_hp: int = max(1, protector_hp - shared)
+				protector.health = new_hp
+
+				var max_hp_p: int = protector.character_data.max_health \
+					if protector.character_data else 100
+				_broadcast_health_update(p.protector_id, new_hp, max_hp_p, "alive")
+
+				final_amount = max(0, final_amount - shared)
+
+	# Escudo anti-muerte al final (después de reducciones)
+	if has_death_shield and current_hp - final_amount <= 0 and current_hp > 1:
+		return current_hp - 1
+
+	return final_amount
+
+
+func _find_player_node_by_peer_id(peer_id: int) -> Node:
+	return get_tree().root.find_child(str(peer_id), true, false)
 
 func _exit_tree() -> void:
 	_states.clear()

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://iwoc87j2eewu"]
+
+[ext_resource type="Script" uid="uid://ld7wt75cafvm" path="res://abilities/kris/scripts/Act.gd" id="1_30owo"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ibkv2"]
+
+[sub_resource type="Resource" id="Resource_cbm6k"]
+script = ExtResource("1_ibkv2")
+display_name = "Counter"
+ability_script = ExtResource("1_30owo")
+cooldown = 25.0
+tp_cost = 25.0
+can_use_while_stunned = true
+move_restriction = 1
+base_damage = 15
+stun_duration = 2.5
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("1_ibkv2")
+display_name = "ACT"
+ability_type = 1
+ability_script = ExtResource("1_30owo")
+cooldown = 20.0
+tp_cost = 20.0
+can_use_while_stunned = true
+requires_selection = true
+base_damage = 15
+stun_duration = 2.0
+evolved_version = SubResource("Resource_cbm6k")
+lms_auto_evolve = true
+metadata/_custom_type_script = "uid://bodks86qovy6s"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dp3h106hc1wrb"]
+
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="1_4av2y"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_6xms1"]
+[ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="2_bvern"]
+[ext_resource type="Resource" uid="uid://m5ix64pm8s8p" path="res://abilities/kris/XSlash.tres" id="3_rc3jf"]
+
+[resource]
+script = ExtResource("1_6xms1")
+display_name = "Sword Slash"
+ability_script = ExtResource("2_bvern")
+ability_scene = ExtResource("1_4av2y")
+cooldown = 15.0
+tp_reward = 15.0
+move_restriction = 1
+base_damage = 20
+attack_type = "slash"
+stun_duration = 3.0
+evolved_version = ExtResource("3_rc3jf")
+lms_auto_evolve = true
+metadata/_custom_type_script = "uid://bodks86qovy6s"

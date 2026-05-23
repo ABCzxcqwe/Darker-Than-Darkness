@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bmtkxxhx3sll5"]
 
-[ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/scripts/obsoleto/ability_button.gd" id="1_6pl12"]
+[ext_resource type="Script" uid="uid://b2fglet44yr45" path="res://ui/GameUI/Scenes/ability_button.gd" id="1_6pl12"]
 [ext_resource type="Theme" uid="uid://c4ki6e7g7qnkl" path="res://Fonts/Deltarune.tres" id="1_eu371"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_byw6d"]

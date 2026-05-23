@@ -1,4 +1,4 @@
-# Hurtbox.gd
+# hurtbox.gd
 # Zona de daño del jugador. Es un Area2D pasivo:
 # NO tiene lógica de detección propia.
 # El slash_hitbox detecta esta Hurtbox por el grupo "hurtbox"

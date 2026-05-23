@@ -28,7 +28,7 @@ extends CanvasLayer
 @onready var allies_panel:     VBoxContainer   = $AlliesPanel
 
 # ── Constantes ─────────────────────────────────────────────────────────
-const CONTEXT_ITEM_SCENE := preload("res://ui/GameUI/Scenes/ContextItem.tscn")
+const CONTEXT_ITEM_SCENE := preload("uid://b8p1jgthpblec")
 const TIMER_URGENT_SECS  := 15.0
 const COLOR_SURVIVOR:    Color = Color(0.27, 0.78, 0.95)  # cian
 const COLOR_KILLER:      Color = Color(1.0,  0.27, 0.27)  # rojo

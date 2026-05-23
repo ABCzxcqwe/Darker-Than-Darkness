@@ -6,7 +6,7 @@
 # Estructura esperada: AlliesPanel (VBoxContainer)
 extends VBoxContainer
 
-const ALLY_BAR_SCENE := preload("res://ui/GameUI/Scenes/AllyBar.tscn")
+const ALLY_BAR_SCENE := preload("uid://hn1chvujpfq")
 
 var _my_peer_id: int  = -1
 var _my_team:    String = "survivor"

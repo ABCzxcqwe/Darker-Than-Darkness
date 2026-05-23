@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://j6u1gk2tpbns" path="res://ui/GameUI/scripts/player_panel.gd" id="2_mfo51"]
 [ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="4_su3ou"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
-[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/scripts/obsoleto/ability_bar.gd" id="6_8ord7"]
+[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]

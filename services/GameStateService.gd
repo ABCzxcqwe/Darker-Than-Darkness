@@ -189,7 +189,7 @@ func _end_match(reason: String) -> void:
 		"players_snapshot": NetworkManager.players.duplicate(true)
 	}
 	
-	NetworkManager.rpc("_go_to_stats_screen", stats_data)
+	MatchCoordinator.rpc("_go_to_stats_screen", stats_data)
 
 
 func _calculate_next_killer_points(reason: String) -> void:

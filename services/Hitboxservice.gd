@@ -25,7 +25,7 @@
 #     on_end       : Callable     — func(hit_count)   al expirar
 extends Node
 
-const HITBOX_SCRIPT := preload("res://Hitboxes/Hitbox.gd")
+const HITBOX_SCRIPT := preload("uid://ct6ctabp7nijt")
 
 func create(config: Dictionary) -> Node:
 	if not multiplayer.is_server():

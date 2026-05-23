@@ -1,44 +1,110 @@
 [gd_scene format=3 uid="uid://hn1chvujpfq"]
 
 [ext_resource type="Script" uid="uid://bxaet6syxo1r4" path="res://ui/GameUI/Scenes/ally_bar.gd" id="1_l5k6c"]
-[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_f5yb8"]
-[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="3_thlpu"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f5yb8"]
-bg_color = Color(0, 0, 0, 0.38431373)
-corner_detail = 17
-expand_margin_left = 5.0
-expand_margin_right = 5.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.05, 0.05, 0.08, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.25, 0.3, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
-[node name="AllyBar" type="PanelContainer" unique_id=1230571764]
-custom_minimum_size = Vector2(140, 48)
-theme_override_styles/panel = SubResource("StyleBoxFlat_f5yb8")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_bg"]
+bg_color = Color(0.1, 0.1, 0.15, 1)
+border_color = Color(0.25, 0.25, 0.3, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_fill"]
+bg_color = Color(0.27, 0.78, 0.95, 1)
+
+[node name="AllyBar" type="Control" unique_id=334822665]
+custom_minimum_size = Vector2(220, 54)
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("1_l5k6c")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1774526866]
-layout_mode = 2
+[node name="BGPanel" type="Panel" parent="." unique_id=1791191486]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=908556861]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 3.0
+offset_right = -4.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 5
 
-[node name="AllyIcon" type="ColorRect" parent="HBoxContainer" unique_id=1252657196]
-custom_minimum_size = Vector2(24, 24)
+[node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=1645154293]
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
-size_flags_horizontal = 4
 size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
 
-[node name="AllyName" type="Label" parent="HBoxContainer" unique_id=489454750]
+[node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1297903543]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_f5yb8")
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+text = "NOMBRE"
 
-[node name="AllyInfo" type="VBoxContainer" parent="HBoxContainer" unique_id=35942538]
+[node name="InfoColumn" type="VBoxContainer" parent="HBoxContainer" unique_id=526978414]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
-alignment = 1
-
-[node name="AllyHpBar" type="ProgressBar" parent="HBoxContainer/AllyInfo" unique_id=112233445]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
 size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("3_thlpu")
-theme_override_font_sizes/font_size = 10
+theme_override_constants/separation = 1
+
+[node name="NameRow" type="HBoxContainer" parent="HBoxContainer/InfoColumn" unique_id=1522503287]
+layout_mode = 2
+alignment = 2
+
+[node name="HPLabel" type="Label" parent="HBoxContainer/InfoColumn/NameRow" unique_id=900484272]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 9
+text = "100/ 100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HPRow" type="HBoxContainer" parent="HBoxContainer/InfoColumn" unique_id=1863776734]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 3
+
+[node name="HPTag" type="Label" parent="HBoxContainer/InfoColumn/HPRow" unique_id=14969509]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 9
+text = "HP"
+vertical_alignment = 1
+
+[node name="HPBar" type="ProgressBar" parent="HBoxContainer/InfoColumn/HPRow" unique_id=1907768581]
+custom_minimum_size = Vector2(110, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_hpbar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hpbar_fill")
+value = 50.0
+show_percentage = false

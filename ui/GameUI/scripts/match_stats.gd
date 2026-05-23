@@ -7,7 +7,7 @@ extends Control
 
 func _ready() -> void:
 	# 1. Obtener resultados de red de forma segura
-	var results: Dictionary = NetworkManager.last_match_results
+	var results: Dictionary = MatchCoordinator.last_match_results
 	
 	# Inicializamos variables por defecto por si el diccionario viene corrupto o vacío
 	var reason_code: String = ""
@@ -46,4 +46,4 @@ func _ready() -> void:
 
 
 func _on_reset_room_pressed() -> void:
-	NetworkManager.host_return_to_lobby_reconfigured()
+	MatchCoordinator.host_return_to_lobby_reconfigured()
