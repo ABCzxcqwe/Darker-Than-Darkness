@@ -1,17 +1,19 @@
-# Godot 4+ specific ignores
+# Godot 4+
 .godot/
-.nomedia
 
-# Godot-specific ignores
-.import/
+# Plugins / Addons (cada quien los instala localmente)
+/addons/
+
+# Export configs
+export_presets.cfg
 export.cfg
 export_credentials.cfg
+
+# Godot auto-generated
+*.translation
 *.tmp
 
-# Imported translations (automatically generated from CSV files)
-*.translation
-
-# Mono-specific ignores
+# Mono (si usas C#)
 .mono/
 data_*/
 mono_crash.*.json
