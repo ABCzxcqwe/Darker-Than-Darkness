@@ -46,17 +46,17 @@ func _ready() -> void:
 
 	# Registrar en servicios al entrar a la partida (Solo Servidor)
 	if multiplayer.is_server():
-		var hs := GameServiceLocator.get_service("HealthService")
+		var hs = GameServiceLocator.get_service("HealthService")
 		if hs:
 			if hs.has_method("register"):
 				hs.register(self)
 			elif hs.has_method("register_survivor"):
 				hs.call("register_survivor", self)
-		var ss := GameServiceLocator.get_service("StatusEffectService")
+		var ss = GameServiceLocator.get_service("StatusEffectService")
 		if ss: ss.register(self)
-		var es := GameServiceLocator.get_service("EvolutionService")
+		var es = GameServiceLocator.get_service("EvolutionService")
 		if es: es.register_player(get_multiplayer_authority())
-		var abs_svc := GameServiceLocator.get_service("AbilityStateService") 
+		var abs_svc = GameServiceLocator.get_service("AbilityStateService") 
 		if abs_svc:                                                            
 			abs_svc.register_player(get_multiplayer_authority(), character_data) 
 
@@ -83,7 +83,7 @@ func _try_revive() -> void:
 	if not closest_target: return
 
 	if multiplayer.is_server():
-		var revive_svc := GameServiceLocator.get_service("ReviveService")
+		var revive_svc = GameServiceLocator.get_service("ReviveService")
 		if revive_svc: revive_svc.request_revive(self, closest_target)
 	else:
 		rpc_id(1, "_request_revive", closest_target.get_multiplayer_authority())
@@ -98,7 +98,7 @@ func _request_revive(target_peer_id: int) -> void:
 	var target_node  := get_tree().root.find_child(str(target_peer_id), true, false)
 	if not rescuer_node or not target_node: return
 
-	var revive_svc := GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service("ReviveService")
 	if revive_svc: revive_svc.request_revive(rescuer_node, target_node)
 
 
@@ -106,7 +106,7 @@ func _request_revive(target_peer_id: int) -> void:
 func _request_cancel_revive() -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
 	if caller_id != get_multiplayer_authority(): return
-	var revive_svc := GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		revive_svc.cancel_revive(get_multiplayer_authority())
 
@@ -202,7 +202,7 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_released("interact"):
 		if multiplayer.is_server():
-			var revive_svc := GameServiceLocator.get_service("ReviveService")
+			var revive_svc = GameServiceLocator.get_service("ReviveService")
 			if revive_svc: revive_svc.cancel_revive(get_multiplayer_authority())
 		else:
 			rpc_id(1, "_request_cancel_revive")
@@ -228,7 +228,7 @@ func set_character(char_id: int) -> void:
 	_setup_collision_layers(data)
 
 	if multiplayer.is_server():
-		var tp := GameServiceLocator.get_service("TPService")
+		var tp = GameServiceLocator.get_service("TPService")
 		if tp: tp.register_player(get_multiplayer_authority(), data)
 
 

@@ -69,7 +69,7 @@ func take_damage(player_node: Node, amount: int, _attacker_id: int, attack_type:
  
 	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", player_node.health)
  
-	var revive_svc := GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		revive_svc.cancel_revive(peer_id)
  

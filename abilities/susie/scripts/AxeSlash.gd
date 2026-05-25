@@ -10,7 +10,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 		push_warning("[AxeSlash] player_node inválido.")
 		return
 
-	var hs := GameServiceLocator.get_service("HitboxService")
+	var hs = GameServiceLocator.get_service("HitboxService")
 	if not hs:
 		push_error("[AxeSlash] HitboxService no disponible.")
 		return
@@ -25,7 +25,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
 
 	# ── Anclar al caster SOLO durante el hitbox ──────────────────────────
-	var status := GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service("StatusEffectService")
 	if status:
 		status.apply(player_node, "root", { "duration": HITBOX_LIFETIME })
 
@@ -50,16 +50,16 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 				if health_svc:
 					health_svc.take_damage(target_node, dmg, attacker_id, atk_type)
 			if target_node.is_in_group("killer"):
-				var s := GameServiceLocator.get_service("StatusEffectService")
+				var s = GameServiceLocator.get_service("StatusEffectService")
 				if s and stun_dur > 0.0:
 					s.apply(target_node, "stun", { "duration": stun_dur })
 				if tp_reward > 0.0:
-					var tp := GameServiceLocator.get_service("TPService")
+					var tp = GameServiceLocator.get_service("TPService")
 					if tp:
 						tp.add_tp_custom(attacker_id, tp_reward),
 
 		"on_end": func(_hit_count: int) -> void:
-			var s := GameServiceLocator.get_service("StatusEffectService")
+			var s = GameServiceLocator.get_service("StatusEffectService")
 			if s and is_instance_valid(player_node):
 				s.remove_effect(player_node, "root")
 			print("[AxeSlash] Terminó | golpes: ", _hit_count)

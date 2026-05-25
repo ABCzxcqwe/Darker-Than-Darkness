@@ -61,7 +61,7 @@ func activate(player_node: Node, _data: AbilityData, _direction: Vector2) -> voi
 	var slow_dur: float  = _data.slow_duration
 	var hit_threshold: int = _data.hit_count_for_effect if _data.hit_count_for_effect > 0 else 4
 
-	var abs_svc := GameServiceLocator.get_service("AbilityStateService")
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 	if not abs_svc:
 		push_error("[Pacify] AbilityStateService no disponible.")
 		return
@@ -69,7 +69,7 @@ func activate(player_node: Node, _data: AbilityData, _direction: Vector2) -> voi
 	# Resetear el contador al inicio de cada uso
 	abs_svc.reset_hit_counter(caster_id, SLOT)
 
-	var hs := GameServiceLocator.get_service("HitboxService")
+	var hs = GameServiceLocator.get_service("HitboxService")
 	if not hs:
 		push_error("[Pacify] HitboxService no disponible.")
 		return
@@ -98,7 +98,7 @@ func activate(player_node: Node, _data: AbilityData, _direction: Vector2) -> voi
 
 			# Aplicar slow en cada hit (se refresca si ya estaba activo)
 			if slow_mag > 0.0:
-				var status := GameServiceLocator.get_service("StatusEffectService")
+				var status = GameServiceLocator.get_service("StatusEffectService")
 				if status:
 					status.apply(target_node, "slow", {
 						"duration"  : slow_dur,
@@ -120,7 +120,7 @@ func activate(player_node: Node, _data: AbilityData, _direction: Vector2) -> voi
 				stun_applied = true
 				abs_svc.reset_hit_counter(caster_id, SLOT)
 
-				var status := GameServiceLocator.get_service("StatusEffectService")
+				var status = GameServiceLocator.get_service("StatusEffectService")
 				if status and stun_dur > 0.0:
 					status.apply(target_node, "stun", { "duration": stun_dur })
 
