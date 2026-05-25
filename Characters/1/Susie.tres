@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_a50v8"]
 [ext_resource type="Resource" uid="uid://fy2b3ca2wy3d" path="res://abilities/susie/AxeSlash.tres" id="2_66qii"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_royjo"]
-[ext_resource type="SpriteFrames" uid="uid://b2tsf3wfliskg" path="res://Characters/1/Animations.tres" id="3_ot0kq"]
+[ext_resource type="SpriteFrames" uid="uid://qsxkpkuh7q3s" path="res://Characters/1/animations.tres" id="3_66qii"]
 [ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="4_skbg1"]
 
 [resource]
@@ -15,6 +15,6 @@ max_health = 160
 revive_time = 1.5
 lms_music = ExtResource("4_skbg1")
 ability_slots = Array[ExtResource("1_a50v8")]([null, ExtResource("2_66qii"), null, null, null])
-animation_frames = ExtResource("3_ot0kq")
+animation_frames = ExtResource("3_66qii")
 theme_color = Color(0.8212088, 0.00070097623, 0.85115045, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
