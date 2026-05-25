@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dsfk43jxp28t6"
-path="res://.godot/imported/jevil_v3.png-901700a80cdf192a67a9d1ef7d1002fa.ctex"
+uid="uid://i7pskgkmrnme"
+path="res://.godot/imported/jevil_dance.png-9e410b367108dcf7ff7c00fba3b78e37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/3/assets/jevil_v3.png"
-dest_files=["res://.godot/imported/jevil_v3.png-901700a80cdf192a67a9d1ef7d1002fa.ctex"]
+source_file="res://Characters/3/assets/jevil_dance.png"
+dest_files=["res://.godot/imported/jevil_dance.png-9e410b367108dcf7ff7c00fba3b78e37.ctex"]
 
 [params]
 

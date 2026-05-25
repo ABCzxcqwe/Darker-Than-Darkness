@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjwybxr8iaepn"
-path="res://.godot/imported/jevil_v2.png-730df9a8a172173f77017587136e454f.ctex"
+uid="uid://bk2ckbf13nu5f"
+path="res://.godot/imported/kris_idle1}.png-f327dade341ba079fa7ad26536d46671.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/3/assets/jevil_v2.png"
-dest_files=["res://.godot/imported/jevil_v2.png-730df9a8a172173f77017587136e454f.ctex"]
+source_file="res://Characters/0/assets/Sprites/kris_idle1}.png"
+dest_files=["res://.godot/imported/kris_idle1}.png-f327dade341ba079fa7ad26536d46671.ctex"]
 
 [params]
 
