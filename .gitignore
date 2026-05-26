@@ -17,6 +17,7 @@ mono_crash.*.json
 # Addons y Dependencias
 addons/*/LICENSE
 addons/*/package.json
+.addons/
 
 # Sistema operativo
 .DS_Store
