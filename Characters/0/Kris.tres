@@ -4,7 +4,7 @@
 [ext_resource type="Resource" uid="uid://dp3h106hc1wrb" path="res://abilities/kris/Sword.tres" id="2_kpcxu"]
 [ext_resource type="Resource" uid="uid://iwoc87j2eewu" path="res://abilities/kris/Act.tres" id="3_70heq"]
 [ext_resource type="Resource" uid="uid://c2v0fkl6qgg03" path="res://abilities/kris/Soul.tres" id="4_0bunb"]
-[ext_resource type="SpriteFrames" uid="uid://ds8cavpkttdua" path="res://Characters/0/animations.tres" id="5_uf4gy"]
+[ext_resource type="SpriteFrames" uid="uid://bejkxi1trim46" path="res://Characters/0/animations.tres" id="5_uf4gy"]
 [ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="6_icico"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]
 

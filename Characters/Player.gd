@@ -7,6 +7,8 @@ signal ability_used(ability_index: int)
 @onready var synchronizer      := $Synchronizer
 @onready var animated_sprite   := $AnimatedSprite2D
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var world_c := $CollisionShape2D
+@onready var hurtbox_c := $Hurtbox/CollisionShape2D
 
 var character_data:   CharacterData
 var health:           int    = 0
@@ -243,7 +245,14 @@ func _setup_collision_layers(data: CharacterData) -> void:
 		collision_mask  = 1 
 		hurtbox.collision_layer = 8
 		hurtbox.collision_mask  = 0
-
+	
+	### Configuración de los tamaños y posiciones personalizados del personaje
+	world_c.size(data.size_x, data.size_y) ## Configurando el tamaño de la detección del area de colisión del mundo
+	world_c.position(data.position_x, data.position_y) ## Configuración de la posición relativa del area de colisión del mundo
+	
+	hurtbox_c.size(data.h_size_x, data.h_size_y) ## Configuración del tamaño del hurtbox del personaje
+	hurtbox_c.position(data.h_position_x, data.h_position_y) ## Configuración de la posición del hutbox en relación a la posición del CharacterBody2D
+	
 
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer: return
