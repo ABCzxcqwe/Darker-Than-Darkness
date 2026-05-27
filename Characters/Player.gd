@@ -291,17 +291,11 @@ func _physics_process(_delta: float) -> void:
 
 func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 	var prefix    := "walk" if is_moving else "idle"
-	var anim_name := prefix + "_down"
-	facing_right  = true
+	var anim_name := prefix + "_horizontal"
 
-	if abs(dir.y) > abs(dir.x):
-		anim_name = prefix + ("_down" if dir.y > 0 else "_up")
-		facing    = Vector2.DOWN if dir.y > 0 else Vector2.UP
-	else:
-		anim_name    = prefix + "_horizontal"
-		facing_right = dir.x > 0
-		facing       = Vector2.RIGHT if facing_right else Vector2.LEFT
-		animated_sprite.flip_h = not facing_right
+	facing_right = dir.x >= 0.0
+	facing       = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
 
 	if last_animation != anim_name:
 		animated_sprite.play(anim_name)
@@ -311,6 +305,9 @@ func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 # ── FSM de Animaciones ────────────────────────────────────────────────
 
 func _on_anim_finished() -> void:
+	print("[Anim] _on_anim_finished | peer: ", get_multiplayer_authority(),
+		  " | is_authority: ", is_multiplayer_authority(),
+		  " | state: ", state)
 	if state == AnimState.ABILITY:
 		state = AnimState.IDLE
 		if animated_sprite:
@@ -318,25 +315,35 @@ func _on_anim_finished() -> void:
 
 
 func _play_idle_for_facing() -> void:
-	var idle_anim: String = "idle_down"
-	if facing == Vector2.UP:
-		idle_anim = "idle_up"
-	elif facing == Vector2.LEFT or facing == Vector2.RIGHT:
-		idle_anim = "idle_horizontal"
-		animated_sprite.flip_h = facing == Vector2.LEFT
-	if last_animation != idle_anim:
-		animated_sprite.play(idle_anim)
-		last_animation = idle_anim
+	animated_sprite.flip_h = facing == Vector2.LEFT
+	animated_sprite.play("idle_horizontal")
+	last_animation = "idle_horizontal"
 
 
-func play_ability_animation(anim_name: String) -> void:
-	if multiplayer.is_server():
-		rpc("_sync_ability_anim", anim_name)
-
-
-@rpc("authority", "call_local", "reliable")
-func _sync_ability_anim(anim_name: String) -> void:
+func play_ability_animation(anim_name: String, is_facing_right: bool = true) -> void:
+	if not multiplayer.is_server():
+		return
+	# Aplicar localmente en el servidor
 	if anim_name != "":
+		facing_right = is_facing_right
+		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+		animated_sprite.flip_h = not facing_right
+		animated_sprite.play(anim_name)
+		state = AnimState.ABILITY
+	# Broadcast a clientes
+	for peer_id in multiplayer.get_peers():
+		rpc_id(peer_id, "_sync_ability_anim", anim_name, is_facing_right)
+
+@rpc("any_peer", "reliable")
+func _sync_ability_anim(anim_name: String, is_facing_right: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 1:
+		push_warning("[Player] _sync_ability_anim rechazado, sender: ", sender)
+		return
+	if anim_name != "":
+		facing_right = is_facing_right
+		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+		animated_sprite.flip_h = not facing_right
 		animated_sprite.play(anim_name)
 		state = AnimState.ABILITY
 

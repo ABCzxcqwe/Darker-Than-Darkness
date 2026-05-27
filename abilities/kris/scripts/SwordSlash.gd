@@ -31,7 +31,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	combat.apply_root(player_node, HITBOX_LIFETIME)
 
 	# Reproducir animación
-	player_node.play_ability_animation(data.action_animation)
+	print("[SwordSlash] Llamando play_ability_animation con: ", data.action_animation)
+	player_node.play_ability_animation(data.action_animation, direction.x >= 0.0)
+	print("[SwordSlash] play_ability_animation retornó")
 
 	hs.create({
 		"attacker_id"   : attacker_id,
