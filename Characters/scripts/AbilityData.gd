@@ -71,7 +71,21 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 3 — ECONOMÍA: COOLDOWN Y TP
+# GRUPO 3 — ANIMACIÓN
+# ════════════════════════════════════════════════════════════════════════════
+
+@export_group("Animación")
+
+## Nombre de la animación a reproducir en el SpriteFrames del personaje.
+## Si se deja vacío, la habilidad se ejecuta sin cambiar la animación visual.
+@export var action_animation: String = ""
+
+## Si true, se puede cancelar presionando la misma tecla durante la animación.
+@export var can_cancel: bool = false
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# GRUPO 4 — ECONOMÍA: COOLDOWN Y TP
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Economía")
@@ -79,6 +93,12 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Tiempo base de reutilización en segundos.
 ## Para habilidades con cooldown dinámico (Ultimate Health), este es el valor inicial.
 @export var cooldown: float = 1.0
+
+## Cooldown alternativo si la habilidad falla (ej: no golpeó a nadie).
+@export var cooldown_fail: float = 0.0
+
+## Cooldown alternativo si la habilidad se canceló durante la animación.
+@export var cooldown_cancel: float = 0.0
 
 ## TP necesario para activar la habilidad.
 ## 0.0 = habilidad gratuita.
@@ -96,7 +116,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 4 — RESTRICCIONES DE USO
+# GRUPO 5 — RESTRICCIONES DE USO
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Restricciones de Uso")
@@ -121,7 +141,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 5 — EFECTOS DE COMBATE
+# GRUPO 6 — EFECTOS DE COMBATE
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Efectos de Combate")
@@ -144,7 +164,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 6 — CONTROL DE MASAS (CC)
+# GRUPO 7 — CONTROL DE MASAS (CC)
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Control de Masas")
@@ -167,7 +187,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 7 — ESCALABILIDAD POR USO
+# GRUPO 8 — ESCALABILIDAD POR USO
 # Úsalo en habilidades que cambian sus valores con el número de usos en la partida.
 # El ESTADO (cuántas veces se usó) NO vive aquí. Vive en AbilityStateService.
 # Este grupo define únicamente los parámetros de la curva de escala.
@@ -205,7 +225,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 8 — EVOLUCIÓN
+# GRUPO 9 — EVOLUCIÓN
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Evolución")
@@ -229,7 +249,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 9 — MECÁNICAS ESPECIALES DE KILLER
+# GRUPO 10 — MECÁNICAS ESPECIALES DE KILLER
 # Estos campos solo aplican a habilidades de Jevil o Spamton.
 # Los survivors los ignoran completamente.
 # ════════════════════════════════════════════════════════════════════════════
@@ -261,7 +281,7 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 10 — MECÁNICAS FUTURAS (Reservado)
+# GRUPO 11 — MECÁNICAS FUTURAS (Reservado)
 # Estos flags no tienen lógica activa todavía. Sirven para declarar la intención
 # en el inspector sin romper nada al implementarlos después.
 # ════════════════════════════════════════════════════════════════════════════

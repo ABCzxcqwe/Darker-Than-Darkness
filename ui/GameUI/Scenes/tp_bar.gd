@@ -18,8 +18,8 @@ extends Control
 @onready var tp_percent:  Label       = $TpPercent
 
 const COLOR_NORMAL: Color = Color(0.816, 0.592, 0.0, 1.0)   # naranja
-const COLOR_MAX:    Color = Color(1.0,  0.87, 0.0)          # amarillo al llegar al máximo
-const COLOR_WHITE:  Color = Color.WHITE                      # blanco normal
+const COLOR_MAX:    Color = Color(1.0, 0.871, 0.0, 1.0)     # amarillo al llegar al máximo
+const COLOR_WHITE:  Color = Color.WHITE                        # blanco normal
 
 var _peer_id: int   = -1
 var _max_tp:  float = 100.0

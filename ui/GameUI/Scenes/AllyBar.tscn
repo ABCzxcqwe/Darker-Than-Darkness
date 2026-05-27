@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://hn1chvujpfq"]
 
 [ext_resource type="Script" uid="uid://bxaet6syxo1r4" path="res://ui/GameUI/Scenes/ally_bar.gd" id="1_l5k6c"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_f5yb8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.05, 0.05, 0.08, 0.88)
@@ -50,7 +51,7 @@ grow_vertical = 2
 theme_override_constants/separation = 5
 
 [node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=1645154293]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
@@ -61,7 +62,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 11
+theme_override_fonts/font = ExtResource("2_f5yb8")
+theme_override_font_sizes/font_size = 13
 text = "NOMBRE"
 
 [node name="InfoColumn" type="VBoxContainer" parent="HBoxContainer" unique_id=526978414]
@@ -80,7 +82,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 9
+theme_override_fonts/font = ExtResource("2_f5yb8")
+theme_override_font_sizes/font_size = 10
 text = "100/ 100"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -95,12 +98,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 9
+theme_override_fonts/font = ExtResource("2_f5yb8")
+theme_override_font_sizes/font_size = 10
 text = "HP"
 vertical_alignment = 1
 
 [node name="HPBar" type="ProgressBar" parent="HBoxContainer/InfoColumn/HPRow" unique_id=1907768581]
-custom_minimum_size = Vector2(110, 10)
+custom_minimum_size = Vector2(80, 10)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
