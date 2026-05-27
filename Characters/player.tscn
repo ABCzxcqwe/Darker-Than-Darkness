@@ -4,13 +4,16 @@
 [ext_resource type="Script" uid="uid://dapobyr0tu3d2" path="res://ui/MainMenu/scripts/Hurtbox.gd" id="2_onrkg"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5slg2"]
-size = Vector2(22, 35)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
-radius = 60.0
-height = 150.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sweqy"]
 properties/0/path = NodePath(".:position")
@@ -32,13 +35,12 @@ script = ExtResource("1_onrkg")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=480451931]
 sprite_frames = SubResource("SpriteFrames_4flbx")
+frame_progress = 0.421913
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
 zoom = Vector2(0.8, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
-position = Vector2(0, 22)
-scale = Vector2(3, 3)
 shape = SubResource("RectangleShape2D_5slg2")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=634505925]

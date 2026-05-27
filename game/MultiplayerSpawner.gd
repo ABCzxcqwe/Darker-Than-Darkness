@@ -45,6 +45,6 @@ func _custom_spawn(data: Array) -> Node:
 		push_error("[Spawner] Imposible posicionar al jugador %d. World o current_map_node no están listos." % id)
 
 	# Se mantiene la inicialización diferida para los componentes @onready del player
-	player.call_deferred("set_character", char_id)
+	player.set_character(char_id)
 
 	return player

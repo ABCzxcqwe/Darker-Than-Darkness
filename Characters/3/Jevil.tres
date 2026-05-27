@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://qm3jto47sra3"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_hjm08"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_qdnte"]
+[ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="3_r2u3k"]
+[ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/3/animations.tres" id="4_hq0h8"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
+
+[sub_resource type="Resource" id="Resource_o0onl"]
+script = ExtResource("1_hjm08")
+display_name = "golpe"
+ability_script = ExtResource("3_r2u3k")
+ability_scene = ExtResource("2_qdnte")
+cooldown = 2.0
+base_damage = 30
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("5_ueqpj")
+id = 3
+display_name = "Jevil"
+team = "killer"
+speed = 600.0
+max_health = 300
+size_x = 70
+size_y = 50
+position_y = 50
+h_size_x = 50
+h_size_y = 150
+can_take_damage = false
+ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_o0onl"), null, null, null, null])
+animation_frames = ExtResource("4_hq0h8")
+theme_color = Color(0.5860059, 0.25085285, 1, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"

@@ -215,19 +215,23 @@ func set_character(char_id: int) -> void:
 	var data: CharacterData = CharacterRegistry.get_character(char_id)
 	if not data: return
 
-	if $AnimatedSprite2D:
-		$AnimatedSprite2D.sprite_frames = data.animation_frames
-
-	speed          = data.speed
 	character_data = data
 	health         = data.max_health
 	health_state   = "alive"
-	
+	speed          = data.speed
+
 	add_to_group(data.team)
 	if data.team == "killer":
 		add_to_group("killer")
 	add_to_group("players")
-		
+
+	# Separar lo que necesita el árbol listo
+	call_deferred("_apply_character_visuals_and_collision", data)
+
+
+func _apply_character_visuals_and_collision(data: CharacterData) -> void:
+	if $AnimatedSprite2D:
+		$AnimatedSprite2D.sprite_frames = data.animation_frames
 	_setup_collision_layers(data)
 
 	if multiplayer.is_server():
@@ -236,6 +240,12 @@ func set_character(char_id: int) -> void:
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
+	print("[Collision] peer=%s | char=%s | size=(%s,%s)" % [
+		get_multiplayer_authority(), 
+		data.resource_name, 
+		data.size_x, 
+		data.size_y
+	])
 	if data.team == "killer":
 		collision_layer = 4
 		collision_mask  = 1
@@ -247,17 +257,21 @@ func _setup_collision_layers(data: CharacterData) -> void:
 		hurtbox.collision_layer = 8
 		hurtbox.collision_mask  = 0
 
-	var ws = world_c.shape as RectangleShape2D
-	if ws:
-		ws.size = Vector2(data.size_x, data.size_y)
+	var ws := RectangleShape2D.new()
+	ws.size = Vector2(data.size_x, data.size_y)
+	world_c.shape = ws
 	world_c.position = Vector2(data.position_x, data.position_y)
 
-	var hs = hurtbox_c.shape as CapsuleShape2D
-	if hs:
-		hs.radius = data.h_size_x
-		hs.height = data.h_size_y
+	var hs := CapsuleShape2D.new()
+	hs.radius = data.h_size_x
+	hs.height = data.h_size_y
+	hurtbox_c.shape = hs
 	hurtbox_c.position = Vector2(data.h_position_x, data.h_position_y)
-	
+	print("[Shape] peer=%s | world_c.shape.get_rid()=%s | size=%s" % [
+		get_multiplayer_authority(),
+		world_c.shape.get_rid(),
+		world_c.shape.size
+	]) 
 
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer: return
