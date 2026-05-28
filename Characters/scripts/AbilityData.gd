@@ -91,14 +91,14 @@ enum SelectionType { ALLY, ENEMY, ANY }
 @export_group("Economía")
 
 ## Tiempo base de reutilización en segundos.
+@export var defer_cooldown: bool = false
 ## Para habilidades con cooldown dinámico (Ultimate Health), este es el valor inicial.
 @export var cooldown: float = 1.0
-
 ## Cooldown alternativo si la habilidad falla (ej: no golpeó a nadie).
 @export var cooldown_fail: float = 0.0
-
 ## Cooldown alternativo si la habilidad se canceló durante la animación.
 @export var cooldown_cancel: float = 0.0
+
 
 ## TP necesario para activar la habilidad.
 ## 0.0 = habilidad gratuita.

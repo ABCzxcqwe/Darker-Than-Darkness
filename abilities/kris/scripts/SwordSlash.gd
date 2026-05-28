@@ -27,6 +27,10 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 
 	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
 
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd:
+		cd.start(attacker_id, data.display_name, HITBOX_LIFETIME)
+	
 	# Root durante el hitbox — la habilidad llama remove_root() en on_end
 	combat.apply_root(player_node, HITBOX_LIFETIME)
 
@@ -63,21 +67,17 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 					var tp = GameServiceLocator.get_service("TPService")
 					if tp:
 						tp.add_tp_custom(attacker_id, tp_reward),
-
 		"on_end": func(hit_count: int) -> void:
 			if is_instance_valid(player_node):
 				combat.remove_root(player_node)
-
-			# Si no golpeó a nadie, reemplazar cooldown por el de fallo
-			if hit_count == 0 and data.cooldown_fail > 0.0:
-				var cd = GameServiceLocator.get_service("CooldownService")
-				if cd:
+			if cd:
+				if hit_count == 0 and data.cooldown_fail > 0.0:
 					cd.start(attacker_id, data.display_name, data.cooldown_fail)
-
-			print("[SwordSlash] Terminó | golpes: ", hit_count,
-				  " | cd_fail: ", data.cooldown_fail if hit_count == 0 else "N/A")
-	})
-
+				else:
+					cd.start(attacker_id, data.display_name, data.cooldown)
+			print("[SwordSlash] Terminó | golpes: ", hit_count)
+			})
+			
 	print("[SwordSlash] Activado | peer: ", attacker_id,
 		  " | dir: ", slash_dir, " | dmg: ", dmg,
 		  " | stun: ", stun_dur, "s",

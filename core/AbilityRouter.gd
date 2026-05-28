@@ -184,11 +184,16 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 	# ── 12. Iniciar cooldown ──────────────────────────────────────────────
 	# Para habilidades escalables usamos el cooldown dinámico acumulado.
 	# register_use() actualiza ese valor internamente y lo devuelve ya sumado.
-	var effective_cooldown: float = _resolve_cooldown(
-		ability_data, peer_id, slot_index, abs_svc
-	)
-	if cd:
-		cd.start(peer_id, ability_data.display_name, effective_cooldown, slot_index)
+	if not ability_data.defer_cooldown:
+		var effective_cooldown: float = _resolve_cooldown(
+			ability_data, peer_id, slot_index, abs_svc
+		)
+		if cd:
+			cd.start(peer_id, ability_data.display_name, effective_cooldown, slot_index)
+	else:
+		# La habilidad es responsable de iniciar el cooldown en su on_end
+		if ability_data.is_scalable and abs_svc:
+			abs_svc.register_use(peer_id, slot_index, ability_data)
 
 
 # ── Cancelación ──────────────────────────────────────────────────────────────

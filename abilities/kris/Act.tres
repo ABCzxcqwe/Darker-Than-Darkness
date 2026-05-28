@@ -7,6 +7,7 @@
 script = ExtResource("1_ibkv2")
 display_name = "Counter"
 ability_script = ExtResource("1_30owo")
+defer_cooldown = null
 cooldown = 25.0
 tp_cost = 25.0
 can_use_while_stunned = true
@@ -20,6 +21,7 @@ script = ExtResource("1_ibkv2")
 display_name = "ACT"
 ability_type = 1
 ability_script = ExtResource("1_30owo")
+defer_cooldown = null
 cooldown = 20.0
 tp_cost = 20.0
 can_use_while_stunned = true

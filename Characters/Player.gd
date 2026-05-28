@@ -333,7 +333,7 @@ func play_ability_animation(anim_name: String, is_facing_right: bool = true) -> 
 	# Broadcast a clientes
 	for peer_id in multiplayer.get_peers():
 		rpc_id(peer_id, "_sync_ability_anim", anim_name, is_facing_right)
-
+		
 @rpc("any_peer", "reliable")
 func _sync_ability_anim(anim_name: String, is_facing_right: bool) -> void:
 	var sender := multiplayer.get_remote_sender_id()
