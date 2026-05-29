@@ -60,7 +60,7 @@ const PROJECTILE_SPEED: float = 500.0
 const PROJECTILE_LIFETIME: float = 2.0
 
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[RudeBuster] player_node inválido.")
 		return

@@ -3,7 +3,7 @@ extends CharacterBody2D
 
 signal ability_used(ability_index: int)
 
-enum AnimState { IDLE, ABILITY }
+enum AnimState { IDLE, PREPARE, ABILITY }
 
 @export var speed = 200
 @onready var synchronizer      = $Synchronizer
@@ -15,14 +15,16 @@ enum AnimState { IDLE, ABILITY }
 var character_data:   CharacterData
 var health:           int    = 0
 var health_state:     String = "alive"
-var last_animation:   String = "idle_down"
+var last_animation:   String = "idle_horizontal"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
 
 var facing: Vector2 = Vector2.RIGHT
 
 var active_effects: Dictionary = {}
-var state: int = AnimState.IDLE
+var state: int       = AnimState.IDLE
+var active_ability_slot: int = -1
+var _pending_selection_slot: int = -1
 
 
 func _ready() -> void:
@@ -57,8 +59,8 @@ func _ready() -> void:
 		if ss: ss.register(self)
 		var es = GameServiceLocator.get_service("EvolutionService")
 		if es: es.register_player(get_multiplayer_authority())
-		var abs_svc = GameServiceLocator.get_service("AbilityStateService") 
-		if abs_svc:                                                            
+		var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+		if abs_svc:
 			abs_svc.register_player(get_multiplayer_authority(), character_data)
 
 	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
@@ -78,7 +80,7 @@ func _try_revive() -> void:
 		if player == self: continue
 		if not player.is_in_group("survivor"): continue
 		if player.health_state != "downed": continue
-		
+
 		var dist := global_position.distance_to(player.global_position)
 		if dist < closest_dist:
 			closest_dist   = dist
@@ -123,7 +125,7 @@ func _exit_tree() -> void:
 	var peer_id : int = -1
 	if multiplayer.multiplayer_peer != null:
 		peer_id = get_multiplayer_authority()
-	
+
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs and peer_id != -1: hs.unregister(peer_id)
 	var ss = GameServiceLocator.get_service("StatusEffectService")
@@ -132,17 +134,11 @@ func _exit_tree() -> void:
 	if tp and peer_id != -1: tp.unregister_player(peer_id)
 	var es = GameServiceLocator.get_service("EvolutionService")
 	if es and peer_id != -1: es.unregister_player(peer_id)
-	var abs_svc = GameServiceLocator.get_service("AbilityStateService") # <- NUEVO
-	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)   # <- NUEVO
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)
 
 
-
-func cancel_current_ability(slot: int) -> void:
-	if multiplayer.is_server():
-		AbilityRouter.request_cancel_ability(slot)
-	else:
-		AbilityRouter.rpc_id(1, "request_cancel_ability", slot)
-
+# ── Input ─────────────────────────────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -155,49 +151,31 @@ func _input(event: InputEvent) -> void:
 		"ability_4": 4,
 		"ability_0": 0,
 	}
-	
+
 	for action in action_map:
 		if event.is_action_pressed(action):
 			var slot: int = action_map[action]
-			
-			var base_data = character_data.ability_slots[slot] if (character_data and slot < character_data.ability_slots.size()) else null
 
-			if state == AnimState.ABILITY and base_data and base_data.can_cancel:
-				cancel_current_ability(slot)
+			if _pending_selection_slot == slot:
+				var huds := get_tree().get_nodes_in_group("game_hud")
+				if not huds.is_empty():
+					huds[0].cancel_selection()
 				return
 
-			if not base_data:
-				return
-
-			if base_data.requires_selection:
-				var hud_nodes = get_tree().get_nodes_in_group("game_hud")
-				if not hud_nodes.is_empty():
-					var hud = hud_nodes[0]
-					var menu_title = "SELECCIONA: " + base_data.display_name.to_upper()
-					hud.request_selection(
-						menu_title,
-						func(target_peer_id: int):
-							var part_high = int(target_peer_id / 65536)
-							var part_low = int(target_peer_id % 65536)
-							var specialized_vector = Vector2(part_high, part_low)
-							if multiplayer.is_server():
-								AbilityRouter.request_ability(slot, specialized_vector)
-							else:
-								AbilityRouter.rpc_id(1, "request_ability", slot, specialized_vector)
-							ability_used.emit(slot),
-						func():
-							print("[Player-Client] Selección cancelada.")
-					)
-				else:
-					push_warning("[Player] No se encontró 'game_hud' para selección.")
-				return
-			
 			var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-			if multiplayer.is_server():
-				AbilityRouter.request_ability(slot, mouse_dir)
-			else:
-				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
-			ability_used.emit(slot)
+
+			if state == AnimState.IDLE:
+				if multiplayer.is_server():
+					AbilityRouter.request_ability(slot, mouse_dir)
+				else:
+					AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
+				ability_used.emit(slot)
+
+			elif slot == active_ability_slot and (state == AnimState.ABILITY or state == AnimState.PREPARE):
+				if multiplayer.is_server():
+					AbilityRouter.request_cancel_ability(slot)
+				else:
+					AbilityRouter.rpc_id(1, "request_cancel_ability", slot)
 			break
 
 	if event.is_action_pressed("interact"):
@@ -210,6 +188,68 @@ func _input(event: InputEvent) -> void:
 		else:
 			rpc_id(1, "_request_cancel_revive")
 
+
+# ── Selección contextual (server -> cliente) ──────────────────────────
+
+@rpc("any_peer", "call_local", "reliable")
+func _open_ability_selection(slot: int, title: String, filter_peer_id: int = -1) -> void:
+	# Solo el servidor envía este RPC, y solo el peer con autoridad debe procesarlo.
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if not is_multiplayer_authority():
+		return
+	_pending_selection_slot = slot
+	var huds := get_tree().get_nodes_in_group("game_hud")
+	if huds.is_empty():
+		return
+	huds[0].request_selection(
+		title,
+		func(target_peer_id: int) -> void:
+			if _pending_selection_slot == slot:
+				_pending_selection_slot = -1
+				if multiplayer.is_server():
+					_submit_ability_selection(slot, target_peer_id)
+				else:
+					rpc_id(1, "_submit_ability_selection", slot, target_peer_id),
+		func() -> void:
+			if _pending_selection_slot == slot:
+				_pending_selection_slot = -1
+				if multiplayer.is_server():
+					_cancel_ability_selection(slot)
+				else:
+					rpc_id(1, "_cancel_ability_selection", slot),
+		filter_peer_id
+	)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_ability_selection(slot: int, target_peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	# Registramos el target en AbilityRouter como int puro, sin codificar en Vector2.
+	# La habilidad lo lee con consume_pending_target() — sin pérdida de precisión.
+	var caster_id := get_multiplayer_authority()
+	AbilityRouter.set_pending_target(caster_id, target_peer_id)
+	print("[Player] Target registrado | caster: ", caster_id,
+		  " → target: ", target_peer_id, " | slot: ", slot)
+	AbilityRouter.request_ability(slot, Vector2.ZERO)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _cancel_ability_selection(slot: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	print("[Ability] Selección cancelada: slot ", slot, " | peer: ", get_multiplayer_authority())
+
+
+# ── Configuración de personaje ────────────────────────────────────────
 
 func set_character(char_id: int) -> void:
 	var data: CharacterData = CharacterRegistry.get_character(char_id)
@@ -225,7 +265,6 @@ func set_character(char_id: int) -> void:
 		add_to_group("killer")
 	add_to_group("players")
 
-	# Separar lo que necesita el árbol listo
 	call_deferred("_apply_character_visuals_and_collision", data)
 
 
@@ -240,12 +279,6 @@ func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
-	print("[Collision] peer=%s | char=%s | size=(%s,%s)" % [
-		get_multiplayer_authority(), 
-		data.resource_name, 
-		data.size_x, 
-		data.size_y
-	])
 	if data.team == "killer":
 		collision_layer = 4
 		collision_mask  = 1
@@ -253,7 +286,7 @@ func _setup_collision_layers(data: CharacterData) -> void:
 		hurtbox.collision_mask  = 0
 	else:
 		collision_layer = 2
-		collision_mask  = 1 
+		collision_mask  = 1
 		hurtbox.collision_layer = 8
 		hurtbox.collision_mask  = 0
 
@@ -267,11 +300,9 @@ func _setup_collision_layers(data: CharacterData) -> void:
 	hs.height = data.h_size_y
 	hurtbox_c.shape = hs
 	hurtbox_c.position = Vector2(data.h_position_x, data.h_position_y)
-	print("[Shape] peer=%s | world_c.shape.get_rid()=%s | size=%s" % [
-		get_multiplayer_authority(),
-		world_c.shape.get_rid(),
-		world_c.shape.size
-	]) 
+
+
+# ── Física y movimiento ──────────────────────────────────────────────
 
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer: return
@@ -283,77 +314,117 @@ func _physics_process(_delta: float) -> void:
 		velocity = input_dir * speed
 		move_and_slide()
 
-		var dir_to_mouse = (get_global_mouse_position() - global_position).normalized()
-		update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
+		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		update_facing_and_flip(mouse_dir)
+
+		var is_moving = velocity.length() > 0.1
+		var anim_name = "walk_horizontal" if is_moving else "idle_horizontal"
+		if last_animation != anim_name:
+			animated_sprite.play(anim_name)
+			last_animation = anim_name
 	else:
 		velocity = Vector2.ZERO
 
 
-func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
-	var prefix    := "walk" if is_moving else "idle"
-	var anim_name := prefix + "_horizontal"
-
-	facing_right = dir.x >= 0.0
-	facing       = Vector2.RIGHT if facing_right else Vector2.LEFT
-	animated_sprite.flip_h = not facing_right
-
-	if last_animation != anim_name:
-		animated_sprite.play(anim_name)
-		last_animation = anim_name
+func update_facing_and_flip(dir: Vector2) -> void:
+	if abs(dir.x) > 0.1:
+		facing_right = dir.x > 0
+		animated_sprite.flip_h = not facing_right
+		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
 
 
-# ── FSM de Animaciones ────────────────────────────────────────────────
+# ── Animación de habilidades ──────────────────────────────────────────
 
 func _on_anim_finished() -> void:
-	print("[Anim] _on_anim_finished | peer: ", get_multiplayer_authority(),
-		  " | is_authority: ", is_multiplayer_authority(),
-		  " | state: ", state)
-	if state == AnimState.ABILITY:
+	if state == AnimState.ABILITY or state == AnimState.PREPARE:
 		state = AnimState.IDLE
-		if animated_sprite:
-			_play_idle_for_facing()
+		active_ability_slot = -1
+		_restore_idle()
 
 
-func _play_idle_for_facing() -> void:
-	animated_sprite.flip_h = facing == Vector2.LEFT
+func _restore_idle() -> void:
+	animated_sprite.flip_h = not facing_right
 	animated_sprite.play("idle_horizontal")
 	last_animation = "idle_horizontal"
 
 
-func play_ability_animation(anim_name: String, is_facing_right: bool = true) -> void:
+func play_ability_animation(anim_name: String, slot_index: int, facing_right_override: bool = true) -> void:
 	if not multiplayer.is_server():
 		return
-	# Aplicar localmente en el servidor
-	if anim_name != "":
-		facing_right = is_facing_right
-		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
-		animated_sprite.flip_h = not facing_right
-		animated_sprite.play(anim_name)
-		state = AnimState.ABILITY
-	# Broadcast a clientes
+	if anim_name == "":
+		return
+
+	facing_right = facing_right_override
+	facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
+	animated_sprite.play(anim_name)
+	state = AnimState.ABILITY
+	active_ability_slot = slot_index
+
 	for peer_id in multiplayer.get_peers():
-		rpc_id(peer_id, "_sync_ability_anim", anim_name, is_facing_right)
+		rpc_id(peer_id, "_sync_ability_anim", anim_name, facing_right_override, slot_index)
+
 
 @rpc("any_peer", "reliable")
-func _sync_ability_anim(anim_name: String, is_facing_right: bool) -> void:
+func _sync_ability_anim(anim_name: String, facing_right_override: bool, slot_index: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 1:
-		push_warning("[Player] _sync_ability_anim rechazado, sender: ", sender)
 		return
-	if anim_name != "":
-		facing_right = is_facing_right
-		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
-		animated_sprite.flip_h = not facing_right
-		animated_sprite.play(anim_name)
-		state = AnimState.ABILITY
+	if anim_name == "":
+		return
+
+	facing_right = facing_right_override
+	facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
+	animated_sprite.play(anim_name)
+	state = AnimState.ABILITY
+	active_ability_slot = slot_index
+
+
+func play_prepare_animation(anim_name: String, slot_index: int, facing_right_override: bool = true) -> void:
+	if not multiplayer.is_server():
+		return
+	if anim_name == "":
+		return
+
+	facing_right = facing_right_override
+	facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
+	animated_sprite.play(anim_name)
+	state = AnimState.PREPARE
+	active_ability_slot = slot_index
+
+	for peer_id in multiplayer.get_peers():
+		rpc_id(peer_id, "_sync_prepare_anim", anim_name, facing_right_override, slot_index)
+
+
+@rpc("any_peer", "reliable")
+func _sync_prepare_anim(anim_name: String, facing_right_override: bool, slot_index: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 1:
+		return
+	if anim_name == "":
+		return
+
+	facing_right = facing_right_override
+	facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
+	animated_sprite.play(anim_name)
+	state = AnimState.PREPARE
+	active_ability_slot = slot_index
 
 
 func reset_ability_state() -> void:
 	state = AnimState.IDLE
+	active_ability_slot = -1
+	_restore_idle()
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_cancel_ability() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
 	reset_ability_state()
 
 
@@ -363,30 +434,24 @@ func _sync_cancel_ability() -> void:
 func _sync_health(new_health: int, new_invincible_until: int) -> void:
 	var old_health = health
 	var _old_state = health_state
-	
+
 	health = new_health
 	invincible_until = new_invincible_until
-	
-	# Auto-corregir estado inconsistente basado en la vida
+
 	var should_be_state = ""
 	if health <= 0:
 		should_be_state = "downed"
 	else:
 		should_be_state = "alive"
-	
-	# Si el estado actual no coincide con la vida, corregirlo
+
 	if health_state != should_be_state and should_be_state != "":
-		print("[Client] Auto-corrigiendo estado: %s -> %s (health: %d, peer: %s)" % [health_state, should_be_state, health, name])
 		health_state = should_be_state
-		
-		# Emitir señal local para actualizar UI
 		var hs = GameServiceLocator.get_service("HealthService")
 		if hs and hs.has_method("get_player_state"):
 			hs.player_state_changed.emit(get_multiplayer_authority(), health_state)
 	else:
 		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
-	
-	# Si estamos en downed, deshabilitar velocidad
+
 	if health_state == "downed" or health_state == "dead":
 		speed = 0
 	elif character_data and health_state == "alive":
@@ -408,27 +473,18 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_state(new_state: String, new_health: int) -> void:
-	var old_state = health_state
-	var old_health = health
-	
-	print("[Client] Sync state: %s -> %s (health: %d -> %d, peer: %s)" % [old_state, new_state, old_health, new_health, name])
-	
 	health_state = new_state
-	health = new_health  
-	
+	health = new_health
+
 	match new_state:
 		"alive":
-			if character_data: 
+			if character_data:
 				speed = character_data.speed
-			print("[Client] Player %s revivido con %d HP" % [name, health])
 		"downed":
 			speed = 0
-			print("[Client] Player %s está en estado DOWNED con %d HP" % [name, health])
 		"dead":
 			speed = 0
-			print("[Client] Player %s está MUERTO" % name)
-	
-	# Notificar al HealthService local sobre el cambio de estado
+
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)

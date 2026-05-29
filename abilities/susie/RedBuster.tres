@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dg7n3f2qbo0kp"]
+
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="1_bciro"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_f3kxx"]
+[ext_resource type="Script" uid="uid://so8csytyk0fw" path="res://abilities/susie/scripts/RudeBuster.gd" id="2_l2owp"]
+
+[resource]
+script = ExtResource("1_f3kxx")
+display_name = "Red Buster"
+ability_script = ExtResource("2_l2owp")
+ability_scene = ExtResource("1_bciro")
+cooldown = 25.0
+tp_cost = 30.0
+tp_reward = 10.0
+can_use_while_stunned = true
+move_restriction = 1
+base_damage = 20
+attack_type = "projectile"
+stun_duration = 5.0
+evo_status_duration_bonus = 1.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"

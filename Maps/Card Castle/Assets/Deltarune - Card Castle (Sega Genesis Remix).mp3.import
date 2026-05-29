@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cdc0y01gtc2bw"
+path="res://.godot/imported/Deltarune - Card Castle (Sega Genesis Remix).mp3-658dbe1da7d7a243e148eba8c74b5a02.mp3str"
+
+[deps]
+
+source_file="res://Maps/Card Castle/Assets/Deltarune - Card Castle (Sega Genesis Remix).mp3"
+dest_files=["res://.godot/imported/Deltarune - Card Castle (Sega Genesis Remix).mp3-658dbe1da7d7a243e148eba8c74b5a02.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0.0
+bpm=0.0
+beat_count=0
+bar_beats=4

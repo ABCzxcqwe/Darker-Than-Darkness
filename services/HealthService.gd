@@ -191,12 +191,16 @@ func _down(player_node: Node) -> void:
 	var bleed_time: float = player_node.character_data.bleed_out_time \
 		if player_node.character_data else 60.0
 
-	var timer := get_tree().create_timer(bleed_time)
-	_states[peer_id]["timer"] = timer
+	var timer := Timer.new()
+	timer.wait_time = bleed_time
+	timer.one_shot = true
 	timer.timeout.connect(func():
 		if is_downed(peer_id):
 			_kill(player_node)
 	)
+	add_child(timer)
+	timer.start()
+	_states[peer_id]["timer"] = timer
 	if multiplayer.is_server():
 		var game_state_svc = GameServiceLocator.get_service("GameStateService")
 		if game_state_svc:
@@ -222,6 +226,10 @@ func _kill(player_node: Node) -> void:
 
 func _cancel_bleed_timer(peer_id: int) -> void:
 	if _states.has(peer_id) and _states[peer_id]["timer"] != null:
+		var timer := _states[peer_id]["timer"] as Timer
+		if timer:
+			timer.stop()
+			timer.queue_free()
 		_states[peer_id]["timer"] = null
 
 

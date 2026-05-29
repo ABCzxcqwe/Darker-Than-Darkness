@@ -54,8 +54,9 @@ func evolve_slot(peer_id: int, slot_index: int) -> void:
 	slot_evolved.emit(peer_id, slot_index)
 	print("[EvolutionService] ¡Slot ", slot_index, " EVOLUCIONADO! -> Peer: ", peer_id)
 	
-	# Sincronizar de forma fiable únicamente al cliente dueño del personaje
-	rpc_id(peer_id, "_rpc_sync_slot_state", slot_index, true)
+	# Sincronizar visual en el cliente dueño del personaje
+	# Buscamos el Player node directamente para enviarle el RPC
+	_sync_visual_to_client(peer_id, slot_index, true)
 
 
 ## Devuelve true si el slot está actualmente evolucionado en el servidor.
@@ -105,54 +106,30 @@ func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 		_evolved_slots[peer_id][slot_index] = false
 		slot_devolved.emit(peer_id, slot_index)
 		
-		# Enviamos el cambio por red al cliente respectivo para actualizar su UI
-		rpc_id(peer_id, "_rpc_sync_slot_state", slot_index, false)
+		_sync_visual_to_client(peer_id, slot_index, false)
 
 
 # =======================================================================
-# RPCS DE SINCRONIZACIÓN VISUAL (EJECUTADOS EN EL CLIENTE)
+# SINCRONIZACIÓN VISUAL AL CLIENTE (mismo patrón que CooldownService)
 # =======================================================================
 
-## Recibido en el cliente objetivo para forzar al HUD a cambiar el estado estético del botón
-@rpc("authority", "reliable")
-func _rpc_sync_slot_state(slot_index: int, evolved: bool) -> void:
-	# Evitamos errores en servidores dedicados (Headless) que carecen de interfaz
-	if multiplayer.is_server() and DisplayServer.get_name() == "headless":
+## Busca el Player node del peer y le envía un RPC para actualizar el
+## visual de evolución en su HUD local.
+func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
+	rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
+
+
+## Recibido en el cliente dueño del slot. Actualiza el HUD local.
+@rpc("authority", "call_local", "reliable")
+func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
+	var huds = get_tree().get_nodes_in_group("game_hud")
+	if huds.is_empty():
+		push_warning("[EvolutionService] RPC recibido en cliente, pero no se encontró el HUD local.")
 		return
-
-	# Buscamos el HUD dinámicamente en el árbol del cliente
-	var hud := _find_local_hud()
-	if hud:
-		if evolved:
-			if hud.has_method("visual_evolve_slot"):
-				hud.visual_evolve_slot(slot_index)
-			else:
-				# Fallback buscando el nodo de tu botón directamente si la lógica está ahí
-				var btn = hud.find_child("AbilityButton_" + str(slot_index), true, false)
-				if btn and btn.has_method("set_evolved_appearance"):
-					btn.set_evolved_appearance(true)
-		else:
-			if hud.has_method("visual_devolve_slot"):
-				hud.visual_devolve_slot(slot_index)
-			else:
-				var btn = hud.find_child("AbilityButton_" + str(slot_index), true, false)
-				if btn and btn.has_method("set_evolved_appearance"):
-					btn.set_evolved_appearance(false)
+	var hud = huds[0]
+	if evolved:
+		if hud.has_method("visual_evolve_slot"):
+			hud.visual_evolve_slot(slot_index)
 	else:
-		push_warning("[EvolutionService] RPC de sincronización de slot recibido, pero no se halló el HUD local.")
-
-
-## Helper dinámico para encontrar la UI sin acoplamiento duro
-func _find_local_hud() -> Node:
-	var current_scene = get_tree().current_scene
-	if not current_scene:
-		return null
-		
-	var huds = get_tree().get_nodes_in_group("hud")
-	if huds.size() > 0:
-		return huds[0]
-		
-	var hud_node = current_scene.find_child("UI", true, false)
-	if not hud_node:
-		hud_node = current_scene.find_child("HUD", true, false)
-	return hud_node
+		if hud.has_method("visual_devolve_slot"):
+			hud.visual_devolve_slot(slot_index)

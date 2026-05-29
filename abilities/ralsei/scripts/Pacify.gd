@@ -50,7 +50,7 @@ const AREA_LIFETIME: float = 3.0
 const TICK_INTERVAL: float = 0.5
 
 
-func activate(player_node: Node, _data: AbilityData, _direction: Vector2) -> void:
+func activate(player_node: Node, _data: AbilityData, _direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[Pacify] player_node inválido.")
 		return
