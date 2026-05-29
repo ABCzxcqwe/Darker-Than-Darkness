@@ -22,6 +22,29 @@
 # ============================================================
 extends Node
 
+# { peer_id: target_peer_id } — target pendiente de selección contextual.
+# Act (y cualquier habilidad con menú) escribe aquí antes de re-despachar.
+# AbilityRouter lo lee en activate() y lo borra inmediatamente después.
+var _pending_targets: Dictionary = {}
+
+
+## API para habilidades con menú contextual.
+## La habilidad llama esto ANTES de re-llamar request_ability(),
+## para que AbilityRouter pase el target al script sin codificarlo en Vector2.
+func set_pending_target(caster_peer_id: int, target_peer_id: int) -> void:
+	_pending_targets[caster_peer_id] = target_peer_id
+	print("[AbilityRouter] Target pendiente registrado | caster: ", caster_peer_id,
+		  " → target: ", target_peer_id)
+
+
+## Devuelve y limpia el target pendiente. -1 si no había ninguno.
+func consume_pending_target(caster_peer_id: int) -> int:
+	if not _pending_targets.has(caster_peer_id):
+		return -1
+	var target: int = _pending_targets[caster_peer_id]
+	_pending_targets.erase(caster_peer_id)
+	return target
+
 
 func _ready() -> void:
 	print("[AbilityRouter] listo.")
@@ -54,6 +77,22 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 	# ── 4. ¿El jugador está vivo? ────────────────────────────────────────
 	if player_node.health <= 0:
 		print("[AbilityRouter] Jugador ", peer_id, " sin vida. Bloqueado.")
+		return
+
+	# ── 4.5. ¿Estado de animación? ───────────────────────────────────────
+	# PREPARE (2): la misma tecla cancela la habilidad en preparación.
+	# ABILITY (1): solo cancela si la habilidad lo permite.
+	var player_anim_state: int = player_node.state
+	if player_anim_state == 2: # AnimState.PREPARE
+		request_cancel_ability(slot_index)
+		return
+	if player_anim_state == 1: # AnimState.ABILITY
+		if slot_index < char_data.ability_slots.size():
+			var slot_data: AbilityData = char_data.ability_slots[slot_index]
+			if slot_data and slot_data.can_cancel:
+				request_cancel_ability(slot_index)
+			else:
+				print("[AbilityRouter] Bloqueado: habilidad en curso no cancelable.")
 		return
 
 	# ── 5. ¿Tiene algo en ese slot? ─────────────────────────────────────
@@ -165,10 +204,10 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 
 	# ── 10. Instanciar y ejecutar ─────────────────────────────────────────
 	var handler: AbilityBase = ability_script.new()
-	handler.activate(player_node, ability_data, direction)
+	handler.activate(player_node, ability_data, direction, slot_index)
 
 	print("[AbilityRouter] '", ability_data.display_name, "' despachado para peer ", peer_id,
-		  " (", "evolucionada" if is_evolved else "normal", ")")
+		  " (", "evolucionada" if is_evolved else "normal", ") | slot: ", slot_index)
 
 	# ── 11. Consumir / forzar evolución ───────────────────────────────────
 	if evolution_service:
@@ -181,19 +220,15 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 			# Evolución manual preexistente: consumir normalmente.
 			evolution_service.consume_evolution(peer_id, slot_index)
 
-	# ── 12. Iniciar cooldown ──────────────────────────────────────────────
-	# Para habilidades escalables usamos el cooldown dinámico acumulado.
-	# register_use() actualiza ese valor internamente y lo devuelve ya sumado.
+	# ── 12. Iniciar cooldown (solo si la habilidad no lo difiere) ─────────
+	# defer_cooldown = true → la habilidad (Act.gd, etc.) es responsable
+	# de iniciar su propio cooldown manualmente cuando corresponda.
 	if not ability_data.defer_cooldown:
 		var effective_cooldown: float = _resolve_cooldown(
 			ability_data, peer_id, slot_index, abs_svc
 		)
 		if cd:
 			cd.start(peer_id, ability_data.display_name, effective_cooldown, slot_index)
-	else:
-		# La habilidad es responsable de iniciar el cooldown en su on_end
-		if ability_data.is_scalable and abs_svc:
-			abs_svc.register_use(peer_id, slot_index, ability_data)
 
 
 # ── Cancelación ──────────────────────────────────────────────────────────────
@@ -221,18 +256,24 @@ func request_cancel_ability(slot_index: int) -> void:
 		print("[AbilityRouter] Cancel: slot ", slot_index, " vacío.")
 		return
 
-	if not ability_data.can_cancel:
+	# Acepta cancelación desde PREPARE (2) o ABILITY (1)
+	var anim_state: int = player_node.state
+	if anim_state != 1 and anim_state != 2:
+		print("[AbilityRouter] Cancel ignorada: jugador no está en ABILITY ni PREPARE.")
+		return
+
+	# PREPARE no requiere can_cancel — siempre se puede cancelar el menú contextual
+	if anim_state == 1 and not ability_data.can_cancel:
 		print("[AbilityRouter] Cancel rechazada: ", ability_data.display_name, " no es cancelable.")
 		return
 
-	# Validación de estado FSM (1 = AnimState.ABILITY en Player.gd)
-	if player_node.state != 1:
-		print("[AbilityRouter] Cancel rechazada: ", ability_data.display_name,
-			  " — jugador no está en estado ABILITY.")
-		return
+	# Cerrar menú contextual si estaba abierto (estado PREPARE)
+	if anim_state == 2:
+		var huds := player_node.get_tree().get_nodes_in_group("game_hud")
+		if not huds.is_empty() and huds[0].has_method("cancel_selection"):
+			huds[0].cancel_selection()
 
-	# Reemplazar cooldown completo por cooldown reducido de cancelación.
-	# Si cooldown_cancel es 0, la habilidad queda lista inmediatamente.
+	# Aplicar cooldown de cancelación
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd:
 		cd.start(peer_id, ability_data.display_name, ability_data.cooldown_cancel, slot_index)
@@ -241,7 +282,8 @@ func request_cancel_ability(slot_index: int) -> void:
 	player_node.rpc("_sync_cancel_ability")
 
 	print("[AbilityRouter] Habilidad cancelada: ", ability_data.display_name,
-		  " | peer: ", peer_id, " | cd_cancel: ", ability_data.cooldown_cancel, "s")
+		  " | peer: ", peer_id, " | estado: ", "PREPARE" if anim_state == 2 else "ABILITY",
+		  " | cd_cancel: ", ability_data.cooldown_cancel, "s")
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────

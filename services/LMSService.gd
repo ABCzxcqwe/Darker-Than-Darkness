@@ -93,7 +93,7 @@ func _activate_lms(survivor: Node) -> void:
 
 	var lms_duration = char_data.lms_duration if char_data and "lms_duration" in char_data else 140.0
 	var heal_amount = char_data.lms_heal_amount if char_data and "lms_heal_amount" in char_data else 60
-	var damage_resist = char_data.lms_damage_resistance if char_data and "lms_damage_resistance" in char_data else 0.0
+	var _damage_resist = char_data.lms_damage_resistance if char_data and "lms_damage_resistance" in char_data else 0.0
 	var lms_music = char_data.lms_music if char_data and "lms_music" in char_data else null
 
 	print("[LMSService] 🎵 LMS activado para ", survivor.name)
@@ -103,10 +103,6 @@ func _activate_lms(survivor: Node) -> void:
 		if _audio_manager.lms_music_player:
 			_audio_manager.lms_music_player.stream = lms_music
 			print("[LMSService] Música LMS registrada en AudioManager local")
-	
-	# Aplicar resistencia al daño
-	if damage_resist > 0 and _status_service:
-		_status_service.apply_modifier(survivor, "lms_damage_resistance", damage_resist)
 	
 	# Curar al survivor
 	if _health_service:
@@ -144,10 +140,6 @@ func _deactivate_lms() -> void:
 	var timer_svc = GameServiceLocator.get_service("TimerService")
 	if timer_svc and timer_svc.timeout.is_connected(_on_timer_service_timeout):
 		timer_svc.timeout.disconnect(_on_timer_service_timeout)
-	
-	# Remover efectos especiales
-	if active_survivor and is_instance_valid(active_survivor) and _status_service:
-		_status_service.remove_modifier(active_survivor, "lms_damage_resistance")
 	
 	# Desactivar audio LMS
 	if _audio_manager and multiplayer.is_server():

@@ -143,6 +143,16 @@ func on_cooldown_started(ability_name: String, slot_index: int, duration: float)
 func _on_ability_used(_slot_index: int) -> void:
 	pass
 
+## Llamado por EvolutionService._rpc_sync_slot_state() desde el servidor
+## para actualizar el visual de evolución en clientes remotos.
+func visual_evolve_slot(slot_index: int) -> void:
+	if ability_bar and ability_bar.has_method("on_slot_evolved"):
+		ability_bar.on_slot_evolved(slot_index)
+
+func visual_devolve_slot(slot_index: int) -> void:
+	if ability_bar and ability_bar.has_method("on_slot_devolved"):
+		ability_bar.on_slot_devolved(slot_index)
+
 func _on_slot_evolved(peer_id: int, slot_index: int) -> void:
 	if peer_id != _player_node.get_multiplayer_authority(): return
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
@@ -186,15 +196,15 @@ func _build_context_items() -> void:
 	for player in get_tree().get_nodes_in_group("survivor"):
 		var data: CharacterData = player.character_data if player.get("character_data") else null
 		if not data: continue
-		
+
 		var item = CONTEXT_ITEM_SCENE.instantiate()
 		context_grid.add_child(item)
-		
+
 		var p_id = player.get_multiplayer_authority()
-		item.setup(p_id, data.display_name, data.theme_color)
+		var icon: Texture2D = data.icon if data.icon else null
+		item.setup(p_id, data.display_name, icon)
 		item.item_clicked.connect(_on_ctx_item_clicked)
-		
-		# ── SOLUCIÓN DE ID: Almacenamos el elemento con su ID accesible ──
+
 		_ctx_items.append(item)
 
 func _on_ctx_item_clicked(peer_id: int) -> void:

@@ -32,10 +32,8 @@ layout_mode = 2
 theme_override_constants/separation = 5
 alignment = 1
 
-[node name="ColorDot" type="ColorRect" parent="HBoxContainer" unique_id=833757378]
-custom_minimum_size = Vector2(20, 20)
+[node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=738875295]
 layout_mode = 2
-size_flags_vertical = 4
 
 [node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1515262764]
 layout_mode = 2

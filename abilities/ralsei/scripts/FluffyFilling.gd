@@ -1,11 +1,6 @@
-extends Node
+extends AbilityBase
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
+	push_warning("[FluffyFilling] Habilidad no implementada.")
+	print("[FluffyFilling] Placeholder — ", data.display_name if data else "sin data")

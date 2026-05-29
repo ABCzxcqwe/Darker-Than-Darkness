@@ -2,8 +2,12 @@ extends AbilityBase
 
 const HITBOX_LIFETIME: float = 0.5
 
+# Debe coincidir con la duración real de la animación sword_slash en el SpriteFrames.
+# Calcula: frame_count / fps. Ejemplo: 6 frames a 12 fps = 0.5s
+const ANIM_DURATION: float = 0.5
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
+
+func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[SwordSlash] player_node inválido.")
 		return
@@ -24,20 +28,25 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	var hit_range: float = data.range_
 	var stun_dur: float  = data.stun_duration + data.evo_status_duration_bonus
 	var tp_reward: float = data.tp_reward
+	var facing_right     = direction.x >= 0.0
+	var slash_dir: Vector2 = Vector2.RIGHT if facing_right else Vector2.LEFT
 
-	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
+	# Root durante la animación completa, no solo el hitbox.
+	# La duración usa ANIM_DURATION para que el root dure exactamente la animación.
+	combat.apply_root(player_node, ANIM_DURATION)
 
-	var cd = GameServiceLocator.get_service("CooldownService")
-	if cd:
-		cd.start(attacker_id, data.display_name, HITBOX_LIFETIME)
-	
-	# Root durante el hitbox — la habilidad llama remove_root() en on_end
-	combat.apply_root(player_node, HITBOX_LIFETIME)
+	if data.action_animation != "":
+		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
 
-	# Reproducir animación
-	print("[SwordSlash] Llamando play_ability_animation con: ", data.action_animation)
-	player_node.play_ability_animation(data.action_animation, direction.x >= 0.0)
-	print("[SwordSlash] play_ability_animation retornó")
+	# Timer independiente del hitbox — controla cuándo termina la animación.
+	# _sync_cancel_ability solo se llama aquí, no en on_end, para que golpear
+	# no corte la animación antes de tiempo.
+	var anim_dur := _get_anim_duration(player_node, data.action_animation)
+	player_node.get_tree().create_timer(anim_dur).timeout.connect(
+		func() -> void:
+			if is_instance_valid(player_node):
+				player_node.rpc("_sync_cancel_ability")
+	)
 
 	hs.create({
 		"attacker_id"   : attacker_id,
@@ -67,18 +76,38 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 					var tp = GameServiceLocator.get_service("TPService")
 					if tp:
 						tp.add_tp_custom(attacker_id, tp_reward),
+
+		# on_end: solo maneja root y cooldown.
+		# NO llama _sync_cancel_ability — eso es responsabilidad del timer de animación.
 		"on_end": func(hit_count: int) -> void:
 			if is_instance_valid(player_node):
 				combat.remove_root(player_node)
-			if cd:
-				if hit_count == 0 and data.cooldown_fail > 0.0:
+
+			if hit_count == 0 and data.cooldown_fail > 0.0:
+				var cd = GameServiceLocator.get_service("CooldownService")
+				if cd:
 					cd.start(attacker_id, data.display_name, data.cooldown_fail)
-				else:
-					cd.start(attacker_id, data.display_name, data.cooldown)
+
 			print("[SwordSlash] Terminó | golpes: ", hit_count)
-			})
-			
+	})
+
 	print("[SwordSlash] Activado | peer: ", attacker_id,
 		  " | dir: ", slash_dir, " | dmg: ", dmg,
-		  " | stun: ", stun_dur, "s",
-		  " | anim: ", data.action_animation)
+		  " | stun: ", stun_dur, "s | anim: ", data.action_animation)
+
+
+## Lee la duración real de la animación desde el SpriteFrames.
+## Si no puede leerla (servidor sin frames visuales), usa ANIM_DURATION como fallback.
+func _get_anim_duration(player_node: Node, anim_name: String) -> float:
+	if anim_name == "":
+		return ANIM_DURATION
+	var sprite: AnimatedSprite2D = player_node.get_node_or_null("AnimatedSprite2D")
+	if not sprite or not sprite.sprite_frames:
+		return ANIM_DURATION
+	if not sprite.sprite_frames.has_animation(anim_name):
+		return ANIM_DURATION
+	var frame_count: int = sprite.sprite_frames.get_frame_count(anim_name)
+	var fps: float = sprite.sprite_frames.get_animation_speed(anim_name)
+	if fps <= 0.0:
+		return ANIM_DURATION
+	return frame_count / fps

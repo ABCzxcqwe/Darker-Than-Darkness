@@ -80,6 +80,10 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Si se deja vacío, la habilidad se ejecuta sin cambiar la animación visual.
 @export var action_animation: String = ""
 
+## Animación de preparación antes de la acción principal.
+## Vacío = no hay fase de preparación, se va directo a action_animation.
+@export var prepare_animation: String = ""
+
 ## Si true, se puede cancelar presionando la misma tecla durante la animación.
 @export var can_cancel: bool = false
 
@@ -91,14 +95,14 @@ enum SelectionType { ALLY, ENEMY, ANY }
 @export_group("Economía")
 
 ## Tiempo base de reutilización en segundos.
-@export var defer_cooldown: bool = false
 ## Para habilidades con cooldown dinámico (Ultimate Health), este es el valor inicial.
 @export var cooldown: float = 1.0
+
 ## Cooldown alternativo si la habilidad falla (ej: no golpeó a nadie).
 @export var cooldown_fail: float = 0.0
+
 ## Cooldown alternativo si la habilidad se canceló durante la animación.
 @export var cooldown_cancel: float = 0.0
-
 
 ## TP necesario para activar la habilidad.
 ## 0.0 = habilidad gratuita.
@@ -138,6 +142,11 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Tipo de objetivo que muestra el menú contextual.
 ## Solo se lee si requires_selection = true.
 @export var selection_type: SelectionType = SelectionType.ALLY
+
+## Si true, el AbilityRouter NO inicia el cooldown al despachar.
+## La habilidad es responsable de iniciarlo en su on_end o cuando corresponda.
+## Úsalo cuando el cooldown depende del resultado (golpeó/falló/canceló).
+@export var defer_cooldown: bool = false
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -246,6 +255,21 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## siempre que el jugador tenga TP suficiente para la versión evolucionada.
 ## AbilityRouter chequea LMSService y EvolutionService juntos.
 @export var lms_auto_evolve: bool = false
+
+## Si true, cuando un aliado use ACT sobre este jugador, esta habilidad
+## será evolucionada automáticamente (sin importar en qué slot esté).
+## Ejemplo: Sword Slash de Kris tiene evolvable_by_ally = true.
+@export var evolvable_by_ally: bool = false
+
+## Slot del ALIADO que esta habilidad evoluciona al seleccionar un objetivo.
+## -1 = no evoluciona ningún slot del aliado.
+## DEPRECATED: Usar evolvable_by_ally en cada habilidad individual en su lugar.
+@export var evolve_target_slot: int = -1
+
+## Slot PROPIO que esta habilidad evoluciona al activarse.
+## -1 = no evoluciona ningún slot propio.
+## Ejemplo: ACT de Kris también evoluciona su propio slot 1 (Sword).
+@export var evolve_self_slot: int = -1
 
 
 # ════════════════════════════════════════════════════════════════════════════
