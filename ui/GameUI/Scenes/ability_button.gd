@@ -16,6 +16,9 @@ const BORDER_COLOR_EVOLVED_A := Color(1.0, 0.9, 0.0, 1.0)   # amarillo
 const BORDER_COLOR_EVOLVED_B := Color(1.0, 1.0, 1.0, 1.0)   # blanco
 const EVOLVED_FADE_DURATION  := 0.5                           # segundos por mitad del ciclo
 
+const PANEL_BG_COLOR := Color(0, 0, 0, 0.47058824)
+const PANEL_CORNER_DETAIL := 1
+
 # ── Datos ──────────────────────────────────────────────────────────────
 var ability_data:        AbilityData = null
 var slot_index:          int         = 0
@@ -54,7 +57,22 @@ func setup(data: AbilityData, index: int, key_name: String) -> void:
 	if key_label:
 		key_label.text = key_name
 
-	_set_border_color(BORDER_COLOR_NORMAL)
+	# Crear StyleBoxFlat único por instancia (el SubResource de la escena se comparte entre todas).
+	var style := StyleBoxFlat.new()
+	style.bg_color = PANEL_BG_COLOR
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = BORDER_COLOR_NORMAL
+	style.corner_detail = PANEL_CORNER_DETAIL
+	style.expand_margin_left = 2.0
+	style.expand_margin_top = 2.0
+	style.expand_margin_right = 2.0
+	style.expand_margin_bottom = 2.0
+	style.anti_aliasing = false
+	panel.add_theme_stylebox_override("panel", style)
+
 	_set_cooldown_visible(false)
 
 
