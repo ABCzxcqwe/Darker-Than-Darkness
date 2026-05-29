@@ -109,6 +109,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+<<<<<<< HEAD
 "texture": ExtResource("3_wxkvr")
 }],
 "loop": true,
@@ -120,6 +121,8 @@ animations = [{
 "texture": SubResource("AtlasTexture_nrm4i")
 }, {
 "duration": 1.0,
+=======
+>>>>>>> 71b0f8df6e3bc0d64767146fd8abb28ba9eeee42
 "texture": SubResource("AtlasTexture_eyx1g")
 }, {
 "duration": 1.0,
