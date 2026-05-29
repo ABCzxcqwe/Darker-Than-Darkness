@@ -65,7 +65,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 		push_warning("[RudeBuster] player_node inválido.")
 		return
 
-	var hs := GameServiceLocator.get_service("HitboxService")
+	var hs = GameServiceLocator.get_service("HitboxService")
 	if not hs:
 		push_error("[RudeBuster] HitboxService no disponible.")
 		return
@@ -109,7 +109,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 					health_svc.take_damage(target_node, dmg, attacker_id, atk_type)
 
 			if target_node.is_in_group("killer"):
-				var status := GameServiceLocator.get_service("StatusEffectService")
+				var status = GameServiceLocator.get_service("StatusEffectService")
 				if status and stun_dur > 0.0:
 					status.apply(target_node, "stun", { "duration": stun_dur }),
 

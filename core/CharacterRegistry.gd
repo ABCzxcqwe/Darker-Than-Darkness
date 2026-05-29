@@ -48,7 +48,7 @@ func get_character(id: int) -> CharacterData:
 	if not characters.has(id):
 		push_warning("[CharacterRegistry] No existe personaje con id ", id)
 		return null
-	return characters[id]
+	return characters[id].duplicate(true)
 
 
 func get_all() -> Array:

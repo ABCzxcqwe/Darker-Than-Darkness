@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="MapData" format=3 uid="uid://d0w03653h6rnq"]
 
-[ext_resource type="Texture2D" uid="uid://dju4or37vmmfe" path="res://Characters/0/assets/Sprites/down2.png" id="1_4k2j8"]
-[ext_resource type="PackedScene" uid="uid://b84ssskba2436" path="res://Maps/Test/TestMap.tscn" id="2_7sr3c"]
-[ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/MapData.gd" id="3_m6kho"]
+[ext_resource type="PackedScene" uid="uid://ctjsceyvkt4sn" path="res://Maps/Castle1/Castle.tscn" id="2_7sr3c"]
+[ext_resource type="AudioStream" uid="uid://cor1ovuylql4t" path="res://Maps/Test/Assets/Deltarune - Scarlet Forest [Orchestral Fusion Remix].mp3" id="2_m6kho"]
+[ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/map_data.gd" id="3_m6kho"]
 
 [resource]
 script = ExtResource("3_m6kho")
-id = "1"
-display_name = "Test Map"
-icon = ExtResource("1_4k2j8")
+id = "2"
+display_name = "Castle"
 map_scene = ExtResource("2_7sr3c")
+map_bgm = ExtResource("2_m6kho")

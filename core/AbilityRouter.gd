@@ -191,6 +191,54 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 		cd.start(peer_id, ability_data.display_name, effective_cooldown, slot_index)
 
 
+# ── Cancelación ──────────────────────────────────────────────────────────────
+@rpc("any_peer", "reliable")
+func request_cancel_ability(slot_index: int) -> void:
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	var peer_id: int   = sender_id if sender_id != 0 else 1
+
+	var player_node = _get_player_node(peer_id)
+	if not player_node:
+		push_warning("[AbilityRouter] Cancel: jugador no encontrado para peer ", peer_id)
+		return
+
+	var char_data: CharacterData = player_node.character_data
+	if not char_data:
+		push_warning("[AbilityRouter] Cancel: jugador ", peer_id, " sin character_data.")
+		return
+
+	if slot_index < 0 or slot_index >= char_data.ability_slots.size():
+		push_warning("[AbilityRouter] Cancel: slot ", slot_index, " fuera de rango.")
+		return
+
+	var ability_data: AbilityData = char_data.ability_slots[slot_index]
+	if not ability_data:
+		print("[AbilityRouter] Cancel: slot ", slot_index, " vacío.")
+		return
+
+	if not ability_data.can_cancel:
+		print("[AbilityRouter] Cancel rechazada: ", ability_data.display_name, " no es cancelable.")
+		return
+
+	# Validación de estado FSM (1 = AnimState.ABILITY en Player.gd)
+	if player_node.state != 1:
+		print("[AbilityRouter] Cancel rechazada: ", ability_data.display_name,
+			  " — jugador no está en estado ABILITY.")
+		return
+
+	# Reemplazar cooldown completo por cooldown reducido de cancelación.
+	# Si cooldown_cancel es 0, la habilidad queda lista inmediatamente.
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd:
+		cd.start(peer_id, ability_data.display_name, ability_data.cooldown_cancel, slot_index)
+
+	# Resetear estado FSM en todos los peers
+	player_node.rpc("_sync_cancel_ability")
+
+	print("[AbilityRouter] Habilidad cancelada: ", ability_data.display_name,
+		  " | peer: ", peer_id, " | cd_cancel: ", ability_data.cooldown_cancel, "s")
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 ## Devuelve el costo de TP efectivo para esta ejecución.

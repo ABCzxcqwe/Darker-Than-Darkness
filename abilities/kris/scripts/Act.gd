@@ -13,7 +13,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 		push_warning("[ACT] player_node inválido.")
 		return
 
-	var lms_svc := GameServiceLocator.get_service("LMSService")
+	var lms_svc = GameServiceLocator.get_service("LMSService")
 	var is_lms: bool = lms_svc != null and lms_svc.is_lms_active()
 
 	if is_lms:
@@ -58,12 +58,12 @@ func _activate_act(player_node: Node, _data: AbilityData, direction: Vector2) ->
 			  " | grupos: ", target_node.get_groups())
 		return
 
-	var health_svc := GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service("HealthService")
 	if health_svc and not health_svc.is_alive(target_peer_id):
 		print("[ACT] El objetivo está caído o muerto.")
 		return
 
-	var evo_svc := GameServiceLocator.get_service("EvolutionService")
+	var evo_svc = GameServiceLocator.get_service("EvolutionService")
 	if not evo_svc:
 		push_error("[ACT] EvolutionService no disponible.")
 		return
@@ -79,7 +79,7 @@ func _activate_act(player_node: Node, _data: AbilityData, direction: Vector2) ->
 func _activate_counter(player_node: Node, _data: AbilityData) -> void:
 	var caster_id: int = player_node.get_multiplayer_authority()
 
-	var abs_svc := GameServiceLocator.get_service("AbilityStateService")
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 	if not abs_svc:
 		push_error("[Counter] AbilityStateService no disponible.")
 		return
@@ -109,19 +109,19 @@ static func try_counter(player_node: Node, attacker_node: Node, data: AbilityDat
 
 	var caster_id: int = player_node.get_multiplayer_authority()
 
-	var abs_svc := GameServiceLocator.get_service("AbilityStateService")
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 	if not abs_svc or not abs_svc.is_mode_active(caster_id, SLOT):
 		return false
 
 	abs_svc.deactivate_mode(caster_id, SLOT)
 
 	if is_instance_valid(attacker_node) and attacker_node.is_in_group("killer"):
-		var status := GameServiceLocator.get_service("StatusEffectService")
+		var status = GameServiceLocator.get_service("StatusEffectService")
 		if status and data and data.stun_duration > 0.0:
 			status.apply(attacker_node, "stun", { "duration": data.stun_duration })
 
 	if data and data.tp_reward > 0.0:
-		var tp := GameServiceLocator.get_service("TPService")
+		var tp = GameServiceLocator.get_service("TPService")
 		if tp:
 			tp.add_tp_custom(caster_id, data.tp_reward)
 

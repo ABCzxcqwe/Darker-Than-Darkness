@@ -52,6 +52,16 @@ region = Rect2(200, 300, 100, 100)
 
 [resource]
 animations = [{
+"frames": [],
+"loop": true,
+"name": &"atack",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"atack_prepare",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wjc7d")
@@ -74,6 +84,16 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_up",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"magic",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"magic_prepare",
 "speed": 5.0
 }, {
 "frames": [{

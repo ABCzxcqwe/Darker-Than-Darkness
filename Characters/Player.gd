@@ -3,22 +3,26 @@ extends CharacterBody2D
 
 signal ability_used(ability_index: int)
 
+enum AnimState { IDLE, ABILITY }
+
 @export var speed = 200
-@onready var synchronizer      := $Synchronizer
-@onready var animated_sprite   := $AnimatedSprite2D
+@onready var synchronizer      = $Synchronizer
+@onready var animated_sprite   = $AnimatedSprite2D
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var world_c           = $CollisionShape2D
+@onready var hurtbox_c         = $Hurtbox/CollisionShape2D
 
 var character_data:   CharacterData
 var health:           int    = 0
-var health_state:     String = "alive"   # "alive", "downed", "dead"
+var health_state:     String = "alive"
 var last_animation:   String = "idle_down"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
 
 var facing: Vector2 = Vector2.RIGHT
 
-# Efectos activos en este cliente (recibidos via RPC)
 var active_effects: Dictionary = {}
+var state: int = AnimState.IDLE
 
 
 func _ready() -> void:
@@ -27,11 +31,10 @@ func _ready() -> void:
 	if not synchronizer:
 		push_error("[Player] No se encontró 'Synchronizer'. Revisa player.tscn")
 
-	# Sincronización de grupos según el rol de red
 	if character_data:
 		add_to_group(character_data.team)
 		if character_data.team == "killer":
-			add_to_group("killer") # Aseguramos consistencia de grupos
+			add_to_group("killer")
 
 	add_to_group("players")
 
@@ -39,26 +42,27 @@ func _ready() -> void:
 		if $Camera2D:
 			$Camera2D.enabled = false
 	else:
-		# ── AQUÍ SE INYECTA EL OÍDO LOCAL ──
-		var listener := AudioListener2D.new()
+		var listener = AudioListener2D.new()
 		add_child(listener)
 		listener.make_current()
 
-	# Registrar en servicios al entrar a la partida (Solo Servidor)
 	if multiplayer.is_server():
-		var hs := GameServiceLocator.get_service("HealthService")
+		var hs = GameServiceLocator.get_service("HealthService")
 		if hs:
 			if hs.has_method("register"):
 				hs.register(self)
 			elif hs.has_method("register_survivor"):
 				hs.call("register_survivor", self)
-		var ss := GameServiceLocator.get_service("StatusEffectService")
+		var ss = GameServiceLocator.get_service("StatusEffectService")
 		if ss: ss.register(self)
-		var es := GameServiceLocator.get_service("EvolutionService")
+		var es = GameServiceLocator.get_service("EvolutionService")
 		if es: es.register_player(get_multiplayer_authority())
-		var abs_svc := GameServiceLocator.get_service("AbilityStateService") 
+		var abs_svc = GameServiceLocator.get_service("AbilityStateService") 
 		if abs_svc:                                                            
-			abs_svc.register_player(get_multiplayer_authority(), character_data) 
+			abs_svc.register_player(get_multiplayer_authority(), character_data)
+
+	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
+		animated_sprite.animation_finished.connect(_on_anim_finished)
 
 
 # ── Rescate ───────────────────────────────────────────────────────────
@@ -83,7 +87,7 @@ func _try_revive() -> void:
 	if not closest_target: return
 
 	if multiplayer.is_server():
-		var revive_svc := GameServiceLocator.get_service("ReviveService")
+		var revive_svc = GameServiceLocator.get_service("ReviveService")
 		if revive_svc: revive_svc.request_revive(self, closest_target)
 	else:
 		rpc_id(1, "_request_revive", closest_target.get_multiplayer_authority())
@@ -98,7 +102,7 @@ func _request_revive(target_peer_id: int) -> void:
 	var target_node  := get_tree().root.find_child(str(target_peer_id), true, false)
 	if not rescuer_node or not target_node: return
 
-	var revive_svc := GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service("ReviveService")
 	if revive_svc: revive_svc.request_revive(rescuer_node, target_node)
 
 
@@ -106,7 +110,7 @@ func _request_revive(target_peer_id: int) -> void:
 func _request_cancel_revive() -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
 	if caller_id != get_multiplayer_authority(): return
-	var revive_svc := GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		revive_svc.cancel_revive(get_multiplayer_authority())
 
@@ -133,11 +137,18 @@ func _exit_tree() -> void:
 
 
 
+func cancel_current_ability(slot: int) -> void:
+	if multiplayer.is_server():
+		AbilityRouter.request_cancel_ability(slot)
+	else:
+		AbilityRouter.rpc_id(1, "request_cancel_ability", slot)
+
+
 func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 	if health_state != "alive": return
 
-	var action_map := {
+	var action_map = {
 		"ability_1": 1,
 		"ability_2": 2,
 		"ability_3": 3,
@@ -149,60 +160,52 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed(action):
 			var slot: int = action_map[action]
 			
-			# Extraer el recurso del slot
-			var base_data: AbilityData = character_data.ability_slots[slot] if (character_data and slot < character_data.ability_slots.size()) else null
-			
-			# ── SOLUCIÓN DE LÓGICA: Verificación Dinámica por Recurso ──
-			if base_data and base_data.requires_selection:
-				var hud_nodes := get_tree().get_nodes_in_group("game_hud")
+			var base_data = character_data.ability_slots[slot] if (character_data and slot < character_data.ability_slots.size()) else null
+
+			if state == AnimState.ABILITY and base_data and base_data.can_cancel:
+				cancel_current_ability(slot)
+				return
+
+			if not base_data:
+				return
+
+			if base_data.requires_selection:
+				var hud_nodes = get_tree().get_nodes_in_group("game_hud")
 				if not hud_nodes.is_empty():
 					var hud = hud_nodes[0]
-					
-					# Usamos las propiedades del recurso para armar la interfaz
 					var menu_title = "SELECCIONA: " + base_data.display_name.to_upper()
-					
-					print("[Player-Client] Interceptando habilidad basada en datos. Tipo de selección: ", base_data.selection_type)
-					
 					hud.request_selection(
 						menu_title,
-						# Callback al confirmar la selección
 						func(target_peer_id: int):
-							print("[Player-Client] Objetivo confirmado en HUD: ", target_peer_id)
-							
-							# Dividimos el ID en dos enteros más pequeños usando aritmética básica
-							# (Evita la pérdida de precisión al viajar por el Vector2)
-							var part_high := int(target_peer_id / 65536)
-							var part_low := int(target_peer_id % 65536)
-							var specialized_vector := Vector2(part_high, part_low)
-							
+							var part_high = int(target_peer_id / 65536)
+							var part_low = int(target_peer_id % 65536)
+							var specialized_vector = Vector2(part_high, part_low)
 							if multiplayer.is_server():
 								AbilityRouter.request_ability(slot, specialized_vector)
 							else:
 								AbilityRouter.rpc_id(1, "request_ability", slot, specialized_vector)
 							ability_used.emit(slot),
-						# Callback al cancelar
 						func():
-							print("[Player-Client] Selección de habilidad cancelada por el usuario.")
+							print("[Player-Client] Selección cancelada.")
 					)
 				else:
-					push_warning("[Player] Error: La habilidad requiere selección pero no se encontró el grupo 'game_hud'.")
-				return # Interceptamos el flujo con éxito, evitamos el envío inmediato por mouse
+					push_warning("[Player] No se encontró 'game_hud' para selección.")
+				return
 			
-			# ── Flujo por Defecto (Ataques directos o proyectiles tipo Rude Buster) ──
-			var mouse_dir := (get_global_mouse_position() - global_position).normalized()
+			var mouse_dir = (get_global_mouse_position() - global_position).normalized()
 			if multiplayer.is_server():
 				AbilityRouter.request_ability(slot, mouse_dir)
 			else:
 				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
 			ability_used.emit(slot)
-			break # Rompemos el bucle al procesar la acción detectada
+			break
 
 	if event.is_action_pressed("interact"):
 		_try_revive()
 
 	if event.is_action_released("interact"):
 		if multiplayer.is_server():
-			var revive_svc := GameServiceLocator.get_service("ReviveService")
+			var revive_svc = GameServiceLocator.get_service("ReviveService")
 			if revive_svc: revive_svc.cancel_revive(get_multiplayer_authority())
 		else:
 			rpc_id(1, "_request_cancel_revive")
@@ -212,27 +215,37 @@ func set_character(char_id: int) -> void:
 	var data: CharacterData = CharacterRegistry.get_character(char_id)
 	if not data: return
 
-	if $AnimatedSprite2D:
-		$AnimatedSprite2D.sprite_frames = data.animation_frames
-
-	speed          = data.speed
 	character_data = data
 	health         = data.max_health
 	health_state   = "alive"
-	
+	speed          = data.speed
+
 	add_to_group(data.team)
 	if data.team == "killer":
 		add_to_group("killer")
 	add_to_group("players")
-		
+
+	# Separar lo que necesita el árbol listo
+	call_deferred("_apply_character_visuals_and_collision", data)
+
+
+func _apply_character_visuals_and_collision(data: CharacterData) -> void:
+	if $AnimatedSprite2D:
+		$AnimatedSprite2D.sprite_frames = data.animation_frames
 	_setup_collision_layers(data)
 
 	if multiplayer.is_server():
-		var tp := GameServiceLocator.get_service("TPService")
+		var tp = GameServiceLocator.get_service("TPService")
 		if tp: tp.register_player(get_multiplayer_authority(), data)
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
+	print("[Collision] peer=%s | char=%s | size=(%s,%s)" % [
+		get_multiplayer_authority(), 
+		data.resource_name, 
+		data.size_x, 
+		data.size_y
+	])
 	if data.team == "killer":
 		collision_layer = 4
 		collision_mask  = 1
@@ -244,37 +257,104 @@ func _setup_collision_layers(data: CharacterData) -> void:
 		hurtbox.collision_layer = 8
 		hurtbox.collision_mask  = 0
 
+	var ws := RectangleShape2D.new()
+	ws.size = Vector2(data.size_x, data.size_y)
+	world_c.shape = ws
+	world_c.position = Vector2(data.position_x, data.position_y)
+
+	var hs := CapsuleShape2D.new()
+	hs.radius = data.h_size_x
+	hs.height = data.h_size_y
+	hurtbox_c.shape = hs
+	hurtbox_c.position = Vector2(data.h_position_x, data.h_position_y)
+	print("[Shape] peer=%s | world_c.shape.get_rid()=%s | size=%s" % [
+		get_multiplayer_authority(),
+		world_c.shape.get_rid(),
+		world_c.shape.size
+	]) 
 
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer: return
 	if not is_multiplayer_authority(): return
 	if health_state == "dead": return
 
-	var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_dir * speed
-	move_and_slide()
+	if state == AnimState.IDLE:
+		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		velocity = input_dir * speed
+		move_and_slide()
 
-	var dir_to_mouse := (get_global_mouse_position() - global_position).normalized()
-	update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
+		var dir_to_mouse = (get_global_mouse_position() - global_position).normalized()
+		update_animation_and_flip(dir_to_mouse, velocity.length() > 0.1)
+	else:
+		velocity = Vector2.ZERO
 
 
 func update_animation_and_flip(dir: Vector2, is_moving: bool) -> void:
 	var prefix    := "walk" if is_moving else "idle"
-	var anim_name := prefix + "_down"
-	facing_right  = true
+	var anim_name := prefix + "_horizontal"
 
-	if abs(dir.y) > abs(dir.x):
-		anim_name = prefix + ("_down" if dir.y > 0 else "_up")
-		facing    = Vector2.DOWN if dir.y > 0 else Vector2.UP
-	else:
-		anim_name    = prefix + "_horizontal"
-		facing_right = dir.x > 0
-		facing       = Vector2.RIGHT if facing_right else Vector2.LEFT
-		animated_sprite.flip_h = not facing_right
+	facing_right = dir.x >= 0.0
+	facing       = Vector2.RIGHT if facing_right else Vector2.LEFT
+	animated_sprite.flip_h = not facing_right
 
 	if last_animation != anim_name:
 		animated_sprite.play(anim_name)
 		last_animation = anim_name
+
+
+# ── FSM de Animaciones ────────────────────────────────────────────────
+
+func _on_anim_finished() -> void:
+	print("[Anim] _on_anim_finished | peer: ", get_multiplayer_authority(),
+		  " | is_authority: ", is_multiplayer_authority(),
+		  " | state: ", state)
+	if state == AnimState.ABILITY:
+		state = AnimState.IDLE
+		if animated_sprite:
+			_play_idle_for_facing()
+
+
+func _play_idle_for_facing() -> void:
+	animated_sprite.flip_h = facing == Vector2.LEFT
+	animated_sprite.play("idle_horizontal")
+	last_animation = "idle_horizontal"
+
+
+func play_ability_animation(anim_name: String, is_facing_right: bool = true) -> void:
+	if not multiplayer.is_server():
+		return
+	# Aplicar localmente en el servidor
+	if anim_name != "":
+		facing_right = is_facing_right
+		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+		animated_sprite.flip_h = not facing_right
+		animated_sprite.play(anim_name)
+		state = AnimState.ABILITY
+	# Broadcast a clientes
+	for peer_id in multiplayer.get_peers():
+		rpc_id(peer_id, "_sync_ability_anim", anim_name, is_facing_right)
+
+@rpc("any_peer", "reliable")
+func _sync_ability_anim(anim_name: String, is_facing_right: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 1:
+		push_warning("[Player] _sync_ability_anim rechazado, sender: ", sender)
+		return
+	if anim_name != "":
+		facing_right = is_facing_right
+		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+		animated_sprite.flip_h = not facing_right
+		animated_sprite.play(anim_name)
+		state = AnimState.ABILITY
+
+
+func reset_ability_state() -> void:
+	state = AnimState.IDLE
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_cancel_ability() -> void:
+	reset_ability_state()
 
 
 # ── Sincronización desde el servidor ──────────────────────────────────

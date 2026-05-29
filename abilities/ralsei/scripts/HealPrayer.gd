@@ -65,7 +65,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 		print("[HealPrayer] Cancelado: el objetivo está muerto permanentemente.")
 		return
 
-	var health_svc := GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service("HealthService")
 	if not health_svc:
 		push_error("[HealPrayer] HealthService no disponible.")
 		return
@@ -80,7 +80,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	var is_double: bool = false
 
 	# Chequeo de Double Heal en LMS
-	var lms_svc := GameServiceLocator.get_service("LMSService")
+	var lms_svc = GameServiceLocator.get_service("LMSService")
 	if lms_svc and lms_svc.is_lms_active():
 		var lms_survivor: Node = lms_svc.get_active_survivor()
 		if lms_survivor and lms_survivor.get_multiplayer_authority() == caster_id:
@@ -98,7 +98,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	# Liberar root aplicado por AbilityRouter (move_restriction = LOCKED)
 	# Heal Prayer no tiene hitbox con on_end, así que lo liberamos aquí
 	# con un delay mínimo para que la animación de cast tenga tiempo de verse.
-	var status := GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service("StatusEffectService")
 	if status and is_instance_valid(player_node):
 		player_node.get_tree().create_timer(0.4).timeout.connect(func() -> void:
 			if is_instance_valid(player_node) and status:

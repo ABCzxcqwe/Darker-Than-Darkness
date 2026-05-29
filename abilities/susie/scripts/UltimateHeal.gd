@@ -67,7 +67,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	# AbilityStateService.get_scaled_value() devuelve el porcentaje
 	# correspondiente al número de usos ACTUALES (antes de register_use,
 	# que AbilityRouter llamará en el paso 12 después de activate()).
-	var abs_svc := GameServiceLocator.get_service("AbilityStateService")
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 	var heal_ratio: float = 0.0
 	if abs_svc:
 		heal_ratio = abs_svc.get_scaled_value(caster_id, SLOT, data)
@@ -82,7 +82,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
 	var heal_amount: int = maxi(1, int(max_hp * heal_ratio))
 
 	# ── Aplicar curación ─────────────────────────────────────────────────
-	var health_svc := GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service("HealthService")
 	if not health_svc:
 		push_error("[UltimateHealth] HealthService no disponible.")
 		return

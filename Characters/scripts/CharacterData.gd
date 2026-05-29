@@ -30,6 +30,21 @@ const KILLER_ONLY := [
 @export var invincibility_frames: float = 1.0
 @export var special_defense_against: Array[String] = []
 
+@export_group("Colisiones")
+## Tamaño del CollisionShape2D del personaje (mundo).
+@export var size_x: int = 16
+@export var size_y: int = 26
+## Posición relativa del CollisionShape2D del personaje.
+@export var position_x: int = 0
+@export var position_y: int = 15
+
+## Tamaño del CollisionShape2D del hurtbox.
+@export var h_size_x: int = 40
+@export var h_size_y: int = 110
+## Posición relativa del CollisionShape2D del hurtbox.
+@export var h_position_x: int = 0
+@export var h_position_y: int = 0
+
 @export_group("Survivor State")
 @export var bleed_out_time: float = 60.0
 @export var can_be_executed: bool = true

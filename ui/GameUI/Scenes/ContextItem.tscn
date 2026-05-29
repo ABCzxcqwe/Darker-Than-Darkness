@@ -3,21 +3,37 @@
 [ext_resource type="Script" uid="uid://duo0hmyhki6mw" path="res://ui/GameUI/Scenes/context_item.gd" id="1_ol6vr"]
 [ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_lfuxb"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuxb"]
+bg_color = Color(0.06469653, 0.06469653, 0.06469653, 0.80784315)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 2
+border_color = Color(0.816, 0.475, 0, 1)
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+
 [node name="ContextItem" type="PanelContainer" unique_id=1850036302]
-custom_minimum_size = Vector2(90, 26)
+custom_minimum_size = Vector2(100, 30)
 anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -1510.0
+offset_bottom = -874.0
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_lfuxb")
 script = ExtResource("1_ol6vr")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=2013171247]
+custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 theme_override_constants/separation = 5
 alignment = 1
 
 [node name="ColorDot" type="ColorRect" parent="HBoxContainer" unique_id=833757378]
-custom_minimum_size = Vector2(10, 10)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 size_flags_vertical = 4
 
@@ -25,4 +41,4 @@ size_flags_vertical = 4
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_lfuxb")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14

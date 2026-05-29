@@ -150,7 +150,7 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			  " | duración: ", duration)
 
 		if effect_name in ["stun", "root"]:
-			var revive_svc := GameServiceLocator.get_service("ReviveService")
+			var revive_svc = GameServiceLocator.get_service("ReviveService")
 			if revive_svc:
 				revive_svc.cancel_revive(peer_id)
 

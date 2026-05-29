@@ -44,7 +44,7 @@ func _ready() -> void:
 	_setup_hud()
 
 	if multiplayer.is_server():
-		var tp := GameServiceLocator.get_service("TPService")
+		var tp = GameServiceLocator.get_service("TPService")
 		if tp:
 			tp.start_passive_gain()
 		else:

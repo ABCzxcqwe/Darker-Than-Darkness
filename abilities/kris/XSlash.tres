@@ -11,7 +11,6 @@ ability_script = ExtResource("2_1i7br")
 ability_scene = ExtResource("1_57aa6")
 cooldown = 25.0
 tp_cost = 25.0
-move_restriction = 1
 base_damage = 25
 range_ = 130.0
 attack_type = "slash"
