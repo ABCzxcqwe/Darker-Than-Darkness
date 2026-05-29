@@ -59,14 +59,6 @@ region = Rect2(960, 0, 192, 192)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("1_oxg2m")
-}],
-"loop": true,
-"name": &"idle_down",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
 "texture": SubResource("AtlasTexture_ojg4i")
 }, {
 "duration": 1.0,
@@ -111,7 +103,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"sword_slash",
-"speed": 12.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,

@@ -10,7 +10,8 @@ class_name AbilityBase
 ## player_node : el CharacterBody2D del jugador que usó la habilidad
 ## data        : AbilityData del slot usado (puede ser la versión evolucionada)
 ## direction   : Vector2 normalizado hacia donde apunta el jugador
-func activate(_player_node: Node, _data: AbilityData, _direction: Vector2) -> void:
+## slot_index  : índice del slot en ability_slots (útil para animaciones y cooldowns)
+func activate(_player_node: Node, _data: AbilityData, _direction: Vector2, _slot_index: int = -1) -> void:
 	push_warning("[AbilityBase] activate() no implementado en ", get_script().resource_path)
 
 ## Sobreescribir en habilidades que ignoran el stun

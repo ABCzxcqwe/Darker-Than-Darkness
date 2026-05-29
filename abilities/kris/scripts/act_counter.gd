@@ -45,7 +45,7 @@ extends AbilityBase
 const COUNTER_WINDOW: float = 2.0
 
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[ACT] player_node inválido.")
 		return

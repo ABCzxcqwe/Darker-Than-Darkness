@@ -45,7 +45,7 @@ const SLOT: int = 0
 const DOUBLE_HEAL_MULTIPLIER: float = 2.0
 
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[HealPrayer] player_node inválido.")
 		return

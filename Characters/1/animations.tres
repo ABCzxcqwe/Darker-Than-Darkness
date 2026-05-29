@@ -2,10 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://80lxhd7d032" path="res://Characters/1/assets/SusieSheet.png" id="1_ggmbj"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_a7w0n"]
-atlas = ExtResource("1_ggmbj")
-region = Rect2(100, 0, 100, 100)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_u5nmq"]
 atlas = ExtResource("1_ggmbj")
 region = Rect2(100, 200, 100, 100)
@@ -13,6 +9,10 @@ region = Rect2(100, 200, 100, 100)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ak0ej"]
 atlas = ExtResource("1_ggmbj")
 region = Rect2(100, 300, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a7w0n"]
+atlas = ExtResource("1_ggmbj")
+region = Rect2(100, 0, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cbc4d"]
 atlas = ExtResource("1_ggmbj")
@@ -54,14 +54,6 @@ region = Rect2(200, 300, 100, 100)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_a7w0n")
-}],
-"loop": true,
-"name": &"idle_down",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
 "texture": SubResource("AtlasTexture_u5nmq")
 }],
 "loop": true,
@@ -74,6 +66,14 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_up",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a7w0n")
+}],
+"loop": true,
+"name": &"new_animation",
 "speed": 5.0
 }, {
 "frames": [{

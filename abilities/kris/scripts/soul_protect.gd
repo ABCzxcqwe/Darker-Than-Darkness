@@ -9,7 +9,7 @@ const DURATION: float = 10.0
 const SHARE_PCT: float = 0.5
 
 
-func activate(player_node: Node, _data: AbilityData, direction: Vector2) -> void:
+func activate(player_node: Node, _data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		return
 

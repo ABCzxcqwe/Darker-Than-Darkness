@@ -5,7 +5,7 @@ extends AbilityBase
 const HITBOX_LIFETIME: float = 0.3
 
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[AxeSlash] player_node inválido.")
 		return
