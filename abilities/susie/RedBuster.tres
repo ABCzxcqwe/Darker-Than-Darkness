@@ -17,6 +17,5 @@ move_restriction = 1
 base_damage = 20
 attack_type = "projectile"
 stun_duration = 5.0
-evo_damage_multiplier = 1.0
 evo_status_duration_bonus = 1.0
 metadata/_custom_type_script = "uid://bodks86qovy6s"

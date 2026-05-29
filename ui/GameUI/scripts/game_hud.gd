@@ -164,13 +164,13 @@ func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 		ability_bar.on_slot_devolved(slot_index)
 
 # ── Menú contextual Simplificado (Aparición directa) ───────────────────
-func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable()) -> void:
+func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1) -> void:
 	if _menu_open: return
 	_menu_open   = true
 	_on_confirm  = on_confirm
 	_on_cancel   = on_cancel
 
-	_build_context_items()
+	_build_context_items(filter_peer_id)
 
 	if context_title:
 		context_title.text = title.to_upper()
@@ -187,7 +187,7 @@ func cancel_selection() -> void:
 		_on_cancel.call()
 	selection_cancelled.emit()
 
-func _build_context_items() -> void:
+func _build_context_items(filter_peer_id: int = -1) -> void:
 	for child in context_grid.get_children():
 		child.queue_free()
 	_ctx_items.clear()
@@ -197,10 +197,14 @@ func _build_context_items() -> void:
 		var data: CharacterData = player.character_data if player.get("character_data") else null
 		if not data: continue
 
+		var p_id = player.get_multiplayer_authority()
+		# Saltar al propio caster (ACT no puede potenciarse a sí mismo)
+		if filter_peer_id > 0 and p_id == filter_peer_id:
+			continue
+
 		var item = CONTEXT_ITEM_SCENE.instantiate()
 		context_grid.add_child(item)
 
-		var p_id = player.get_multiplayer_authority()
 		var icon: Texture2D = data.icon if data.icon else null
 		item.setup(p_id, data.display_name, icon)
 		item.item_clicked.connect(_on_ctx_item_clicked)

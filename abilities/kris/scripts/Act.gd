@@ -72,7 +72,7 @@ func _activate_act(player_node: Node, data: AbilityData, direction: Vector2, slo
 
 	var title := "ACT: " + data.display_name.to_upper()
 	if player_node.has_method("_open_ability_selection"):
-		player_node.rpc_id(caster_id, "_open_ability_selection", slot_index, title)
+		player_node.rpc_id(caster_id, "_open_ability_selection", slot_index, title, caster_id)
 		print("[ACT] Menú contextual abierto para peer: ", caster_id)
 	else:
 		push_warning("[ACT] player_node no tiene _open_ability_selection.")

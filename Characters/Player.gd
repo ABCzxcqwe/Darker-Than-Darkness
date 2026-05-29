@@ -192,7 +192,7 @@ func _input(event: InputEvent) -> void:
 # ── Selección contextual (server -> cliente) ──────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")
-func _open_ability_selection(slot: int, title: String) -> void:
+func _open_ability_selection(slot: int, title: String, filter_peer_id: int = -1) -> void:
 	# Solo el servidor envía este RPC, y solo el peer con autoridad debe procesarlo.
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
@@ -218,7 +218,8 @@ func _open_ability_selection(slot: int, title: String) -> void:
 				if multiplayer.is_server():
 					_cancel_ability_selection(slot)
 				else:
-					rpc_id(1, "_cancel_ability_selection", slot)
+					rpc_id(1, "_cancel_ability_selection", slot),
+		filter_peer_id
 	)
 
 
