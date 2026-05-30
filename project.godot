@@ -29,6 +29,7 @@ GameServiceLocator="*uid://btt4agmfoo7rx"
 MapRegistry="*uid://dc7fwd2kgom44"
 AudioManager="*uid://cha1sw3egunlu"
 MatchCoordinator="*uid://b8e8e7uvc056"
+FmodManager="*uid://cds10pm7hwn3p"
 
 [display]
 
@@ -47,7 +48,7 @@ version_control/autoload_on_startup=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/claude_3.5_sonnet_chat_api/plugin.cfg")
+enabled=PackedStringArray("res://addons/claude_3.5_sonnet_chat_api/plugin.cfg", "res://addons/fmod/plugin.cfg")
 
 [input]
 
