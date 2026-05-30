@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://d0osfj5o7sa6u"]
+
+[ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="1_522tp"]
+[ext_resource type="Texture2D" uid="uid://cahanlqx0kypf" path="res://abilities/susie/Rude buster.webp" id="2_f6pqq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m0kxg"]
+size = Vector2(48, 32)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_buq20"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Sprite2D:frame")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="RudeBuster" type="Area2D" unique_id=1229504788]
+scale = Vector2(4, 4)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_522tp")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=274283935]
+visibility_layer = 1048575
+z_index = 10
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("2_f6pqq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1108275219]
+rotation = 1.5707964
+shape = SubResource("RectangleShape2D_m0kxg")
+
+[node name="ColorRect" type="ColorRect" parent="CollisionShape2D" unique_id=2118287676]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 24.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(2.5990605e-06, 0.7131395, 0.7050037, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1209183364]
+replication_config = SubResource("SceneReplicationConfig_buq20")

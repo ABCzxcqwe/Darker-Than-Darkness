@@ -107,20 +107,20 @@ animations = [{
 "name": &"idle_horizontal",
 "speed": 5.0
 }, {
-	"frames": [{
-	"duration": 1.0,
-	"texture": ExtResource("3_wxkvr")
-	}],
-	"loop": true,
-	"name": &"idle_up",
-	"speed": 5.0
-	}, {
-	"frames": [{
-	"duration": 1.0,
-	"texture": SubResource("AtlasTexture_nrm4i")
-	}, {
-	"duration": 1.0,
-	"texture": SubResource("AtlasTexture_eyx1g")
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_wxkvr")
+}],
+"loop": true,
+"name": &"idle_up",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrm4i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eyx1g")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wjsji")

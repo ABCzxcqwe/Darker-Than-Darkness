@@ -5,9 +5,19 @@
 #
 # Responsabilidades:
 #   1. Calcular modificadores de daño (LMS resistance, post-stun DR, etc.)
-#   2. Validar restricciones antes de aplicar efectos
+#   2. Verificar interceptores activos (Counter, etc.) antes de aplicar daño
 #   3. Aplicar daño y efectos de estado delegando en los servicios base
 #   4. Proveer terminación manual de efectos (root, stun, etc.)
+#
+# SISTEMA DE INTERCEPTORES:
+#   Antes de aplicar daño, CombatMediator revisa si el target tiene algún
+#   slot con modo activo. Si ese slot tiene un script con try_intercept(),
+#   lo llama. Si devuelve true, el daño se cancela completamente.
+#
+#   Contrato de try_intercept():
+#     func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: int) -> bool
+#     - Devuelve true  → daño cancelado, CombatMediator no aplica nada.
+#     - Devuelve false → daño continúa normalmente.
 #
 # Se accede via: GameServiceLocator.get_service("CombatMediator")
 extends Node
@@ -18,9 +28,14 @@ extends Node
 # ═══════════════════════════════════════════════════════════════════════════
 
 ## Calcula el daño final tras aplicar todas las reducciones y lo aplica.
-## Retorna el daño real calculado (0 si no se pudo aplicar).
+## Retorna el daño real calculado (0 si no se pudo aplicar o fue interceptado).
 func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
 	if not multiplayer.is_server():
+		return 0
+
+	# ── Verificar interceptores antes de calcular daño ───────────────────
+	# Si algún slot activo del target intercepta el golpe, cancelamos aquí.
+	if _check_intercept(attacker, target):
 		return 0
 
 	var final_damage: int = _calculate_damage(attacker, target, base_damage, attack_type)
@@ -37,6 +52,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 ## Solo cálculo — útil si la habilidad necesita saber el daño antes de aplicarlo
 ## (ej. para mostrar un número, decidir si spawnear un VFX, etc.)
+## NOTA: No verifica interceptores — usar apply_damage() para el flujo real.
 func calculate_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
 	return _calculate_damage(attacker, target, base_damage, attack_type)
 
@@ -66,6 +82,51 @@ func _calculate_damage(_attacker: Node, target: Node, base_damage: int, _attack_
 			damage = ceili(damage * (1.0 - dr))
 
 	return maxi(1, damage)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SISTEMA DE INTERCEPTORES
+# ═══════════════════════════════════════════════════════════════════════════
+
+## Revisa todos los slots del target buscando uno con modo activo que
+## implemente try_intercept(). Si lo encuentra y devuelve true, el daño
+## queda cancelado.
+## Devuelve true si el daño fue interceptado.
+func _check_intercept(attacker: Node, target: Node) -> bool:
+	if not is_instance_valid(target):
+		return false
+
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	if not abs_svc:
+		return false
+
+	var char_data: CharacterData = target.get("character_data")
+	if not char_data or not char_data.ability_slots:
+		return false
+
+	var target_peer: int = target.get_multiplayer_authority()
+
+	for slot_index in char_data.ability_slots.size():
+		# Solo slots con modo activo son candidatos
+		if not abs_svc.is_mode_active(target_peer, slot_index):
+			continue
+
+		var ability_data: AbilityData = char_data.ability_slots[slot_index]
+		if not ability_data or not ability_data.ability_script:
+			continue
+
+		# Instanciar el script y verificar si tiene try_intercept()
+		var handler = ability_data.ability_script.new()
+		if not handler.has_method("try_intercept"):
+			continue
+
+		var intercepted: bool = handler.try_intercept(target, attacker, ability_data, slot_index)
+		if intercepted:
+			print("[CombatMediator] Daño interceptado por slot ", slot_index,
+				  " (", ability_data.display_name, ") | peer: ", target_peer)
+			return true
+
+	return false
 
 
 # ═══════════════════════════════════════════════════════════════════════════

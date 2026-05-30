@@ -56,6 +56,7 @@ const KILLER_ONLY := [
 @export var lms_heal_amount: int = 60
 @export var lms_damage_resistance: float = 0.0
 
+
 @export_group("Killer State")
 @export var can_take_damage: bool = true
 @export var terror_radius: float = 32.0
@@ -64,6 +65,7 @@ const KILLER_ONLY := [
 @export var chase_music: AudioStream
 @export var lms_music_: AudioStream
 @export var lms_duration_: float = 140.0
+
 
 @export_group("Habilidades")
 @export var ability_slots: Array[AbilityData] = [null, null, null, null, null]

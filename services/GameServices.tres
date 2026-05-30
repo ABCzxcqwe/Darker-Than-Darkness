@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://ci6122xh2uxof" path="res://services/GameStateService.gd" id="2_57q87"]
 [ext_resource type="Script" uid="uid://bdnbmwqnvaq0k" path="res://services/GameServicesConfig.gd" id="3_47pdd"]
 [ext_resource type="Script" uid="uid://cmggw3asix1b8" path="res://services/CooldownService.gd" id="3_57q87"]
-[ext_resource type="Script" uid="uid://bwfplb1sccgao" path="res://services/Hitboxservice.gd" id="4_47pdd"]
+[ext_resource type="Script" uid="uid://dmnmdwdkqbahn" path="res://services/HitboxService.gd" id="5_de3ty"]
 [ext_resource type="Script" uid="uid://cvlkeksypfhgh" path="res://services/HealthService.gd" id="5_h33ef"]
 [ext_resource type="Script" uid="uid://cuq68y5n8jke0" path="res://services/ReviveService.gd" id="6_jl308"]
 [ext_resource type="Script" uid="uid://mlr2f4hkq14q" path="res://services/StatusEffectService.gd" id="7_ox8nq"]
@@ -36,7 +36,7 @@ metadata/_custom_type_script = "uid://d2k546jgdjt66"
 [sub_resource type="Resource" id="Resource_jl308"]
 script = ExtResource("1_lfoov")
 service_name = "HitboxService"
-service_script = ExtResource("4_47pdd")
+service_script = ExtResource("5_de3ty")
 metadata/_custom_type_script = "uid://d2k546jgdjt66"
 
 [sub_resource type="Resource" id="Resource_ox8nq"]

@@ -48,8 +48,11 @@ var _hit_targets: Array  = []
 # ── Inicialización ─────────────────────────────────────────────────────
 func _ready() -> void:
 	if not multiplayer.is_server():
-		queue_free()
+		collision_layer = 0
+		collision_mask = 0
+		set_physics_process(false)
 		return
+	set_multiplayer_authority(1)
 	area_entered.connect(_on_area_entered)
 	if lifetime > 0.0:
 		get_tree().create_timer(lifetime).timeout.connect(_expire)

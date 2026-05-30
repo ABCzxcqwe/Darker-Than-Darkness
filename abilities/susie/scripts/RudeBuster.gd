@@ -54,7 +54,7 @@
 extends AbilityBase
 
 # Velocidad del proyectil en píxeles por segundo
-const PROJECTILE_SPEED: float = 500.0
+const PROJECTILE_SPEED: float = 1000.0
 
 # Duración máxima del proyectil en segundos antes de expirar
 const PROJECTILE_LIFETIME: float = 2.0

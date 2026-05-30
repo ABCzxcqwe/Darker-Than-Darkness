@@ -2,50 +2,11 @@
 
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="1_0fdf6"]
 [ext_resource type="Resource" uid="uid://bpguaq8p5p4rl" path="res://Characters/0/Kris.tres" id="2_0fdf6"]
-[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="2_wwagk"]
 [ext_resource type="Resource" uid="uid://cvcih78qe7y8q" path="res://Characters/1/Susie.tres" id="3_wwagk"]
-[ext_resource type="SpriteFrames" uid="uid://bwxd5203gvpts" path="res://Characters/2/animations.tres" id="7_0fdf6"]
-[ext_resource type="AudioStream" uid="uid://ikhiy02k44fb" path="res://Characters/2/assets/Legend of the Dusk.mp3" id="8_p7bi8"]
+[ext_resource type="Resource" uid="uid://cemfeymasjrvg" path="res://Characters/2/Ralsei.tres" id="4_u7bad"]
 [ext_resource type="Resource" uid="uid://qm3jto47sra3" path="res://Characters/3/Jevil.tres" id="9_mgrb0"]
-[ext_resource type="Script" uid="uid://dn0qwdhb4g3ra" path="res://abilities/ralsei/scripts/HealPrayer.gd" id="11_ns7fw"]
-[ext_resource type="Script" uid="uid://cq35o6bhk7xxm" path="res://abilities/ralsei/scripts/Pacify.gd" id="12_jh6ir"]
 [ext_resource type="Script" uid="uid://cva4utk4fditj" path="res://Characters/scripts/CharacterDatabase.gd" id="12_vygkj"]
-
-[sub_resource type="Resource" id="Resource_ns7fw"]
-script = ExtResource("2_wwagk")
-display_name = "Heal Prayer"
-ability_script = ExtResource("11_ns7fw")
-metadata/_custom_type_script = "uid://bodks86qovy6s"
-
-[sub_resource type="Resource" id="Resource_gb45w"]
-script = ExtResource("2_wwagk")
-display_name = "Pacify"
-ability_script = ExtResource("12_jh6ir")
-cooldown = 20.0
-tp_cost = 15.0
-move_restriction = 1
-selection_type = 1
-stun_duration = 2.0
-slow_magnitude = 0.3
-slow_duration = 3.0
-hit_count_for_effect = 4
-metadata/_custom_type_script = "uid://bodks86qovy6s"
-
-[sub_resource type="Resource" id="Resource_hrs3a"]
-script = ExtResource("1_0fdf6")
-id = 2
-display_name = "Ralsei"
-speed = 550.0
-max_health = 80
-revive_time = 1.5
-lms_music = ExtResource("8_p7bi8")
-lms_duration = 170.0
-ability_slots = Array[ExtResource("2_wwagk")]([null, SubResource("Resource_ns7fw"), SubResource("Resource_gb45w"), null, null])
-tp_gain_time = 5.0
-animation_frames = ExtResource("7_0fdf6")
-theme_color = Color(0.12078262, 0.8748105, 0, 1)
-metadata/_custom_type_script = "uid://2kq331ai6c40"
 
 [resource]
 script = ExtResource("12_vygkj")
-character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("3_wwagk"), SubResource("Resource_hrs3a"), ExtResource("9_mgrb0")])
+character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("3_wwagk"), ExtResource("4_u7bad"), ExtResource("9_mgrb0")])

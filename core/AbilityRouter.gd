@@ -2,23 +2,21 @@
 # ============================================================
 # AbilityRouter — Valida, resuelve y despacha habilidades.
 #
-# Cambios respecto a la versión anterior:
-#   - Paso 6b: LMS auto-evolve. Si ability_data.lms_auto_evolve = true
-#              y LMSService está activo y el jugador tiene TP, se fuerza
-#              la evolución automáticamente antes de despachar.
-#   - Paso 8.5: El chequeo de TP ahora usa AbilityStateService para
-#               habilidades escalables (dynamic_tp_cost) en lugar de
-#               leer tp_cost directo del recurso.
-#   - Paso 8.6: Restricción de movimiento. Si move_restriction = LOCKED,
-#               el caster es anclado antes de ejecutar y liberado en
-#               un callback post-habilidad.
-#   - Paso 12: El cooldown ahora usa AbilityStateService.get_dynamic_cooldown()
-#              para habilidades escalables en lugar de ability_data.cooldown.
+# RESPONSABILIDADES DEL ROUTER:
+#   - Validar que la habilidad se puede ejecutar (pasos 1-11).
+#   - Verificar (NO consumir) que el jugador tiene TP suficiente.
+#   - Resolver la versión correcta (normal / evolucionada / LMS).
+#   - Despachar el script de la habilidad.
 #
-# Lo que NO cambió:
-#   - Toda la lógica de validación previa (pasos 1-8).
-#   - El mecanismo de reintegro de TP ante fallo de script.
-#   - El helper _get_player_node.
+# RESPONSABILIDADES DE LA HABILIDAD (ability script):
+#   - Consumir el TP necesario via TPService.consume_tp() o add_tp_custom().
+#   - Iniciar su propio cooldown via CooldownService.start() con el slot_index
+#     correcto, en el momento que corresponda (al activar, al impactar, al fallar).
+#   - Para habilidades escalables: llamar AbilityStateService.register_use()
+#     antes de leer get_dynamic_cooldown().
+#
+# REGLA: El Router nunca consume TP ni inicia cooldowns.
+#        Eso es responsabilidad exclusiva de cada script de habilidad.
 # ============================================================
 extends Node
 
@@ -111,8 +109,6 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 	# ── 6b. LMS auto-evolve ──────────────────────────────────────────────
 	# Si la habilidad tiene lms_auto_evolve = true, el LMS está activo para
 	# este jugador, y aún no está evolucionada, la forzamos ahora.
-	# El chequeo de TP ocurre más abajo (paso 8.5); aquí solo marcamos la
-	# intención para que el paso 8.5 use el tp_cost de la versión evolucionada.
 	var lms_svc: Node = GameServiceLocator.get_service("LMSService")
 	var lms_wants_evolve: bool = false
 	if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
@@ -121,8 +117,6 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 			if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
 				lms_wants_evolve = true
 
-	# Si el LMS quiere evolucionar, tratamos la habilidad como evolucionada
-	# desde este punto en adelante (el EvolutionService se actualiza en paso 11).
 	if lms_wants_evolve:
 		is_evolved = true
 
@@ -145,13 +139,14 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 			print("[AbilityRouter] Bloqueado por stun.")
 			return
 
-	# ── 8.5. ¿Tiene suficiente TP? ───────────────────────────────────────
+	# ── 8.5. ¿Tiene suficiente TP? (solo verificación, NO consume) ──────
+	# El Router verifica que el jugador tenga el TP requerido pero NO lo consume.
+	# El consumo es responsabilidad exclusiva del script de cada habilidad.
 	# Para habilidades escalables usamos el costo dinámico del AbilityStateService.
-	# Para el resto, leemos tp_cost del recurso directamente (comportamiento anterior).
 	var abs_svc: Node = GameServiceLocator.get_service("AbilityStateService")
 	var effective_tp_cost: float = _resolve_tp_cost(ability_data, peer_id, slot_index, abs_svc)
 
-	if effective_tp_cost > 0.0 and ability_data.consume_tp_on_use:
+	if effective_tp_cost > 0.0:
 		var tp_svc = GameServiceLocator.get_service("TPService")
 		if tp_svc:
 			if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
@@ -159,7 +154,7 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 					  " | Requiere: ", effective_tp_cost,
 					  " | Actual: ", tp_svc.get_tp_for_peer(peer_id))
 				# Si el LMS quería evolucionar pero no hay TP, revertimos la intención
-				# y ejecutamos la versión normal si tiene suficiente TP para ella.
+				# y verificamos si alcanza para la versión normal.
 				if lms_wants_evolve:
 					is_evolved = false
 					lms_wants_evolve = false
@@ -172,37 +167,16 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 				else:
 					return
 
-			if not tp_svc.consume_tp(peer_id, effective_tp_cost):
-				return
-
-	# ── 8.6. Restricción de movimiento ───────────────────────────────────
-	# Si la habilidad ancla al caster (LOCKED), forzamos velocidad 0
-	# mediante un root temporal mientras la habilidad está activa.
-	# La duración del root la decide la habilidad a través de su script;
-	# aquí solo aplicamos el efecto si el recurso lo declara.
-	# MoveRestriction: 0=FREE, 1=LOCKED, 2=AERIAL
-	# if ability_data.move_restriction == AbilityData.MoveRestriction.LOCKED:
-	# 	if status:
-	# 		# Usamos "root" del StatusEffectService con duración igual al cooldown
-	# 		# como límite superior seguro. El script de la habilidad puede
-	# 		# removerlo antes si termina antes.
-	# 		status.apply(player_node, "root", { "duration": ability_data.cooldown })
-
 	# ── 9. ¿Existe el script? ────────────────────────────────────────────
 	var ability_script: GDScript = ability_data.ability_script
 	if not ability_script:
 		push_error("[AbilityRouter] ability_script no asignado en AbilityData para '",
 				   ability_data.display_name, "'")
-		# Reintegro de seguridad: devolvemos el TP consumido
-		var tp_svc = GameServiceLocator.get_service("TPService")
-		if tp_svc and effective_tp_cost > 0.0:
-			tp_svc.add_tp_custom(peer_id, effective_tp_cost)
-		# Si aplicamos root, lo removemos también
-		if ability_data.move_restriction == AbilityData.MoveRestriction.LOCKED and status:
-			status.apply(player_node, "root", { "duration": 0.01 })
 		return
 
 	# ── 10. Instanciar y ejecutar ─────────────────────────────────────────
+	# A partir de aquí la habilidad tiene control total:
+	# debe consumir su TP y registrar su cooldown internamente.
 	var handler: AbilityBase = ability_script.new()
 	handler.activate(player_node, ability_data, direction, slot_index)
 
@@ -212,23 +186,10 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 	# ── 11. Consumir / forzar evolución ───────────────────────────────────
 	if evolution_service:
 		if lms_wants_evolve:
-			# La evolución fue forzada por LMS: la registramos y la consumimos
-			# en el mismo paso para que no quede un estado "evolucionado" residual.
 			evolution_service.evolve_slot(peer_id, slot_index)
 			evolution_service.consume_evolution(peer_id, slot_index)
 		elif is_evolved:
-			# Evolución manual preexistente: consumir normalmente.
 			evolution_service.consume_evolution(peer_id, slot_index)
-
-	# ── 12. Iniciar cooldown (solo si la habilidad no lo difiere) ─────────
-	# defer_cooldown = true → la habilidad (Act.gd, etc.) es responsable
-	# de iniciar su propio cooldown manualmente cuando corresponda.
-	if not ability_data.defer_cooldown:
-		var effective_cooldown: float = _resolve_cooldown(
-			ability_data, peer_id, slot_index, abs_svc
-		)
-		if cd:
-			cd.start(peer_id, ability_data.display_name, effective_cooldown, slot_index)
 
 
 # ── Cancelación ──────────────────────────────────────────────────────────────
@@ -273,7 +234,8 @@ func request_cancel_ability(slot_index: int) -> void:
 		if not huds.is_empty() and huds[0].has_method("cancel_selection"):
 			huds[0].cancel_selection()
 
-	# Aplicar cooldown de cancelación
+	# Aplicar cooldown de cancelación — este sí lo maneja el Router
+	# porque la cancelación es iniciada por el propio Router, no por la habilidad.
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd:
 		cd.start(peer_id, ability_data.display_name, ability_data.cooldown_cancel, slot_index)
@@ -288,8 +250,9 @@ func request_cancel_ability(slot_index: int) -> void:
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
-## Devuelve el costo de TP efectivo para esta ejecución.
+## Devuelve el costo de TP efectivo para la verificación del Router.
 ## Habilidades escalables leen de AbilityStateService; el resto del recurso.
+## NOTA: Este valor es solo para verificar — la habilidad decide cuándo y cuánto consumir.
 func _resolve_tp_cost(
 	ability_data: AbilityData,
 	peer_id: int,
@@ -299,23 +262,6 @@ func _resolve_tp_cost(
 	if ability_data.is_scalable and abs_svc:
 		return abs_svc.get_dynamic_tp_cost(peer_id, slot_index)
 	return ability_data.tp_cost
-
-
-## Devuelve el cooldown efectivo y, si es escalable, registra el uso
-## (lo que actualiza el dynamic_cooldown para la próxima vez).
-## IMPORTANTE: llamar esto DESPUÉS de execute, no antes.
-func _resolve_cooldown(
-	ability_data: AbilityData,
-	peer_id: int,
-	slot_index: int,
-	abs_svc: Node
-) -> float:
-	if ability_data.is_scalable and abs_svc:
-		# register_use actualiza dynamic_cooldown y devuelve el use_count.
-		# get_dynamic_cooldown devuelve el valor YA actualizado.
-		abs_svc.register_use(peer_id, slot_index, ability_data)
-		return abs_svc.get_dynamic_cooldown(peer_id, slot_index)
-	return ability_data.cooldown
 
 
 func _get_player_node(peer_id: int) -> Node:

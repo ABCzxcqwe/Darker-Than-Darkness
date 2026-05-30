@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="MapData" format=3 uid="uid://b07vox47yw4kx"]
+
+[ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/map_data.gd" id="1_tntae"]
+
+[resource]
+script = ExtResource("1_tntae")
+id = "02"
+display_name = "Cyber World"
+metadata/_custom_type_script = "uid://cnpjj5828cix"

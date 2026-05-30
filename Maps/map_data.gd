@@ -13,3 +13,4 @@ class_name MapData
 
 ## Pista que sonará cuando quede 1 minuto en el temporizador o las salidas estén abiertas.
 @export var final_phase_music: AudioStream = null
+

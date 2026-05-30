@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://bgreo434aurfn"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_g1bm4"]
+[ext_resource type="Script" path="res://abilities/kris/scripts/Counter.gd" id="2_counter"]
+
+[resource]
+script = ExtResource("1_g1bm4")
+display_name = "Counter"
+ability_script = ExtResource("2_counter")
+cooldown = 25.0
+cooldown_cancel = 0.0
+tp_cost = 25.0
+can_use_while_stunned = false
+move_restriction = 1
+defer_cooldown = true
+base_damage = 0
+stun_duration = 2.5
+tp_reward = 15.0
+range_ = 120.0
+lms_auto_evolve = false
+evolvable_by_ally = false
+metadata/_custom_type_script = "uid://bodks86qovy6s"

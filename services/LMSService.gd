@@ -96,14 +96,12 @@ func _activate_lms(survivor: Node) -> void:
 	var _damage_resist = char_data.lms_damage_resistance if char_data and "lms_damage_resistance" in char_data else 0.0
 	var lms_music = char_data.lms_music if char_data and "lms_music" in char_data else null
 
-	print("[LMSService] 🎵 LMS activado para ", survivor.name)
+	print("[LMSService] LMS activado para ", survivor.name)
 
-	# Registrar la música LMS en el AudioManager local del Servidor
 	if lms_music and _audio_manager:
 		if _audio_manager.lms_music_player:
 			_audio_manager.lms_music_player.stream = lms_music
-			print("[LMSService] Música LMS registrada en AudioManager local")
-	
+
 	# Curar al survivor
 	if _health_service:
 		print("[LMSService] Curación LMS de ", heal_amount, " HP")

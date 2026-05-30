@@ -2,11 +2,39 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_uf4gy"]
 [ext_resource type="Resource" uid="uid://dp3h106hc1wrb" path="res://abilities/kris/Sword.tres" id="2_kpcxu"]
-[ext_resource type="Resource" uid="uid://iwoc87j2eewu" path="res://abilities/kris/Act.tres" id="3_70heq"]
+[ext_resource type="Script" uid="uid://ld7wt75cafvm" path="res://abilities/kris/scripts/Act.gd" id="3_4iwps"]
 [ext_resource type="Resource" uid="uid://c2v0fkl6qgg03" path="res://abilities/kris/Soul.tres" id="4_0bunb"]
 [ext_resource type="SpriteFrames" uid="uid://bejkxi1trim46" path="res://Characters/0/animations.tres" id="5_uf4gy"]
-[ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="6_icico"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]
+
+[sub_resource type="Resource" id="Resource_cbm6k"]
+script = ExtResource("1_uf4gy")
+display_name = "Counter"
+ability_script = ExtResource("3_4iwps")
+cooldown = 25.0
+tp_cost = 25.0
+can_use_while_stunned = true
+move_restriction = 1
+base_damage = 15
+stun_duration = 2.5
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_uf4gy"]
+script = ExtResource("1_uf4gy")
+display_name = "ACT"
+ability_type = 1
+ability_script = ExtResource("3_4iwps")
+cooldown = 20.0
+cooldown_cancel = 5.0
+tp_cost = 20.0
+can_use_while_stunned = true
+move_restriction = 1
+requires_selection = true
+defer_cooldown = true
+stun_duration = 2.0
+evolved_version = SubResource("Resource_cbm6k")
+lms_auto_evolve = true
+metadata/_custom_type_script = "uid://bodks86qovy6s"
 
 [resource]
 script = ExtResource("7_n1uxm")
@@ -20,10 +48,9 @@ h_size_x = 45
 h_size_y = 120
 h_position_x = -2
 h_position_y = -2
-lms_music = ExtResource("6_icico")
 lms_duration = 300.0
 lms_heal_amount = 70
-ability_slots = Array[ExtResource("1_uf4gy")]([null, ExtResource("2_kpcxu"), ExtResource("3_70heq"), ExtResource("4_0bunb"), null])
+ability_slots = Array[ExtResource("1_uf4gy")]([null, ExtResource("2_kpcxu"), SubResource("Resource_uf4gy"), ExtResource("4_0bunb"), null])
 tp_gain_time = 0.8
 animation_frames = ExtResource("5_uf4gy")
 metadata/_custom_type_script = "uid://2kq331ai6c40"

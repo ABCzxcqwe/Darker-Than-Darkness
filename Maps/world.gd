@@ -149,13 +149,12 @@ func _setup_hud() -> void:
 
 
 func _exit_tree() -> void:
+	AudioManager.reset_match_audio()
 	GameServiceLocator.clear()
 
 @rpc("authority", "call_local", "reliable") 
 func _sync_start_match_audio(map_id: String) -> void: 
-	# 1. El AudioManager local configura la pista ambiental del mapa base 
 	AudioManager.setup_map_audio(map_id) 
-	# 2. Buscamos los roles de los peers usando el grupo global de jugadores
 	var killer_node: Node2D = null 
 	var any_survivor_node: Node2D = null 
 	for p in get_tree().get_nodes_in_group("players"):
@@ -164,7 +163,9 @@ func _sync_start_match_audio(map_id: String) -> void:
 				killer_node = p 
 			elif any_survivor_node == null: 
 				any_survivor_node = p
-	# 3. Extraemos los streams directamente y los pasamos al AudioManager 
+	var terror_r: float = killer_node.character_data.terror_radius if killer_node and killer_node.character_data else 400.0
+	var chase_r: float  = killer_node.character_data.chase_radius  if killer_node and killer_node.character_data else 200.0
+	AudioManager.set_killer_config(terror_r, chase_r)
 	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null 
 	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
 	var lms_stream: AudioStream    = any_survivor_node.character_data.lms_music if any_survivor_node else null

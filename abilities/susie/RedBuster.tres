@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dg7n3f2qbo0kp"]
 
-[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="1_bciro"]
+[ext_resource type="PackedScene" uid="uid://d0osfj5o7sa6u" path="res://Hitboxes/RudeHitbox.tscn" id="1_a2th5"]
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_f3kxx"]
 [ext_resource type="Script" uid="uid://so8csytyk0fw" path="res://abilities/susie/scripts/RudeBuster.gd" id="2_l2owp"]
 
@@ -8,7 +8,7 @@
 script = ExtResource("1_f3kxx")
 display_name = "Red Buster"
 ability_script = ExtResource("2_l2owp")
-ability_scene = ExtResource("1_bciro")
+ability_scene = ExtResource("1_a2th5")
 cooldown = 25.0
 tp_cost = 30.0
 tp_reward = 10.0
