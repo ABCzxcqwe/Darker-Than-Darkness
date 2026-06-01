@@ -231,7 +231,7 @@ func _on_peer_disconnected(peer_id: int):
 		
 		# NOTIFICACIÓN AL GAMESTATE: Si la partida está activa, informamos la desconexión
 		var game_state = GameServiceLocator.get_service("GameStateService") if GameServiceLocator.has_service("GameStateService") else null
-		if game_state and game_state.is_match_active:
+		if game_state and game_state.is_in_game():
 			game_state.handle_player_disconnect(peer_id, abandoned_role)
 		
 		# Sincronizamos al resto de clientes que quedan

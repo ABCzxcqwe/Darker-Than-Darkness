@@ -15,22 +15,8 @@ func _ready() -> void:
 		push_error("[World] No hay services_config asignado.")
 		return
 
-	# 1. Registrar todos los servicios en el localizador
 	GameServiceLocator.register_all(services_config)
-	
-	# ─── AQUÍ ESTÁ LA CORRECCIÓN CRÍTICA ───
-	# Le avisamos al GameStateService que la partida está activa en este instante
-	# para evitar que AbilityRouter bloquee y desconecte el juego.
-	var game_state = GameServiceLocator.get_service("GameStateService")
-	if game_state:
-		game_state.is_match_active = true 
-		print("[World] GameStateService configurado: Partida marcada como ACTIVA.")
-	else:
-		push_warning("[World] GameStateService no disponible en el inicializador.")
-	# ───────────────────────────────────────
-	
-	# Cambiamos esto: hacemos un await aquí para que NO continúe 
-	# hasta que el mapa esté completamente cargado y listo.
+
 	await _load_map()
 
 	# Si somos el servidor, posicionamos a los personajes en sus respectivos spawns
@@ -50,10 +36,11 @@ func _ready() -> void:
 		else:
 			push_warning("[World] TPService no disponible — ganancia pasiva no iniciada.")
 	
-	print("[World] Mapa 'Test Map' cargado e inicializado correctamente.")
-	# REGLA DE ORO MULTIPLAYER: Solo el servidor despacha la orden global
-	if multiplayer.is_server():
-		rpc("_sync_start_match_audio", GameData.selected_map)
+	print("[World] Mapa cargado e inicializado correctamente.")
+
+	var game_state = GameServiceLocator.get_service("GameStateService")
+	if game_state:
+		game_state.transition_to_playing()
 
 func _load_map():
 	var map_id: String = GameData.selected_map
@@ -149,24 +136,4 @@ func _setup_hud() -> void:
 
 
 func _exit_tree() -> void:
-	AudioManager.reset_match_audio()
 	GameServiceLocator.clear()
-
-@rpc("authority", "call_local", "reliable") 
-func _sync_start_match_audio(map_id: String) -> void: 
-	AudioManager.setup_map_audio(map_id) 
-	var killer_node: Node2D = null 
-	var any_survivor_node: Node2D = null 
-	for p in get_tree().get_nodes_in_group("players"):
-		if "character_data" in p and p.character_data:
-			if p.character_data.team == "killer": 
-				killer_node = p 
-			elif any_survivor_node == null: 
-				any_survivor_node = p
-	var terror_r: float = killer_node.character_data.terror_radius if killer_node and killer_node.character_data else 400.0
-	var chase_r: float  = killer_node.character_data.chase_radius  if killer_node and killer_node.character_data else 200.0
-	AudioManager.set_killer_config(terror_r, chase_r)
-	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null 
-	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
-	var lms_stream: AudioStream    = any_survivor_node.character_data.lms_music if any_survivor_node else null
-	AudioManager.register_match_character_music(terror_stream, chase_stream, lms_stream)

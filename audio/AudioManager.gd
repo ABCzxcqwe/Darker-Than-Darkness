@@ -142,7 +142,7 @@ func _update_proximities(player: Node, delta: float) -> void:
 		if _is_chasing:
 			_is_chasing = false
 		var factor: float = 1.0 - ((distance - chase_radius_base) / (terror_radius - chase_radius_base))
-		var target_db := lerpf(MIN_DB + 20.0, -6.0, factor)
+		var target_db := lerpf(-30.0, 0.0, factor)
 		if occluded:
 			target_db = lerpf(target_db, MIN_DB, 0.6)
 		_smooth_fade(terror_music_player, target_db, delta)

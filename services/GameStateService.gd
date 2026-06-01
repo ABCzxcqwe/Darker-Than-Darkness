@@ -1,235 +1,236 @@
 # res://services/GameStateService.gd
-# Servicio central que controla el estado macro de la partida y sus reglas de fin.
-# Delega el tiempo a TimerService y las bajas a LMSService.
+# State machine del match: INTRO → PLAYING → ENDED
 extends Node
 
-var _in_game: bool = false
-var is_match_active: bool = false
+enum State { INTRO, PLAYING, ENDED }
 
-const BASE_TIME := 90.0         
-const TIME_PER_SURVIVOR := 30.0 
+signal state_changed(new_state: State, old_state: State)
 
-var _ending_sequence_started := false
+var current_state: State = State.INTRO : set = _set_state
+
+const BASE_TIME := 90.0
+const TIME_PER_SURVIVOR := 30.0
+
+var _health_service: Node = null
+var _timer_service: Node = null
 var _lms_service: Node = null
+var _ending_sequence_started := false
 
 
 func _ready() -> void:
-	_in_game = true
-	print("[GameStateService] Partida activa.")
-	
-	if multiplayer.is_server():
-		if NetworkManager.has_signal("player_left"):
-			NetworkManager.player_left.connect(_on_network_player_left)
-
-		# 1. Calcular tiempo inicial según sobrevivientes
-		var survivor_count := 0
-		for pid in NetworkManager.players:
-			if NetworkManager.players[pid]["assigned_role"] == "survivor":
-				survivor_count += 1
-		
-		var calculated_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
-		is_match_active = true
-		
-		# 2. Registrar y encender el TimerService de forma diferida
-		call_deferred("_initialize_game_match", calculated_time)
-
-
-func is_in_game() -> bool:
-	return _in_game
-
-
-func _initialize_game_match(initial_time: float) -> void:
-	_connect_services()
-	
-	# Obtener el nuevo servicio de tiempo e iniciar la cuenta regresiva
-	var timer_svc = GameServiceLocator.get_service("TimerService")
-	if timer_svc:
-		if not timer_svc.timeout.is_connected(_on_timer_timeout):
-			timer_svc.timeout.connect(_on_timer_timeout)
-		timer_svc.start_timer(initial_time)
+	if not multiplayer.is_server():
+		return
+	NetworkManager.player_left.connect(_on_network_player_left)
 
 
 func _connect_services() -> void:
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	_health_service = GameServiceLocator.get_service("HealthService")
+	_timer_service = GameServiceLocator.get_service("TimerService")
 	_lms_service = GameServiceLocator.get_service("LMSService")
-	
-	if health_svc:
-		if not health_svc.survivor_died_permanently.is_connected(_on_survivor_permanent_death):
-			health_svc.survivor_died_permanently.connect(_on_survivor_permanent_death)
-			
+
+	if _health_service:
+		_health_service.survivor_died_permanently.connect(_on_survivor_death)
+	if _timer_service:
+		_timer_service.timeout.connect(_on_timer_timeout)
 
 
-# REACCIÓN AL TIEMPO: El GameStateService solo actúa cuando el Timer le avisa
-func _on_timer_timeout() -> void:
-	if not multiplayer.is_server() or not is_match_active:
-		return
-	print("[GameStateService] El tiempo se ha agotado de forma natural.")
-	is_match_active = false
-	_end_match("survivors_escaped")
+func _set_state(new: State) -> void:
+	var old = current_state
+	current_state = new
+	state_changed.emit(new, old)
 
 
-func _on_survivor_permanent_death(peer_id: int) -> void:
+func is_in_game() -> bool:
+	return current_state == State.PLAYING
+
+
+func transition_to_playing() -> void:
+	_connect_services()
+	_set_state(State.PLAYING)
+	_setup_map_audio()
+	_start_timer()
+	_evaluate_match()
+
+
+func transition_to_ended(reason: String) -> void:
+	_set_state(State.ENDED)
+	_cleanup_match_audio()
+	_calculate_killer_points(reason)
+	_go_to_stats(reason)
+
+
+# ─── AUDIO ────────────────────────────────────────────────
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_setup_map_audio(map_id: String) -> void:
+	AudioManager.setup_map_audio(map_id)
+	var killer_node: Node2D = _find_killer_node()
+	var survivor_node: Node2D = _find_any_survivor_node()
+	var terror_r: float = killer_node.character_data.terror_radius if killer_node and killer_node.character_data else 400.0
+	var chase_r: float  = killer_node.character_data.chase_radius  if killer_node and killer_node.character_data else 200.0
+	AudioManager.set_killer_config(terror_r, chase_r)
+	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null
+	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
+	var lms_stream: AudioStream    = survivor_node.character_data.lms_music if survivor_node else null
+	AudioManager.register_match_character_music(terror_stream, chase_stream, lms_stream)
+
+
+func _setup_map_audio() -> void:
 	if not multiplayer.is_server():
 		return
-		
-	# 1. Aumentar 15 segundos al reloj de la partida por la baja
-	var timer_svc = GameServiceLocator.get_service("TimerService")
-	if timer_svc and is_match_active:
-		timer_svc.modify_time(15.0)
-		print("[GameStateService] Tiempo de partida extendido por muerte de: ", peer_id)
-		
-	# 2. Contabilizar cuántos quedan para las reglas macro de fin de juego
-	var survivors_alive := 0
+	rpc("_rpc_setup_map_audio", GameData.selected_map)
+
+
+func _cleanup_match_audio() -> void:
+	AudioManager.reset_match_audio()
+
+
+# ─── TIMER ───────────────────────────────────────────────
+
+func _start_timer() -> void:
+	if not multiplayer.is_server():
+		return
+	var survivor_count := 0
 	for pid in NetworkManager.players:
 		if NetworkManager.players[pid]["assigned_role"] == "survivor":
-			var health_svc = GameServiceLocator.get_service("HealthService")
-			if health_svc and not health_svc.is_dead(pid):
-				survivors_alive += 1
-				
-	if survivors_alive == 0:
-		print("[GameStateService] Todos los survivors han muerto. Fin de la partida.")
-		if timer_svc:
-			timer_svc.stop_timer()
-		is_match_active = false
-		_end_match("killer_elimination")
-	else:
-		# SOLUCCIÓN: Avisamos una sola vez. El LMS sabrá qué hacer internamente.
-		if _lms_service and _lms_service.has_method("on_survivor_permanent_death"):
-			_lms_service.on_survivor_permanent_death(peer_id)
+			survivor_count += 1
+	var initial_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
+	_timer_service.start_timer(initial_time)
 
 
+func _on_timer_timeout() -> void:
+	if current_state != State.PLAYING:
+		return
+	if _lms_service and _lms_service.is_lms_active():
+		_lms_service.stop_lms()
+	transition_to_ended("survivors_escaped")
+
+
+# ─── DEATH ───────────────────────────────────────────────
+
+func _on_survivor_death(peer_id: int) -> void:
+	if current_state != State.PLAYING:
+		return
+	_timer_service.modify_time(15.0)
+	_evaluate_match()
+
+
+# ─── DISCONNECT ──────────────────────────────────────────
+
+# Llamado por señal NetworkManager.player_left (el jugador ya fue borrado del diccionario)
+# Solo usamos esto para cleanup de servicios, no para lógica de partida.
 func _on_network_player_left(peer_id: int) -> void:
-	if not multiplayer.is_server():
-		return
-		
-	var abandoned_role := "unknown"
-	if NetworkManager.players.has(peer_id):
-		abandoned_role = NetworkManager.players[peer_id].get("assigned_role", "unknown")
-		
-	var tp_service = GameServiceLocator.get_service("TPService")
-	if tp_service and tp_service.has_method("unregister_player"):
-		tp_service.unregister_player(peer_id)
-		
-	var evo_service = GameServiceLocator.get_service("EvolutionService")
-	if evo_service and evo_service.has_method("unregister_player"):
-		evo_service.unregister_player(peer_id)
-		
-	var cd_service = GameServiceLocator.get_service("CooldownService")
-	if cd_service and cd_service.has_method("clear_player"):
-		cd_service.clear_player(peer_id)
-		
-	handle_player_disconnect(peer_id, abandoned_role)
+	_unregister_player_services(peer_id)
 
 
+# Llamado directamente por NetworkManager con el rol capturado ANTES de borrar al jugador
 func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
-	if not multiplayer.is_server():
+	if current_state != State.PLAYING:
 		return
-	
+
 	if abandoned_role == "killer":
-		var timer_svc = GameServiceLocator.get_service("TimerService")
-		if timer_svc:
-			timer_svc.stop_timer()
-		is_match_active = false
-		_end_match("killer_disconnected")
+		_timer_service.stop_timer()
+		transition_to_ended("killer_disconnected")
+	elif abandoned_role == "survivor":
+		_timer_service.modify_time(10.0)
+		if _lms_service and _lms_service.is_lms_active() and _lms_service.get_active_survivor() \
+				and _lms_service.get_active_survivor().get_multiplayer_authority() == peer_id:
+			_lms_service.stop_lms()
+		_evaluate_match()
+
+
+func _unregister_player_services(peer_id: int) -> void:
+	var tp = GameServiceLocator.get_service("TPService")
+	if tp and tp.has_method("unregister_player"):
+		tp.unregister_player(peer_id)
+	var evo = GameServiceLocator.get_service("EvolutionService")
+	if evo and evo.has_method("unregister_player"):
+		evo.unregister_player(peer_id)
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd and cd.has_method("clear_player"):
+		cd.clear_player(peer_id)
+
+
+# ─── EVALUATE ────────────────────────────────────────────
+
+func _evaluate_match() -> void:
+	var alive = _count_alive_survivors()
+	if alive == 0:
+		_timer_service.stop_timer()
+		transition_to_ended("killer_elimination")
+	elif alive == 1:
+		var survivor = _find_last_survivor()
+		var killer = _find_killer_node()
+		if survivor and _lms_service:
+			_lms_service.start_lms(survivor, killer)
+
+
+func _count_alive_survivors() -> int:
+	var count := 0
+	for pid in NetworkManager.players:
+		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+			if _health_service and not _health_service.is_dead(pid):
+				count += 1
+	return count
+
+
+func _find_last_survivor() -> Node:
+	for p in get_tree().get_nodes_in_group("players"):
+		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
+			if not _health_service.is_dead(p.get_multiplayer_authority()):
+				return p
+	return null
+
+
+func _find_killer_node() -> Node:
+	for p in get_tree().get_nodes_in_group("players"):
+		if "character_data" in p and p.character_data and p.character_data.team == "killer":
+			return p
+	return null
+
+
+func _find_any_survivor_node() -> Node:
+	for p in get_tree().get_nodes_in_group("players"):
+		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
+			return p
+	return null
+
+
+# ─── SUDDEN DEATH ────────────────────────────────────────
+
+func evaluate_sudden_death_condition() -> void:
+	if current_state != State.PLAYING or _ending_sequence_started:
 		return
-	
-	if abandoned_role == "survivor":
-		print("[GameStateService] Survivor (", peer_id, ") se desconectó. Procesando penalización...")
-		
-		# 1. Notificar al LMSService de la baja por desconexión para limpiar registros
-		if _lms_service and _lms_service.has_method("on_survivor_permanent_death"):
-			_lms_service.on_survivor_permanent_death(peer_id)
-		
-		# 2. Modificar el temporizador de la ronda (+10s por abandono)
-		var timer_svc = GameServiceLocator.get_service("TimerService")
-		if timer_svc and is_match_active:
-			timer_svc.modify_time(10.0)
-			print("[GameStateService] Tiempo aumentado +10s debido al abandono de ", peer_id)
-		
-		# 3. Evaluar si quedan sobrevivientes activos en la partida
-		var survivors_left := 0
-		for pid in NetworkManager.players:
-			if pid == peer_id: 
-				continue
-			if NetworkManager.players[pid]["assigned_role"] == "survivor":
-				var health_svc = GameServiceLocator.get_service("HealthService")
-				if health_svc and not health_svc.is_dead(pid):
-					survivors_left += 1
-		
-		# 4. Resolver el destino de la partida
-		if survivors_left == 0:
-			print("[GameStateService] No quedan survivors activos en la partida. Fin por abandono masivo.")
-			if timer_svc:
-				timer_svc.stop_timer()
-			is_match_active = false
-			_end_match("killer_elimination")
+	if _health_service and _health_service.check_all_survivors_incapacitated():
+		_ending_sequence_started = true
+		await get_tree().create_timer(3.0).timeout
+		if _health_service.check_all_survivors_incapacitated():
+			_timer_service.stop_timer()
+			transition_to_ended("killer_elimination")
 		else:
-			# Actualizar la UI de los jugadores restantes
-			if _lms_service:
-				var alive_nodes = _lms_service._get_alive_survivor_nodes()
-				_lms_service.update_survivors_count(alive_nodes)
+			_ending_sequence_started = false
 
 
-func _end_match(reason: String) -> void:
-	print("[GameStateService] Terminar partida por razón: ", reason)
-	_in_game = false
-	is_match_active = false
-	
-	_calculate_next_killer_points(reason)
-	
-	# Obtenemos el tiempo final que quedó registrado en el TimerService
+# ─── END MATCH ───────────────────────────────────────────
+
+func _calculate_killer_points(reason: String) -> void:
+	for pid in NetworkManager.players:
+		if not NetworkManager.players.has(pid):
+			continue
+		var role = NetworkManager.players[pid]["assigned_role"]
+		if reason == "survivors_escaped":
+			NetworkManager.players[pid]["killer_points"] += 10 if role == "survivor" else 40
+		elif reason == "killer_elimination":
+			NetworkManager.players[pid]["killer_points"] += 5 if role == "killer" else 25
+
+
+func _go_to_stats(reason: String) -> void:
 	var final_time := 0.0
-	var timer_svc = GameServiceLocator.get_service("TimerService")
-	if timer_svc:
-		final_time = timer_svc.time_left
-	
+	if _timer_service:
+		final_time = _timer_service.time_left
 	var stats_data := {
 		"end_reason": reason,
 		"time_left": final_time,
 		"players_snapshot": NetworkManager.players.duplicate(true)
 	}
-	
 	MatchCoordinator.rpc("_go_to_stats_screen", stats_data)
-
-
-func _calculate_next_killer_points(reason: String) -> void:
-	for pid in NetworkManager.players:
-		if not NetworkManager.players.has(pid): continue
-		var role = NetworkManager.players[pid]["assigned_role"]
-		
-		if reason == "survivors_escaped":
-			if role == "survivor":
-				NetworkManager.players[pid]["killer_points"] += 10
-			else:
-				NetworkManager.players[pid]["killer_points"] += 40
-		
-		elif reason == "killer_elimination":
-			if role == "killer":
-				NetworkManager.players[pid]["killer_points"] += 5
-			else:
-				NetworkManager.players[pid]["killer_points"] += 25
-
-func evaluate_sudden_death_condition() -> void:
-	if not multiplayer.is_server() or _ending_sequence_started:
-		return
-
-	var health_svc = GameServiceLocator.get_service("HealthService")
-	if health_svc and health_svc.check_all_survivors_incapacitated():
-		_ending_sequence_started = true
-		print("[GameStateService] ¡Todos los survivors están caídos! Iniciando temporizador de 3s...")
-		
-		# Creamos un timer de 3 segundos directo en el árbol de escenas
-		await get_tree().create_timer(3.0).timeout
-		
-		# Volvemos a verificar después de la espera
-		if health_svc.check_all_survivors_incapacitated():
-			print("[GameStateService] Condición cumplida. Terminando partida por K.O. Total.")
-			# Corregido: Usamos tu función nativa y detenemos el reloj global
-			var timer_svc = GameServiceLocator.get_service("TimerService")
-			if timer_svc:
-				timer_svc.stop_timer()
-			is_match_active = false
-			_end_match("killer_elimination")
-		else:
-			print("[GameStateService] Secuencia cancelada: Un survivor se levantó o revivió.")
-			_ending_sequence_started = false
