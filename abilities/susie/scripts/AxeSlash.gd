@@ -1,11 +1,9 @@
-# res://scripts/abilities/susie/susie_axe_slash.gd  (CORREGIDO)
-# Mismo fix que Sword Slash: root con duración del hitbox, remove_effect en on_end.
 extends AbilityBase
 
 const HITBOX_LIFETIME: float = 0.3
 
 
-func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_index: int = -1) -> void:
+func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		push_warning("[AxeSlash] player_node inválido.")
 		return
@@ -22,9 +20,14 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_in
 	var stun_dur: float  = data.stun_duration
 	var tp_reward: float = data.tp_reward
 
+	var tp_svc = GameServiceLocator.get_service("TPService")
+	if data.tp_cost > 0.0 and tp_svc:
+		if not tp_svc.consume_tp(attacker_id, data.tp_cost):
+			return
+
+	var cd_svc = GameServiceLocator.get_service("CooldownService")
 	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
 
-	# ── Anclar al caster SOLO durante el hitbox ──────────────────────────
 	var status = GameServiceLocator.get_service("StatusEffectService")
 	if status:
 		status.apply(player_node, "root", { "duration": HITBOX_LIFETIME })
@@ -42,6 +45,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_in
 		"hit_limit"     : 0,
 		"lifetime"      : HITBOX_LIFETIME,
 		"offset"        : hit_range,
+
 		"on_hit": func(target_node: Node) -> void:
 			if not is_instance_valid(target_node):
 				return
@@ -53,16 +57,24 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, _slot_in
 				var s = GameServiceLocator.get_service("StatusEffectService")
 				if s and stun_dur > 0.0:
 					s.apply(target_node, "stun", { "duration": stun_dur })
-				if tp_reward > 0.0:
-					var tp = GameServiceLocator.get_service("TPService")
-					if tp:
-						tp.add_tp_custom(attacker_id, tp_reward),
+				if tp_reward > 0.0 and tp_svc:
+					tp_svc.add_tp_custom(attacker_id, tp_reward)
+
+			if cd_svc and cd_svc.has_method("release_lock"):
+				cd_svc.release_lock(attacker_id, slot_index)
+			if cd_svc:
+				cd_svc.start(attacker_id, slot_index, data.cooldown),
 
 		"on_end": func(_hit_count: int) -> void:
 			var s = GameServiceLocator.get_service("StatusEffectService")
 			if s and is_instance_valid(player_node):
 				s.remove_effect(player_node, "root")
-			print("[AxeSlash] Terminó | golpes: ", _hit_count)
+
+			if _hit_count == 0 and cd_svc:
+				if cd_svc.has_method("release_lock"):
+					cd_svc.release_lock(attacker_id, slot_index)
+				var fail_cd: float = data.cooldown_fail if data.cooldown_fail > 0.0 else data.cooldown
+				cd_svc.start(attacker_id, slot_index, fail_cd)
 	})
 
 	print("[AxeSlash] Activado | peer: ", attacker_id,

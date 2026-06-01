@@ -92,8 +92,8 @@ func setup(player_node: Node) -> void:
 		player_node.ability_used.connect(_on_ability_used)
 
 	var cooldown_svc: Node = GameServiceLocator.get_service("CooldownService")
-	if cooldown_svc and cooldown_svc.has_signal("cooldown_started"):
-		cooldown_svc.cooldown_started.connect(on_cooldown_started)
+	if cooldown_svc and cooldown_svc.has_signal("cooldown_state_changed"):
+		cooldown_svc.cooldown_state_changed.connect(on_cooldown_state_changed)
 
 	var evolution_svc: Node = GameServiceLocator.get_service("EvolutionService")
 	if evolution_svc:
@@ -136,9 +136,9 @@ func _on_timer_changed(seconds_left: float) -> void:
 	_apply_panel_border_color(timer_panel, color)
 
 # ── Cooldowns y evolución ──────────────────────────────────────────────
-func on_cooldown_started(ability_name: String, slot_index: int, duration: float) -> void:
-	if ability_bar and ability_bar.has_method("on_cooldown_started"):
-		ability_bar.on_cooldown_started(ability_name, slot_index, duration)
+func on_cooldown_state_changed(slot_index: int, duration: float) -> void:
+	if ability_bar and ability_bar.has_method("on_cooldown_state_changed"):
+		ability_bar.on_cooldown_state_changed(slot_index, duration)
 
 func _on_ability_used(_slot_index: int) -> void:
 	pass

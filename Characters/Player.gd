@@ -155,8 +155,12 @@ func _input(event: InputEvent) -> void:
 	for action in action_map:
 		if event.is_action_pressed(action):
 			var slot: int = action_map[action]
+			print("[Player] Tecla detectada | action: ", action, " | slot: ", slot,
+				  " | state: ", state, " | pending_slot: ", _pending_selection_slot,
+				  " | active_slot: ", active_ability_slot)
 
 			if _pending_selection_slot == slot:
+				print("[Player] Menú abierto para este slot, cancelando selección.")
 				var huds := get_tree().get_nodes_in_group("game_hud")
 				if not huds.is_empty():
 					huds[0].cancel_selection()
@@ -164,18 +168,13 @@ func _input(event: InputEvent) -> void:
 
 			var mouse_dir = (get_global_mouse_position() - global_position).normalized()
 
-			if state == AnimState.IDLE:
-				if multiplayer.is_server():
-					AbilityRouter.request_ability(slot, mouse_dir)
-				else:
-					AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
-				ability_used.emit(slot)
-
-			elif slot == active_ability_slot and (state == AnimState.ABILITY or state == AnimState.PREPARE):
-				if multiplayer.is_server():
-					AbilityRouter.request_cancel_ability(slot)
-				else:
-					AbilityRouter.rpc_id(1, "request_cancel_ability", slot)
+			if multiplayer.is_server():
+				print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
+				AbilityRouter.request_ability(slot, mouse_dir)
+			else:
+				print("[Player] Enviando RPC request_ability al servidor | slot: ", slot)
+				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
+			ability_used.emit(slot)
 			break
 
 	if event.is_action_pressed("interact"):
@@ -192,8 +191,7 @@ func _input(event: InputEvent) -> void:
 # ── Selección contextual (server -> cliente) ──────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")
-func _open_ability_selection(slot: int, title: String, filter_peer_id: int = -1) -> void:
-	# Solo el servidor envía este RPC, y solo el peer con autoridad debe procesarlo.
+func _open_ability_selection(slot: int, title: String, selection_type: int = 0) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
 		return
@@ -203,6 +201,9 @@ func _open_ability_selection(slot: int, title: String, filter_peer_id: int = -1)
 	var huds := get_tree().get_nodes_in_group("game_hud")
 	if huds.is_empty():
 		return
+	var filter_peer_id: int = -1
+	if selection_type == 0: # ALLY
+		filter_peer_id = get_multiplayer_authority()
 	huds[0].request_selection(
 		title,
 		func(target_peer_id: int) -> void:
@@ -230,13 +231,13 @@ func _submit_ability_selection(slot: int, target_peer_id: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != get_multiplayer_authority():
 		return
-	# Registramos el target en AbilityRouter como int puro, sin codificar en Vector2.
-	# La habilidad lo lee con consume_pending_target() — sin pérdida de precisión.
+	# Registramos el target en AbilityRouter como int puro.
+	# El Router lo pasa a la habilidad via handler.pending_target_peer.
 	var caster_id := get_multiplayer_authority()
 	AbilityRouter.set_pending_target(caster_id, target_peer_id)
 	print("[Player] Target registrado | caster: ", caster_id,
 		  " → target: ", target_peer_id, " | slot: ", slot)
-	AbilityRouter.request_ability(slot, Vector2.ZERO)
+	AbilityRouter._submit_ability(slot, caster_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")

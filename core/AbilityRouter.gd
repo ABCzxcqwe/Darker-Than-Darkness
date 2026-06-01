@@ -1,42 +1,16 @@
-# res://core/AbilityRouter.gd  (Autoload)
-# ============================================================
-# AbilityRouter — Valida, resuelve y despacha habilidades.
-#
-# RESPONSABILIDADES DEL ROUTER:
-#   - Validar que la habilidad se puede ejecutar (pasos 1-11).
-#   - Verificar (NO consumir) que el jugador tiene TP suficiente.
-#   - Resolver la versión correcta (normal / evolucionada / LMS).
-#   - Despachar el script de la habilidad.
-#
-# RESPONSABILIDADES DE LA HABILIDAD (ability script):
-#   - Consumir el TP necesario via TPService.consume_tp() o add_tp_custom().
-#   - Iniciar su propio cooldown via CooldownService.start() con el slot_index
-#     correcto, en el momento que corresponda (al activar, al impactar, al fallar).
-#   - Para habilidades escalables: llamar AbilityStateService.register_use()
-#     antes de leer get_dynamic_cooldown().
-#
-# REGLA: El Router nunca consume TP ni inicia cooldowns.
-#        Eso es responsabilidad exclusiva de cada script de habilidad.
-# ============================================================
 extends Node
 
 # { peer_id: target_peer_id } — target pendiente de selección contextual.
-# Act (y cualquier habilidad con menú) escribe aquí antes de re-despachar.
-# AbilityRouter lo lee en activate() y lo borra inmediatamente después.
 var _pending_targets: Dictionary = {}
 
 
-## API para habilidades con menú contextual.
-## La habilidad llama esto ANTES de re-llamar request_ability(),
-## para que AbilityRouter pase el target al script sin codificarlo en Vector2.
 func set_pending_target(caster_peer_id: int, target_peer_id: int) -> void:
 	_pending_targets[caster_peer_id] = target_peer_id
 	print("[AbilityRouter] Target pendiente registrado | caster: ", caster_peer_id,
-		  " → target: ", target_peer_id)
+		  " -> target: ", target_peer_id)
 
 
-## Devuelve y limpia el target pendiente. -1 si no había ninguno.
-func consume_pending_target(caster_peer_id: int) -> int:
+func _consume_pending_target(caster_peer_id: int) -> int:
 	if not _pending_targets.has(caster_peer_id):
 		return -1
 	var target: int = _pending_targets[caster_peer_id]
@@ -48,85 +22,77 @@ func _ready() -> void:
 	print("[AbilityRouter] listo.")
 
 
-# ── RPC: el cliente llama esto en el servidor ──────────────────────────────
+## Llamado por Player._submit_ability_selection para evitar el bug de
+## get_remote_sender_id() = 0 en llamadas directas.
+## peer_id se pasa explícitamente porque esta función se llama directo.
+func _submit_ability(slot_index: int, caster_id: int) -> void:
+	_process_request(slot_index, Vector2.ZERO, caster_id)
+
+
 @rpc("any_peer", "reliable")
 func request_ability(slot_index: int, direction: Vector2) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	var peer_id: int   = sender_id if sender_id != 0 else 1
 
-	# ── 1. ¿Hay partida activa? ──────────────────────────────────────────
+	if sender_id != 0 and sender_id != peer_id:
+		push_warning("[AbilityRouter] Rechazado: sender ", sender_id, " != peer ", peer_id)
+		return
+
+	_process_request(slot_index, direction, peer_id)
+
+
+func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void:
+	# ── 1. ¿Partida activa? ──────────────────────────────────────────────
 	var state = GameServiceLocator.get_service("GameStateService")
 	if not state or not state.is_in_game():
-		print("[AbilityRouter] Sin partida activa. Bloqueado.")
 		return
 
 	# ── 2. ¿El jugador existe? ───────────────────────────────────────────
 	var player_node := _get_player_node(peer_id)
 	if not player_node:
-		push_warning("[AbilityRouter] No se encontró jugador para peer ", peer_id)
+		push_warning("[AbilityRouter] Jugador no encontrado para peer ", peer_id)
 		return
 
-	# ── 3. ¿El jugador tiene CharacterData? ─────────────────────────────
+	# ── 3. ¿Tiene CharacterData? ─────────────────────────────────────────
 	var char_data: CharacterData = player_node.character_data
 	if not char_data:
 		push_warning("[AbilityRouter] Jugador ", peer_id, " sin character_data.")
 		return
 
-	# ── 4. ¿El jugador está vivo? ────────────────────────────────────────
+	# ── 4. ¿Está vivo? ───────────────────────────────────────────────────
 	if player_node.health <= 0:
-		print("[AbilityRouter] Jugador ", peer_id, " sin vida. Bloqueado.")
 		return
 
-	# ── 4.5. ¿Estado de animación? ───────────────────────────────────────
-	# PREPARE (2): la misma tecla cancela la habilidad en preparación.
-	# ABILITY (1): solo cancela si la habilidad lo permite.
-	var player_anim_state: int = player_node.state
-	if player_anim_state == 2: # AnimState.PREPARE
-		request_cancel_ability(slot_index)
-		return
-	if player_anim_state == 1: # AnimState.ABILITY
-		if slot_index < char_data.ability_slots.size():
-			var slot_data: AbilityData = char_data.ability_slots[slot_index]
-			if slot_data and slot_data.can_cancel:
-				request_cancel_ability(slot_index)
-			else:
-				print("[AbilityRouter] Bloqueado: habilidad en curso no cancelable.")
-		return
-
-	# ── 5. ¿Tiene algo en ese slot? ─────────────────────────────────────
+	# ── 5. ¿Slot válido? ─────────────────────────────────────────────────
 	if slot_index < 0 or slot_index >= char_data.ability_slots.size():
-		push_warning("[AbilityRouter] Slot ", slot_index, " fuera de rango para peer ", peer_id)
+		push_warning("[AbilityRouter] Slot ", slot_index, " fuera de rango.")
 		return
 	var base_data: AbilityData = char_data.ability_slots[slot_index]
 	if not base_data:
-		print("[AbilityRouter] Slot ", slot_index, " vacío para peer ", peer_id)
 		return
 
-	# ── 6a. Resolver versión: ¿evolucionada manualmente? ────────────────
+	# ── 6. Resolver versión evolucionada / LMS ───────────────────────────
 	var evolution_service: Node = GameServiceLocator.get_service("EvolutionService")
 	var is_evolved: bool = evolution_service != null and evolution_service.is_evolved(peer_id, slot_index)
 
-	# ── 6b. LMS auto-evolve ──────────────────────────────────────────────
-	# Si la habilidad tiene lms_auto_evolve = true, el LMS está activo para
-	# este jugador, y aún no está evolucionada, la forzamos ahora.
 	var lms_svc: Node = GameServiceLocator.get_service("LMSService")
 	var lms_wants_evolve: bool = false
 	if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
 		if lms_svc and lms_svc.is_lms_active():
-			var lms_survivor: Node = lms_svc.get_active_survivor()
+			var lms_survivor = lms_svc.get_active_survivor()
 			if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
 				lms_wants_evolve = true
-
 	if lms_wants_evolve:
 		is_evolved = true
 
 	var ability_data: AbilityData = base_data.evolved_version if (is_evolved and base_data.evolved_version) else base_data
 
-	# ── 7. ¿Cooldown listo? ──────────────────────────────────────────────
+	# ── 7. Cooldown listo? ───────────────────────────────────────────────
 	var cd = GameServiceLocator.get_service("CooldownService")
-	if cd and not cd.is_ready(peer_id, ability_data.display_name):
-		print("[AbilityRouter] Bloqueado por cooldown: ", ability_data.display_name,
-			  " | restante: ", cd.get_remaining(peer_id, ability_data.display_name), "s")
+	if cd and not cd.is_ready(peer_id, slot_index):
+		var remaining = cd.get_remaining(peer_id, slot_index)
+		print("[AbilityRouter] Bloqueado por cooldown | slot: ", slot_index,
+			  " | restante: ", remaining, "s")
 		return
 
 	# ── 8. ¿Efectos que bloquean? ────────────────────────────────────────
@@ -135,55 +101,67 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 		if status.is_silenced(peer_id):
 			print("[AbilityRouter] Bloqueado por silence.")
 			return
-		if status.is_stunned(peer_id) and not ability_data.can_use_while_stunned:
+		if status.is_stunned(peer_id) and not base_data.can_use_while_stunned:
 			print("[AbilityRouter] Bloqueado por stun.")
 			return
 
-	# ── 8.5. ¿Tiene suficiente TP? (solo verificación, NO consume) ──────
-	# El Router verifica que el jugador tenga el TP requerido pero NO lo consume.
-	# El consumo es responsabilidad exclusiva del script de cada habilidad.
-	# Para habilidades escalables usamos el costo dinámico del AbilityStateService.
+	# ── 9. ¿TP suficiente? (solo verificar, NO consumir) ─────────────────
 	var abs_svc: Node = GameServiceLocator.get_service("AbilityStateService")
 	var effective_tp_cost: float = _resolve_tp_cost(ability_data, peer_id, slot_index, abs_svc)
 
 	if effective_tp_cost > 0.0:
 		var tp_svc = GameServiceLocator.get_service("TPService")
-		if tp_svc:
-			if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
-				print("[AbilityRouter] TP insuficiente para peer ", peer_id,
-					  " | Requiere: ", effective_tp_cost,
-					  " | Actual: ", tp_svc.get_tp_for_peer(peer_id))
-				# Si el LMS quería evolucionar pero no hay TP, revertimos la intención
-				# y verificamos si alcanza para la versión normal.
-				if lms_wants_evolve:
-					is_evolved = false
-					lms_wants_evolve = false
-					ability_data = base_data
-					effective_tp_cost = _resolve_tp_cost(base_data, peer_id, slot_index, abs_svc)
-					if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
-						print("[AbilityRouter] TP insuficiente incluso para versión normal. Bloqueado.")
-						return
-					# Continúa con la versión normal — no retorna
-				else:
+		if tp_svc and tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
+			if lms_wants_evolve:
+				is_evolved = false
+				lms_wants_evolve = false
+				ability_data = base_data
+				effective_tp_cost = _resolve_tp_cost(base_data, peer_id, slot_index, abs_svc)
+				if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
 					return
+			else:
+				return
 
-	# ── 9. ¿Existe el script? ────────────────────────────────────────────
+	# ── 10. ¿Existe el script? ──────────────────────────────────────────
 	var ability_script: GDScript = ability_data.ability_script
 	if not ability_script:
-		push_error("[AbilityRouter] ability_script no asignado en AbilityData para '",
-				   ability_data.display_name, "'")
+		push_error("[AbilityRouter] ability_script no asignado en '", ability_data.display_name, "'")
 		return
 
-	# ── 10. Instanciar y ejecutar ─────────────────────────────────────────
-	# A partir de aquí la habilidad tiene control total:
-	# debe consumir su TP y registrar su cooldown internamente.
+	# ── 11. Animación — Cancelación unificada ───────────────────────────
+	var anim_state: int = player_node.state
+
+	if anim_state == 2: # PREPARE
+		_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
+		return
+
+	if anim_state == 1: # ABILITY
+		if slot_index == player_node.active_ability_slot and base_data.can_cancel:
+			_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
+		else:
+			print("[AbilityRouter] Habilidad en curso no cancelable o slot diferente.")
+		return
+
+	# ── 12. Menú contextual ─────────────────────────────────────────────
+	var pending_target: int = _consume_pending_target(peer_id)
+
+	if ability_data.requires_selection and pending_target == -1:
+		_open_context_menu(peer_id, player_node, slot_index, ability_data)
+		return
+
+	# ── 13. Lockear slot (evita spam) ───────────────────────────────────
+	if cd and cd.has_method("start_lock"):
+		cd.start_lock(peer_id, slot_index)
+
+	# ── 14. Despachar ───────────────────────────────────────────────────
 	var handler: AbilityBase = ability_script.new()
+	handler.pending_target_peer = pending_target
 	handler.activate(player_node, ability_data, direction, slot_index)
 
-	print("[AbilityRouter] '", ability_data.display_name, "' despachado para peer ", peer_id,
-		  " (", "evolucionada" if is_evolved else "normal", ") | slot: ", slot_index)
+	print("[AbilityRouter] '", ability_data.display_name, "' despachado | peer: ", peer_id,
+		  " | slot: ", slot_index, " | evolucionada: ", is_evolved)
 
-	# ── 11. Consumir / forzar evolución ───────────────────────────────────
+	# ── 15. Consumir evolución ──────────────────────────────────────────
 	if evolution_service:
 		if lms_wants_evolve:
 			evolution_service.evolve_slot(peer_id, slot_index)
@@ -192,74 +170,47 @@ func request_ability(slot_index: int, direction: Vector2) -> void:
 			evolution_service.consume_evolution(peer_id, slot_index)
 
 
-# ── Cancelación ──────────────────────────────────────────────────────────────
-@rpc("any_peer", "reliable")
-func request_cancel_ability(slot_index: int) -> void:
-	var sender_id: int = multiplayer.get_remote_sender_id()
-	var peer_id: int   = sender_id if sender_id != 0 else 1
+# ── Cancelación unificada ───────────────────────────────────────────────────
 
-	var player_node = _get_player_node(peer_id)
-	if not player_node:
-		push_warning("[AbilityRouter] Cancel: jugador no encontrado para peer ", peer_id)
-		return
+func _cancel_ability(peer_id: int, player_node: Node, slot_index: int,
+		ability_data: AbilityData, cd: Node) -> void:
 
-	var char_data: CharacterData = player_node.character_data
-	if not char_data:
-		push_warning("[AbilityRouter] Cancel: jugador ", peer_id, " sin character_data.")
-		return
+	if cd and cd.has_method("release_lock"):
+		cd.release_lock(peer_id, slot_index)
 
-	if slot_index < 0 or slot_index >= char_data.ability_slots.size():
-		push_warning("[AbilityRouter] Cancel: slot ", slot_index, " fuera de rango.")
-		return
+	if cd and cd.has_method("start") and ability_data.cooldown_cancel > 0.0:
+		cd.start(peer_id, slot_index, ability_data.cooldown_cancel)
 
-	var ability_data: AbilityData = char_data.ability_slots[slot_index]
-	if not ability_data:
-		print("[AbilityRouter] Cancel: slot ", slot_index, " vacío.")
-		return
-
-	# Acepta cancelación desde PREPARE (2) o ABILITY (1)
-	var anim_state: int = player_node.state
-	if anim_state != 1 and anim_state != 2:
-		print("[AbilityRouter] Cancel ignorada: jugador no está en ABILITY ni PREPARE.")
-		return
-
-	# PREPARE no requiere can_cancel — siempre se puede cancelar el menú contextual
-	if anim_state == 1 and not ability_data.can_cancel:
-		print("[AbilityRouter] Cancel rechazada: ", ability_data.display_name, " no es cancelable.")
-		return
-
-	# Cerrar menú contextual si estaba abierto (estado PREPARE)
-	if anim_state == 2:
-		var huds := player_node.get_tree().get_nodes_in_group("game_hud")
+	if ability_data.requires_selection and player_node.state == 2:
+		var huds = player_node.get_tree().get_nodes_in_group("game_hud")
 		if not huds.is_empty() and huds[0].has_method("cancel_selection"):
 			huds[0].cancel_selection()
 
-	# Aplicar cooldown de cancelación — este sí lo maneja el Router
-	# porque la cancelación es iniciada por el propio Router, no por la habilidad.
-	var cd = GameServiceLocator.get_service("CooldownService")
-	if cd:
-		cd.start(peer_id, ability_data.display_name, ability_data.cooldown_cancel, slot_index)
-
-	# Resetear estado FSM en todos los peers
 	player_node.rpc("_sync_cancel_ability")
 
-	print("[AbilityRouter] Habilidad cancelada: ", ability_data.display_name,
-		  " | peer: ", peer_id, " | estado: ", "PREPARE" if anim_state == 2 else "ABILITY",
-		  " | cd_cancel: ", ability_data.cooldown_cancel, "s")
+	print("[AbilityRouter] Habilidad cancelada | peer: ", peer_id,
+		  " | slot: ", slot_index, " | nombre: ", ability_data.display_name)
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────
+# ── Menú contextual ─────────────────────────────────────────────────────────
 
-## Devuelve el costo de TP efectivo para la verificación del Router.
-## Habilidades escalables leen de AbilityStateService; el resto del recurso.
-## NOTA: Este valor es solo para verificar — la habilidad decide cuándo y cuánto consumir.
-func _resolve_tp_cost(
-	ability_data: AbilityData,
-	peer_id: int,
-	slot_index: int,
-	abs_svc: Node
-) -> float:
-	if ability_data.is_scalable and abs_svc:
+func _open_context_menu(peer_id: int, player_node: Node, slot_index: int,
+		ability_data: AbilityData) -> void:
+
+	player_node.rpc_id(peer_id, "_open_ability_selection",
+		slot_index,
+		ability_data.display_name,
+		ability_data.selection_type)
+
+	print("[AbilityRouter] Menú contextual abierto | peer: ", peer_id,
+		  " | slot: ", slot_index, " | tipo: ", ability_data.selection_type)
+
+
+# ── Helpers ─────────────────────────────────────────────────────────────────
+
+func _resolve_tp_cost(ability_data: AbilityData, peer_id: int,
+		slot_index: int, abs_svc: Node) -> float:
+	if ability_data.is_scalable and abs_svc != null and abs_svc.has_method("get_dynamic_tp_cost"):
 		return abs_svc.get_dynamic_tp_cost(peer_id, slot_index)
 	return ability_data.tp_cost
 
