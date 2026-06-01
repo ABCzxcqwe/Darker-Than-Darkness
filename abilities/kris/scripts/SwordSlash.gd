@@ -50,8 +50,13 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	combat.apply_root(player_node, ANIM_DURATION)
 
 	# ── Animación ────────────────────────────────────────────────────────
+	# Si el spritesheet de ataque está dibujado hacia la izquierda (ej: Jevil),
+	# invertimos facing_right para que flip_h muestre el ataque hacia la dirección correcta.
 	if data.action_animation != "":
-		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
+		var anim_facing_right = facing_right
+		if player_node.character_data and player_node.character_data.get("invert_ability_flip", false):
+			anim_facing_right = not facing_right
+		player_node.play_ability_animation(data.action_animation, slot_index, anim_facing_right)
 
 	# ── Timer de fin de animación ─────────────────────────────────────────
 	# Resetea el FSM del jugador a IDLE cuando termina la animación.

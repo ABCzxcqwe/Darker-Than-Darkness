@@ -271,6 +271,8 @@ func set_character(char_id: int) -> void:
 func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 	if $AnimatedSprite2D:
 		$AnimatedSprite2D.sprite_frames = data.animation_frames
+		$AnimatedSprite2D.play("idle_horizontal")
+		last_animation = "idle_horizontal"
 	_setup_collision_layers(data)
 
 	if multiplayer.is_server():
