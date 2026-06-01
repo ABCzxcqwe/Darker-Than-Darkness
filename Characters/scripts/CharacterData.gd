@@ -82,10 +82,6 @@ const KILLER_ONLY := [
 ## Color temático del personaje — se usa en la barra de HP y bordes del panel.
 ## Ejemplos: Kris = cian, Susie = magenta, Ralsei = verde claro.
 @export var theme_color: Color = Color(0.27, 0.78, 0.95)
-## Invertir flip horizontal en animaciones de habilidad.
-## true si el spritesheet de ataque está dibujado mirando a la izquierda
-## (como Jevil). El default asume que miran a la derecha.
-@export var invert_ability_flip: bool = false
 
 
 func _validate_property(property: Dictionary) -> void:

@@ -37,6 +37,5 @@ terror_music = ExtResource("7_hq0h8")
 chase_music = ExtResource("5_r2u3k")
 ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), null, null, null, null])
 animation_frames = ExtResource("4_hq0h8")
-invert_ability_flip = true
 theme_color = Color(0.5860059, 0.25085285, 1, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
