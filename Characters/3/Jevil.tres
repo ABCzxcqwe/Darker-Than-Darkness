@@ -8,11 +8,12 @@
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/3/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 
-[sub_resource type="Resource" id="Resource_o0onl"]
+[sub_resource type="Resource" id="Resource_r2u3k"]
 script = ExtResource("1_hjm08")
 display_name = "golpe"
 ability_script = ExtResource("3_r2u3k")
 ability_scene = ExtResource("2_qdnte")
+prepare_animation = "attack"
 cooldown = 2.0
 base_damage = 30
 metadata/_custom_type_script = "uid://bodks86qovy6s"
@@ -34,7 +35,7 @@ terror_radius = 1000.0
 chase_radius = 500.0
 terror_music = ExtResource("7_hq0h8")
 chase_music = ExtResource("5_r2u3k")
-ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_o0onl"), null, null, null, null])
+ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), null, null, null, null])
 animation_frames = ExtResource("4_hq0h8")
 theme_color = Color(0.5860059, 0.25085285, 1, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
