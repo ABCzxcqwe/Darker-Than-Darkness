@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ctlg753ov13tb" path="res://Characters/0/assets/Sprites/down1.png" id="1_oxg2m"]
 [ext_resource type="Texture2D" uid="uid://bil21rmef5gen" path="res://Characters/0/assets/Sprites/kris_idle.png" id="3_lvorv"]
 [ext_resource type="Texture2D" uid="uid://dw58e015pbqmv" path="res://Characters/0/assets/Sprites/up1.png" id="3_wxkvr"]
-[ext_resource type="Texture2D" uid="uid://x60anr2gy8hq" path="res://Characters/0/assets/Sprites/kris_atack.png" id="4_lvorv"]
+[ext_resource type="Texture2D" uid="uid://8n28wot35fa5" path="res://Characters/0/assets/Sprites/kris_atack.png" id="4_lvorv"]
 [ext_resource type="Texture2D" uid="uid://dju4or37vmmfe" path="res://Characters/0/assets/Sprites/down2.png" id="4_svyil"]
 [ext_resource type="Texture2D" uid="uid://ikbqqh3tr7sl" path="res://Characters/0/assets/Sprites/down3.png" id="5_8fuqx"]
 [ext_resource type="Texture2D" uid="uid://j60fimrlynle" path="res://Characters/0/assets/Sprites/down4.png" id="6_q4a85"]
@@ -30,31 +30,31 @@ region = Rect2(576, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nrm4i"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(0, 0, 192, 192)
+region = Rect2(0, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_eyx1g"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(192, 0, 192, 192)
+region = Rect2(276, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wjsji"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(384, 0, 192, 192)
+region = Rect2(552, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cveu0"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(576, 0, 192, 192)
+region = Rect2(828, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_iktoh"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(768, 0, 192, 192)
+region = Rect2(1104, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_616ge"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(960, 0, 192, 192)
+region = Rect2(1380, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pyenp"]
 atlas = ExtResource("4_lvorv")
-region = Rect2(1152, 0, 192, 192)
+region = Rect2(1656, 0, 276, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vtquc"]
 atlas = ExtResource("8_nrm4i")
