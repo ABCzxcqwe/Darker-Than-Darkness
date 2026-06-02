@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://ctlg753ov13tb" path="res://Characters/0/assets/Sprites/down1.png" id="1_oxg2m"]
 [ext_resource type="Texture2D" uid="uid://bil21rmef5gen" path="res://Characters/0/assets/Sprites/kris_idle.png" id="3_lvorv"]
+[ext_resource type="Texture2D" uid="uid://ccxpwee61orc8" path="res://Characters/0/assets/Sprites/kris_downed.png" id="3_vtquc"]
 [ext_resource type="Texture2D" uid="uid://dw58e015pbqmv" path="res://Characters/0/assets/Sprites/up1.png" id="3_wxkvr"]
 [ext_resource type="Texture2D" uid="uid://8n28wot35fa5" path="res://Characters/0/assets/Sprites/kris_atack.png" id="4_lvorv"]
 [ext_resource type="Texture2D" uid="uid://dju4or37vmmfe" path="res://Characters/0/assets/Sprites/down2.png" id="4_svyil"]
@@ -113,6 +114,19 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_up",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_vtquc")
+}],
+"loop": true,
+"name": &"l_down",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"new_animation",
 "speed": 5.0
 }, {
 "frames": [{
