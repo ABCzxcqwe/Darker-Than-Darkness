@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://qm3jto47sra3"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_hjm08"]
-[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/SlashHitbox.tscn" id="2_qdnte"]
+[ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/Kris/SlashHitbox.tscn" id="2_qdnte"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="3_r2u3k"]
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/3/animations.tres" id="4_hq0h8"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/3/assets/Sonic. Exe Chase .ogg" id="5_r2u3k"]

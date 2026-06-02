@@ -47,6 +47,8 @@ bg_color = Color(0.38039216, 0.050980393, 0, 1)
 corner_detail = 1
 anti_aliasing = false
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4ubg7"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
 bg_color = Color(0, 0, 0, 1)
 border_width_left = 3
@@ -246,6 +248,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_stedc")
+theme_override_styles/fill = SubResource("StyleBoxFlat_4ubg7")
+value = 50.0
 show_percentage = false
 
 [node name="AbilityPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=547767753]

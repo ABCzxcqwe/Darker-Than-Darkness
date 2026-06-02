@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://m8b312drn3s0"]
+[gd_scene format=3 uid="uid://vt7t7p1b0c3x"]
 
-[ext_resource type="Script" uid="uid://bioqncw7plujr" path="res://Hitboxes/SlashHitbox.gd" id="1_7lxvf"]
+[ext_resource type="Script" uid="uid://cyapvbcoaudlv" path="res://Hitboxes/Jevil/JHitbox.gd" id="1_uioaq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_m0kxg"]
 size = Vector2(48, 32)
@@ -9,7 +9,7 @@ size = Vector2(48, 32)
 scale = Vector2(4, 4)
 collision_layer = 4
 collision_mask = 2
-script = ExtResource("1_7lxvf")
+script = ExtResource("1_uioaq")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1108275219]
 rotation = 1.5707964

@@ -120,6 +120,12 @@ animations = [{
 "texture": SubResource("AtlasTexture_nrm4i")
 }, {
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_nrm4i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrm4i")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_eyx1g")
 }, {
 "duration": 1.0,
@@ -139,7 +145,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"sword_slash",
-"speed": 25.0
+"speed": 18.0
 }, {
 "frames": [{
 "duration": 1.0,

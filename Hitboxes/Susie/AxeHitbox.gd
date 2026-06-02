@@ -1,4 +1,4 @@
-# slash_hitbox.gd
+# res://Hitboxes/Susie/AxeHitbox.gd
 # Hitbox del ataque Slash.
 # HitboxService lo instancia y configura antes de añadirlo al árbol.
 # Solo vive en el servidor.

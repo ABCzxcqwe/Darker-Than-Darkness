@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://csh822kwn5s2e"]
 
 [ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://Characters/Player.gd" id="1_onrkg"]
-[ext_resource type="Script" uid="uid://dapobyr0tu3d2" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
+[ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{

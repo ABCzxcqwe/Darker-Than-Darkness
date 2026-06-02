@@ -2,10 +2,12 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_06gjg"]
 [ext_resource type="Script" uid="uid://bv6pwob4jk6qq" path="res://abilities/kris/scripts/Counter.gd" id="1_a1jlm"]
+[ext_resource type="Texture2D" uid="uid://c8tiyy4304exb" path="res://abilities/kris/SoulProtect.png" id="2_t0tx1"]
 
 [resource]
 script = ExtResource("1_06gjg")
 display_name = "Soul Protect"
+icon = ExtResource("2_t0tx1")
 ability_type = 1
 ability_script = ExtResource("1_a1jlm")
 cooldown = 30.0

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://ld7wt75cafvm" path="res://abilities/kris/scripts/Act.gd" id="3_4iwps"]
 [ext_resource type="Resource" uid="uid://c2v0fkl6qgg03" path="res://abilities/kris/Soul.tres" id="4_0bunb"]
 [ext_resource type="SpriteFrames" uid="uid://bejkxi1trim46" path="res://Characters/0/animations.tres" id="5_uf4gy"]
+[ext_resource type="Texture2D" uid="uid://bughct40pnk50" path="res://Characters/0/assets/Sprites/icon.png" id="6_kpcxu"]
 [ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/0/assets/Music/Penumbra Phantasm.mp3" id="6_uf4gy"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]
 
@@ -54,5 +55,6 @@ lms_duration = 300.0
 lms_heal_amount = 70
 ability_slots = Array[ExtResource("1_uf4gy")]([null, ExtResource("2_kpcxu"), SubResource("Resource_uf4gy"), ExtResource("4_0bunb"), null])
 tp_gain_time = 0.8
+icon = ExtResource("6_kpcxu")
 animation_frames = ExtResource("5_uf4gy")
 metadata/_custom_type_script = "uid://2kq331ai6c40"

@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://b2crfnqna57t1"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_r4cri"]
-[ext_resource type="PackedScene" uid="uid://d0osfj5o7sa6u" path="res://Hitboxes/RudeHitbox.tscn" id="1_yva0h"]
+[ext_resource type="PackedScene" uid="uid://d0osfj5o7sa6u" path="res://Hitboxes/Susie/RudeHitbox.tscn" id="1_yva0h"]
 [ext_resource type="Script" uid="uid://so8csytyk0fw" path="res://abilities/susie/scripts/RudeBuster.gd" id="2_yva0h"]
 [ext_resource type="Resource" uid="uid://dg7n3f2qbo0kp" path="res://abilities/susie/RedBuster.tres" id="3_t4g8i"]
+[ext_resource type="Texture2D" uid="uid://wfmw31gcbqu3" path="res://abilities/susie/RudeBuster.png" id="4_mx50e"]
 
 [resource]
 script = ExtResource("1_r4cri")
 display_name = "Rude Buster"
+icon = ExtResource("4_mx50e")
 ability_script = ExtResource("2_yva0h")
 ability_scene = ExtResource("1_yva0h")
 cooldown = 25.0
