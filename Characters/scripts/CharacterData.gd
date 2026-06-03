@@ -76,6 +76,14 @@ const KILLER_ONLY := [
 @export var tp_gain_dodge: float = 8.0
 @export var tp_gain_time: float = 1.0
 
+@export_group("Stamina")
+## Barra máxima de stamina (100 por defecto).
+@export var stamina_max: float = 100.0
+## Cuánta stamina se regenera por segundo al no correr.
+@export var stamina_regen_rate: float = 8.0
+## Cuánta stamina se gasta por segundo al correr.
+@export var stamina_sprint_drain: float = 30.0
+
 @export_group("Visuales")
 @export var icon: Texture2D
 @export var animation_frames: SpriteFrames

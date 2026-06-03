@@ -149,6 +149,9 @@ func _unregister_player_services(peer_id: int) -> void:
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd and cd.has_method("clear_player"):
 		cd.clear_player(peer_id)
+	var stam = GameServiceLocator.get_service("StaminaService")
+	if stam and stam.has_method("unregister_player"):
+		stam.unregister_player(peer_id)
 
 
 # ─── EVALUATE ────────────────────────────────────────────

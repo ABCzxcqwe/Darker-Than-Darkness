@@ -8,6 +8,7 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
+[ext_resource type="Script" uid="uid://co4a1381sc6hb" path="res://ui/GameUI/Scenes/stamina_bar.gd" id="7_stamina"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
@@ -151,6 +152,58 @@ layout_mode = 1
 anchor_top = 0.9
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[node name="StaminaBar" type="Control" parent="." unique_id=120255001]
+layout_mode = 3
+anchor_left = 0.97
+anchor_top = 0.2
+anchor_right = 0.99
+anchor_bottom = 0.7
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("7_stamina")
+
+[node name="StamLetters" type="Label" parent="StaminaBar" unique_id=120255002]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.1
+anchor_right = 1.0
+anchor_bottom = 0.2
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/line_spacing = -21
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 18
+text = "ST"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StamTrack" type="PanelContainer" parent="StaminaBar" unique_id=120255003]
+clip_children = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.2
+anchor_right = 1.0
+anchor_bottom = 0.8
+theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
+
+[node name="StamFill" type="ColorRect" parent="StaminaBar/StamTrack" unique_id=120255004]
+texture_filter = 1
+layout_mode = 2
+
+[node name="StamPercent" type="Label" parent="StaminaBar" unique_id=120255005]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.8
+anchor_right = 1.0
+anchor_bottom = 0.9
+offset_bottom = 2.0
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 18
+text = "0%"
+horizontal_alignment = 1
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
 visible = false

@@ -9,6 +9,7 @@ extends CanvasLayer
 @onready var timer_numbers:    Label          = $TimerPanel/VBoxContainer/TimerNumbers
 
 @onready var tp_bar:           Control        = $TpBar
+@onready var stamina_bar:      Control        = $StaminaBar
 
 @onready var killer_hp_public: PanelContainer = $KillerHpPublic
 @onready var killer_name_lbl:  Label          = $KillerHpPublic/HBoxContainer/KillerNameLabel
@@ -76,6 +77,11 @@ func setup(player_node: Node) -> void:
 	if tp_bar and tp_bar.has_method("setup"):
 		var max_tp: float = player_node.character_data.tp_max if player_node.character_data else 100.0
 		tp_bar.setup(my_id, max_tp)
+
+	# 2b. StaminaBar
+	if stamina_bar and stamina_bar.has_method("setup"):
+		var max_stam: float = player_node.character_data.stamina_max if player_node.character_data else 100.0
+		stamina_bar.setup(my_id, max_stam)
 
 	# 3. AlliesPanel
 	if allies_panel and allies_panel.has_method("setup"):

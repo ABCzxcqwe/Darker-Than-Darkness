@@ -25,6 +25,7 @@ var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var _pending_selection_slot: int = -1
+var _is_sprinting: bool = false
 
 
 func _ready() -> void:
@@ -62,6 +63,9 @@ func _ready() -> void:
 		var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 		if abs_svc:
 			abs_svc.register_player(get_multiplayer_authority(), character_data)
+		var stam_svc = GameServiceLocator.get_service("StaminaService")
+		if stam_svc:
+			stam_svc.register_player(get_multiplayer_authority(), character_data)
 
 	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
 		animated_sprite.animation_finished.connect(_on_anim_finished)
@@ -136,6 +140,8 @@ func _exit_tree() -> void:
 	if es and peer_id != -1: es.unregister_player(peer_id)
 	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
 	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)
+	var stam_svc = GameServiceLocator.get_service("StaminaService")
+	if stam_svc and peer_id != -1: stam_svc.unregister_player(peer_id)
 
 
 # ── Input ─────────────────────────────────────────────────────────────
@@ -343,7 +349,23 @@ func _physics_process(_delta: float) -> void:
 
 	if state == AnimState.IDLE:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		var sprint_mult = 1.5 if Input.is_key_pressed(KEY_SHIFT) else 1.0
+
+		var want_sprint = Input.is_key_pressed(KEY_SHIFT) and input_dir.length() > 0.1
+		var can_sprint = false
+		var stam_svc = GameServiceLocator.get_service("StaminaService")
+		if stam_svc:
+			can_sprint = want_sprint and stam_svc.has_stamina(get_multiplayer_authority())
+		else:
+			can_sprint = want_sprint
+
+		if stam_svc and can_sprint != _is_sprinting:
+			_is_sprinting = can_sprint
+			if multiplayer.is_server():
+				stam_svc.set_sprinting(get_multiplayer_authority(), can_sprint)
+			else:
+				stam_svc.rpc_id(1, "set_sprinting", get_multiplayer_authority(), can_sprint)
+
+		var sprint_mult = 1.5 if can_sprint else 1.0
 		velocity = input_dir * speed * sprint_mult
 		move_and_slide()
 
