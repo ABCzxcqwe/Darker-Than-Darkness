@@ -343,7 +343,8 @@ func _physics_process(_delta: float) -> void:
 
 	if state == AnimState.IDLE:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = input_dir * speed
+		var sprint_mult = 1.5 if Input.is_key_pressed(KEY_SHIFT) else 1.0
+		velocity = input_dir * speed * sprint_mult
 		move_and_slide()
 
 		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
