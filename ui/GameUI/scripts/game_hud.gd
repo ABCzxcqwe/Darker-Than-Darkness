@@ -33,6 +33,7 @@ const CONTEXT_ITEM_SCENE := preload("uid://b8p1jgthpblec")
 const TIMER_URGENT_SECS  := 15.0
 const COLOR_SURVIVOR:    Color = Color(0.27, 0.78, 0.95)  # cian
 const COLOR_KILLER:      Color = Color(1.0,  0.27, 0.27)  # rojo
+const FONT_DELTARUNE    := preload("res://Fonts/deltarune font.ttf")
 
 # ── Estado ─────────────────────────────────────────────────────────────
 var _player_node:      Node     = null
@@ -43,6 +44,7 @@ var _ctx_items:        Array    = []
 var _ctx_selected_idx: int      = 0
 var _on_confirm:       Callable = Callable()
 var _on_cancel:        Callable = Callable()
+var _revive_prompts:   Dictionary = {}
 
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
@@ -105,6 +107,10 @@ func setup(player_node: Node) -> void:
 	if evolution_svc:
 		evolution_svc.slot_evolved.connect(_on_slot_evolved)
 		evolution_svc.slot_devolved.connect(_on_slot_devolved)
+
+	var health_svc: Node = GameServiceLocator.get_service("HealthService")
+	if health_svc and health_svc.has_signal("player_state_changed"):
+		health_svc.player_state_changed.connect(_on_player_state_changed)
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -269,6 +275,89 @@ func _input(event: InputEvent) -> void:
 			if target_item.has_method("get_peer_id"):
 				_on_ctx_item_clicked(target_item.get_peer_id())
 		get_viewport().set_input_as_handled()
+
+# ── Revive prompts (marcador sobre el caído) ──────────────────────────
+func _on_player_state_changed(peer_id: int, state: String) -> void:
+	if state == "downed":
+		var player = _find_player_by_peer_id(peer_id)
+		if player:
+			_create_revive_prompt(player)
+	elif _revive_prompts.has(peer_id):
+		_remove_revive_prompt(peer_id)
+
+
+func _find_player_by_peer_id(peer_id: int) -> Node:
+	for p in get_tree().get_nodes_in_group("players"):
+		if p.get_multiplayer_authority() == peer_id:
+			return p
+	return null
+
+
+func _create_revive_prompt(player_node: Node) -> void:
+	var pid = player_node.get_multiplayer_authority()
+	if _revive_prompts.has(pid):
+		return
+
+	var panel := PanelContainer.new()
+	panel.name = "RevivePrompt_%d" % pid
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.75)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color.WHITE
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	panel.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = "REVIVIR [F]"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font", FONT_DELTARUNE)
+	label.add_theme_font_size_override("font_size", 16)
+	label.modulate = Color.WHITE
+	label.custom_minimum_size = Vector2(140, 28)
+	panel.add_child(label)
+	panel.size = Vector2(140, 32)
+
+	add_child(panel)
+	_revive_prompts[pid] = { "player": player_node, "panel": panel }
+
+
+func _remove_revive_prompt(peer_id: int) -> void:
+	var entry = _revive_prompts.get(peer_id)
+	if not entry:
+		return
+	if is_instance_valid(entry["panel"]):
+		entry["panel"].queue_free()
+	_revive_prompts.erase(peer_id)
+
+
+func _process(_delta: float) -> void:
+	for pid in _revive_prompts.keys():
+		var entry = _revive_prompts[pid]
+		var player = entry["player"]
+		var panel = entry["panel"]
+		if not is_instance_valid(player) or not is_instance_valid(panel):
+			_revive_prompts.erase(pid)
+			continue
+		var cam = get_viewport().get_camera_2d()
+		if not cam:
+			continue
+		var screen_pos = cam.get_canvas_transform() * player.global_position
+		panel.position = screen_pos + Vector2(-panel.size.x * 0.5, -80)
+		# Ocultar si el jugador local está muy lejos (fuera de rango de revive)
+		if _player_node:
+			var dist = _player_node.global_position.distance_to(player.global_position)
+			panel.visible = dist <= 200.0
+		else:
+			panel.visible = true
+
 
 # ── Utilidades ─────────────────────────────────────────────────────────
 func _apply_panel_border_color(panel: PanelContainer, color: Color) -> void:

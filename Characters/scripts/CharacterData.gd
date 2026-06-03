@@ -50,7 +50,7 @@ const KILLER_ONLY := [
 @export var can_be_executed: bool = true
 @export var revive_health: int = 60
 @export var revive_time: float = 3.0
-@export var revive_range: float = 80.0
+@export var revive_range: float = 150.0
 @export var lms_music: AudioStream
 @export var lms_duration: float = 140.0
 @export var lms_heal_amount: int = 60
