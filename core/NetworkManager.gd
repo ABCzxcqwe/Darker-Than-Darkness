@@ -9,7 +9,6 @@ signal connection_failed()
 signal server_disconnected()
 signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
-signal player_ready_changed(peer_id: int, is_ready: bool)
 signal lobby_updated()
 
 

@@ -53,7 +53,7 @@ func on_slot_devolved(slot_index: int) -> void:
 	_buttons[slot_index].set_evolved(false)
 
 
-func on_tp_ready(slot_index: int, ready: bool) -> void:
+func on_tp_ready(slot_index: int, is_ready: bool) -> void:
 	if not _buttons.has(slot_index):
 		return
-	_buttons[slot_index].set_tp_ready(ready)
+	_buttons[slot_index].set_tp_ready(is_ready)

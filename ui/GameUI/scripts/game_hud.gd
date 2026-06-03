@@ -120,7 +120,7 @@ func setup(player_node: Node) -> void:
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
 # ── Configuración de HP del Killer ─────────────────────────────────────
-func _configure_killer_hp_visibility(player_node: Node) -> void:
+func _configure_killer_hp_visibility(_player_node: Node) -> void:
 	if _my_team == "killer":
 		if killer_hp_public:
 			killer_hp_public.visible = false
@@ -141,7 +141,7 @@ func _try_connect_killer_hp() -> void:
 # ── Timer ──────────────────────────────────────────────────────────────
 func _on_timer_changed(seconds_left: float) -> void:
 	if not timer_numbers: return
-	var m := int(seconds_left) / 60
+	var m := int(seconds_left / 60.0)
 	var s := int(seconds_left) % 60
 	timer_numbers.text = "%02d:%02d" % [m, s]
 
@@ -181,9 +181,9 @@ func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 		ability_bar.on_slot_devolved(slot_index)
 
 # ── TP readiness (servidor → cliente vía EvolutionService) ────────────
-func visual_tp_ready(slot_index: int, ready: bool) -> void:
+func visual_tp_ready(slot_index: int, is_ready: bool) -> void:
 	if ability_bar and ability_bar.has_method("on_tp_ready"):
-		ability_bar.on_tp_ready(slot_index, ready)
+		ability_bar.on_tp_ready(slot_index, is_ready)
 
 # ── Menú contextual Simplificado (Aparición directa) ───────────────────
 func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1) -> void:

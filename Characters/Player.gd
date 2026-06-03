@@ -26,6 +26,7 @@ var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var _pending_selection_slot: int = -1
 var _is_sprinting: bool = false
+var is_spectator: bool = false
 
 
 func _ready() -> void:
@@ -372,11 +373,12 @@ func _physics_process(_delta: float) -> void:
 		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
 		update_facing_and_flip(mouse_dir)
 
-		var is_moving = velocity.length() > 0.1
-		var anim_name = "walk_horizontal" if is_moving else "idle_horizontal"
-		if last_animation != anim_name:
-			animated_sprite.play(anim_name)
-			last_animation = anim_name
+		if health_state == "alive":
+			var is_moving = velocity.length() > 0.1
+			var anim_name = "walk_horizontal" if is_moving else "idle_horizontal"
+			if last_animation != anim_name:
+				animated_sprite.play(anim_name)
+				last_animation = anim_name
 	else:
 		velocity = Vector2.ZERO
 
@@ -398,9 +400,30 @@ func _on_anim_finished() -> void:
 
 
 func _restore_idle() -> void:
+	if health_state != "alive":
+		return
 	animated_sprite.flip_h = not facing_right
 	animated_sprite.play("idle_horizontal")
 	last_animation = "idle_horizontal"
+
+
+# ── Muerte definitiva ────────────────────────────────────────────────
+
+func _disable_corpse() -> void:
+	set_physics_process(false)
+	set_process_input(false)
+	$CollisionShape2D.disabled = true
+	$Hurtbox/CollisionShape2D.disabled = true
+	collision_layer = 0
+	collision_mask = 0
+
+
+func _prepare_spectator_mode() -> void:
+	is_spectator = true
+	if is_multiplayer_authority():
+		pass
+		# TODO: liberar cámara para modo espectador,
+		#       seguir a otro jugador, UI de espectador, etc.
 
 
 func play_ability_animation(anim_name: String, slot_index: int, facing_right_override: bool = true) -> void:
@@ -507,10 +530,22 @@ func _sync_health(new_health: int, new_invincible_until: int) -> void:
 	else:
 		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
 
-	if health_state == "downed" or health_state == "dead":
+	if health_state == "downed":
 		speed = 0
+		if animated_sprite and last_animation != "life_down":
+			animated_sprite.play("life_down")
+			last_animation = "life_down"
+	elif health_state == "dead":
+		speed = 0
+		if animated_sprite:
+			animated_sprite.play("player_dead")
+			last_animation = "player_dead"
+		_disable_corpse()
+		_prepare_spectator_mode()
 	elif character_data and health_state == "alive":
 		speed = character_data.speed
+		if animated_sprite and last_animation in ["player_dead", "life_down"]:
+			_restore_idle()
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -535,10 +570,19 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		"alive":
 			if character_data:
 				speed = character_data.speed
+			_restore_idle()
 		"downed":
 			speed = 0
+			if animated_sprite:
+				animated_sprite.play("life_down")
+				last_animation = "life_down"
 		"dead":
 			speed = 0
+			if animated_sprite:
+				animated_sprite.play("player_dead")
+				last_animation = "player_dead"
+			_disable_corpse()
+			_prepare_spectator_mode()
 
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:

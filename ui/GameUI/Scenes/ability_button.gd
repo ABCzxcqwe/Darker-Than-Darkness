@@ -129,13 +129,13 @@ func set_evolved(evolved: bool) -> void:
 			icon_rect.texture = null
 
 
-func set_tp_ready(ready: bool) -> void:
+func set_tp_ready(is_ready: bool) -> void:
 	if not ability_data or not _evolved_data:
 		return
 
 	_stop_evolved_tween()
 
-	if ready and _evolved_data.evolution_consume == 0:
+	if is_ready and _evolved_data.evolution_consume == 0:
 		_start_evolved_tween()
 	else:
 		_set_border_color(BORDER_COLOR_NORMAL)
