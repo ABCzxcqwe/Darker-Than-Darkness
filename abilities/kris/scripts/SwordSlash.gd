@@ -41,6 +41,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 			push_warning("[SwordSlash] consume_tp falló inesperadamente para peer ", attacker_id)
 			return
 
+
 	combat.apply_root(player_node, ANIM_DURATION)
 
 	if data.action_animation != "":
