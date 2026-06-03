@@ -8,7 +8,7 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-[ext_resource type="Script" uid="uid://co4a1381sc6hb" path="res://ui/GameUI/Scenes/stamina_bar.gd" id="7_stamina"]
+[ext_resource type="Script" path="res://ui/GameUI/Scenes/stamina_bar.gd" id="7_stamina"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
@@ -36,7 +36,7 @@ corner_detail = 10
 expand_margin_left = 9.0
 expand_margin_top = 9.0
 expand_margin_right = 9.0
-expand_margin_bottom = 6.0
+expand_margin_bottom = 11.0
 anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stedc"]
@@ -241,7 +241,7 @@ text = "0/ 0"
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
 anchor_left = 0.05
-anchor_top = 0.88
+anchor_top = 0.85
 anchor_right = 0.225
 anchor_bottom = 1.0
 grow_vertical = 0
@@ -303,6 +303,26 @@ size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_stedc")
 theme_override_styles/fill = SubResource("StyleBoxFlat_4ubg7")
 value = 50.0
+show_percentage = false
+
+[node name="StaminaRow" type="HBoxContainer" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn" unique_id=608897561]
+layout_mode = 2
+
+[node name="StaminaTag" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=1243353430]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 10
+text = "       ST"
+
+[node name="StaminaBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=566906426]
+custom_minimum_size = Vector2(60, 8)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_stedc")
+theme_override_styles/fill = SubResource("StyleBoxFlat_4ubg7")
+value = 50.0
+allow_greater = true
 show_percentage = false
 
 [node name="AbilityPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=547767753]
