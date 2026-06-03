@@ -3,10 +3,12 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_6orai"]
 [ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/Kris/SlashHitbox.tscn" id="1_gwtfv"]
 [ext_resource type="Script" uid="uid://dkv3td1h1syr6" path="res://abilities/susie/scripts/AxeSlash.gd" id="2_oqyyk"]
+[ext_resource type="Texture2D" uid="uid://b6c8x1fwusgs" path="res://abilities/susie/axe.png" id="3_oqyyk"]
 
 [resource]
 script = ExtResource("1_6orai")
 display_name = "AxeSlash"
+icon = ExtResource("3_oqyyk")
 ability_script = ExtResource("2_oqyyk")
 ability_scene = ExtResource("1_gwtfv")
 cooldown = 20.0

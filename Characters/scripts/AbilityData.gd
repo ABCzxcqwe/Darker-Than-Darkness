@@ -261,6 +261,15 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Ejemplo: Sword Slash de Kris tiene evolvable_by_ally = true.
 @export var evolvable_by_ally: bool = false
 
+## Si TEMPORARY: al usar la habilidad evolucionada, el slot retorna a la versión base.
+## Si PERMANENT: al usar la habilidad evolucionada, el slot se queda en esa versión.
+## Esto afecta tanto al borde del botón (pulsante vs estático) como al consume.
+enum EvolutionConsume { TEMPORARY, PERMANENT }
+
+## Define si la evolución de esta habilidad es temporal o permanente.
+## Se evalúa en la versión evolucionada (evolved_version), no en la base.
+@export var evolution_consume: EvolutionConsume = EvolutionConsume.TEMPORARY
+
 ## Slot del ALIADO que esta habilidad evoluciona al seleccionar un objetivo.
 ## -1 = no evoluciona ningún slot del aliado.
 ## DEPRECATED: Usar evolvable_by_ally en cada habilidad individual en su lugar.

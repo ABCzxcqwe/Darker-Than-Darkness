@@ -54,9 +54,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				return
 
 			if dmg > 0:
-				var health_svc = GameServiceLocator.get_service("HealthService")
-				if health_svc:
-					health_svc.take_damage(target_node, dmg, attacker_id, atk_type)
+				var combat = GameServiceLocator.get_service("CombatMediator")
+				if combat:
+					combat.apply_damage(player_node, target_node, dmg, atk_type)
 
 			if target_node.is_in_group("killer"):
 				var status = GameServiceLocator.get_service("StatusEffectService")

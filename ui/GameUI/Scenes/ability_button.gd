@@ -7,7 +7,7 @@ extends Control
 @onready var key_label:         Label       = $Panel/KeyLabel
 @onready var lock_icon:         TextureRect = $Panel/LockIcon if has_node("Panel/LockIcon") else null
 
-const BORDER_COLOR_NORMAL := Color(0.8156863, 0.4745098, 0.0, 1.0)
+const BORDER_COLOR_NORMAL   := Color(0.8156863, 0.4745098, 0.0, 1.0)
 const BORDER_COLOR_EVOLVED_A := Color(1.0, 0.9, 0.0, 1.0)
 const BORDER_COLOR_EVOLVED_B := Color(1.0, 1.0, 1.0, 1.0)
 const EVOLVED_FADE_DURATION  := 0.5
@@ -23,11 +23,15 @@ var _state:              int         = State.READY
 var _cooldown_remaining: float       = 0.0
 var _is_evolved:         bool        = false
 var _evolved_tween:      Tween       = null
+var _base_data:          AbilityData = null
+var _evolved_data:       AbilityData = null
 
 
 func setup(data: AbilityData, index: int, key_name: String) -> void:
 	ability_data = data
 	slot_index   = index
+	_base_data   = data
+	_evolved_data = data.evolved_version if data and data.evolved_version else null
 
 	_state = State.READY
 	_cooldown_remaining = 0.0
@@ -108,16 +112,30 @@ func set_cooldown_state(duration: float) -> void:
 			  " ('", ability_data.display_name, "') duración: ", duration, "s")
 
 
-func set_evolved(is_evolved: bool) -> void:
+func set_evolved(evolved: bool) -> void:
 	if not ability_data:
 		return
-	if _is_evolved == is_evolved:
+	if _is_evolved == evolved:
 		return
 
-	_is_evolved = is_evolved
+	_is_evolved = evolved
+
+	if icon_rect:
+		if evolved and _evolved_data and _evolved_data.icon:
+			icon_rect.texture = _evolved_data.icon
+		elif _base_data and _base_data.icon:
+			icon_rect.texture = _base_data.icon
+		else:
+			icon_rect.texture = null
+
+
+func set_tp_ready(ready: bool) -> void:
+	if not ability_data or not _evolved_data:
+		return
+
 	_stop_evolved_tween()
 
-	if is_evolved:
+	if ready and _evolved_data.evolution_consume == 0:
 		_start_evolved_tween()
 	else:
 		_set_border_color(BORDER_COLOR_NORMAL)

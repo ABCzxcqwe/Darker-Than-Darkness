@@ -163,6 +163,11 @@ func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
 		ability_bar.on_slot_devolved(slot_index)
 
+# ── TP readiness (servidor → cliente vía EvolutionService) ────────────
+func visual_tp_ready(slot_index: int, ready: bool) -> void:
+	if ability_bar and ability_bar.has_method("on_tp_ready"):
+		ability_bar.on_tp_ready(slot_index, ready)
+
 # ── Menú contextual Simplificado (Aparición directa) ───────────────────
 func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1) -> void:
 	if _menu_open: return

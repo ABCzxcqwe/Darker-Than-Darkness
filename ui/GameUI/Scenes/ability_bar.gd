@@ -1,7 +1,3 @@
-# ability_bar.gd
-# Barra de habilidades del jugador local.
-# El cooldown visual se inicia cuando GameHUD llama on_cooldown_state_changed()
-# con los datos que vienen del CooldownService (servidor → cliente via RPC).
 extends HBoxContainer
 
 const ABILITY_BUTTON_SCENE := preload("uid://bmtkxxhx3sll5")
@@ -16,6 +12,7 @@ const KEY_NAMES := {
 
 var _player_node: Node = null
 var _buttons: Dictionary = {}
+
 
 func setup(player_node: Node) -> void:
 	_player_node = player_node
@@ -38,25 +35,25 @@ func setup(player_node: Node) -> void:
 		_buttons[i] = btn
 
 
-## Llamado por GameHUD cuando CooldownService notifica al cliente.
-## duration > 0 → cooldown normal con timer
-## duration = 0 → listo (sin cooldown)
-## duration < 0 → lock activo (indefinido)
 func on_cooldown_state_changed(slot_index: int, duration: float) -> void:
 	if not _buttons.has(slot_index):
 		return
 	_buttons[slot_index].set_cooldown_state(duration)
 
 
-## Llamado por EvolutionService (via GameHUD) cuando un slot evoluciona.
 func on_slot_evolved(slot_index: int) -> void:
 	if not _buttons.has(slot_index):
 		return
 	_buttons[slot_index].set_evolved(true)
 
 
-## Llamado por EvolutionService (via GameHUD) cuando un slot vuelve a normal.
 func on_slot_devolved(slot_index: int) -> void:
 	if not _buttons.has(slot_index):
 		return
 	_buttons[slot_index].set_evolved(false)
+
+
+func on_tp_ready(slot_index: int, ready: bool) -> void:
+	if not _buttons.has(slot_index):
+		return
+	_buttons[slot_index].set_tp_ready(ready)

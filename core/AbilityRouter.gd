@@ -119,6 +119,15 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 				effective_tp_cost = _resolve_tp_cost(base_data, peer_id, slot_index, abs_svc)
 				if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
 					return
+			elif is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
+				if lms_svc and lms_svc.is_lms_active():
+					var lms_survivor = lms_svc.get_active_survivor()
+					if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
+						is_evolved = false
+						ability_data = base_data
+						effective_tp_cost = _resolve_tp_cost(base_data, peer_id, slot_index, abs_svc)
+						if tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
+							return
 			else:
 				return
 

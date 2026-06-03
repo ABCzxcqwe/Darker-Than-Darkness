@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_4fdfo"]
 [ext_resource type="Script" uid="uid://dk8uk5ymm80gn" path="res://abilities/susie/scripts/UltimateHeal.gd" id="1_l1irq"]
+[ext_resource type="Texture2D" uid="uid://bw60slbw3frlq" path="res://abilities/susie/HealthU.png" id="2_rvw0h"]
 
 [resource]
 script = ExtResource("1_4fdfo")
 display_name = "Ultimate heal"
 description = "Mejora con el tiempo"
+icon = ExtResource("2_rvw0h")
 ability_script = ExtResource("1_l1irq")
 cooldown = 5.0
 tp_cost = 100.0

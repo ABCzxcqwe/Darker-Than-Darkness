@@ -1,16 +1,19 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://c2v0fkl6qgg03"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_06gjg"]
-[ext_resource type="Script" uid="uid://bv6pwob4jk6qq" path="res://abilities/kris/scripts/Counter.gd" id="1_a1jlm"]
+[ext_resource type="Script" path="res://abilities/kris/scripts/soul_protect.gd" id="2_soul"]
 [ext_resource type="Texture2D" uid="uid://c8tiyy4304exb" path="res://abilities/kris/SoulProtect.png" id="2_t0tx1"]
+[ext_resource type="Resource" path="res://abilities/kris/Determination.tres" id="3_det"]
 
 [resource]
 script = ExtResource("1_06gjg")
 display_name = "Soul Protect"
 icon = ExtResource("2_t0tx1")
 ability_type = 1
-ability_script = ExtResource("1_a1jlm")
+ability_script = ExtResource("2_soul")
 cooldown = 30.0
 tp_cost = 20.0
 requires_selection = true
+evolved_version = ExtResource("3_det")
+lms_auto_evolve = true
 metadata/_custom_type_script = "uid://bodks86qovy6s"

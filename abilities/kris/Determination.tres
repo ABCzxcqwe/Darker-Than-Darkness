@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://ssubeby84bcl"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_sb2xv"]
+[ext_resource type="Texture2D" uid="uid://c42n42kifhyd1" path="res://abilities/kris/Determination.png" id="2_gpqhh"]
+[ext_resource type="Script" uid="uid://ncke5m6jkeag" path="res://abilities/kris/scripts/determination.gd" id="2_ml33v"]
+
+[resource]
+script = ExtResource("1_sb2xv")
+display_name = "Determination"
+icon = ExtResource("2_gpqhh")
+ability_type = 1
+ability_script = ExtResource("2_ml33v")
+cooldown = 25.0
+tp_cost = 20.0
+evolution_consume = 1
+metadata/_custom_type_script = "uid://bodks86qovy6s"

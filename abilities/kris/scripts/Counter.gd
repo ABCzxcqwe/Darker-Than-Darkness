@@ -42,7 +42,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	print("[Counter] Ventana activa | peer: ", caster_id, " | radio: ", data.range_)
 
-	var counter_window: float = _get_anim_duration(player_node, data.prepare_animation)
+	var counter_window: float = 3.0
 	player_node.get_tree().create_timer(counter_window).timeout.connect(
 		func() -> void:
 			if not is_instance_valid(player_node):

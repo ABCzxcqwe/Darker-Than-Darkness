@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2ihdc7vk4w4l"
-path="res://.godot/imported/Sprite-0001.png-e85561670f2dcc77d2a3e9bb6880d769.ctex"
+uid="uid://c42n42kifhyd1"
+path="res://.godot/imported/Determination.png-762ea4600957a8e1928e451bc474a64c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://abilities/kris/Sprite-0001.png"
-dest_files=["res://.godot/imported/Sprite-0001.png-e85561670f2dcc77d2a3e9bb6880d769.ctex"]
+source_file="res://abilities/kris/Determination.png"
+dest_files=["res://.godot/imported/Determination.png-762ea4600957a8e1928e451bc474a64c.ctex"]
 
 [params]
 

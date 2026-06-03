@@ -1,65 +1,51 @@
-# res://services/EvolutionService.gd
-# Servicio de evolución de habilidades — se registra en GameServices.tres.
-# Controla qué habilidades están potenciadas y sincroniza los cambios con el cliente.
-#
-# REGLA DE CONSUMO VINCULADA:
-#   Slots 1 y 3 están unidos. Al consumir uno, AMBOS se limpian automáticamente.
-#   Slots 0, 2 y 4 son completamente independientes.
 extends Node
 
-# Emitida en el servidor cuando un slot cambia de estado (útil para otros servicios lógicos)
 signal slot_evolved(peer_id: int, slot_index: int)
 signal slot_devolved(peer_id: int, slot_index: int)
 
-# { peer_id: Array[bool] } — Cada jugador tiene un arreglo de 5 posiciones (slots 0 a 4)
 var _evolved_slots: Dictionary = {}
+var _tp_ready_slots: Dictionary = {}
 
 
-# =======================================================================
-# REGISTRO DE JUGADORES (SOLO SERVIDOR)
-# =======================================================================
+func _ready() -> void:
+	if multiplayer.is_server():
+		var tp_svc = GameServiceLocator.get_service("TPService")
+		if tp_svc and tp_svc.has_signal("tp_changed"):
+			tp_svc.tp_changed.connect(_on_tp_changed)
+
 
 func register_player(peer_id: int, _data: Resource = null) -> void:
 	if not multiplayer.is_server():
 		return
 	_evolved_slots[peer_id] = [false, false, false, false, false]
-	print("[EvolutionService] Jugador ", peer_id, " registrado en el sistema de evolución.")
+	_tp_ready_slots[peer_id] = [false, false, false, false, false]
+	print("[EvolutionService] Jugador ", peer_id, " registrado.")
 
 
 func unregister_player(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
-	if _evolved_slots.has(peer_id):
-		_evolved_slots.erase(peer_id)
-		print("[EvolutionService] Datos de evolución eliminados para peer: ", peer_id)
+	_evolved_slots.erase(peer_id)
+	_tp_ready_slots.erase(peer_id)
 
 
-# =======================================================================
-# API PÚBLICA (LLAMADA DESDE EL SERVIDOR)
-# =======================================================================
-
-## Fuerza la evolución de un slot específico (por costo de TP o buff de aliado).
-func evolve_slot(peer_id: int, slot_index: int) -> void:
+func evolve_slot(peer_id: int, slot_index: int, skip_rpc: bool = false) -> void:
 	if not multiplayer.is_server():
 		return
 	if not _evolved_slots.has(peer_id):
 		return
 	if slot_index < 0 or slot_index >= 5:
 		return
-		
+
 	if _evolved_slots[peer_id][slot_index]:
-		return # Ya está evolucionado, no hacemos nada
-		
+		return
+
 	_evolved_slots[peer_id][slot_index] = true
 	slot_evolved.emit(peer_id, slot_index)
-	print("[EvolutionService] ¡Slot ", slot_index, " EVOLUCIONADO! -> Peer: ", peer_id)
-	
-	# Sincronizar visual en el cliente dueño del personaje
-	# Buscamos el Player node directamente para enviarle el RPC
-	_sync_visual_to_client(peer_id, slot_index, true)
+	if not skip_rpc:
+		_sync_visual_to_client(peer_id, slot_index, true)
 
 
-## Devuelve true si el slot está actualmente evolucionado en el servidor.
 func is_evolved(peer_id: int, slot_index: int) -> bool:
 	if not _evolved_slots.has(peer_id):
 		return false
@@ -68,63 +54,68 @@ func is_evolved(peer_id: int, slot_index: int) -> bool:
 	return _evolved_slots[peer_id][slot_index]
 
 
-## Llamado por AbilityRouter inmediatamente después de ejecutar con éxito una habilidad evolucionada.
 func consume_evolution(peer_id: int, slot_index: int) -> void:
 	if not multiplayer.is_server():
 		return
 	if not _evolved_slots.has(peer_id):
 		return
 
-	# APLICACIÓN DE LA REGLA VINCULADA: Slots 1 y 3
 	if slot_index == 1 or slot_index == 3:
-		print("[EvolutionService] Vínculo detectado (Slot ", slot_index, "). Limpiando Slots 1 y 3 para peer: ", peer_id)
-		_clear_and_sync_slot(peer_id, 1)
-		_clear_and_sync_slot(peer_id, 3)
+		_clear_if_temporary(peer_id, 1)
+		_clear_if_temporary(peer_id, 3)
 	else:
-		# Slots independientes (0, 2, 4)
-		_clear_and_sync_slot(peer_id, slot_index)
+		_clear_if_temporary(peer_id, slot_index)
 
 
-## Limpia todas las evoluciones (al terminar la ronda, morir permanentemente, etc.)
+func _clear_if_temporary(peer_id: int, slot_index: int) -> void:
+	if _is_permanent_evolution(peer_id, slot_index):
+		return
+	_clear_and_sync_slot(peer_id, slot_index)
+
+
+func _is_permanent_evolution(peer_id: int, slot_index: int) -> bool:
+	var player = get_tree().root.find_child(str(peer_id), true, false)
+	if not player or not player.character_data:
+		return false
+	var slots: Array = player.character_data.ability_slots
+	if slot_index < 0 or slot_index >= slots.size():
+		return false
+	var base = slots[slot_index]
+	if not base or not base.evolved_version:
+		return false
+	return base.evolved_version.evolution_consume == 1
+
+
 func clear_all(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 	if not _evolved_slots.has(peer_id):
 		return
-		
+
 	for i in 5:
 		_clear_and_sync_slot(peer_id, i)
-	print("[EvolutionService] Todas las evoluciones reseteadas para peer: ", peer_id)
 
-
-# =======================================================================
-# MÉTODOS INTERNOS DE CONTROL
-# =======================================================================
 
 func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 	if _evolved_slots[peer_id][slot_index]:
 		_evolved_slots[peer_id][slot_index] = false
 		slot_devolved.emit(peer_id, slot_index)
-		
+
+		if _evolved_slots[peer_id][slot_index]:
+			return
+
 		_sync_visual_to_client(peer_id, slot_index, false)
+		_set_tp_ready(peer_id, slot_index, false)
 
 
-# =======================================================================
-# SINCRONIZACIÓN VISUAL AL CLIENTE (mismo patrón que CooldownService)
-# =======================================================================
-
-## Busca el Player node del peer y le envía un RPC para actualizar el
-## visual de evolución en su HUD local.
 func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
 	rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
 
 
-## Recibido en el cliente dueño del slot. Actualiza el HUD local.
 @rpc("authority", "call_local", "reliable")
 func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
 	var huds = get_tree().get_nodes_in_group("game_hud")
 	if huds.is_empty():
-		push_warning("[EvolutionService] RPC recibido en cliente, pero no se encontró el HUD local.")
 		return
 	var hud = huds[0]
 	if evolved:
@@ -133,3 +124,60 @@ func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
 	else:
 		if hud.has_method("visual_devolve_slot"):
 			hud.visual_devolve_slot(slot_index)
+
+
+func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
+	if not multiplayer.is_server():
+		return
+	if not _tp_ready_slots.has(peer_id):
+		return
+
+	var player = get_tree().root.find_child(str(peer_id), true, false)
+	if not player or not player.character_data:
+		return
+	var slots: Array = player.character_data.ability_slots
+
+	for i in slots.size():
+		var data = slots[i]
+		if not data or not data.evolved_version:
+			continue
+
+		var is_lms: bool = data.lms_auto_evolve
+		var tp_sufficient: bool = current_tp >= data.evolved_version.tp_cost
+		var is_permanent: bool = data.evolved_version.evolution_consume == 1
+
+		if not is_lms:
+			continue
+
+		var evolved = _evolved_slots.get(peer_id)
+		if evolved == null or not evolved[i]:
+			continue
+
+		_set_tp_ready(peer_id, i, tp_sufficient)
+
+		if tp_sufficient or is_permanent:
+			_sync_visual_to_client(peer_id, i, true)
+		else:
+			_sync_visual_to_client(peer_id, i, false)
+
+
+func _set_tp_ready(peer_id: int, slot_index: int, ready: bool) -> void:
+	if not _tp_ready_slots.has(peer_id):
+		return
+	if slot_index < 0 or slot_index >= 5:
+		return
+	if _tp_ready_slots[peer_id][slot_index] == ready:
+		return
+
+	_tp_ready_slots[peer_id][slot_index] = ready
+	rpc_id(peer_id, "_rpc_tp_ready", slot_index, ready)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_tp_ready(slot_index: int, ready: bool) -> void:
+	var huds = get_tree().get_nodes_in_group("game_hud")
+	if huds.is_empty():
+		return
+	var hud = huds[0]
+	if hud.has_method("visual_tp_ready"):
+		hud.visual_tp_ready(slot_index, ready)

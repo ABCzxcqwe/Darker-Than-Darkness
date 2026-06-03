@@ -1,6 +1,7 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://bejkxi1trim46"]
 
 [ext_resource type="Texture2D" uid="uid://ctlg753ov13tb" path="res://Characters/0/assets/Sprites/down1.png" id="1_oxg2m"]
+[ext_resource type="Texture2D" uid="uid://k8pohb1hsr2x" path="res://Characters/0/assets/Sprites/kris_prepare.png" id="2_ogjsw"]
 [ext_resource type="Texture2D" uid="uid://bil21rmef5gen" path="res://Characters/0/assets/Sprites/kris_idle.png" id="3_lvorv"]
 [ext_resource type="Texture2D" uid="uid://ccxpwee61orc8" path="res://Characters/0/assets/Sprites/kris_downed.png" id="3_vtquc"]
 [ext_resource type="Texture2D" uid="uid://dw58e015pbqmv" path="res://Characters/0/assets/Sprites/up1.png" id="3_wxkvr"]
@@ -27,6 +28,22 @@ region = Rect2(384, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_puuh5"]
 atlas = ExtResource("3_lvorv")
+region = Rect2(576, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_344xy"]
+atlas = ExtResource("2_ogjsw")
+region = Rect2(0, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0dtcq"]
+atlas = ExtResource("2_ogjsw")
+region = Rect2(192, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nmhoi"]
+atlas = ExtResource("2_ogjsw")
+region = Rect2(384, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_umupi"]
+atlas = ExtResource("2_ogjsw")
 region = Rect2(576, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nrm4i"]
@@ -107,6 +124,23 @@ animations = [{
 "loop": true,
 "name": &"idle_horizontal",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_344xy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0dtcq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nmhoi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_umupi")
+}],
+"loop": true,
+"name": &"idle_prepare",
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,

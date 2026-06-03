@@ -1,7 +1,7 @@
 extends AbilityBase
 
-const DURATION: float = 5.0
-const SHARE_PCT: float = 0.5
+const DURATION: float = 3.0
+const REDUCTION_PCT: float = 0.3
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -15,25 +15,21 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
 			return
 
-	var target_peer_id: int = pending_target_peer
-	if target_peer_id <= 0 or target_peer_id == caster_id:
-		return
-
 	var combat = GameServiceLocator.get_service("CombatMediator")
 	if not combat:
 		return
 
-	combat.register_protection(target_peer_id, caster_id,
-		combat.ProtectionType.DAMAGE_SHARE, { "share_pct": SHARE_PCT })
-	combat.register_protection(target_peer_id, caster_id,
+	combat.register_protection(caster_id, caster_id,
+		combat.ProtectionType.DAMAGE_REDUCE, { "reduction_pct": REDUCTION_PCT })
+	combat.register_protection(caster_id, caster_id,
 		combat.ProtectionType.DEATH_SHIELD, {})
 
 	var cd_svc = GameServiceLocator.get_service("CooldownService")
 	var timer := player_node.get_tree().create_timer(DURATION)
 	timer.timeout.connect(func() -> void:
-		combat.unregister_protection(target_peer_id, caster_id,
-			combat.ProtectionType.DAMAGE_SHARE)
-		combat.unregister_protection(target_peer_id, caster_id,
+		combat.unregister_protection(caster_id, caster_id,
+			combat.ProtectionType.DAMAGE_REDUCE)
+		combat.unregister_protection(caster_id, caster_id,
 			combat.ProtectionType.DEATH_SHIELD)
 
 		if cd_svc:
@@ -41,8 +37,8 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				cd_svc.release_lock(caster_id, slot_index)
 			cd_svc.start(caster_id, slot_index, data.cooldown)
 
-		print("[SoulProtect] Proteccion expirada para ", target_peer_id)
+		print("[Determination] Proteccion expirada para ", caster_id)
 	)
 
-	print("[SoulProtect] Kris(", caster_id, ") protege a ", target_peer_id,
-		  " por ", DURATION, "s | comparte ", SHARE_PCT * 100, "% del daño")
+	print("[Determination] Kris(", caster_id, ") activa determinacion por ", DURATION,
+		  "s | reduce daño ", REDUCTION_PCT * 100, "%")
