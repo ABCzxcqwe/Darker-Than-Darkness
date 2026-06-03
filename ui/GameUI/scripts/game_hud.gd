@@ -43,6 +43,7 @@ var _ctx_items:        Array    = []
 var _ctx_selected_idx: int      = 0
 var _on_confirm:       Callable = Callable()
 var _on_cancel:        Callable = Callable()
+var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
 
 signal selection_confirmed(peer_id: int)
@@ -57,7 +58,8 @@ func _ready() -> void:
 
 func setup(player_node: Node) -> void:
 	_player_node = player_node
-	var my_id := multiplayer.get_unique_id()
+	_my_id = multiplayer.get_unique_id()
+	var my_id := _my_id
 
 	if not player_node.character_data:
 		push_warning("[GameHUD] Player sin character_data en setup.")
@@ -105,6 +107,15 @@ func setup(player_node: Node) -> void:
 	var health_svc: Node = GameServiceLocator.get_service("HealthService")
 	if health_svc and health_svc.has_signal("player_state_changed"):
 		health_svc.player_state_changed.connect(_on_player_state_changed)
+
+	var revive_svc: Node = GameServiceLocator.get_service("ReviveService")
+	if revive_svc:
+		if revive_svc.has_signal("revive_started"):
+			revive_svc.revive_started.connect(_on_revive_session_started)
+		if revive_svc.has_signal("revive_cancelled"):
+			revive_svc.revive_cancelled.connect(_on_revive_session_cancelled)
+		if revive_svc.has_signal("revive_completed"):
+			revive_svc.revive_completed.connect(_on_revive_session_completed)
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -270,7 +281,7 @@ func _input(event: InputEvent) -> void:
 				_on_ctx_item_clicked(target_item.get_peer_id())
 		get_viewport().set_input_as_handled()
 
-# ── Revive prompts (marcador sobre el caído) ──────────────────────────
+# ── Revive prompts (marcador sobre el caído con barra de progreso) ───
 func _on_player_state_changed(peer_id: int, state: String) -> void:
 	if state == "downed":
 		var player = _find_player_by_peer_id(peer_id)
@@ -308,6 +319,24 @@ func _create_revive_prompt(player_node: Node) -> void:
 	style.corner_radius_bottom_right = 4
 	panel.add_theme_stylebox_override("panel", style)
 
+	var vbox := VBoxContainer.new()
+
+	# ── Barra de progreso (oculta hasta presionar F) ──
+	var bar_bg := ColorRect.new()
+	bar_bg.color = Color(0, 0, 0, 1)
+	bar_bg.custom_minimum_size = Vector2(130, 6)
+	bar_bg.size = Vector2(130, 6)
+	bar_bg.name = "BarBg"
+
+	var bar_fill := ColorRect.new()
+	bar_fill.color = Color(1, 1, 1, 1)
+	bar_fill.size = Vector2(0, 6)
+	bar_fill.position = Vector2(0, 0)
+	bar_fill.name = "BarFill"
+
+	bar_bg.add_child(bar_fill)
+	vbox.add_child(bar_bg)
+
 	var label := Label.new()
 	label.text = "REVIVIR [F]"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -316,27 +345,89 @@ func _create_revive_prompt(player_node: Node) -> void:
 	label.add_theme_font_size_override("font_size", 16)
 	label.modulate = Color.WHITE
 	label.custom_minimum_size = Vector2(140, 28)
-	panel.add_child(label)
-	panel.size = Vector2(140, 32)
+	vbox.add_child(label)
+
+	panel.add_child(vbox)
+	panel.size = Vector2(140, 38)
 
 	add_child(panel)
-	_revive_prompts[pid] = { "player": player_node, "panel": panel }
+	_revive_prompts[pid] = {
+		"player": player_node,
+		"panel": panel,
+		"bar_bg": bar_bg,
+		"bar_fill": bar_fill,
+		"active": false,
+		"start_time": 0.0,
+		"duration": 0.0
+	}
 
 
 func _remove_revive_prompt(peer_id: int) -> void:
 	var entry = _revive_prompts.get(peer_id)
 	if not entry:
 		return
-	if is_instance_valid(entry["panel"]):
-		entry["panel"].queue_free()
+	var panel = entry.get("panel")
+	if is_instance_valid(panel):
+		panel.queue_free()
 	_revive_prompts.erase(peer_id)
+
+
+# ── Seguimiento de sesión de revive activa ───────────────────────────
+func _on_revive_session_started(rescuer_id: int, target_id: int, duration: float) -> void:
+	if rescuer_id != _my_id:
+		return
+	var entry = _revive_prompts.get(target_id)
+	if not entry:
+		return
+	entry["active"] = true
+	entry["start_time"] = Time.get_ticks_msec() / 1000.0
+	entry["duration"] = maxf(duration, 0.001)
+	var fill = entry.get("bar_fill")
+	if is_instance_valid(fill):
+		fill.size.x = 0
+	var bg = entry.get("bar_bg")
+	if is_instance_valid(bg):
+		bg.visible = true
+
+
+func _on_revive_session_cancelled(rescuer_id: int, target_id: int) -> void:
+	if rescuer_id != _my_id:
+		return
+	var entry = _revive_prompts.get(target_id)
+	if not entry:
+		return
+	entry["active"] = false
+	var fill = entry.get("bar_fill")
+	if is_instance_valid(fill):
+		fill.size.x = 0
+
+
+func _on_revive_session_completed(rescuer_id: int, target_id: int) -> void:
+	if rescuer_id != _my_id:
+		return
+	var entry = _revive_prompts.get(target_id)
+	if entry:
+		entry["active"] = false
+		var fill = entry.get("bar_fill")
+		var bg = entry.get("bar_bg")
+		if is_instance_valid(fill) and is_instance_valid(bg):
+			fill.size.x = bg.size.x
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	await get_tree().create_timer(0.3).timeout
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	if _revive_prompts.has(target_id):
+		_remove_revive_prompt(target_id)
 
 
 func _process(_delta: float) -> void:
 	for pid in _revive_prompts.keys():
 		var entry = _revive_prompts[pid]
-		var player = entry["player"]
-		var panel = entry["panel"]
+		if not entry:
+			continue
+		var player = entry.get("player")
+		var panel = entry.get("panel")
 		if not is_instance_valid(player) or not is_instance_valid(panel):
 			_revive_prompts.erase(pid)
 			continue
@@ -345,8 +436,23 @@ func _process(_delta: float) -> void:
 			continue
 		var screen_pos = cam.get_canvas_transform() * player.global_position
 		panel.position = screen_pos + Vector2(-panel.size.x * 0.5, -80)
-		# Ocultar si el jugador local está muy lejos (fuera de rango de revive)
-		if _player_node:
+
+		# ── Animar barra de progreso ──
+		var bar_bg = entry.get("bar_bg")
+		var bar_fill = entry.get("bar_fill")
+		if is_instance_valid(bar_bg) and is_instance_valid(bar_fill):
+			if entry.get("active", false):
+				var start_time = entry.get("start_time", 0.0)
+				var duration = entry.get("duration", 0.001)
+				var elapsed = Time.get_ticks_msec() / 1000.0 - start_time
+				var progress = clampf(elapsed / duration, 0.0, 1.0)
+				bar_fill.size.x = bar_bg.size.x * progress
+				bar_bg.visible = true
+			else:
+				bar_bg.visible = false
+				bar_fill.size.x = 0
+
+		if _player_node and is_instance_valid(_player_node):
 			var dist = _player_node.global_position.distance_to(player.global_position)
 			panel.visible = dist <= 200.0
 		else:

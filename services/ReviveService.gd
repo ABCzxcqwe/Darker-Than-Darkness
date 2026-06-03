@@ -6,6 +6,10 @@ extends Node
 # { rescuer_peer_id: { "target": Node, "timer": float, "duration": float } }
 var _sessions: Dictionary = {}
 
+signal revive_started(rescuer_id: int, target_id: int, duration: float)
+signal revive_cancelled(rescuer_id: int, target_id: int)
+signal revive_completed(rescuer_id: int, target_id: int)
+
 
 func _ready() -> void:
 	if multiplayer.is_server():
@@ -129,12 +133,16 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 func _cancel(rescuer_id: int, notify: bool) -> void:
 	if not _sessions.has(rescuer_id):
 		return
-		
+
+	var session: Dictionary = _sessions[rescuer_id]
+	var target_node: Node = session.get("target")
+	var target_id: int = target_node.get_multiplayer_authority() if is_instance_valid(target_node) else -1
+
 	_sessions.erase(rescuer_id)
-	print("[ReviveService] Rescate cancelado para el peer: ", rescuer_id)
-	
+	print("[ReviveService] Rescate cancelado para el peer: ", rescuer_id, " -> target: ", target_id)
+
 	if notify:
-		rpc("_notify_revive_cancelled", rescuer_id)
+		rpc("_notify_revive_cancelled", rescuer_id, target_id)
 
 
 ## Helper para comprobar si el jugador está incapacitado en otros servicios
@@ -163,23 +171,21 @@ func _get_player(peer_id: int) -> Node:
 # ── RPCs DE SINCRONIZACIÓN VISUAL (EJECUTADOS EN CLIENTES) ─────────────
 
 @rpc("authority", "call_local", "reliable")
-func _notify_revive_started(rescuer_id: int, target_id: int, _duration: float) -> void:
+func _notify_revive_started(rescuer_id: int, target_id: int, duration: float) -> void:
 	print("[ReviveService] RPC: Rescate iniciado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id)
-	# TODO: Aquí tu UI/HUD local puede escuchar esto para pintar una barra de casteo sobre el jugador
-	# Ejemplo: CustomHUD.show_revive_bar(rescuer_id, duration)
+	revive_started.emit(rescuer_id, target_id, duration)
 
 
 @rpc("authority", "call_local", "reliable")
-func _notify_revive_cancelled(rescuer_id: int) -> void:
-	print("[ReviveService] RPC: Rescate cancelado | Rescatador: ", rescuer_id)
-	# TODO: Ocultar barra de progreso en los clientes de inmediato
-	# Ejemplo: CustomHUD.hide_revive_bar(rescuer_id)
+func _notify_revive_cancelled(rescuer_id: int, target_id: int) -> void:
+	print("[ReviveService] RPC: Rescate cancelado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id)
+	revive_cancelled.emit(rescuer_id, target_id)
 
 
 @rpc("authority", "call_local", "reliable")
 func _notify_revive_completed(rescuer_id: int, target_id: int) -> void:
 	print("[ReviveService] RPC: Rescate exitoso | ", rescuer_id, " salvó a ", target_id)
-	# TODO: Limpiar UI y lanzar efectos visuales o partículas de éxito
+	revive_completed.emit(rescuer_id, target_id)
 
 func cancel_revive(peer_id: int) -> void:
 	# Redirige el llamado antiguo a nuestra nueva lógica de interrupción por impacto
