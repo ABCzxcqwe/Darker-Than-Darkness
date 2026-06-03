@@ -16,4 +16,5 @@ move_restriction = 1
 defer_cooldown = true
 range_ = 120.0
 stun_duration = 2.5
+evolution_consume = 1
 metadata/_custom_type_script = "uid://bodks86qovy6s"

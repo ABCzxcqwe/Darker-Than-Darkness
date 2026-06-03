@@ -24,5 +24,4 @@ defer_cooldown = true
 stun_duration = 2.0
 evolved_version = ExtResource("2_counter")
 lms_auto_evolve = true
-evolution_consume = 1
 metadata/_custom_type_script = "uid://bodks86qovy6s"
