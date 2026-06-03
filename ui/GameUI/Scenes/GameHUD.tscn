@@ -8,6 +8,7 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
 border_width_left = 3
@@ -226,7 +227,7 @@ alignment = 1
 [node name="HpNumbers" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn" unique_id=1496910452]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "0/ 0"
 horizontal_alignment = 2
 vertical_alignment = 1
