@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwtbq3yak6iob"
-path="res://.godot/imported/Counter.png-b6dd83b958a5c40d73c77818e37dd574.ctex"
+uid="uid://d2ihdc7vk4w4l"
+path="res://.godot/imported/X-Slash.png-f04c3b13c06e0a1dc5092c7ae6429d43.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://abilities/kris/Counter.png"
-dest_files=["res://.godot/imported/Counter.png-b6dd83b958a5c40d73c77818e37dd574.ctex"]
+source_file="res://abilities/kris/icons/X-Slash.png"
+dest_files=["res://.godot/imported/X-Slash.png-f04c3b13c06e0a1dc5092c7ae6429d43.ctex"]
 
 [params]
 

@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://c2v0fkl6qgg03"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_06gjg"]
-[ext_resource type="Script" path="res://abilities/kris/scripts/soul_protect.gd" id="2_soul"]
-[ext_resource type="Texture2D" uid="uid://c8tiyy4304exb" path="res://abilities/kris/SoulProtect.png" id="2_t0tx1"]
-[ext_resource type="Resource" path="res://abilities/kris/Determination.tres" id="3_det"]
+[ext_resource type="Script" uid="uid://ti1q0ctb4sp7" path="res://abilities/kris/scripts/soul_protect.gd" id="2_soul"]
+[ext_resource type="Texture2D" uid="uid://c8tiyy4304exb" path="res://abilities/kris/icons/SoulProtect.png" id="2_t0tx1"]
+[ext_resource type="Resource" uid="uid://ssubeby84bcl" path="res://abilities/kris/Determination.tres" id="3_det"]
 
 [resource]
 script = ExtResource("1_06gjg")

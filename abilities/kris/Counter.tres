@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_g1bm4"]
 [ext_resource type="Script" uid="uid://bv6pwob4jk6qq" path="res://abilities/kris/scripts/Counter.gd" id="2_counter"]
-[ext_resource type="Texture2D" uid="uid://bwtbq3yak6iob" path="res://abilities/kris/Counter.png" id="2_p3k7j"]
+[ext_resource type="Texture2D" uid="uid://bwtbq3yak6iob" path="res://abilities/kris/icons/Counter.png" id="2_p3k7j"]
 
 [resource]
 script = ExtResource("1_g1bm4")

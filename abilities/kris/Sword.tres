@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_6xms1"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="2_bvern"]
 [ext_resource type="Resource" uid="uid://m5ix64pm8s8p" path="res://abilities/kris/XSlash.tres" id="3_rc3jf"]
-[ext_resource type="Texture2D" uid="uid://dilxkju3jf2mh" path="res://abilities/kris/Slash.png" id="4_bvern"]
+[ext_resource type="Texture2D" uid="uid://dilxkju3jf2mh" path="res://abilities/kris/icons/Slash.png" id="4_bvern"]
 
 [resource]
 script = ExtResource("1_6xms1")

@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://m8b312drn3s0" path="res://Hitboxes/Kris/SlashHitbox.tscn" id="1_57aa6"]
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_xe2lf"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="2_1i7br"]
-[ext_resource type="Texture2D" uid="uid://d2ihdc7vk4w4l" path="res://abilities/kris/X-Slash.png" id="3_yu7jx"]
+[ext_resource type="Texture2D" uid="uid://d2ihdc7vk4w4l" path="res://abilities/kris/icons/X-Slash.png" id="3_yu7jx"]
 
 [resource]
 script = ExtResource("1_xe2lf")
