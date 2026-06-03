@@ -16,10 +16,11 @@
 # desde el inspector (border_width_bottom = 0).
 extends PanelContainer
 
-@onready var icon_rect:   TextureRect = $HBoxContainer/IconRect
-@onready var name_label:  Label       = $HBoxContainer/NameLabel
-@onready var hp_bar:      ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
-@onready var hp_numbers:  Label       = $HBoxContainer/InfoColumn/HpNumbers
+@onready var icon_rect:    TextureRect = $HBoxContainer/IconRect
+@onready var name_label:   Label       = $HBoxContainer/NameLabel
+@onready var hp_bar:       ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
+@onready var hp_numbers:   Label       = $HBoxContainer/InfoColumn/HpNumbers
+@onready var stamina_bar:  ProgressBar = $HBoxContainer/InfoColumn/StaminaRow/StaminaBar
 
 const COLOR_OVER_MAX: Color = Color(0.9, 0.2, 0.9)  # magenta: HP sobre el máximo
 
@@ -57,6 +58,14 @@ func setup(player_node: Node) -> void:
 		hs.health_changed.connect(_on_health_changed)
 		hs.player_state_changed.connect(_on_state_changed)
 
+	# Conectar señal de StaminaService
+	var ss: Node = GameServiceLocator.get_service("StaminaService")
+	if ss:
+		ss.stamina_changed.connect(_on_stamina_changed)
+		if stamina_bar:
+			stamina_bar.max_value = data.stamina_max
+			stamina_bar.value = ss.get_stamina(_peer_id)
+
 
 func _on_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:
 	if peer_id != _peer_id:
@@ -85,6 +94,16 @@ func _on_state_changed(peer_id: int, state: String) -> void:
 			_apply_border_color(Color(0.3, 0.3, 0.3))  # gris
 		"alive":
 			_apply_border_color(_theme_color)
+
+
+func _on_stamina_changed(peer_id: int, current: float, max_stam: float) -> void:
+	if peer_id != _peer_id:
+		return
+	if not is_inside_tree():
+		return
+	if stamina_bar and is_instance_valid(stamina_bar):
+		stamina_bar.max_value = max_stam
+		stamina_bar.value = current
 
 
 # ── Internos ──────────────────────────────────────────────────────────
