@@ -426,6 +426,20 @@ func _prepare_spectator_mode() -> void:
 		#       seguir a otro jugador, UI de espectador, etc.
 
 
+func _get_corpse_container() -> Node:
+	var parent = get_parent()
+	if not parent:
+		parent = get_tree().current_scene
+	if not parent:
+		return get_tree().root
+	var container := parent.find_child("CorpseContainer", true, false)
+	if not container:
+		container = Node2D.new()
+		container.name = "CorpseContainer"
+		parent.add_child(container)
+	return container
+
+
 func play_ability_animation(anim_name: String, slot_index: int, facing_right_override: bool = true) -> void:
 	if not multiplayer.is_server():
 		return
@@ -533,13 +547,19 @@ func _sync_health(new_health: int, new_invincible_until: int) -> void:
 	if health_state == "downed":
 		speed = 0
 		if animated_sprite and last_animation != "life_down":
-			animated_sprite.play("life_down")
-			last_animation = "life_down"
+			var anim := "life_down"
+			if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
+				anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
+			animated_sprite.play(anim)
+			last_animation = anim
 	elif health_state == "dead":
 		speed = 0
-		if animated_sprite:
-			animated_sprite.play("player_dead")
-			last_animation = "player_dead"
+		if animated_sprite and is_instance_valid(animated_sprite):
+			var anim := "player_dead"
+			if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
+				anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
+			animated_sprite.play(anim)
+			last_animation = anim
 		_disable_corpse()
 		_prepare_spectator_mode()
 	elif character_data and health_state == "alive":
@@ -574,13 +594,21 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		"downed":
 			speed = 0
 			if animated_sprite:
-				animated_sprite.play("life_down")
-				last_animation = "life_down"
+				var anim := "life_down"
+				if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
+					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
+				animated_sprite.play(anim)
+				last_animation = anim
 		"dead":
 			speed = 0
-			if animated_sprite:
-				animated_sprite.play("player_dead")
-				last_animation = "player_dead"
+			if animated_sprite and is_instance_valid(animated_sprite):
+				var anim := "player_dead"
+				if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
+					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
+				animated_sprite.play(anim)
+				last_animation = anim
+				animated_sprite.reparent(_get_corpse_container(), true)
+			animated_sprite.z_index = 1
 			_disable_corpse()
 			_prepare_spectator_mode()
 

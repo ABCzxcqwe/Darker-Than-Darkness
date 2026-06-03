@@ -34,6 +34,7 @@ collision_layer = 2
 script = ExtResource("1_onrkg")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=480451931]
+z_index = 2
 sprite_frames = SubResource("SpriteFrames_4flbx")
 frame_progress = 0.421913
 
