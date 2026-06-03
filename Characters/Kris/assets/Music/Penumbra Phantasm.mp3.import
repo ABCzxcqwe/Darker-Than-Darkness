@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bbfkcvgaj6dsc"
+path="res://.godot/imported/Penumbra Phantasm.mp3-8c64d391f36436144d60acb79d4244fd.mp3str"
+
+[deps]
+
+source_file="res://Characters/Kris/assets/Music/Penumbra Phantasm.mp3"
+dest_files=["res://.godot/imported/Penumbra Phantasm.mp3-8c64d391f36436144d60acb79d4244fd.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=45.5
+bpm=0.0
+beat_count=0
+bar_beats=4

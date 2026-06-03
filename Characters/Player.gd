@@ -197,6 +197,12 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 		return
 	if not is_multiplayer_authority():
 		return
+
+	if multiplayer.is_server():
+		_play_ability_prepare(slot)
+	else:
+		rpc_id(1, "_server_prepare_ability", slot)
+
 	_pending_selection_slot = slot
 	var huds := get_tree().get_nodes_in_group("game_hud")
 	if huds.is_empty():
@@ -210,9 +216,9 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 			if _pending_selection_slot == slot:
 				_pending_selection_slot = -1
 				if multiplayer.is_server():
-					_submit_ability_selection(slot, target_peer_id)
+					AbilityRouter._dispatch_with_target(slot, target_peer_id, get_multiplayer_authority())
 				else:
-					rpc_id(1, "_submit_ability_selection", slot, target_peer_id),
+					rpc_id(1, "_confirm_ability_selection", slot, target_peer_id),
 		func() -> void:
 			if _pending_selection_slot == slot:
 				_pending_selection_slot = -1
@@ -224,20 +230,38 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 	)
 
 
+func _play_ability_prepare(slot: int) -> void:
+	if not character_data or slot < 0 or slot >= character_data.ability_slots.size():
+		return
+	var ability_data: AbilityData = character_data.ability_slots[slot]
+	if not ability_data:
+		return
+
+	if ability_data.prepare_animation != "" and ability_data.prepare_animation != null:
+		var combat = GameServiceLocator.get_service("CombatMediator")
+		if combat:
+			combat.apply_root(self, 30.0)
+		play_prepare_animation(ability_data.prepare_animation, slot, facing_right)
+
+
 @rpc("any_peer", "call_remote", "reliable")
-func _submit_ability_selection(slot: int, target_peer_id: int) -> void:
+func _confirm_ability_selection(slot: int, target_peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != get_multiplayer_authority():
 		return
-	# Registramos el target en AbilityRouter como int puro.
-	# El Router lo pasa a la habilidad via handler.pending_target_peer.
-	var caster_id := get_multiplayer_authority()
-	AbilityRouter.set_pending_target(caster_id, target_peer_id)
-	print("[Player] Target registrado | caster: ", caster_id,
-		  " → target: ", target_peer_id, " | slot: ", slot)
-	AbilityRouter._submit_ability(slot, caster_id)
+	AbilityRouter._dispatch_with_target(slot, target_peer_id, get_multiplayer_authority())
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _server_prepare_ability(slot: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != get_multiplayer_authority():
+		return
+	_play_ability_prepare(slot)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -247,6 +271,13 @@ func _cancel_ability_selection(slot: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != get_multiplayer_authority():
 		return
+
+	if state == AnimState.PREPARE and active_ability_slot == slot:
+		var combat = GameServiceLocator.get_service("CombatMediator")
+		if combat:
+			combat.remove_root(self)
+		rpc("_sync_cancel_ability")
+
 	print("[Ability] Selección cancelada: slot ", slot, " | peer: ", get_multiplayer_authority())
 
 

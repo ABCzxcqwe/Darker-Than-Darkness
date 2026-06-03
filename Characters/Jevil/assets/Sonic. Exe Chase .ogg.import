@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dmsqjlskwn7tx"
+path="res://.godot/imported/Sonic. Exe Chase .ogg-1e4656f151def40983ed3007b9e6dc25.oggvorbisstr"
+
+[deps]
+
+source_file="res://Characters/Jevil/assets/Sonic. Exe Chase .ogg"
+dest_files=["res://.godot/imported/Sonic. Exe Chase .ogg-1e4656f151def40983ed3007b9e6dc25.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

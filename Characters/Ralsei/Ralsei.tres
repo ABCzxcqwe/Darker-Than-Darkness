@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://cemfeymasjrvg"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_a3olq"]
+[ext_resource type="Script" uid="uid://dn0qwdhb4g3ra" path="res://abilities/ralsei/scripts/HealPrayer.gd" id="2_3q25y"]
+[ext_resource type="Script" uid="uid://cq35o6bhk7xxm" path="res://abilities/ralsei/scripts/Pacify.gd" id="3_qnxv5"]
+[ext_resource type="SpriteFrames" uid="uid://bwxd5203gvpts" path="res://Characters/Ralsei/animations.tres" id="4_btwx3"]
+[ext_resource type="AudioStream" uid="uid://ikhiy02k44fb" path="res://Characters/Ralsei/assets/Legend of the Dusk.mp3" id="5_1bqvb"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_qrkhd"]
+
+[sub_resource type="Resource" id="Resource_ns7fw"]
+script = ExtResource("1_a3olq")
+display_name = "Heal Prayer"
+ability_script = ExtResource("2_3q25y")
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[sub_resource type="Resource" id="Resource_gb45w"]
+script = ExtResource("1_a3olq")
+display_name = "Pacify"
+ability_script = ExtResource("3_qnxv5")
+cooldown = 20.0
+tp_cost = 15.0
+move_restriction = 1
+selection_type = 1
+stun_duration = 2.0
+slow_magnitude = 0.3
+slow_duration = 3.0
+hit_count_for_effect = 4
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("6_qrkhd")
+id = 2
+display_name = "Ralsei"
+speed = 550.0
+max_health = 80
+revive_time = 1.5
+lms_music = ExtResource("5_1bqvb")
+lms_duration = 170.0
+ability_slots = Array[ExtResource("1_a3olq")]([null, SubResource("Resource_ns7fw"), SubResource("Resource_gb45w"), null, null])
+tp_gain_time = 5.0
+animation_frames = ExtResource("4_btwx3")
+theme_color = Color(0.12078262, 0.8748105, 0, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"

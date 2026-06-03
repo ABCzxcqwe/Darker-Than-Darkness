@@ -22,11 +22,39 @@ func _ready() -> void:
 	print("[AbilityRouter] listo.")
 
 
-## Llamado por Player._submit_ability_selection para evitar el bug de
-## get_remote_sender_id() = 0 en llamadas directas.
-## peer_id se pasa explícitamente porque esta función se llama directo.
-func _submit_ability(slot_index: int, caster_id: int) -> void:
-	_process_request(slot_index, Vector2.ZERO, caster_id)
+func _dispatch_with_target(slot_index: int, target_peer_id: int, caster_id: int) -> void:
+	var player_node := _get_player_node(caster_id)
+	if not player_node:
+		return
+
+	var char_data: CharacterData = player_node.character_data
+	if not char_data or slot_index < 0 or slot_index >= char_data.ability_slots.size():
+		return
+
+	var ability_data: AbilityData = char_data.ability_slots[slot_index]
+	if not ability_data or not ability_data.ability_script:
+		return
+
+	var status = GameServiceLocator.get_service("StatusEffectService")
+	if status:
+		if status.is_silenced(caster_id):
+			return
+		if status.is_stunned(caster_id) and not ability_data.can_use_while_stunned:
+			return
+
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd and not cd.is_ready(caster_id, slot_index):
+		return
+
+	if cd and cd.has_method("start_lock"):
+		cd.start_lock(caster_id, slot_index)
+
+	var handler: AbilityBase = ability_data.ability_script.new()
+	handler.pending_target_peer = target_peer_id
+	handler.activate(player_node, ability_data, Vector2.ZERO, slot_index)
+
+	print("[AbilityRouter] '", ability_data.display_name, "' despachado directo | peer: ", caster_id,
+		  " | slot: ", slot_index, " | target: ", target_peer_id)
 
 
 @rpc("any_peer", "reliable")
@@ -183,6 +211,10 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 func _cancel_ability(peer_id: int, player_node: Node, slot_index: int,
 		ability_data: AbilityData, cd: Node) -> void:
+
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if combat:
+		combat.remove_root(player_node)
 
 	if cd and cd.has_method("release_lock"):
 		cd.release_lock(peer_id, slot_index)
