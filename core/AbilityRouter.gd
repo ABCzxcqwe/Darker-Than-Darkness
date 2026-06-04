@@ -140,6 +140,11 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	if effective_tp_cost > 0.0:
 		var tp_svc = GameServiceLocator.get_service("TPService")
 		if tp_svc and tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
+			var is_permanent: bool = base_data.evolved_version != null and base_data.evolved_version.evolution_consume == 1
+
+			if is_permanent:
+				return
+
 			if lms_wants_evolve:
 				is_evolved = false
 				lms_wants_evolve = false

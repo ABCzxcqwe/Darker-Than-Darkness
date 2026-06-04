@@ -18,8 +18,10 @@
 [ext_resource type="AudioStream" uid="uid://b3clch66tk6nx" path="res://audio/SFX/Pacify (sndspell pacify.ogg) - DELTARUNE Chapter 1 OST.mp3" id="16_pacify"]
 [ext_resource type="AudioStream" uid="uid://8epllp3jd5ot" path="res://audio/SFX/IceShock (sndicespell.ogg) - DELTARUNE Chapter 2 OST.mp3" id="17_iceshock"]
 [ext_resource type="AudioStream" uid="uid://bjhgdupdtrdw3" path="res://audio/SFX/deltarune explosion greenscreen.mp3" id="18_explosion"]
+[ext_resource type="AudioStream" uid="uid://byueu524ouhxi" path="res://audio/SFX/snd_laz_c.wav" id="19_7j6fp"]
 [ext_resource type="AudioStream" uid="uid://cie8rto47j72f" path="res://audio/SFX/snd_joker_anything.wav" id="19_jevil_anything"]
 [ext_resource type="AudioStream" uid="uid://bxiifrhb1kysq" path="res://audio/SFX/snd_joker_byebye.wav" id="20_jevil_byebye"]
+[ext_resource type="AudioStream" uid="uid://dpnksxvdqe0ml" path="res://audio/SFX/snd_equip.wav" id="20_txm0n"]
 [ext_resource type="AudioStream" uid="uid://dbqhgqki4o174" path="res://audio/SFX/snd_joker_chaos.wav" id="21_jevil_chaos"]
 [ext_resource type="AudioStream" uid="uid://bgjs5kouoj0u1" path="res://audio/SFX/snd_joker_neochaos.wav" id="22_jevil_neochaos"]
 [ext_resource type="AudioStream" uid="uid://b50mh88nebllf" path="res://audio/SFX/snd_joker_ha0.wav" id="23_jevil_ha0"]
@@ -141,6 +143,27 @@ name = "explosion"
 stream = ExtResource("18_explosion")
 metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
+[sub_resource type="Resource" id="Resource_7u4fr"]
+script = ExtResource("2_b81f2")
+id = 17
+name = "hit"
+stream = ExtResource("19_7j6fp")
+metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
+
+[sub_resource type="Resource" id="Resource_1btyq"]
+script = ExtResource("2_b81f2")
+id = 18
+name = "equip"
+stream = ExtResource("20_txm0n")
+metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
+
+[sub_resource type="Resource" id="Resource_mxc3y"]
+script = ExtResource("2_b81f2")
+id = 19
+name = "grab"
+stream = ExtResource("12_grab")
+metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
+
 [sub_resource type="Resource" id="Sfx20"]
 script = ExtResource("2_b81f2")
 id = 20
@@ -213,4 +236,4 @@ metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
 [resource]
 script = ExtResource("1_a53g7")
-sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29")])
+sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Resource_7u4fr"), SubResource("Resource_1btyq"), SubResource("Resource_mxc3y"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29")])

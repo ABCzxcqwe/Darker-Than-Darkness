@@ -103,7 +103,21 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 		if not abs_svc.is_mode_active(target_peer, slot_index):
 			continue
 
-		var ability_data: AbilityData = char_data.ability_slots[slot_index]
+		var base_data: AbilityData = char_data.ability_slots[slot_index]
+		if not base_data or not base_data.ability_script:
+			continue
+
+		var evolution_svc = GameServiceLocator.get_service("EvolutionService")
+		var is_evolved: bool = evolution_svc != null and evolution_svc.is_evolved(target_peer, slot_index)
+
+		var lms_svc = GameServiceLocator.get_service("LMSService")
+		if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
+			if lms_svc and lms_svc.is_lms_active():
+				var lms_survivor = lms_svc.get_active_survivor()
+				if lms_survivor and lms_survivor.get_multiplayer_authority() == target_peer:
+					is_evolved = true
+
+		var ability_data: AbilityData = base_data.evolved_version if (is_evolved and base_data.evolved_version) else base_data
 		if not ability_data or not ability_data.ability_script:
 			continue
 

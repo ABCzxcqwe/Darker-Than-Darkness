@@ -3,18 +3,23 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_g1bm4"]
 [ext_resource type="Script" uid="uid://bv6pwob4jk6qq" path="res://abilities/kris/scripts/Counter.gd" id="2_counter"]
 [ext_resource type="Texture2D" uid="uid://bwtbq3yak6iob" path="res://abilities/kris/icons/Counter.png" id="2_p3k7j"]
+[ext_resource type="PackedScene" uid="uid://chvfh1xeygl4l" path="res://Hitboxes/Kris/CounterHitbox.tscn" id="3_hitbox"]
 
 [resource]
 script = ExtResource("1_g1bm4")
 display_name = "Counter"
 icon = ExtResource("2_p3k7j")
 ability_script = ExtResource("2_counter")
+ability_scene = ExtResource("3_hitbox")
+action_animation = "sword_slash"
+prepare_animation = "shield"
 cooldown = 25.0
 tp_cost = 25.0
 tp_reward = 15.0
 move_restriction = 1
 defer_cooldown = true
-range_ = 120.0
-stun_duration = 2.5
+base_damage = 20
+range_ = 260.0
+stun_duration = 3.0
 evolution_consume = 1
 metadata/_custom_type_script = "uid://bodks86qovy6s"
