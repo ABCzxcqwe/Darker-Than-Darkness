@@ -8,7 +8,7 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-
+[ext_resource type="PackedScene" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
 border_width_left = 3
@@ -327,3 +327,5 @@ anchor_bottom = 0.35
 grow_horizontal = 0
 theme_override_constants/separation = 4
 script = ExtResource("4_su3ou")
+
+[node name="GameMenu" parent="." instance=ExtResource("7_abcd")]

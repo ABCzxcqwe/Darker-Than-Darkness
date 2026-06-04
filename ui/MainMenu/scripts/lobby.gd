@@ -65,7 +65,7 @@ func _on_start_pressed():
 func _on_leave_pressed():
 	if not is_inside_tree():
 		return
-	await MatchCoordinator.reset_to_menu()
+	MatchCoordinator.reset_to_menu()
 
 func _return_to_menu():
 	if is_inside_tree():

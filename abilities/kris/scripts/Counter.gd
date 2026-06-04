@@ -60,7 +60,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		"hit_limit"     : 0,
 		"lifetime"      : COUNTER_WINDOW,
 
-		"on_end": func(hit_count: int) -> void:
+		"on_end": func(_hit_count: int) -> void:
 			if not is_instance_valid(player_node):
 				return
 

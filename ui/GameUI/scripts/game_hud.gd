@@ -120,7 +120,7 @@ func setup(player_node: Node) -> void:
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
 # ── Configuración de HP del Killer ─────────────────────────────────────
-func _configure_killer_hp_visibility(_player_node: Node) -> void:
+func _configure_killer_hp_visibility(_node: Node) -> void:
 	if _my_team == "killer":
 		if killer_hp_public:
 			killer_hp_public.visible = false

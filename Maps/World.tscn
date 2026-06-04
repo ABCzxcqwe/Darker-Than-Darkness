@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://daa4836toaqm3" path="res://Maps/world.gd" id="1_eu7l1"]
 [ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
-[ext_resource type="Script" uid="uid://cg1ribo4sy37w" path="res://ui/hud/Salir.gd" id="3_bcbcq"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
 [ext_resource type="Script" uid="uid://d7mb3hfryqo1q" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
 
@@ -26,19 +25,7 @@ script = ExtResource("6_pbmw8")
 
 [node name="Projectiles" type="Node2D" parent="." unique_id=1428571429]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1545234450]
-script = ExtResource("3_bcbcq")
-
-[node name="Button" type="Button" parent="CanvasLayer" unique_id=1986817191]
-offset_left = 39.0
-offset_top = 409.0
-offset_right = 223.0
-offset_bottom = 443.0
-text = "salir"
-
 [node name="MapContainer" type="Node2D" parent="." unique_id=1029625853]
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1055310495]
 replication_config = SubResource("SceneReplicationConfig_eu7l1")
-
-[connection signal="pressed" from="CanvasLayer/Button" to="CanvasLayer" method="_on_exit_button_pressed"]
