@@ -47,7 +47,7 @@ version_control/autoload_on_startup=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/claude_3.5_sonnet_chat_api/plugin.cfg")
+enabled=PackedStringArray()
 
 [input]
 

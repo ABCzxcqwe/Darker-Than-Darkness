@@ -50,6 +50,9 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	var att_id: int = attacker.get_multiplayer_authority() if attacker else 0
 	damage_dealt.emit(att_id, target_peer, final_damage, attack_type)
 
+	if target.character_data and target.character_data.team == "survivor":
+		AudioManager.play_sfx_networked.rpc(6, target.global_position.x, target.global_position.y)
+
 	return final_damage
 
 
@@ -120,6 +123,10 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> void:
 	if not multiplayer.is_server():
 		return
+
+	if target and target.character_data and target.character_data.team == "killer":
+		var ha_id: int = 24 if randi() % 2 == 0 else 25
+		AudioManager.play_sfx_networked.rpc(ha_id, target.global_position.x, target.global_position.y)
 
 	var status = GameServiceLocator.get_service("StatusEffectService")
 	if status:

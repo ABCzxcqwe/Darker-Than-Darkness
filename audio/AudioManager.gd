@@ -51,11 +51,56 @@ const MIN_DB := -80.0
 const MAX_DB := 0.0
 
 # =======================================================================
+# SFX
+# =======================================================================
+var _sfx_library: Dictionary = {}  # int id -> AudioStream
+
+func _load_sfx_files() -> void:
+	_sfx_library.clear()
+	var library := load("res://audio/SfxLibrary.tres") as SfxLibrary
+	if not library:
+		push_error("[AudioManager] No se pudo cargar SfxLibrary.tres")
+		return
+	for entry in library.sounds:
+		if entry and entry.stream:
+			_sfx_library[entry.id] = entry.stream
+
+func play_sfx(sfx_id: int, position: Vector2) -> void:
+	var stream = _sfx_library.get(sfx_id)
+	if not stream:
+		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
+		return
+	var player := AudioStreamPlayer2D.new()
+	player.stream = stream
+	player.bus = &"SFX"
+	player.global_position = position
+	player.finished.connect(player.queue_free)
+	add_child(player)
+	player.play()
+
+func play_sfx_ui(sfx_id: int) -> void:
+	var stream = _sfx_library.get(sfx_id)
+	if not stream:
+		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
+		return
+	var player := AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = &"SFX"
+	player.finished.connect(player.queue_free)
+	add_child(player)
+	player.play()
+
+@rpc("authority", "reliable", "call_local")
+func play_sfx_networked(sfx_id: int, x: float, y: float) -> void:
+	play_sfx(sfx_id, Vector2(x, y))
+
+# =======================================================================
 # CICLO DE VIDA
 # =======================================================================
 func _ready() -> void:
 	if DisplayServer.get_name() == "headless":
 		set_process(false)
+	_load_sfx_files()
 
 func _process(delta: float) -> void:
 	if _is_disconnected_or_menu():
