@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://daa4836toaqm3" path="res://Maps/world.gd" id="1_eu7l1"]
 [ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
-[ext_resource type="Script" uid="uid://d7mb3hfryqo1q" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
+[ext_resource type="Script" uid="uid://c7gifijfjtay" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_eu7l1"]
 
@@ -18,9 +18,6 @@ spawn_limit = 7
 script = ExtResource("2_2dftf")
 
 [node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1428571428]
-_spawnable_scenes = PackedStringArray("uid://d0osfj5o7sa6u", "res://Hitboxes/Jevil/PikeHitbox.tscn")
-spawn_path = NodePath("../Projectiles")
-spawn_limit = 50
 script = ExtResource("6_pbmw8")
 
 [node name="Projectiles" type="Node2D" parent="." unique_id=1428571429]
