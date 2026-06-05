@@ -1,6 +1,11 @@
 [gd_scene format=3 uid="uid://dpa14wapsdfno"]
 
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_8rnsp"]
 [ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://ui/MainMenu/scripts/join_room.gd" id="1_rtag2"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_kkheg"]
+[ext_resource type="StyleBox" uid="uid://ddvxb23q0fnwa" path="res://ui/MainMenu/Styles/boxStyle.tres" id="3_dliil"]
+
+[sub_resource type="Theme" id="Theme_g2v7k"]
 
 [node name="JoinRoom" type="Control" unique_id=633730766]
 layout_mode = 3
@@ -9,6 +14,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_8rnsp")
 script = ExtResource("1_rtag2")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=460744096]
@@ -31,6 +37,7 @@ theme_override_constants/separation = 20
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1267778965]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_kkheg")
 theme_override_font_sizes/font_size = 32
 text = "Unirse a sala"
 horizontal_alignment = 1
@@ -52,11 +59,16 @@ max_length = 20
 [node name="JoinButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1285223474]
 custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_kkheg")
+theme_override_styles/normal = ExtResource("3_dliil")
 text = "Conectar"
 
 [node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=741992625]
 custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
+theme = SubResource("Theme_g2v7k")
+theme_override_fonts/font = ExtResource("2_kkheg")
+theme_override_styles/normal = ExtResource("3_dliil")
 text = "Volver"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1104377534]

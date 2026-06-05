@@ -157,11 +157,12 @@ func _update_proximities(player: Node, delta: float) -> void:
 
 	var occluded: bool = _check_occlusion(player.global_position, killer_node.global_position)
 
+	var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
+
 	if is_killer:
 		for s in survivors:
 			if not is_instance_valid(s): continue
 			var d: float = player.global_position.distance_to(s.global_position)
-			var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
 			if d <= chase_range:
 				if not _is_chasing:
 					_is_chasing = true
@@ -174,8 +175,6 @@ func _update_proximities(player: Node, delta: float) -> void:
 		_smooth_fade(map_music_player, MAX_DB, delta)
 		_smooth_fade(terror_music_player, MIN_DB, delta)
 		return
-
-	var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
 
 	if distance <= chase_range:
 		if not _is_chasing:

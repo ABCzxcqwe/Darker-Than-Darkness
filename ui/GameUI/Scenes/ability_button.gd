@@ -61,6 +61,7 @@ func setup(data: AbilityData, index: int, key_name: String) -> void:
 	style.border_width_top = 2
 	style.border_width_right = 2
 	style.border_width_bottom = 2
+	style.set_corner_radius_all(3)
 	style.border_color = BORDER_COLOR_NORMAL
 	style.corner_detail = PANEL_CORNER_DETAIL
 	style.expand_margin_left = 2.0

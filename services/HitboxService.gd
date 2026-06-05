@@ -93,6 +93,9 @@ func create(config: Dictionary) -> Node:
 	# Proyectil: velocidad en dirección
 	if type == "projectile":
 		hitbox.speed = speed if speed > 0.0 else 300.0
+		hitbox.detect_walls = config.get("detect_walls", false)
+		hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+		hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 
 	# Área y zona: hit_limit ilimitado por defecto
 	if type == "area" or type == "zone":
@@ -147,6 +150,9 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	hitbox.lifetime      = config.get("lifetime",      2.0)
 	hitbox.speed         = config.get("speed",         300.0)
 	hitbox.aim_mode      = config.get("aim_mode",      "fixed")
+	hitbox.detect_walls  = config.get("detect_walls",  false)
+	hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+	hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 
 	var on_hit = config.get("on_hit", Callable())
 	if on_hit.is_valid():
@@ -161,9 +167,95 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
 	hitbox.set_direction(direction)
 	hitbox.set_multiplayer_authority(1)
+	_setup_hitbox_layers(hitbox, hitbox.team_filter, attacker_node)
 
-	container.add_child(hitbox)
+	if hitbox.detect_walls:
+		hitbox.collision_mask |= 1  # capa 1 = world (paredes)
+
+	container.add_child(hitbox, true)
+
+	# Eliminar el MultiplayerSynchronizer del hitbox del servidor
+	# para que no intente replicarse a los clientes (la réplica visual
+	# se hace manualmente via RPC).
+	var sync = hitbox.get_node_or_null("MultiplayerSynchronizer")
+	if sync:
+		sync.queue_free()
+
+	# Replicar visualmente el proyectil a todos los clientes.
+	var scene_path: String = shape_scene.resource_path
+	if not scene_path.is_empty():
+		rpc("_spawn_client_hitbox", scene_path, hitbox.global_position, direction, speed, hitbox.lifetime)
+
 	return hitbox
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _spawn_client_hitbox(scene_path: String, pos: Vector2, dir: Vector2, _spd: float, lifetime: float) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	print("[HitboxService] Cliente: creando copia visual en ", pos, " dir: ", dir)
+	var world = get_tree().root.find_child("World", true, false)
+	if not world:
+		push_warning("[HitboxService] Cliente: World no encontrado")
+		return
+	var container = world.get_node_or_null("Projectiles")
+	if not container:
+		push_warning("[HitboxService] Cliente: Projectiles no encontrado")
+		return
+	var scene: PackedScene = load(scene_path)
+	if not scene:
+		push_warning("[HitboxService] Cliente: no se pudo cargar: ", scene_path)
+		return
+
+	# Instanciar la escena SIN sobreescribir el script con Hitbox.gd.
+	# En el cliente solo necesitamos la parte visual: sprite + movimiento.
+	# set_script() destruye los @onready y desactiva _physics_process en clientes,
+	# por eso se usa un Node2D wrapper que mueve al hijo instanciado.
+	var visual: Node2D = Node2D.new()
+	visual.global_position = pos
+	# Escalar según dirección horizontal para que el sprite apunte bien
+	visual.scale.x = 1.0 if dir.x >= 0.0 else -1.0
+	visual.rotation = dir.angle()
+
+	var sprite_node = scene.instantiate()
+	# Eliminar el MultiplayerSynchronizer del clon cliente si existe,
+	# ya que no debe replicar nada desde el cliente.
+	var sync_child = sprite_node.get_node_or_null("MultiplayerSynchronizer")
+	if sync_child:
+		sprite_node.remove_child(sync_child)
+		sync_child.queue_free()
+	# Desactivar colisiones — solo es visual
+	if sprite_node is Area2D or sprite_node is CollisionObject2D:
+		sprite_node.collision_layer = 0
+		sprite_node.collision_mask = 0
+		var col = sprite_node.get_node_or_null("CollisionShape2D")
+		if col:
+			col.disabled = true
+
+	visual.add_child(sprite_node)
+	container.add_child(visual)
+
+	# Reproducir animación de viaje si existe
+	var anim_sprite: AnimatedSprite2D = sprite_node.get_node_or_null("AnimatedSprite2D")
+	if anim_sprite and anim_sprite.sprite_frames and anim_sprite.sprite_frames.has_animation("travel"):
+		anim_sprite.play("travel")
+
+	print("[HitboxService] Cliente: copia creada en ", visual.global_position)
+
+	# Mover el proyectil visual en cada frame durante su lifetime
+	var speed_to_use: float = _spd if _spd > 0.0 else 300.0
+	var elapsed: float = 0.0
+	while elapsed < lifetime and is_instance_valid(visual):
+		await get_tree().process_frame
+		if not is_instance_valid(visual):
+			break
+		var d: float = get_process_delta_time()
+		visual.global_position += dir * speed_to_use * d
+		elapsed += d
+
+	if is_instance_valid(visual):
+		visual.queue_free()
 
 
 # ── Resolver dirección ─────────────────────────────────────────────────

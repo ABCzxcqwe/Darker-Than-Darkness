@@ -36,7 +36,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var cd = GameServiceLocator.get_service("CooldownService")
 
-	var stun_applied: bool = false
+	var stun_applied := [false]
 
 	hs.create({
 		"attacker_id"   : caster_id,
@@ -64,7 +64,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 						"magnitude" : slow_mag
 					})
 
-			if stun_applied:
+			if stun_applied[0]:
 				return
 
 			var total: int = abs_svc.add_hit(caster_id, slot_index)
@@ -73,7 +73,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				  " | killer: ", target_node.name)
 
 			if total >= hit_threshold:
-				stun_applied = true
+				stun_applied[0] = true
 				abs_svc.reset_hit_counter(caster_id, slot_index)
 
 				var status = GameServiceLocator.get_service("StatusEffectService")
@@ -84,7 +84,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 					  " | duración: ", stun_dur, "s"),
 
 		"on_end": func(_hit_count: int) -> void:
-			if not stun_applied:
+			if not stun_applied[0]:
 				abs_svc.reset_hit_counter(caster_id, slot_index)
 				print("[Pacify] Área expiró sin stun | hits reseteados")
 

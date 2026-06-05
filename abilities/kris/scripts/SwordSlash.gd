@@ -57,7 +57,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				player_node.rpc("_sync_cancel_ability")
 	)
 
-	var _hit_registered: bool = false
+	var _hit_registered := [false]
 
 	hs.create({
 		"attacker_id"   : attacker_id,
@@ -77,7 +77,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 			if not is_instance_valid(target_node):
 				return
 
-			_hit_registered = true
+			_hit_registered[0] = true
 
 			if dmg > 0:
 				combat.apply_damage(player_node, target_node, dmg, atk_type)

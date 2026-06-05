@@ -1,0 +1,63 @@
+[gd_resource type="Theme" format=3 uid="uid://dtmgi5yxy133u"]
+
+[ext_resource type="StyleBox" uid="uid://ddvxb23q0fnwa" path="res://ui/MainMenu/Styles/boxStyle.tres" id="1_csi2a"]
+[ext_resource type="StyleBox" uid="uid://ciakkn0ymljhk" path="res://ui/MainMenu/Styles/line.tres" id="2_paswn"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="3_fnn4a"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eqkhc"]
+bg_color = Color(0.1148968, 0.11489681, 0.1148968, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.8156863, 0.4745098, 0, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_paswn"]
+bg_color = Color(0.11372549, 0.11372549, 0.11372549, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.8156863, 0.4745098, 0, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fnn4a"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 0, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+
+[resource]
+default_font = ExtResource("3_fnn4a")
+Button/styles/focus = SubResource("StyleBoxFlat_eqkhc")
+Button/styles/hover = SubResource("StyleBoxFlat_paswn")
+Button/styles/normal = ExtResource("1_csi2a")
+Button/styles/pressed = SubResource("StyleBoxFlat_fnn4a")
+LineEdit/styles/focus = ExtResource("2_paswn")
+LineEdit/styles/normal = ExtResource("2_paswn")
+LineEdit/styles/read_only = ExtResource("2_paswn")

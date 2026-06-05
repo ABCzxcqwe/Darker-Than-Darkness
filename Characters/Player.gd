@@ -615,3 +615,21 @@ func _sync_state(new_state: String, new_health: int) -> void:
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:
+	global_position = new_pos
+	if locked:
+		state = AnimState.ABILITY
+		active_ability_slot = -1  # sin slot específico, solo bloqueo
+	else:
+		state = AnimState.IDLE
+
+
+## El servidor fuerza una posición en el cliente (usado por habilidades como Teleport).
+@rpc("any_peer", "call_local", "reliable")
+func _sync_server_position(pos: Vector2) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	global_position = pos

@@ -108,7 +108,7 @@ func _on_timer_timeout() -> void:
 
 # ─── DEATH ───────────────────────────────────────────────
 
-func _on_survivor_death(peer_id: int) -> void:
+func _on_survivor_death(_peer_id: int) -> void:
 	if current_state != State.PLAYING:
 		return
 	_timer_service.modify_time(15.0)

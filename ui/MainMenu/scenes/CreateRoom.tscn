@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bc8iwwguiwisp"]
 
 [ext_resource type="Script" uid="uid://6ftaq4i1ibhm" path="res://ui/MainMenu/scripts/create_room.gd" id="1_3nu6e"]
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_urg57"]
 
 [node name="CreateRoom" type="Control" unique_id=880270965]
 layout_mode = 3
@@ -9,6 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_urg57")
 script = ExtResource("1_3nu6e")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=974622813]

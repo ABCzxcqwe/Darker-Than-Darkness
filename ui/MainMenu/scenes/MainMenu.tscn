@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://du07rrw0bna8l"]
 
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_a0cqk"]
 [ext_resource type="Script" uid="uid://dx3k368w0kkv6" path="res://ui/MainMenu/scripts/main_menu.gd" id="1_vjtqc"]
 
 [node name="MainMenu" type="Control" unique_id=2039280906]
@@ -9,6 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_a0cqk")
 script = ExtResource("1_vjtqc")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1867195352]

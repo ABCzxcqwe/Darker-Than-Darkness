@@ -161,23 +161,23 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 			_sync_visual_to_client(peer_id, i, false)
 
 
-func _set_tp_ready(peer_id: int, slot_index: int, ready: bool) -> void:
+func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 	if not _tp_ready_slots.has(peer_id):
 		return
 	if slot_index < 0 or slot_index >= 5:
 		return
-	if _tp_ready_slots[peer_id][slot_index] == ready:
+	if _tp_ready_slots[peer_id][slot_index] == is_ready:
 		return
 
-	_tp_ready_slots[peer_id][slot_index] = ready
-	rpc_id(peer_id, "_rpc_tp_ready", slot_index, ready)
+	_tp_ready_slots[peer_id][slot_index] = is_ready
+	rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_tp_ready(slot_index: int, ready: bool) -> void:
+func _rpc_tp_ready(slot_index: int, is_ready: bool) -> void:
 	var huds = get_tree().get_nodes_in_group("game_hud")
 	if huds.is_empty():
 		return
 	var hud = huds[0]
 	if hud.has_method("visual_tp_ready"):
-		hud.visual_tp_ready(slot_index, ready)
+		hud.visual_tp_ready(slot_index, is_ready)
