@@ -624,3 +624,12 @@ func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:
 		active_ability_slot = -1  # sin slot específico, solo bloqueo
 	else:
 		state = AnimState.IDLE
+
+
+## El servidor fuerza una posición en el cliente (usado por habilidades como Teleport).
+@rpc("any_peer", "call_local", "reliable")
+func _sync_server_position(pos: Vector2) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	global_position = pos

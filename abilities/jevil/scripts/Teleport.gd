@@ -57,7 +57,6 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	# la posición del servidor durante los teleports.
 	var sync = _player_node.get_node_or_null("Synchronizer")
 	if sync:
-		sync.set_multiplayer_authority(1)
 		sync.set_process(false)
 		sync.set_physics_process(false)
 
@@ -114,10 +113,12 @@ func _do_teleport() -> bool:
 	if dir_to_target == Vector2.ZERO:
 		dir_to_target = Vector2.RIGHT
 
-	_player_node.global_position = _current_target.global_position - dir_to_target * spawn_dist
+	var new_pos: Vector2 = _current_target.global_position - dir_to_target * spawn_dist
+	_player_node.global_position = new_pos
 	_player_node.facing_right = dir_to_target.x >= 0.0
+	_player_node.rpc("_sync_server_position", new_pos)
 
-	print("[Teleport] Teletransportado a ", _player_node.global_position)
+	print("[Teleport] Teletransportado a ", new_pos)
 	_set_visible(true)
 
 	if _data and _data.prepare_animation != "":
@@ -241,13 +242,13 @@ func _finish() -> void:
 	if _combat and is_instance_valid(_player_node):
 		_combat.remove_root(_player_node)
 
-	# Restaurar el Synchronizer: reactivar sync y devolver autoridad al cliente.
+	# Forzar posición final en el cliente y reactivar el Synchronizer.
 	if is_instance_valid(_player_node):
+		_player_node.rpc("_sync_server_position", _player_node.global_position)
 		var sync = _player_node.get_node_or_null("Synchronizer")
 		if sync:
 			sync.set_process(true)
 			sync.set_physics_process(true)
-			sync.set_multiplayer_authority(_caster_id)
 
 	if _cd_svc:
 		if _cd_svc.has_method("release_lock"):
