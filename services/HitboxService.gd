@@ -93,6 +93,9 @@ func create(config: Dictionary) -> Node:
 	# Proyectil: velocidad en dirección
 	if type == "projectile":
 		hitbox.speed = speed if speed > 0.0 else 300.0
+		hitbox.detect_walls = config.get("detect_walls", false)
+		hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+		hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 
 	# Área y zona: hit_limit ilimitado por defecto
 	if type == "area" or type == "zone":
@@ -169,7 +172,7 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	if hitbox.detect_walls:
 		hitbox.collision_mask |= 1  # capa 1 = world (paredes)
 
-	container.add_child(hitbox)
+	container.add_child(hitbox, true)
 	return hitbox
 
 

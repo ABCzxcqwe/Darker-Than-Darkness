@@ -5,6 +5,14 @@ const TELEPORT_DELAY: float = 0.4
 const TIME_BETWEEN_TELEPORTS: float = 1.0
 const PIKE_IMPACT_LIFETIME: float = 0.3
 
+# Duración máxima de la habilidad completa para el root:
+# 3 × (0.2 espera + 0.4 ataque) + 2 × 1.0 entre teleports = 3.8s
+# Se usa un margen holgado para que el root no expire antes que la habilidad.
+const ROOT_DURATION: float = 5.0
+
+# Evita que el RefCounted sea recolectado mientras la habilidad está activa.
+static var _keep_alive: Array = []
+
 var _active: bool = false
 var _teleports_done: int = 0
 var _player_node: Node = null
@@ -15,6 +23,7 @@ var _current_target: Node = null
 var _hs = null
 var _cd_svc = null
 var _tp_svc = null
+var _combat = null
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -35,44 +44,70 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	_cd_svc = GameServiceLocator.get_service("CooldownService")
 	_hs = GameServiceLocator.get_service("HitboxService")
+	_combat = GameServiceLocator.get_service("CombatMediator")
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
-	if combat:
-		if not combat.stun_applied.is_connected(_on_jevil_stunned):
-			combat.stun_applied.connect(_on_jevil_stunned)
-		if not combat.damage_dealt.is_connected(_on_jevil_damaged):
-			combat.damage_dealt.connect(_on_jevil_damaged)
+	if _combat:
+		_combat.apply_root(_player_node, ROOT_DURATION)
+		if not _combat.stun_applied.is_connected(_on_jevil_stunned):
+			_combat.stun_applied.connect(_on_jevil_stunned)
+		if not _combat.damage_dealt.is_connected(_on_jevil_damaged):
+			_combat.damage_dealt.connect(_on_jevil_damaged)
+
+	# Pausar el Synchronizer para que el cliente no sobreescriba
+	# la posición del servidor durante los teleports.
+	var sync = _player_node.get_node_or_null("Synchronizer")
+	if sync:
+		sync.set_multiplayer_authority(1)
+		sync.set_process(false)
+		sync.set_physics_process(false)
 
 	print("[Teleport] Activado | caster: ", _caster_id, " | slot: ", _slot_index)
-	_start_next_teleport()
+	_keep_alive.append(self)
+	_run()
 
 
-func _start_next_teleport() -> void:
+func _run() -> void:
+	while _active and _teleports_done < MAX_TELEPORTS:
+		if not _find_and_prepare():
+			break
+		if not await _do_teleport():
+			break
+		if not await _do_attack():
+			break
+		_teleports_done += 1
+		print("[Teleport] Ataque completado ", _teleports_done, "/", MAX_TELEPORTS)
+		if _teleports_done < MAX_TELEPORTS:
+			if not await _wait(TIME_BETWEEN_TELEPORTS):
+				return
+	_finish()
+
+
+func _find_and_prepare() -> bool:
 	if not _active or not is_instance_valid(_player_node):
 		_finish()
-		return
+		return false
 
 	_current_target = _find_random_target()
 	if not _current_target:
 		print("[Teleport] No hay target vivo, terminando.")
 		_finish()
-		return
+		return false
 
 	print("[Teleport] Teleport ", _teleports_done + 1, "/", MAX_TELEPORTS, " → ", _current_target.name)
+	return true
+
+
+func _do_teleport() -> bool:
 	_set_visible(false)
 
-	var tree = _player_node.get_tree()
-	if not tree:
-		_finish()
-		return
-	tree.create_timer(0.2).timeout.connect(_do_teleport)
+	if not await _wait(0.2):
+		_set_visible(true)
+		return false
 
-
-func _do_teleport() -> void:
 	if not _active or not is_instance_valid(_player_node) or not is_instance_valid(_current_target):
 		print("[Teleport] Cancelado en _do_teleport (nodo inválido)")
-		_finish()
-		return
+		_set_visible(true)
+		return false
 
 	var spawn_dist: float = _data.range_ if _data and _data.range_ > 0 else 100.0
 	var dir_to_target: Vector2 = (_current_target.global_position - _player_node.global_position).normalized()
@@ -87,33 +122,26 @@ func _do_teleport() -> void:
 
 	if _data and _data.prepare_animation != "":
 		_player_node.play_prepare_animation(_data.prepare_animation, _slot_index, _player_node.facing_right)
-
-	var tree = _player_node.get_tree()
-	if not tree:
-		_finish()
-		return
-	tree.create_timer(TELEPORT_DELAY).timeout.connect(_do_attack)
+	return true
 
 
-func _do_attack() -> void:
+func _do_attack() -> bool:
+	if not await _wait(TELEPORT_DELAY):
+		return false
 	if not _active or not is_instance_valid(_player_node) or not is_instance_valid(_current_target):
 		print("[Teleport] Cancelado en _do_attack (nodo inválido)")
-		_finish()
-		return
+		return false
 
 	_spawn_pikes()
+	return true
 
-	_teleports_done += 1
-	print("[Teleport] Ataque completado ", _teleports_done, "/", MAX_TELEPORTS)
 
-	if _teleports_done >= MAX_TELEPORTS:
-		_finish()
-	else:
-		var tree = _player_node.get_tree()
-		if not tree:
-			_finish()
-			return
-		tree.create_timer(TIME_BETWEEN_TELEPORTS).timeout.connect(_start_next_teleport)
+func _wait(delay: float) -> bool:
+	var tree = _player_node.get_tree() if is_instance_valid(_player_node) else null
+	if not tree:
+		return false
+	await tree.create_timer(delay).timeout
+	return _active
 
 
 func _spawn_pikes() -> void:
@@ -155,8 +183,9 @@ func _spawn_pikes() -> void:
 			"impact_lifetime": PIKE_IMPACT_LIFETIME,
 			"detect_walls": true,
 			"offset": 0.0,
-			"on_hit": func(_target_node: Node) -> void:
-				pass
+			"on_hit": func(target_node: Node) -> void:
+				if is_instance_valid(target_node) and is_instance_valid(_player_node) and _combat:
+					_combat.apply_damage(_player_node, target_node, damage, _data.attack_type if _data else "normal")
 		})
 
 	if _data and _data.action_animation != "" and is_instance_valid(_player_node):
@@ -185,7 +214,6 @@ func _on_jevil_stunned(target_id: int, _duration: float) -> void:
 	if target_id != _caster_id or not _active:
 		return
 	print("[Teleport] Cancelado por stun")
-	_active = false
 	_finish()
 
 
@@ -193,7 +221,6 @@ func _on_jevil_damaged(_attacker_id: int, target_id: int, _final_damage: int, _a
 	if target_id != _caster_id or not _active:
 		return
 	print("[Teleport] Cancelado por daño")
-	_active = false
 	_finish()
 
 
@@ -209,19 +236,31 @@ func _finish() -> void:
 
 	print("[Teleport] Finalizando | slot: ", _slot_index)
 
+	_set_visible(true)
+
+	if _combat and is_instance_valid(_player_node):
+		_combat.remove_root(_player_node)
+
+	# Restaurar el Synchronizer: reactivar sync y devolver autoridad al cliente.
+	if is_instance_valid(_player_node):
+		var sync = _player_node.get_node_or_null("Synchronizer")
+		if sync:
+			sync.set_process(true)
+			sync.set_physics_process(true)
+			sync.set_multiplayer_authority(_caster_id)
+
 	if _cd_svc:
 		if _cd_svc.has_method("release_lock"):
 			_cd_svc.release_lock(_caster_id, _slot_index)
 		_cd_svc.start(_caster_id, _slot_index, _data.cooldown if _data else 10.0)
 
-	_set_visible(true)
-
 	if is_instance_valid(_player_node):
-		_player_node.rpc("_sync_cancel_ability")
+		_player_node._sync_cancel_ability.rpc()
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
-	if combat:
-		if combat.stun_applied.is_connected(_on_jevil_stunned):
-			combat.stun_applied.disconnect(_on_jevil_stunned)
-		if combat.damage_dealt.is_connected(_on_jevil_damaged):
-			combat.damage_dealt.disconnect(_on_jevil_damaged)
+	if _combat:
+		if _combat.stun_applied.is_connected(_on_jevil_stunned):
+			_combat.stun_applied.disconnect(_on_jevil_stunned)
+		if _combat.damage_dealt.is_connected(_on_jevil_damaged):
+			_combat.damage_dealt.disconnect(_on_jevil_damaged)
+
+	_keep_alive.erase(self)

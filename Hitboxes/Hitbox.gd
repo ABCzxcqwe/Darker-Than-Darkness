@@ -59,10 +59,15 @@ var _hit_targets: Array  = []
 
 # ── Inicialización ─────────────────────────────────────────────────────
 func _ready() -> void:
+	# Clientes: solo visual, sin colisión ni lógica de servidor.
 	if not multiplayer.is_server():
 		collision_layer = 0
 		collision_mask = 0
 		set_physics_process(false)
+		# Reproducir animación de viaje en clientes para que las picas sean visibles.
+		var anim_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+		if anim_sprite and anim_sprite.sprite_frames and anim_sprite.sprite_frames.has_animation("travel"):
+			anim_sprite.play("travel")
 		return
 	set_multiplayer_authority(1)
 	area_entered.connect(_on_area_entered)
