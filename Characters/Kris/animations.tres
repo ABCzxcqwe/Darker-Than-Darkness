@@ -362,5 +362,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"walk_horizontal",
-"speed": 16.0
+"speed": 10.0
 }]

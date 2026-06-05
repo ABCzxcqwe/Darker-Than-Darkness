@@ -379,6 +379,7 @@ func _physics_process(_delta: float) -> void:
 			if last_animation != anim_name:
 				animated_sprite.play(anim_name)
 				last_animation = anim_name
+			animated_sprite.speed_scale = 1.5 if _is_sprinting and is_moving else 1.0
 	else:
 		velocity = Vector2.ZERO
 

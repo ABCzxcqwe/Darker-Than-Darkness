@@ -263,7 +263,7 @@ theme_override_font_sizes/font_size = 10
 text = "       ST"
 
 [node name="StaminaBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=566906426]
-custom_minimum_size = Vector2(60, 8)
+custom_minimum_size = Vector2(150, 16)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
