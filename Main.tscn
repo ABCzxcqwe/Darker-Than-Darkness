@@ -4,3 +4,6 @@
 
 [node name="node" type="Node" unique_id=1791400161]
 script = ExtResource("1_glv2v")
+
+[node name="TitleAnimation" type="AnimatedSprite2D" parent="." unique_id=1841001417]
+position = Vector2(714, 291)

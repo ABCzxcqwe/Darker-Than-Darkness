@@ -63,10 +63,12 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -191,4 +193,5 @@ func _on_sfx_changed(value: float) -> void:
 	AudioServer.set_bus_volume_db(BUS_SFX, linear_to_db(value))
 
 func _on_exit_pressed() -> void:
+	AudioManager.play_sfx_ui(1)
 	MatchCoordinator.reset_to_menu()

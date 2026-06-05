@@ -69,10 +69,12 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 
 
@@ -108,6 +110,7 @@ func _create_character_button(char_id: int, data: CharacterData) -> void:
 
 func _on_character_clicked(char_id: int) -> void:
 	if not timer_active: return
+	AudioManager.play_sfx_ui(1)
 	selected_char_id = char_id
 
 	NetworkManager.select_character_in_screen(char_id)
@@ -139,17 +142,21 @@ func _on_lobby_updated() -> void:
 
 
 func _start_countdown() -> void:
-	while time_left > 0 and timer_active:
+	while time_left > 0 and timer_active and is_inside_tree():
 		timer_label.text = "Tiempo restante: %d" % time_left
 		await get_tree().create_timer(1.0).timeout
+		if not is_inside_tree():
+			return
 		time_left -= 1
 
-	if timer_active:
+	if timer_active and is_inside_tree():
 		_on_timeout_expired()
 
 
 func _on_timeout_expired() -> void:
 	timer_active = false
+	if not is_inside_tree():
+		return
 	timer_label.text = "¡Tiempo Terminado!"
 
 	if selected_char_id == -1 and available_char_ids.size() > 0:
@@ -159,6 +166,8 @@ func _on_timeout_expired() -> void:
 		print("[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id)
 
 	await get_tree().create_timer(1.5).timeout
+	if not is_inside_tree():
+		return
 
 	if NetworkManager.is_host:
 		_host_resolve_missing_selections()

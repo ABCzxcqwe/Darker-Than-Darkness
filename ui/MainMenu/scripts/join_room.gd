@@ -59,13 +59,16 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 
 func _on_join_pressed():
+	AudioManager.play_sfx_ui(1)
 	var _name = player_name_input.text.strip_edges()
 	var ip = ip_input.text.strip_edges()
 	if NetworkManager.join_server(_name, ip):
@@ -90,6 +93,7 @@ func _on_server_disconnected():
 	back_btn.disabled = false
 
 func _on_back_pressed():
+	AudioManager.play_sfx_ui(1)
 	NetworkManager.disconnect_from_server()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 

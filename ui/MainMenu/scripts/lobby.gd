@@ -56,10 +56,12 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 
 func _update_player_list():
@@ -98,6 +100,7 @@ func _on_server_disconnected():
 
 # En Lobby.gd, dentro de _on_start_pressed()
 func _on_start_pressed():
+	AudioManager.play_sfx_ui(1)
 	if not NetworkManager.is_host:
 		return
 	if NetworkManager.players.size() < 2:
@@ -108,6 +111,7 @@ func _on_start_pressed():
 	NetworkManager.host_start_character_selection()
 
 func _on_leave_pressed():
+	AudioManager.play_sfx_ui(1)
 	if not is_inside_tree():
 		return
 	MatchCoordinator.reset_to_menu()

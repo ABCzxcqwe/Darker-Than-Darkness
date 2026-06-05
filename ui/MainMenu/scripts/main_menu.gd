@@ -3,7 +3,6 @@ extends Control
 @onready var create_room_btn = $MarginContainer/VBoxContainer/CreateRoomButton
 @onready var join_room_btn = $MarginContainer/VBoxContainer/JoinRoomButton
 @onready var quit_btn = $MarginContainer/VBoxContainer/QuitButton
-
 var _focus_items: Array[Control] = []
 var _focus_idx := 0
 
@@ -41,10 +40,12 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
+			AudioManager.play_sfx_ui(2)
 			get_viewport().set_input_as_handled()
 
 func _full_network_reset():
@@ -69,13 +70,16 @@ func _full_network_reset():
 	await get_tree().process_frame
 	
 func _on_create_room_pressed():
+	AudioManager.play_sfx_ui(1)
 	await _full_network_reset()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/CreateRoom.tscn")
 
 func _on_join_room_pressed():
+	AudioManager.play_sfx_ui(1)
 	await _full_network_reset()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/JoinRoom.tscn")
 
 
 func _on_quit_pressed():
+	AudioManager.play_sfx_ui(1)
 	get_tree().quit()
