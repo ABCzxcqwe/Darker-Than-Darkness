@@ -10,6 +10,9 @@ extends Control
 @onready var back_btn:          Button       = $MarginContainer/VBoxContainer/BackButton
 @onready var status_label:      Label        = $MarginContainer/VBoxContainer/StatusLabel
 
+var _focus_items: Array[Control] = []
+var _focus_idx := 0
+
 # Lista de MapData cargada desde MapRegistry — mismo orden que el OptionButton
 var _available_maps: Array = []
 
@@ -17,6 +20,52 @@ func _ready() -> void:
 	_populate_map_list()
 	NetworkManager.connection_succeeded.connect(_on_server_created)
 	status_label.text = ""
+	_setup_focus()
+
+func _setup_focus() -> void:
+	var focus_style := StyleBoxFlat.new()
+	focus_style.bg_color = Color(0.114, 0.114, 0.114, 1)
+	focus_style.border_color = Color.WHITE
+	focus_style.border_width_left = 3
+	focus_style.border_width_top = 3
+	focus_style.border_width_right = 3
+	focus_style.border_width_bottom = 3
+	focus_style.set_corner_radius_all(3)
+	focus_style.set_expand_margin_all(5)
+	_focus_items = [player_name_input, map_option, create_btn, back_btn]
+	for i in _focus_items.size():
+		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
+		_focus_items[i].focus_entered.connect(_update_focus.bind(i))
+	player_name_input.grab_focus()
+	_focus_idx = 0
+
+func _update_focus(i: int) -> void:
+	_focus_idx = i
+
+func _input(event):
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		var kc = event.keycode
+		var pkc = event.physical_keycode
+		var is_w = (kc == KEY_W or pkc == KEY_W)
+		var is_s = (kc == KEY_S or pkc == KEY_S)
+
+		if (kc == KEY_ENTER or kc == KEY_KP_ENTER):
+			if _focus_idx == 0 and player_name_input.editable:
+				player_name_input.editable = false
+				get_viewport().set_input_as_handled()
+				return
+
+		if not is_w and not is_s:
+			return
+
+		if _focus_idx == 0 and player_name_input.editable:
+			return
+
+		var new_idx := _focus_idx - 1 if is_w else _focus_idx + 1
+		if new_idx >= 0 and new_idx < _focus_items.size():
+			_focus_idx = new_idx
+			_focus_items[_focus_idx].grab_focus()
+			get_viewport().set_input_as_handled()
 
 func _populate_map_list() -> void:
 	map_option.clear()
