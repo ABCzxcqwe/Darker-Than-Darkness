@@ -127,6 +127,16 @@ func _down(player_node: Node) -> void:
 		_kill(player_node)
 		return
 
+	var alive_survivor_count := 0
+	for pid in NetworkManager.players.keys():
+		if NetworkManager.players[pid].get("assigned_role") == "survivor" and is_alive(pid):
+			alive_survivor_count += 1
+
+	if alive_survivor_count <= 1:
+		print("[HealthService] Último sobreviviente caído — nadie puede revivirlo. Fin del juego.")
+		_kill(player_node)
+		return
+
 	player_node.health = 0
 	_set_state(peer_id, "downed")
 
