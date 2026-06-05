@@ -283,6 +283,8 @@ func _input(event: InputEvent) -> void:
 
 # ── Revive prompts (marcador sobre el caído con barra de progreso) ───
 func _on_player_state_changed(peer_id: int, state: String) -> void:
+	if _my_team == "killer":
+		return
 	if state == "downed":
 		var player = _find_player_by_peer_id(peer_id)
 		if player:

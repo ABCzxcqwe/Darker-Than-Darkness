@@ -1,26 +1,22 @@
 extends Control
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
-const ICON := preload("res://sprites/menu.png")
 
-const BUS_MASTER := 0
+const BUS_MUSIC := 1
 const BUS_SFX := 2
 
 var _is_open := false
 
-var menu_button: TextureButton
 var overlay: ColorRect
 var menu_panel: Panel
-var master_slider: HSlider
+var music_slider: HSlider
 var sfx_slider: HSlider
 var exit_button: Button
 
 func _ready() -> void:
 	_build_ui()
-	menu_button.pressed.connect(_toggle)
-	overlay.gui_input.connect(_on_overlay_clicked)
 	exit_button.pressed.connect(_on_exit_pressed)
-	master_slider.value_changed.connect(_on_master_changed)
+	music_slider.value_changed.connect(_on_music_changed)
 	sfx_slider.value_changed.connect(_on_sfx_changed)
 	_close()
 
@@ -34,24 +30,6 @@ func _build_ui() -> void:
 	var exit_hover := StyleBoxFlat.new()
 	exit_hover.bg_color = Color(0.7, 0.15, 0.15, 1.0)
 	exit_hover.set_corner_radius_all(4)
-
-	menu_button = TextureButton.new()
-	menu_button.name = "MenuButton"
-	menu_button.texture_normal = ICON
-	menu_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	menu_button.custom_minimum_size = Vector2(48, 48)
-	menu_button.position = Vector2(10, 10)
-	add_child(menu_button)
-
-	var esc_label := Label.new()
-	esc_label.name = "ESCLabel"
-	esc_label.text = "ESC"
-	esc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	esc_label.add_theme_font_size_override("font_size", 10)
-	esc_label.mouse_filter = MOUSE_FILTER_IGNORE
-	esc_label.position = Vector2(8, 58)
-	esc_label.size = Vector2(52, 14)
-	add_child(esc_label)
 
 	overlay = ColorRect.new()
 	overlay.name = "Overlay"
@@ -93,7 +71,7 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 32)
 	vbox.add_child(title)
 
-	master_slider = _make_row(vbox, "Master", "VOLUMEN", FONT)
+	music_slider = _make_row(vbox, "Music", "VOLUMEN", FONT)
 	sfx_slider = _make_row(vbox, "SFX", "SFX", FONT)
 
 	vbox.add_spacer(true)
@@ -148,7 +126,7 @@ func _open() -> void:
 	_is_open = true
 	overlay.visible = true
 	menu_panel.visible = true
-	master_slider.value = db_to_linear(AudioServer.get_bus_volume_db(BUS_MASTER))
+	music_slider.value = db_to_linear(AudioServer.get_bus_volume_db(BUS_MUSIC))
 	sfx_slider.value = db_to_linear(AudioServer.get_bus_volume_db(BUS_SFX))
 
 func _close() -> void:
@@ -156,15 +134,11 @@ func _close() -> void:
 	overlay.visible = false
 	menu_panel.visible = false
 
-func _on_master_changed(value: float) -> void:
-	AudioServer.set_bus_volume_db(BUS_MASTER, linear_to_db(value))
+func _on_music_changed(value: float) -> void:
+	AudioServer.set_bus_volume_db(BUS_MUSIC, linear_to_db(value))
 
 func _on_sfx_changed(value: float) -> void:
 	AudioServer.set_bus_volume_db(BUS_SFX, linear_to_db(value))
-
-func _on_overlay_clicked(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		_close()
 
 func _on_exit_pressed() -> void:
 	MatchCoordinator.reset_to_menu()
