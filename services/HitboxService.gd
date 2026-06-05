@@ -147,6 +147,9 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	hitbox.lifetime      = config.get("lifetime",      2.0)
 	hitbox.speed         = config.get("speed",         300.0)
 	hitbox.aim_mode      = config.get("aim_mode",      "fixed")
+	hitbox.detect_walls  = config.get("detect_walls",  false)
+	hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+	hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 
 	var on_hit = config.get("on_hit", Callable())
 	if on_hit.is_valid():
@@ -161,6 +164,10 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
 	hitbox.set_direction(direction)
 	hitbox.set_multiplayer_authority(1)
+	_setup_hitbox_layers(hitbox, hitbox.team_filter, attacker_node)
+
+	if hitbox.detect_walls:
+		hitbox.collision_mask |= 1  # capa 1 = world (paredes)
 
 	container.add_child(hitbox)
 	return hitbox

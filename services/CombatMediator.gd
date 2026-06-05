@@ -9,6 +9,7 @@ enum ProtectionType {
 var _protections: Dictionary = {}
 
 signal damage_dealt(attacker_id: int, target_id: int, final_damage: int, attack_type: String)
+signal stun_applied(target_id: int, duration: float)
 
 func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
 	if not multiplayer.is_server():
@@ -141,6 +142,9 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> voi
 	if target and target.character_data and target.character_data.team == "killer":
 		var ha_id: int = 24 if randi() % 2 == 0 else 25
 		AudioManager.play_sfx_networked.rpc(ha_id, target.global_position.x, target.global_position.y)
+
+	var target_peer: int = target.get_multiplayer_authority() if target else -1
+	stun_applied.emit(target_peer, duration)
 
 	var status = GameServiceLocator.get_service("StatusEffectService")
 	if status:
