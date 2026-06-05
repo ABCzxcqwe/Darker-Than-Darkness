@@ -10263,6 +10263,9 @@ sources/0 = SubResource("TileSetAtlasSource_trq3l")
 sources/3 = SubResource("TileSetAtlasSource_eg64c")
 sources/1 = SubResource("TileSetAtlasSource_i2sle")
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1h35g"]
+size = Vector2(143.5, 1431)
+
 [node name="TestMap" type="Node2D" unique_id=1731724692]
 position = Vector2(-3, -647)
 script = ExtResource("1_ailet")
@@ -10292,3 +10295,10 @@ position = Vector2(-535, 1983)
 
 [node name="Marker2D3" type="Marker2D" parent="SpawnPoints/SurvivorSpawns" unique_id=1632036384]
 position = Vector2(2168, 2079)
+
+[node name="Area2D" type="StaticBody2D" parent="." unique_id=1575985974]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=101780694]
+position = Vector2(-5406.75, 794.5)
+shape = SubResource("RectangleShape2D_1h35g")

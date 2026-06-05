@@ -314,7 +314,41 @@ enum EvolutionConsume { TEMPORARY, PERMANENT }
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 11 — MECÁNICAS FUTURAS (Reservado)
+# GRUPO 11 — CONFIGURACIÓN DE PROYECTIL
+# Estos campos se ocultan automáticamente cuando is_projectile = false.
+# ════════════════════════════════════════════════════════════════════════════
+
+const PROJECTILE_ONLY := [
+	"projectile_speed", "projectile_lifetime", "projectile_max_range",
+	"arc_angle", "projectile_piercing",
+]
+
+@export_group("Configuración de Proyectil")
+
+## Marca esta habilidad como tipo proyectil para exponer las opciones avanzadas.
+@export var is_projectile: bool = false:
+	set(value):
+		is_projectile = value
+		notify_property_list_changed()
+
+## Velocidad del proyectil en píxeles por segundo.
+@export var projectile_speed: float = 300.0
+
+## Tiempo máximo de vida del proyectil en segundos antes de desaparecer.
+@export var projectile_lifetime: float = 2.0
+
+## Distancia máxima que puede recorrer (0 = ilimitado).
+@export var projectile_max_range: float = 0.0
+
+## Ángulo de dispersión en grados (0 = disparo recto, 60 = abanico de 60°).
+@export var arc_angle: float = 0.0
+
+## Si true, el proyectil atraviesa múltiples objetivos sin desaparecer.
+@export var projectile_piercing: bool = false
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# GRUPO 12 — MECÁNICAS FUTURAS (Reservado)
 # Estos flags no tienen lógica activa todavía. Sirven para declarar la intención
 # en el inspector sin romper nada al implementarlos después.
 # ════════════════════════════════════════════════════════════════════════════
@@ -328,3 +362,8 @@ enum EvolutionConsume { TEMPORARY, PERMANENT }
 
 ## Nombre del minijuego a lanzar (usado por MinigameService cuando has_minigame = true).
 @export var minigame_id: String = ""
+
+
+func _validate_property(property: Dictionary) -> void:
+	if not is_projectile and property.name in PROJECTILE_ONLY:
+		property.usage = PROPERTY_USAGE_NO_EDITOR
