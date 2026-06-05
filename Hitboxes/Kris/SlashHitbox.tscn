@@ -3,11 +3,9 @@
 [ext_resource type="Script" uid="uid://bioqncw7plujr" path="res://Hitboxes/Kris/SlashHitbox.gd" id="1_7lxvf"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_m0kxg"]
-size = Vector2(140, 40)
+size = Vector2(140, 170)
 
 [node name="SlashHitbox" type="Area2D" unique_id=1229504788]
-rotation = -0.0017605735
-scale = Vector2(4, 4)
 collision_layer = 4
 collision_mask = 2
 script = ExtResource("1_7lxvf")
@@ -23,9 +21,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -70.0
-offset_top = -20.0
+offset_top = -85.0
 offset_right = 70.0
-offset_bottom = 20.0
+offset_bottom = 85.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(2.5990605e-06, 0.7131395, 0.7050037, 1)

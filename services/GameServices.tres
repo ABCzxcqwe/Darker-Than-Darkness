@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://cwbx7xj4uonve" path="res://services/LMSService.gd" id="10_b743d"]
 [ext_resource type="Script" uid="uid://c07hc2f0elfu4" path="res://services/TimerService.gd" id="11_scjup"]
 [ext_resource type="Script" uid="uid://t7r1otahrvm7" path="res://services/CombatMediator.gd" id="12_combat"]
-[ext_resource type="Script" uid="uid://emelqkum7dt2" path="res://services/StaminaService.gd" id="13_stamina"]
+[ext_resource type="Script" path="res://services/StaminaService.gd" id="13_stamina"]
 
 [sub_resource type="Resource" id="Resource_h33ef"]
 script = ExtResource("1_lfoov")

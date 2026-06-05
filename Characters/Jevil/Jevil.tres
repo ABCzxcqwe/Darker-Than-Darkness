@@ -6,6 +6,7 @@
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/Jevil/animations.tres" id="4_hq0h8"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Sonic. Exe Chase .ogg" id="5_r2u3k"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
+[ext_resource type="Texture2D" uid="uid://bocyfrfdi2owq" path="res://Characters/Jevil/assets/icon.png" id="6_fnfn6"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 
 [sub_resource type="Resource" id="Resource_r2u3k"]
@@ -36,6 +37,7 @@ chase_radius = 500.0
 terror_music = ExtResource("7_hq0h8")
 chase_music = ExtResource("5_r2u3k")
 ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), null, null, null, null])
+icon = ExtResource("6_fnfn6")
 animation_frames = ExtResource("4_hq0h8")
 theme_color = Color(0.5860059, 0.25085285, 1, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
