@@ -2,6 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_a0cqk"]
 [ext_resource type="Script" uid="uid://dx3k368w0kkv6" path="res://ui/MainMenu/scripts/main_menu.gd" id="1_vjtqc"]
+[ext_resource type="Texture2D" uid="uid://ccp46vnthuvpg" path="res://sprites/dark2.png" id="3_yrfys"]
 
 [node name="MainMenu" type="Control" unique_id=2039280906]
 layout_mode = 3
@@ -18,10 +19,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -93.0
-offset_top = -54.0
-offset_right = -93.0
-offset_bottom = -54.0
+offset_left = -22.0
+offset_top = 32.0
+offset_right = -22.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 100
@@ -49,6 +50,11 @@ text = "Join"
 custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
 text = "Salir"
+
+[node name="Dark2" type="Sprite2D" parent="." unique_id=1460481098]
+position = Vector2(764, 196.99998)
+scale = Vector2(7.7380953, 7.7380953)
+texture = ExtResource("3_yrfys")
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/CreateRoomButton" to="." method="_on_create_room_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/JoinRoomButton" to="." method="_on_join_room_pressed"]
