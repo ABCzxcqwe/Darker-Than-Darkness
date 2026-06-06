@@ -15,6 +15,7 @@ action_animation = "sword_slash"
 cooldown = 18.0
 cooldown_fail = 13.0
 tp_cost = 26.0
+tp_reward = 15.0
 can_use_while_stunned = true
 move_restriction = 1
 defer_cooldown = true
