@@ -25,8 +25,6 @@ func setup(player_node: Node) -> void:
 		var data: AbilityData = slots[i]
 		if not data:
 			continue
-		if i == 0 and player_node.character_data.team != "killer":
-			continue
 
 		var key_name: String = KEY_NAMES.get(i, str(i))
 		var btn := ABILITY_BUTTON_SCENE.instantiate()

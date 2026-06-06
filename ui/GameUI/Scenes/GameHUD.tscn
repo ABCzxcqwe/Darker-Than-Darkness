@@ -8,7 +8,7 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-[ext_resource type="PackedScene" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
+[ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
@@ -263,7 +263,7 @@ theme_override_font_sizes/font_size = 10
 text = "       ST"
 
 [node name="StaminaBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=566906426]
-custom_minimum_size = Vector2(150, 16)
+custom_minimum_size = Vector2(150, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -330,4 +330,5 @@ theme_override_constants/separation = 4
 script = ExtResource("4_su3ou")
 
 [node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("7_abcd")]
-layout_mode = 3
+grow_horizontal = 2
+grow_vertical = 2

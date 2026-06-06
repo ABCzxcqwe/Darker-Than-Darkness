@@ -78,7 +78,7 @@ func _ready() -> void:
 
 func set_direction(dir: Vector2) -> void:
 	_direction = dir.normalized()
-	scale.x = 1.0 if _direction.x >= 0.0 else -1.0
+	rotation = _direction.angle()
 
 # ── Proceso (solo proyectiles y attached usan _physics_process) ────────
 func _physics_process(delta: float) -> void:
