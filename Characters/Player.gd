@@ -348,6 +348,10 @@ func _physics_process(_delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	if health_state == "dead": return
 
+	if state == AnimState.IDLE or active_effects.has("free_look"):
+		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		update_facing_and_flip(mouse_dir)
+
 	if state == AnimState.IDLE:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
@@ -369,9 +373,6 @@ func _physics_process(_delta: float) -> void:
 		var sprint_mult = 1.5 if can_sprint else 1.0
 		velocity = input_dir * speed * sprint_mult
 		move_and_slide()
-
-		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-		update_facing_and_flip(mouse_dir)
 
 		if health_state == "alive":
 			var is_moving = velocity.length() > 0.1

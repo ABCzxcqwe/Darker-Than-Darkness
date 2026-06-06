@@ -38,6 +38,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			return
 
 	combat.apply_root(player_node, COUNTER_WINDOW + 2.0)
+	player_node.rpc("_sync_effect", "free_look", true)
 
 	if abs_svc:
 		abs_svc.activate_mode(caster_id, slot_index, {
@@ -72,6 +73,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 					cd.release_lock(caster_id, slot_index)
 				cd.start(caster_id, slot_index, data.cooldown)
 
+				player_node.rpc("_sync_effect", "free_look", false)
 				player_node.rpc("_sync_cancel_ability")
 	})
 
@@ -92,6 +94,7 @@ func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: 
 		return false
 
 	abs_svc.deactivate_mode(caster_id, slot_index)
+	target.rpc("_sync_effect", "free_look", false)
 
 	var combat = GameServiceLocator.get_service("CombatMediator")
 	var cd_svc = GameServiceLocator.get_service("CooldownService")
