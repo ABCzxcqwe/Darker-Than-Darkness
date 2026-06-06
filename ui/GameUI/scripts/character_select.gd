@@ -2,7 +2,7 @@ extends Control
 
 @onready var timer_label: Label = $TimerLabel
 @onready var role_label: Label = $RoleLabel
-@onready var options_container: GridContainer = $CharacterOptionsContainer
+@onready var panels_container: Control = $PanelsContainer
 @onready var selections_list: ItemList = $PlayerSelectionsList
 
 var time_left: int = 10
@@ -11,8 +11,15 @@ var available_char_ids: Array[int] = []
 var selected_char_id: int = -1
 var timer_active: bool = true
 
-var _focus_items: Array[Control] = []
 var _focus_idx := 0
+var _selection_locked := false
+
+const PANEL_TEX = {
+	0: preload("res://sprites/kris_panel.png"),
+	1: preload("res://sprites/susie_panel.png"),
+	3: preload("res://sprites/jevil_panel.png"),
+}
+
 
 func _ready() -> void:
 	add_to_group("character_select_screen")
@@ -33,94 +40,159 @@ func _ready() -> void:
 	_build_character_options()
 	_on_lobby_updated()
 	_start_countdown()
-	_setup_focus()
 
-func _setup_focus() -> void:
-	var focus_style := StyleBoxFlat.new()
-	focus_style.bg_color = Color(0.114, 0.114, 0.114, 1)
-	focus_style.border_color = Color.WHITE
-	focus_style.border_width_left = 3
-	focus_style.border_width_top = 3
-	focus_style.border_width_right = 3
-	focus_style.border_width_bottom = 3
-	focus_style.set_corner_radius_all(3)
-	focus_style.set_expand_margin_all(5)
-	_focus_items = []
-	for c in options_container.get_children():
-		if c is Button:
-			_focus_items.append(c)
-	for i in _focus_items.size():
-		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
-		_focus_items[i].focus_entered.connect(_update_focus.bind(i))
-	if _focus_items.size() > 0:
-		_focus_items[0].grab_focus()
-		_focus_idx = 0
 
-func _update_focus(i: int) -> void:
-	_focus_idx = i
+func _build_character_options() -> void:
+	for child in panels_container.get_children():
+		child.queue_free()
+
+	available_char_ids.clear()
+
+	for data in CharacterRegistry.get_all():
+		if data.team.to_lower().strip_edges() == local_role.to_lower().strip_edges():
+			available_char_ids.append(data.id)
+
+	_focus_idx = 0
+	_selection_locked = false
+
+	var border_on := StyleBoxFlat.new()
+	border_on.bg_color = Color.TRANSPARENT
+	border_on.border_color = Color.WHITE
+	border_on.border_width_left = 4
+	border_on.border_width_top = 4
+	border_on.border_width_right = 4
+	border_on.border_width_bottom = 4
+	border_on.set_corner_radius_all(4)
+
+	var border_locked := StyleBoxFlat.new()
+	border_locked.bg_color = Color.TRANSPARENT
+	border_locked.border_color = Color.YELLOW
+	border_locked.border_width_left = 4
+	border_locked.border_width_top = 4
+	border_locked.border_width_right = 4
+	border_locked.border_width_bottom = 4
+	border_locked.set_corner_radius_all(4)
+
+	var border_off := StyleBoxFlat.new()
+	border_off.bg_color = Color.TRANSPARENT
+	border_off.border_color = Color(1, 1, 1, 0)
+
+	for i in available_char_ids.size():
+		var char_id = available_char_ids[i]
+
+		var panel_wrap := PanelContainer.new()
+		panel_wrap.custom_minimum_size = Vector2(220, 330)
+		panel_wrap.add_theme_stylebox_override("panel", border_off)
+		panel_wrap.set_meta("border_on", border_on)
+		panel_wrap.set_meta("border_locked", border_locked)
+		panel_wrap.set_meta("border_off", border_off)
+
+		var tex := TextureRect.new()
+		tex.texture = PANEL_TEX.get(char_id)
+		if not tex.texture:
+			continue
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex.mouse_filter = Control.MOUSE_FILTER_STOP
+		tex.gui_input.connect(func(event: InputEvent):
+			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				AudioManager.play_sfx_ui(1)
+				_focus_idx = available_char_ids.find(char_id)
+				_confirm_selection(char_id)
+		)
+		panel_wrap.add_child(tex)
+		panels_container.add_child(panel_wrap)
+
+		panel_wrap.set_meta("char_id", char_id)
+
+	# Default-highlight first
+	if available_char_ids.size() > 0:
+		_on_character_clicked(available_char_ids[0])
+
+	_reposition_panels()
+
+
+func _reposition_panels() -> void:
+	var count = available_char_ids.size()
+	if count == 0:
+		return
+
+	var panel_w = 220
+	var gap = 40
+	var total_w = count * panel_w + (count - 1) * gap
+	var start_x = -total_w / 2 + panel_w / 2
+
+	for i in panels_container.get_child_count():
+		var child = panels_container.get_child(i)
+		child.position = Vector2(start_x + i * (panel_w + gap), -child.custom_minimum_size.y / 2)
+
+
+func _update_selection(prev_idx: int) -> void:
+	if prev_idx >= 0 and prev_idx < panels_container.get_child_count():
+		var prev = panels_container.get_child(prev_idx)
+		prev.add_theme_stylebox_override("panel", prev.get_meta("border_off"))
+
+	if _focus_idx >= 0 and _focus_idx < panels_container.get_child_count():
+		var cur = panels_container.get_child(_focus_idx)
+		cur.add_theme_stylebox_override("panel", cur.get_meta("border_on"))
+
 
 func _input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		var kc = event.keycode
 		var pkc = event.physical_keycode
-		if kc != KEY_W and kc != KEY_S and pkc != KEY_W and pkc != KEY_S:
+		var is_left = (kc == KEY_A or pkc == KEY_A or kc == KEY_LEFT or pkc == KEY_LEFT)
+		var is_right = (kc == KEY_D or pkc == KEY_D or kc == KEY_RIGHT or pkc == KEY_RIGHT)
+		var is_enter = (kc == KEY_ENTER or kc == KEY_KP_ENTER or kc == KEY_SPACE)
+
+		if _selection_locked:
 			return
 
-		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
+		if is_enter and available_char_ids.size() > 0:
+			AudioManager.play_sfx_ui(1)
+			_confirm_selection(available_char_ids[_focus_idx])
+			get_viewport().set_input_as_handled()
+			return
+
+		if not is_left and not is_right:
+			return
+
+		var prev = _focus_idx
+		if is_left and _focus_idx > 0:
 			_focus_idx -= 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(2)
-			get_viewport().set_input_as_handled()
-		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
+		elif is_right and _focus_idx < available_char_ids.size() - 1:
 			_focus_idx += 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(2)
-			get_viewport().set_input_as_handled()
+		else:
+			return
 
-
-func _build_character_options() -> void:
-	for child in options_container.get_children():
-		child.queue_free()
-
-	available_char_ids.clear()
-
-	print("[CharacterSelect] Cargando opciones desde CharacterRegistry para el rol: ", local_role)
-
-	for data in CharacterRegistry.get_all():
-		if data.team.to_lower().strip_edges() == local_role.to_lower().strip_edges():
-			print("[CharacterSelect] Personaje viable detectado: ID %d (%s)" % [data.id, data.display_name])
-			available_char_ids.append(data.id)
-			_create_character_button(data.id, data)
-
-	print("[CharacterSelect] Inicialización de botones completa. Total: ", available_char_ids.size())
-
-
-func _create_character_button(char_id: int, data: CharacterData) -> void:
-	var btn := Button.new()
-	btn.text = data.display_name
-	btn.custom_minimum_size = Vector2(120, 50)
-
-	if data.icon:
-		btn.icon = data.icon
-		btn.expand_icon = true
-
-	btn.pressed.connect(func(): _on_character_clicked(char_id))
-	options_container.add_child(btn)
+		AudioManager.play_sfx_ui(2)
+		_update_selection(prev)
+		get_viewport().set_input_as_handled()
 
 
 func _on_character_clicked(char_id: int) -> void:
-	if not timer_active: return
-	AudioManager.play_sfx_ui(1)
+	if _selection_locked or not timer_active:
+		return
+	for i in panels_container.get_child_count():
+		var wrap = panels_container.get_child(i)
+		if wrap.get_meta("char_id") == char_id:
+			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_on"))
+		else:
+			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
+	_focus_idx = available_char_ids.find(char_id)
+
+
+func _confirm_selection(char_id: int) -> void:
+	if _selection_locked or not timer_active:
+		return
+	_selection_locked = true
 	selected_char_id = char_id
-
 	NetworkManager.select_character_in_screen(char_id)
-
-	for child in options_container.get_children():
-		if child is Button:
-			if child.get_index() == available_char_ids.find(char_id):
-				child.modulate = Color.GREEN
-			else:
-				child.modulate = Color.WHITE
+	for i in panels_container.get_child_count():
+		var wrap = panels_container.get_child(i)
+		if wrap.get_meta("char_id") == char_id:
+			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_locked"))
+		else:
+			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
 
 
 func _on_lobby_updated() -> void:
@@ -162,7 +234,14 @@ func _on_timeout_expired() -> void:
 	if selected_char_id == -1 and available_char_ids.size() > 0:
 		var random_id = available_char_ids[randi() % available_char_ids.size()]
 		selected_char_id = random_id
+		_selection_locked = true
 		NetworkManager.select_character_in_screen(random_id)
+		for i in panels_container.get_child_count():
+			var wrap = panels_container.get_child(i)
+			if wrap.get_meta("char_id") == random_id:
+				wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_locked"))
+			else:
+				wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
 		print("[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id)
 
 	await get_tree().create_timer(1.5).timeout
