@@ -2,7 +2,7 @@ extends Node
 
 signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
-const EXHAUST_DURATION: float = 5.0
+const EXHAUST_DURATION: float = 2.0
 
 var _stamina: Dictionary = {}
 var _character_data: Dictionary = {}

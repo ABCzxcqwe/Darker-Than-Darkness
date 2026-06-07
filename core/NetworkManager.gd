@@ -115,6 +115,8 @@ func host_start_character_selection():
 		print("[NetworkManager] Se necesitan al menos 2 jugadores.")
 		return
 
+	randomize()
+
 	# Sorteo por puntos acumulados
 	var highest_points: int = -1
 	var candidates: Array[int] = []
