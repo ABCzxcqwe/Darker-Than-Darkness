@@ -45,6 +45,7 @@ var _on_confirm:       Callable = Callable()
 var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
+var _name_labels:      Dictionary = {}
 
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
@@ -108,6 +109,8 @@ func setup(player_node: Node) -> void:
 	if health_svc and health_svc.has_signal("player_state_changed"):
 		health_svc.player_state_changed.connect(_on_player_state_changed)
 
+	NetworkManager.player_left.connect(_on_player_left_for_label)
+
 	var revive_svc: Node = GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		if revive_svc.has_signal("revive_started"):
@@ -116,6 +119,8 @@ func setup(player_node: Node) -> void:
 			revive_svc.revive_cancelled.connect(_on_revive_session_cancelled)
 		if revive_svc.has_signal("revive_completed"):
 			revive_svc.revive_completed.connect(_on_revive_session_completed)
+
+	_create_name_labels()
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -459,6 +464,88 @@ func _process(_delta: float) -> void:
 			panel.visible = dist <= 200.0
 		else:
 			panel.visible = true
+
+	for pid in _name_labels:
+		var entry = _name_labels[pid]
+		if not entry:
+			continue
+		var player = entry.get("player")
+		var panel = entry.get("panel")
+		if not is_instance_valid(player) or not is_instance_valid(panel):
+			_name_labels.erase(pid)
+			continue
+		var cam = get_viewport().get_camera_2d()
+		if not cam:
+			continue
+		var screen_pos = cam.get_canvas_transform() * player.global_position
+		panel.position = screen_pos + Vector2(-panel.size.x * 0.5, -120)
+
+		if _player_node and is_instance_valid(_player_node):
+			var dist = _player_node.global_position.distance_to(player.global_position)
+			panel.visible = dist <= 1200.0
+		else:
+			panel.visible = true
+
+
+# ── Name labels sobre los personajes ──────────────────────────────────
+func _create_name_labels() -> void:
+	for player in get_tree().get_nodes_in_group("players"):
+		var pid = player.get_multiplayer_authority()
+		if _name_labels.has(pid) or pid == _my_id:
+			continue
+		_create_name_label(player, pid)
+
+
+func _create_name_label(player: Node, peer_id: int) -> void:
+	var name_str = NetworkManager.players.get(peer_id, {}).get("name", "Jugador %d" % peer_id)
+
+	var panel := PanelContainer.new()
+	panel.name = "NameLabel_%d" % peer_id
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.6)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color.WHITE
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_left = 3
+	style.corner_radius_bottom_right = 3
+	panel.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = name_str
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font", FONT_DELTARUNE)
+	label.add_theme_font_size_override("font_size", 12)
+	label.modulate = Color.WHITE
+	label.custom_minimum_size = Vector2(100, 20)
+
+	panel.add_child(label)
+	panel.size = Vector2(100, 22)
+
+	add_child(panel)
+	_name_labels[peer_id] = {
+		"player": player,
+		"panel": panel,
+	}
+
+
+func _remove_name_label(peer_id: int) -> void:
+	var entry = _name_labels.get(peer_id)
+	if not entry:
+		return
+	var panel = entry.get("panel")
+	if is_instance_valid(panel):
+		panel.queue_free()
+	_name_labels.erase(peer_id)
+
+
+func _on_player_left_for_label(peer_id: int) -> void:
+	_remove_name_label(peer_id)
 
 
 # ── Utilidades ─────────────────────────────────────────────────────────
