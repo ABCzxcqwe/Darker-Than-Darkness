@@ -1,7 +1,7 @@
 # res://core/NetworkManager.gd
 extends Node
 
-const MAX_PLAYERS := 4
+const MAX_PLAYERS := 5
 const PORT := 4242
 
 signal connection_succeeded()
