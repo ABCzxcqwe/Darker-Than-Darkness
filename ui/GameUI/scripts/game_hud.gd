@@ -267,7 +267,7 @@ func _input(event: InputEvent) -> void:
 		return
 
 	var cols: int = context_grid.columns if context_grid else 2
-	var is_key := event is InputEventKey and event.pressed and not event.echo
+	var is_key: bool = event is InputEventKey and event.pressed and not event.echo
 	if is_key:
 		match event.keycode:
 			KEY_S, KEY_DOWN:
