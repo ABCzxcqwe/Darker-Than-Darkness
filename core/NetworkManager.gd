@@ -17,6 +17,8 @@ var players: Dictionary = {}        # peer_id -> { name, is_host, character_id, 
 var local_player_name: String = ""
 var selected_map: String = ""
 var is_host: bool = false
+var _disconnecting := false
+
 func _ready():
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -25,10 +27,14 @@ func _ready():
 	multiplayer.server_disconnected.connect(_on_internal_server_disconnected) 
 
 func _on_internal_server_disconnected():
+	if _disconnecting:
+		return
+	_disconnecting = true
 	print("Servidor interno desconectado")
 	emit_signal("server_disconnected")
 	
 func create_server(player_name: String, map_name: String) -> bool:
+	_disconnecting = false
 	local_player_name = player_name
 	selected_map = map_name
 	is_host = true
@@ -55,6 +61,7 @@ func create_server(player_name: String, map_name: String) -> bool:
 	return true
 
 func join_server(player_name: String, ip: String = "127.0.0.1") -> bool:
+	_disconnecting = false
 	local_player_name = player_name
 	is_host = false
 
@@ -248,6 +255,9 @@ func _on_connect_fail():
 	emit_signal("connection_failed")
 
 func disconnect_from_server():
+	if _disconnecting:
+		return
+	_disconnecting = true
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null

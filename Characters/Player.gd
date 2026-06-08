@@ -143,6 +143,9 @@ func _exit_tree() -> void:
 	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)
 	var stam_svc = GameServiceLocator.get_service("StaminaService")
 	if stam_svc and peer_id != -1: stam_svc.unregister_player(peer_id)
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd and peer_id != -1 and cd.has_method("clear_player"):
+		cd.clear_player(peer_id)
 
 
 # ── Input ─────────────────────────────────────────────────────────────

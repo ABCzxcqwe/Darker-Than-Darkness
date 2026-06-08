@@ -69,10 +69,10 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 			if not is_instance_valid(player_node):
 				return
 
+			combat.remove_root(player_node)
+
 			if player_node.state != 2 or player_node.active_ability_slot != slot_index:
 				return
-
-			combat.remove_root(player_node)
 
 			var evolved_count: int = 0
 			var t_node := player_node.get_tree().root.find_child(str(target_peer_id), true, false)

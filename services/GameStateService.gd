@@ -136,7 +136,22 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 		if _lms_service and _lms_service.is_lms_active() and _lms_service.get_active_survivor() \
 				and _lms_service.get_active_survivor().get_multiplayer_authority() == peer_id:
 			_lms_service.stop_lms()
-		_evaluate_match()
+
+		# PARCHE C1: NetworkManager ya borró al peer antes de llegar aquí,
+		# así que _count_alive_survivors() lo omite y puede devolver 0 survivors
+		# totales sin detectar fin de partida. Consultamos HealthService directamente.
+		var alive_in_health := 0
+		for pid in _health_service._states.keys():
+			if not _health_service.is_dead(pid):
+				if NetworkManager.players.has(pid) and \
+				   NetworkManager.players[pid]["assigned_role"] == "survivor":
+					alive_in_health += 1
+
+		if alive_in_health == 0:
+			_timer_service.stop_timer()
+			transition_to_ended("killer_elimination")
+		else:
+			_evaluate_match()
 
 
 func _unregister_player_services(peer_id: int) -> void:

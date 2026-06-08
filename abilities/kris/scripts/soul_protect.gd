@@ -35,10 +35,10 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			if not is_instance_valid(player_node):
 				return
 
+			combat.remove_root(player_node)
+
 			if player_node.state != 2 or player_node.active_ability_slot != slot_index:
 				return
-
-			combat.remove_root(player_node)
 
 			combat.register_protection(target_peer_id, caster_id,
 				combat.ProtectionType.DAMAGE_SHARE, { "share_pct": SHARE_PCT })

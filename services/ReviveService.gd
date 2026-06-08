@@ -124,7 +124,8 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 			# Fallback directo si manejas el cambio de estado por sincronización
 			if target_node.has_method("_sync_state"):
 				var rev_hp = target_node.character_data.revive_health if target_node.character_data else 60
-				target_node.rpc("_sync_state", "alive", rev_hp)
+				if is_instance_valid(target_node):
+					target_node.rpc("_sync_state", "alive", rev_hp)
 
 	print("[ReviveService] ¡Rescate completado! ", rescuer_id, " levantó a ", target_id)
 	rpc("_notify_revive_completed", rescuer_id, target_id)

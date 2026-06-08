@@ -109,7 +109,8 @@ func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 
 
 func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
-	rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
+	if NetworkManager.players.has(peer_id):
+		rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -170,7 +171,8 @@ func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 		return
 
 	_tp_ready_slots[peer_id][slot_index] = is_ready
-	rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
+	if NetworkManager.players.has(peer_id):
+		rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
 
 
 @rpc("authority", "call_local", "reliable")
