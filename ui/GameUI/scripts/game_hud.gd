@@ -233,7 +233,8 @@ func _build_context_items(filter_peer_id: int = -1) -> void:
 		context_grid.add_child(item)
 
 		var icon: Texture2D = data.icon if data.icon else null
-		item.setup(p_id, data.display_name, icon)
+		var p_name = NetworkManager.players.get(p_id, {}).get("name", "")
+		item.setup(p_id, data.display_name, icon, p_name)
 		item.item_clicked.connect(_on_ctx_item_clicked)
 
 		_ctx_items.append(item)
@@ -266,6 +267,26 @@ func _input(event: InputEvent) -> void:
 		return
 
 	var cols: int = context_grid.columns if context_grid else 2
+	var is_key := event is InputEventKey and event.pressed and not event.echo
+	if is_key:
+		match event.keycode:
+			KEY_S, KEY_DOWN:
+				_select_ctx_item(_ctx_selected_idx + cols)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_W, KEY_UP:
+				_select_ctx_item(_ctx_selected_idx - cols)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_D, KEY_RIGHT:
+				_select_ctx_item(_ctx_selected_idx + 1)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_A, KEY_LEFT:
+				_select_ctx_item(_ctx_selected_idx - 1)
+				get_viewport().set_input_as_handled()
+				return
+
 	if event.is_action_pressed("ui_down"):
 		_select_ctx_item(_ctx_selected_idx + cols)
 		get_viewport().set_input_as_handled()

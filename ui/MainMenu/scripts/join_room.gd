@@ -70,6 +70,9 @@ func _input(event):
 func _on_join_pressed():
 	AudioManager.play_sfx_ui(1)
 	var _name = player_name_input.text.strip_edges()
+	if _name.is_empty():
+		status_label.text = "Ingresá tu nombre."
+		return
 	var ip = ip_input.text.strip_edges()
 	if NetworkManager.join_server(_name, ip):
 		# Ya no conectamos _goto_lobby aquí; la señal ya está conectada

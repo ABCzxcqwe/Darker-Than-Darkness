@@ -20,7 +20,7 @@ expand_margin_right = 3.0
 expand_margin_bottom = 3.0
 
 [node name="ContextItem" type="PanelContainer" unique_id=1850036302]
-custom_minimum_size = Vector2(100, 30)
+custom_minimum_size = Vector2(180, 30)
 anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
