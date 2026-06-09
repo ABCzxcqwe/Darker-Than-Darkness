@@ -46,6 +46,7 @@ var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
 var _name_labels:      Dictionary = {}
+var _radar_layer:      Control    = null
 
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
@@ -85,6 +86,17 @@ func setup(player_node: Node) -> void:
 	# 3. AlliesPanel
 	if allies_panel and allies_panel.has_method("setup"):
 		allies_panel.setup(my_id, _my_team)
+
+	# 4. RadarLayer
+	var radar_script := load("res://ui/GameUI/scripts/radar_layer.gd")
+	if radar_script and not _radar_layer:
+		_radar_layer = Control.new()
+		_radar_layer.name = "RadarLayer"
+		_radar_layer.set_script(radar_script)
+		_radar_layer.setup(my_id, _my_team)
+		add_child(_radar_layer)
+		_radar_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_radar_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_configure_killer_hp_visibility(player_node)
 

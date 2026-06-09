@@ -54,6 +54,9 @@ func take_damage(player_node: Node, amount: int) -> void:
 		broadcast_health_update(peer_id, 0, max_hp, "downed")
 		_down(player_node)
 	else:
+		var radar_svc = GameServiceLocator.get_service("RadarService")
+		if radar_svc:
+			radar_svc.show_hit_indicator(player_node, player_node.global_position)
 		broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
 		if is_instance_valid(player_node):
 			player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
@@ -89,6 +92,10 @@ func revive(player_node: Node) -> void:
 
 	var revive_hp: int = player_node.character_data.revive_health if player_node.character_data else 60
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
+
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.remove_down_indicator(peer_id)
 
 	player_node.health = revive_hp
 	_set_state(peer_id, "alive")
@@ -154,6 +161,10 @@ func _down(player_node: Node) -> void:
 	player_node.health = 0
 	_set_state(peer_id, "downed")
 
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.show_down_indicator(player_node)
+
 	print("[HealthService] ", peer_id, " ha caído por primera vez!")
 
 	broadcast_health_update(peer_id, 0, max_hp, "downed")
@@ -186,6 +197,10 @@ func _down(player_node: Node) -> void:
 func _kill(player_node: Node) -> void:
 	var peer_id := player_node.get_multiplayer_authority()
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
+
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.remove_down_indicator(peer_id)
 
 	_set_state(peer_id, "dead")
 	_permanently_dead[peer_id] = true

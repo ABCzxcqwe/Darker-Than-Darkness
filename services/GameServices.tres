@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://c07hc2f0elfu4" path="res://services/TimerService.gd" id="11_scjup"]
 [ext_resource type="Script" uid="uid://t7r1otahrvm7" path="res://services/CombatMediator.gd" id="12_combat"]
 [ext_resource type="Script" uid="uid://emelqkum7dt2" path="res://services/StaminaService.gd" id="13_stamina"]
+[ext_resource type="Script" path="res://services/RadarService.gd" id="14_radar"]
 
 [sub_resource type="Resource" id="Resource_h33ef"]
 script = ExtResource("1_lfoov")
@@ -94,6 +95,12 @@ service_name = "StaminaService"
 service_script = ExtResource("13_stamina")
 metadata/_custom_type_script = "uid://d2k546jgdjt66"
 
+[sub_resource type="Resource" id="Resource_radar"]
+script = ExtResource("1_lfoov")
+service_name = "RadarService"
+service_script = ExtResource("14_radar")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
 [resource]
 script = ExtResource("3_47pdd")
-entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_0nqno"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty"), SubResource("Resource_combat"), SubResource("Resource_stamina")])
+entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_0nqno"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty"), SubResource("Resource_combat"), SubResource("Resource_stamina"), SubResource("Resource_radar")])
