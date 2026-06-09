@@ -6,9 +6,9 @@
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
 "frames": [],
-"loop": true,
+"loop": false,
 "name": &"idle_horizontal",
-"speed": 2.0
+"speed": 8.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5slg2"]
@@ -37,6 +37,7 @@ script = ExtResource("1_onrkg")
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_4flbx")
 animation = &"idle_horizontal"
+frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
 zoom = Vector2(0.8, 0.8)

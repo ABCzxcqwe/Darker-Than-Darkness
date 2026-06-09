@@ -109,6 +109,8 @@ func _apply_lms_evolutions() -> void:
 func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 	if not is_active or peer_id != _lms_survivor_peer:
 		return
+	if not is_instance_valid(active_survivor):
+		return
 	if slot_index in _evolved_lms_slots:
 		var char_data = active_survivor.character_data if active_survivor else null
 		if char_data and slot_index < char_data.ability_slots.size():

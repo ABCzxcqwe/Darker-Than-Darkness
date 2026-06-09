@@ -10,15 +10,8 @@ func _ready():
 
 func start_game(player_characters: Dictionary, _map_name: String):
 	world_instance = WORLD_SCENE.instantiate()
+	world_instance.set_meta("player_characters", player_characters)
 	add_child(world_instance)
-	if multiplayer.is_server():
-		var spawner = world_instance.get_node("MultiplayerSpawner")
-		if spawner:
-			for peer_id in player_characters:
-				var char_id = player_characters[peer_id]
-				spawner.spawn([peer_id, char_id])
-		else:
-			print("ERROR: No se encontró MultiplayerSpawner en World")
 
 func cleanup():
 	if world_instance:

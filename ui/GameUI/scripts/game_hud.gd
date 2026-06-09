@@ -176,11 +176,15 @@ func visual_devolve_slot(slot_index: int) -> void:
 		ability_bar.on_slot_devolved(slot_index)
 
 func _on_slot_evolved(peer_id: int, slot_index: int) -> void:
+	if not is_instance_valid(_player_node):
+		return
 	if peer_id != _player_node.get_multiplayer_authority(): return
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
 		ability_bar.on_slot_evolved(slot_index)
 
 func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
+	if not is_instance_valid(_player_node):
+		return
 	if peer_id != _player_node.get_multiplayer_authority(): return
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
 		ability_bar.on_slot_devolved(slot_index)

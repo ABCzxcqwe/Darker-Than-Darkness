@@ -19,9 +19,17 @@ func _ready() -> void:
 
 	await _load_map()
 
-	# Si somos el servidor, posicionamos a los personajes en sus respectivos spawns
+	# Spawnear jugadores AHORA que el mapa ya está cargado
 	if multiplayer.is_server():
-		# Esperamos un frame adicional para dar tiempo a que los nodos del Spawner se estabilicen
+		var player_characters = get_meta("player_characters", {})
+		var spawner = $MultiplayerSpawner
+		if spawner:
+			for peer_id in player_characters:
+				var char_id = player_characters[peer_id]
+				spawner.spawn([peer_id, char_id])
+		else:
+			push_error("[World] No se encontró MultiplayerSpawner")
+
 		await get_tree().process_frame
 		_position_players_in_spawns()
 
