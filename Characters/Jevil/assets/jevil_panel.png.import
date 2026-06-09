@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3xhknxqvva27"
-path="res://.godot/imported/susie_panel.png-234ed778320fa971e3ff27384e3d678a.ctex"
+uid="uid://cekacln1fbfw1"
+path="res://.godot/imported/jevil_panel.png-2201ad2e7578c6f81f3267ef87df19c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprites/susie_panel.png"
-dest_files=["res://.godot/imported/susie_panel.png-234ed778320fa971e3ff27384e3d678a.ctex"]
+source_file="res://Characters/Jevil/assets/jevil_panel.png"
+dest_files=["res://.godot/imported/jevil_panel.png-2201ad2e7578c6f81f3267ef87df19c5.ctex"]
 
 [params]
 

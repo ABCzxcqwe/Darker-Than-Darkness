@@ -86,6 +86,7 @@ const KILLER_ONLY := [
 
 @export_group("Visuales")
 @export var icon: Texture2D
+@export var panel_texture: Texture2D
 @export var animation_frames: SpriteFrames
 ## Color temático del personaje — se usa en la barra de HP y bordes del panel.
 ## Ejemplos: Kris = cian, Susie = magenta, Ralsei = verde claro.

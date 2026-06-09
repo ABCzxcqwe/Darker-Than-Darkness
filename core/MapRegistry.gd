@@ -1,49 +1,43 @@
 # res://core/MapRegistry.gd
-# Escanea res://Maps/ al iniciar y carga todos los MapData que encuentre.
-# Convención: cada mapa vive en su propia carpeta con un map_data.tres:
-#   res://Maps/NombreDelMapa/map_data.tres
-#
-# Se accede via: MapRegistry.get_map("forest_map")
+# Carga la base de datos central de mapas desde un archivo .tres único.
+# Se accede via: MapRegistry.get_map("id_del_mapa")
 extends Node
+
+const DB_PATH := "res://Maps/WorldDatabase.tres"
 
 # { id: String → MapData }
 var maps: Dictionary = {}
 
 func _ready() -> void:
-	_scan_maps()
+	_load_database()
 
 
-func _scan_maps() -> void:
-	var dir := DirAccess.open("res://Maps/")
-	if not dir:
-		push_error("[MapRegistry] No se pudo abrir res://Maps/")
+func _load_database() -> void:
+	if not ResourceLoader.exists(DB_PATH):
+		push_error("[MapRegistry] CRÍTICO: No existe la base de datos en: " + DB_PATH)
 		return
 
-	dir.list_dir_begin()
-	var folder := dir.get_next()
+	var db: WorldDatabase = load(DB_PATH) as WorldDatabase
+	if not db:
+		push_error("[MapRegistry] CRÍTICO: El archivo en path no es un WorldDatabase válido.")
+		return
 
-	while folder != "":
-		if dir.current_is_dir() and not folder.begins_with("."):
-			var path := "res://Maps/%s/map_data.tres" % folder
-			if ResourceLoader.exists(path):
-				var data: MapData = load(path)
-				if data:
-					if data.id == "":
-						push_warning("[MapRegistry] '", folder, "' tiene id vacío — ignorando.")
-					elif maps.has(data.id):
-						push_warning("[MapRegistry] ID duplicado '", data.id,
-								"' en '", folder, "' — ignorando.")
-					else:
-						maps[data.id] = data
-						print("[MapRegistry] ✓ '", folder, "' cargado (id: '", data.id, "')")
-				else:
-					push_warning("[MapRegistry] No se pudo cargar: ", path)
-			else:
-				push_warning("[MapRegistry] '", folder, "' no tiene map_data.tres — ignorando.")
-		folder = dir.get_next()
+	maps.clear()
 
-	dir.list_dir_end()
-	print("[MapRegistry] Total mapas cargados: ", maps.size())
+	for data in db.map_list:
+		if not data:
+			push_warning("[MapRegistry] Se encontró un slot vacío (null) en la lista de la base de datos.")
+			continue
+
+		if data.id == "":
+			push_warning("[MapRegistry] '", data.resource_path.get_file(), "' tiene id vacío — ignorando.")
+		elif maps.has(data.id):
+			push_warning("[MapRegistry] ID duplicado '", data.id, "' — ignorando.")
+		else:
+			maps[data.id] = data
+			print("[MapRegistry] ✓ '", data.display_name, "' cargado (id: '", data.id, "')")
+
+	print("[MapRegistry] Total mapas cargados desde archivo único: ", maps.size())
 
 
 # ── API pública ────────────────────────────────────────────────────────
