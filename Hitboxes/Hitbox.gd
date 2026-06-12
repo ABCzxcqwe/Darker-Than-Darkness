@@ -159,8 +159,6 @@ func _do_impact(timeout_expire: bool = false) -> void:
 		get_tree().create_timer(impact_lifetime).timeout.connect(_expire)
 	else:
 		_expire()
-
-
 # ── Expiración ─────────────────────────────────────────────────────────
 func _expire() -> void:
 	if _expired:

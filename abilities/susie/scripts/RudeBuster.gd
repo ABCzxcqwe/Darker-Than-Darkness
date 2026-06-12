@@ -4,6 +4,8 @@ const PROJECTILE_SPEED: float = 1000.0
 
 const PROJECTILE_LIFETIME: float = 2.0
 
+const IMPACT_LIFETIME: float = 0.3
+
 
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
@@ -22,13 +24,14 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var dmg: int         = int(data.base_damage * data.evo_damage_multiplier)
 	var atk_type: String = data.attack_type
 	var stun_dur: float  = data.stun_duration + data.evo_status_duration_bonus
+	var tp_reward: float = data.tp_reward
 
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(attacker_id, data.tp_cost):
 			push_warning("[RudeBuster] consume_tp falló inesperadamente para peer ", attacker_id)
 			return
 
-	var hit_limit: int = 0 if dmg > 0 else 1
+	var hit_limit: int = 1
 
 	var proj_dir: Vector2 = direction.normalized()
 	if proj_dir == Vector2.ZERO:
@@ -48,6 +51,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		"lifetime"      : PROJECTILE_LIFETIME,
 		"speed"         : PROJECTILE_SPEED,
 		"offset"        : 0.0,
+		"impact_lifetime": IMPACT_LIFETIME,
 
 		"on_hit": func(target_node: Node) -> void:
 			if not is_instance_valid(target_node):
@@ -62,6 +66,8 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				var status = GameServiceLocator.get_service("StatusEffectService")
 				if status and stun_dur > 0.0:
 					status.apply(target_node, "stun", { "duration": stun_dur })
+				if tp_reward > 0.0 and tp_svc:
+					tp_svc.add_tp_custom(attacker_id, tp_reward)
 
 			if cd and cd.has_method("release_lock"):
 				cd.release_lock(attacker_id, slot_index)
@@ -83,4 +89,4 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		  " | dir: ", proj_dir,
 		  " | dmg: ", dmg,
 		  " | stun: ", stun_dur, "s",
-		  " | piercing: ", hit_limit == 0)
+		  " | tp_reward: ", tp_reward)

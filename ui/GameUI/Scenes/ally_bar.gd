@@ -33,6 +33,12 @@ func setup(player_node: Node) -> void:
 	_apply_bar_color("alive")
 	_apply_border_color(_theme_color)
 
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	if coord and coord.has_player_escaped(_peer_id):
+		if name_label: name_label.text = "★ ESCAPED ★"
+		_apply_bar_color("escaped")
+		_apply_border_color(Color(0.0, 0.8, 0.8))
+
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.health_changed.connect(_on_health_changed)
@@ -61,6 +67,9 @@ func _on_state_changed(peer_id: int, state: String) -> void:
 			if name_label: name_label.modulate = Color(0.3, 0.3, 0.3)
 			_apply_border_color(Color(0.2, 0.2, 0.2))
 			modulate.a = 0.35
+		"escaped":
+			if name_label: name_label.text = "★ ESCAPED ★"
+			_apply_border_color(Color(0.0, 0.8, 0.8))
 		"alive":
 			if name_label: name_label.modulate = Color.WHITE
 			_apply_border_color(_theme_color)
@@ -72,9 +81,10 @@ func _apply_bar_color(state: String) -> void:
 		return
 	var color: Color
 	match state:
-		"downed": color = Color(1.0, 0.5, 0.0)
-		"dead":   color = Color(0.3, 0.3, 0.3)
-		_:        color = _theme_color
+		"downed":  color = Color(1.0, 0.5, 0.0)
+		"dead":    color = Color(0.3, 0.3, 0.3)
+		"escaped": color = Color(0.0, 0.8, 0.8)
+		_:         color = _theme_color
 	var sb = hp_bar.get_theme_stylebox("fill").duplicate()
 	if sb is StyleBoxFlat:
 		sb.bg_color = color

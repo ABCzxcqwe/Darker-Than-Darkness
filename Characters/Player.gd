@@ -25,6 +25,7 @@ var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var _pending_selection_slot: int = -1
+var aiming_slot: int = -1
 var _is_sprinting: bool = false
 var is_spectator: bool = false
 
@@ -161,6 +162,16 @@ func _input(event: InputEvent) -> void:
 		"ability_4": 4,
 		"ability_0": 0,
 	}
+
+	if event.is_action_pressed("confirm") and aiming_slot >= 0:
+		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
+		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		if multiplayer.is_server():
+			AbilityRouter.request_ability(aiming_slot, mouse_dir)
+		else:
+			AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+		aiming_slot = -1
+		return
 
 	for action in action_map:
 		if event.is_action_pressed(action):
@@ -615,6 +626,11 @@ func _sync_speed(new_speed: float) -> void:
 	speed = new_speed
 
 
+@rpc("authority", "call_local", "reliable")
+func _sync_aiming_mode(slot: int, active: bool) -> void:
+	aiming_slot = slot if active else -1
+
+
 @rpc("any_peer", "call_local", "reliable")
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
@@ -657,6 +673,27 @@ func _sync_state(new_state: String, new_health: int) -> void:
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_escape() -> void:
+	var caller = multiplayer.get_remote_sender_id()
+	if caller != 0 and caller != 1:
+		return
+	visible = false
+	_disable_corpse()
+	_prepare_spectator_mode()
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	if coord and not coord.has_player_escaped(get_multiplayer_authority()):
+		if coord.has_method("_register_escaped"):
+			coord._register_escaped(get_multiplayer_authority())
+	var hud = get_tree().get_first_node_in_group("game_hud")
+	if hud and hud.has_method("_remove_name_label"):
+		hud._remove_name_label(get_multiplayer_authority())
+	var hs = GameServiceLocator.get_service("HealthService")
+	if hs:
+		hs.player_state_changed.emit(get_multiplayer_authority(), "escaped")
+
 
 @rpc("authority", "call_local", "reliable")
 func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:

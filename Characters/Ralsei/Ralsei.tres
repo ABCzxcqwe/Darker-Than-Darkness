@@ -4,13 +4,15 @@
 [ext_resource type="Script" uid="uid://dn0qwdhb4g3ra" path="res://abilities/ralsei/scripts/HealPrayer.gd" id="2_3q25y"]
 [ext_resource type="Script" uid="uid://cq35o6bhk7xxm" path="res://abilities/ralsei/scripts/Pacify.gd" id="3_qnxv5"]
 [ext_resource type="SpriteFrames" uid="uid://bwxd5203gvpts" path="res://Characters/Ralsei/animations.tres" id="4_btwx3"]
-[ext_resource type="AudioStream" uid="uid://ikhiy02k44fb" path="res://Characters/Ralsei/assets/Legend of the Dusk.mp3" id="5_1bqvb"]
+[ext_resource type="AudioStream" uid="uid://b3imse5pxqpel" path="res://Characters/Ralsei/assets/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3" id="5_o4xcy"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_qrkhd"]
+[ext_resource type="Texture2D" uid="uid://c2miw4xqye6gd" path="res://Characters/Ralsei/assets/ralsei.png" id="6_t4xhp"]
 
 [sub_resource type="Resource" id="Resource_ns7fw"]
 script = ExtResource("1_a3olq")
 display_name = "Heal Prayer"
 ability_script = ExtResource("2_3q25y")
+spawn_delay = null
 metadata/_custom_type_script = "uid://bodks86qovy6s"
 
 [sub_resource type="Resource" id="Resource_gb45w"]
@@ -21,6 +23,7 @@ cooldown = 20.0
 tp_cost = 15.0
 move_restriction = 1
 selection_type = 1
+spawn_delay = null
 stun_duration = 2.0
 slow_magnitude = 0.3
 slow_duration = 3.0
@@ -29,15 +32,15 @@ metadata/_custom_type_script = "uid://bodks86qovy6s"
 
 [resource]
 script = ExtResource("6_qrkhd")
-id = 2
+id = 3
 display_name = "Ralsei"
 speed = 550.0
 max_health = 80
-revive_time = 1.5
-lms_music = ExtResource("5_1bqvb")
-lms_duration = 170.0
+lms_music = ExtResource("5_o4xcy")
+lms_duration = 164.0
 ability_slots = Array[ExtResource("1_a3olq")]([null, SubResource("Resource_ns7fw"), SubResource("Resource_gb45w"), null, null])
-tp_gain_time = 5.0
+tp_gain_time = 0.8
+panel_texture = ExtResource("6_t4xhp")
 animation_frames = ExtResource("4_btwx3")
 theme_color = Color(0.12078262, 0.8748105, 0, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"

@@ -167,6 +167,9 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Alcance del hitbox en píxeles desde el centro del caster.
 @export var range_: float = 100.0
 
+## Retraso en segundos entre la animación de lanzamiento y la aparición del proyectil.
+@export var spawn_delay: float = 0.0
+
 ## Tipo de ataque para el sistema de invencibilidad de HealthService.
 ## Debe coincidir con los valores que verifica CharacterData.special_defense_against.
 @export var attack_type: String = "normal"

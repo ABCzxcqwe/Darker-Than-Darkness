@@ -167,11 +167,11 @@ func _on_character_clicked(char_id: int) -> void:
 	if _selection_locked or not timer_active:
 		return
 	for i in panels_container.get_child_count():
-		var wrap = panels_container.get_child(i)
-		if wrap.get_meta("char_id") == char_id:
-			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_on"))
+		var _wrap = panels_container.get_child(i)
+		if _wrap.get_meta("char_id") == char_id:
+			_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_on"))
 		else:
-			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
+			_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_off"))
 	_focus_idx = available_char_ids.find(char_id)
 
 
@@ -182,11 +182,11 @@ func _confirm_selection(char_id: int) -> void:
 	selected_char_id = char_id
 	NetworkManager.select_character_in_screen(char_id)
 	for i in panels_container.get_child_count():
-		var wrap = panels_container.get_child(i)
-		if wrap.get_meta("char_id") == char_id:
-			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_locked"))
+		var _wrap = panels_container.get_child(i)
+		if _wrap.get_meta("char_id") == char_id:
+			_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_locked"))
 		else:
-			wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
+			_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_off"))
 
 
 func _on_lobby_updated() -> void:
@@ -231,11 +231,11 @@ func _on_timeout_expired() -> void:
 		_selection_locked = true
 		NetworkManager.select_character_in_screen(random_id)
 		for i in panels_container.get_child_count():
-			var wrap = panels_container.get_child(i)
-			if wrap.get_meta("char_id") == random_id:
-				wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_locked"))
+			var _wrap = panels_container.get_child(i)
+			if _wrap.get_meta("char_id") == random_id:
+				_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_locked"))
 			else:
-				wrap.add_theme_stylebox_override("panel", wrap.get_meta("border_off"))
+				_wrap.add_theme_stylebox_override("panel", _wrap.get_meta("border_off"))
 		print("[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id)
 
 	await get_tree().create_timer(1.5).timeout

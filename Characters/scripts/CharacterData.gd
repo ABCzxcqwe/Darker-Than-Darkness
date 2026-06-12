@@ -7,7 +7,7 @@ const SURVIVOR_ONLY := [
 	"bleed_out_time", "can_be_executed",
 	"revive_health", "revive_time", "revive_range",
 	"lms_music", "lms_duration", "lms_heal_amount",
-	"lms_damage_resistance",
+	"lms_damage_resistance", "lms_exit_timer_threshold",
 ]
 
 const KILLER_ONLY := [
@@ -55,6 +55,7 @@ const KILLER_ONLY := [
 @export var lms_duration: float = 140.0
 @export var lms_heal_amount: int = 60
 @export var lms_damage_resistance: float = 0.0
+@export var lms_exit_timer_threshold: float = 30.0
 
 
 @export_group("Killer State")

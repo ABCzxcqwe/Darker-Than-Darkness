@@ -46,17 +46,18 @@ func is_in_game() -> bool:
 
 func transition_to_playing() -> void:
 	_connect_services()
+	_add_start_of_match_points()
 	_set_state(State.PLAYING)
 	_setup_map_audio()
 	_start_timer()
 	_evaluate_match()
 
 
-func transition_to_ended(reason: String) -> void:
+func transition_to_ended(reason: String, extra: Dictionary = {}) -> void:
 	_set_state(State.ENDED)
 	_cleanup_match_audio()
 	_calculate_killer_points(reason)
-	_go_to_stats(reason)
+	_go_to_stats(reason, extra)
 
 
 # ─── AUDIO ────────────────────────────────────────────────
@@ -103,7 +104,16 @@ func _on_timer_timeout() -> void:
 		return
 	if _lms_service and _lms_service.is_lms_active():
 		_lms_service.stop_lms()
-	transition_to_ended("survivors_escaped")
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	var escaped = coord.get_escaped_count() if coord else 0
+	var total_survivors := 0
+	for pid in NetworkManager.players:
+		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+			total_survivors += 1
+	transition_to_ended("survivors_escaped", {
+		"escaped_count": escaped,
+		"total_survivors": total_survivors
+	})
 
 
 # ─── DEATH ───────────────────────────────────────────────
@@ -175,7 +185,18 @@ func _evaluate_match() -> void:
 	var alive = _count_alive_survivors()
 	if alive == 0:
 		_timer_service.stop_timer()
-		transition_to_ended("killer_elimination")
+		var coord = GameServiceLocator.get_service("MapEventCoordinator")
+		if coord and coord.get_escaped_count() > 0:
+			var total_survivors := 0
+			for pid in NetworkManager.players:
+				if NetworkManager.players[pid]["assigned_role"] == "survivor":
+					total_survivors += 1
+			transition_to_ended("survivors_escaped", {
+				"escaped_count": coord.get_escaped_count(),
+				"total_survivors": total_survivors
+			})
+		else:
+			transition_to_ended("killer_elimination")
 	elif alive == 1:
 		var survivor = _find_last_survivor()
 		var killer = _find_killer_node()
@@ -185,17 +206,22 @@ func _evaluate_match() -> void:
 
 func _count_alive_survivors() -> int:
 	var count := 0
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
 	for pid in NetworkManager.players:
 		if NetworkManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
+				if coord and coord.has_player_escaped(pid):
+					continue
 				count += 1
 	return count
 
 
 func _find_last_survivor() -> Node:
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
 	for p in get_tree().get_nodes_in_group("players"):
 		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
-			if not _health_service.is_dead(p.get_multiplayer_authority()):
+			var pid = p.get_multiplayer_authority()
+			if not _health_service.is_dead(pid) and not (coord and coord.has_player_escaped(pid)):
 				return p
 	return null
 
@@ -229,6 +255,19 @@ func evaluate_sudden_death_condition() -> void:
 			_ending_sequence_started = false
 
 
+# ─── START MATCH ─────────────────────────────────────────
+
+func _add_start_of_match_points() -> void:
+	if not multiplayer.is_server():
+		return
+	for pid in NetworkManager.players:
+		var role = NetworkManager.players[pid]["assigned_role"]
+		if role == "killer":
+			NetworkManager.players[pid]["killer_points"] = 0
+		else:
+			NetworkManager.players[pid]["killer_points"] += 1
+
+
 # ─── END MATCH ───────────────────────────────────────────
 
 func _calculate_killer_points(reason: String) -> void:
@@ -236,13 +275,17 @@ func _calculate_killer_points(reason: String) -> void:
 		if not NetworkManager.players.has(pid):
 			continue
 		var role = NetworkManager.players[pid]["assigned_role"]
-		if reason == "survivors_escaped":
-			NetworkManager.players[pid]["killer_points"] += 10 if role == "survivor" else 40
-		elif reason == "killer_elimination":
-			NetworkManager.players[pid]["killer_points"] += 5 if role == "killer" else 25
+		if role == "killer":
+			if reason == "killer_elimination":
+				NetworkManager.players[pid]["killer_points"] += 1
+		elif role == "survivor":
+			if _health_service and _health_service.is_dead(pid):
+				NetworkManager.players[pid]["killer_points"] += 1
+			else:
+				NetworkManager.players[pid]["killer_points"] += 2
 
 
-func _go_to_stats(reason: String) -> void:
+func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
 	var final_time := 0.0
 	if _timer_service:
 		final_time = _timer_service.time_left
@@ -251,4 +294,6 @@ func _go_to_stats(reason: String) -> void:
 		"time_left": final_time,
 		"players_snapshot": NetworkManager.players.duplicate(true)
 	}
+	if not extra.is_empty():
+		stats_data.merge(extra)
 	MatchCoordinator.rpc("_go_to_stats_screen", stats_data)

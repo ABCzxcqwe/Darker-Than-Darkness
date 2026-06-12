@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://d0osfj5o7sa6u"]
 
-[ext_resource type="Script" uid="uid://bsmhem2wp6kub" path="res://Hitboxes/Susie/AxeHitbox.gd" id="1_wssi0"]
 [ext_resource type="Texture2D" uid="uid://dkfihqwcbxuvs" path="res://Hitboxes/Susie/hit.png" id="2_s85to"]
 [ext_resource type="Texture2D" uid="uid://bil3l71fv6nah" path="res://Hitboxes/Susie/Rude.png" id="3_yf8rb"]
+[ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="4_hitbox"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qva7k"]
-size = Vector2(50, 60)
+size = Vector2(25, 50)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vnwc0"]
 atlas = ExtResource("2_s85to")
@@ -102,7 +102,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"hit",
-"speed": 40.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -146,16 +146,16 @@ properties/3/spawn = true
 properties/3/replication_mode = 1
 
 [node name="RudeBuster" type="Area2D" unique_id=1229504788]
+z_index = 3
 scale = Vector2(4, 4)
-collision_layer = 4
-collision_mask = 2
-script = ExtResource("1_wssi0")
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("4_hitbox")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34093856]
 shape = SubResource("RectangleShape2D_qva7k")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=971829596]
-scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_8qesl")
 animation = &"hit"
 autoplay = "travel"

@@ -42,7 +42,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		"damage"        : dmg,
 		"attack_type"   : atk_type,
 		"team_filter"   : "enemy",
-		"hit_limit"     : 0,
+		"hit_limit"     : 1,
 		"lifetime"      : HITBOX_LIFETIME,
 		"offset"        : hit_range,
 
