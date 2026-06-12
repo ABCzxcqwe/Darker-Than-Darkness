@@ -62,6 +62,48 @@ region = Rect2(408, 96, 68, 96)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_cj517")
+}],
+"loop": true,
+"name": &"cerrado",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cj517")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4tf3v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqjay")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vgeib")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d6fbk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4hwy4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t8svx")
+}],
+"loop": false,
+"name": &"abriendo",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t8svx")
+}],
+"loop": true,
+"name": &"abierto",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_t8svx")
 }, {
 "duration": 1.0,
@@ -82,33 +124,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_cj517")
 }],
-"loop": true,
-"name": &"closing",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_bf8bg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_n8xu0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_nko80")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_g6tto")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_xqu0i")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_4v8pk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_c3gca")
-}],
-"loop": true,
-"name": &"opening",
-"speed": 5.0
+"loop": false,
+"name": &"cerrando",
+"speed": 10.0
 }]

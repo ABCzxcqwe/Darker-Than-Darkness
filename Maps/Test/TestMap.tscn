@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bw4hqjvrmy6ii" path="res://Maps/events/MapExit.gd" id="2_exit"]
 [ext_resource type="Texture2D" uid="uid://cs85gn7ehl05w" path="res://Maps/Test/Assets/forest2.png" id="2_trq3l"]
 [ext_resource type="Script" uid="uid://bm7lrxxmab4b8" path="res://Maps/events/MapPhaseEvent.gd" id="3_phase"]
+[ext_resource type="SpriteFrames" uid="uid://bc8nudwomc8of" path="res://Maps/Test/Assets/puerta.tres" id="3_puerta"]
 [ext_resource type="Script" uid="uid://dgbn5cl3vm2th" path="res://Maps/events/MapSpawnPoint.gd" id="4_spawn"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_trq3l"]
@@ -469,6 +470,8 @@ exit_id = "exit_north"
 shape = SubResource("1_exit_north")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=259427699]
+sprite_frames = ExtResource("3_puerta")
+animation = &"cerrado"
 
 [node name="ExitSouth" type="Area2D" parent="MapEvents" unique_id=1000000002]
 position = Vector2(1272, 800)
@@ -480,6 +483,8 @@ open_during_lms = true
 shape = SubResource("2_exit_south")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitSouth" unique_id=20252027]
+sprite_frames = ExtResource("3_puerta")
+animation = &"cerrado"
 
 [node name="OpenExitsPhase" type="Node" parent="MapEvents" unique_id=1000000003]
 script = ExtResource("3_phase")
