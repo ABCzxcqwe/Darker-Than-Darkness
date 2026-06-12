@@ -392,6 +392,10 @@ func _rpc_deactivate_lms_audio() -> void:
 	if lms_music_player.playing:
 		lms_music_player.stop()
 	lms_music_player.stream = null
+	
+@rpc("authority", "reliable")
+func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
+	play_sfx(sfx_id, Vector2(x, y))
 
 # =======================================================================
 # HELPERS

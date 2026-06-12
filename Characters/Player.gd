@@ -143,6 +143,9 @@ func _exit_tree() -> void:
 	if abs_svc and peer_id != -1: abs_svc.unregister_player(peer_id)
 	var stam_svc = GameServiceLocator.get_service("StaminaService")
 	if stam_svc and peer_id != -1: stam_svc.unregister_player(peer_id)
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd and peer_id != -1 and cd.has_method("clear_player"):
+		cd.clear_player(peer_id)
 
 
 # ── Input ─────────────────────────────────────────────────────────────
@@ -414,10 +417,47 @@ func _restore_idle() -> void:
 func _disable_corpse() -> void:
 	set_physics_process(false)
 	set_process_input(false)
-	$CollisionShape2D.disabled = true
-	$Hurtbox/CollisionShape2D.disabled = true
-	collision_layer = 0
-	collision_mask = 0
+	print("[Player] _disable_corpse: lógica no-física ejecutada.")
+
+	if not _disable_collisions():
+		push_error("[Player] _disable_corpse: fallo al desactivar colisiones.")
+
+
+func _disable_collisions() -> bool:
+	var success := true
+	if not is_inside_tree():
+		push_error("[Player] _disable_collisions: nodo no en el árbol.")
+		return false
+
+	if has_node("CollisionShape2D"):
+		var world_shape = $CollisionShape2D
+		if world_shape.has_method("set_deferred"):
+			world_shape.set_deferred("disabled", true)
+			print("[Player] _disable_collisions: CollisionShape2D desactivado (deferred).")
+		else:
+			push_error("[Player] _disable_collisions: CollisionShape2D no soporta set_deferred.")
+			success = false
+	else:
+		push_error("[Player] _disable_collisions: CollisionShape2D no encontrado.")
+		success = false
+
+	if has_node("Hurtbox/CollisionShape2D"):
+		var hurtbox_shape = $Hurtbox/CollisionShape2D
+		if hurtbox_shape.has_method("set_deferred"):
+			hurtbox_shape.set_deferred("disabled", true)
+			print("[Player] _disable_collisions: Hurtbox/CollisionShape2D desactivado (deferred).")
+		else:
+			push_error("[Player] _disable_collisions: Hurtbox/CollisionShape2D no soporta set_deferred.")
+			success = false
+	else:
+		push_error("[Player] _disable_collisions: Hurtbox/CollisionShape2D no encontrado.")
+		success = false
+
+	set_deferred("collision_layer", 0)
+	set_deferred("collision_mask", 0)
+	print("[Player] _disable_collisions: collision_layer/mask puestos en 0 (deferred).")
+
+	return success
 
 
 func _prepare_spectator_mode() -> void:

@@ -47,6 +47,11 @@ func _dispatch_with_target(slot_index: int, target_peer_id: int, caster_id: int)
 		return
 
 	if cd and cd.has_method("start_lock"):
+		if not cd.is_ready(caster_id, slot_index):
+			var remaining = cd.get_remaining(caster_id, slot_index)
+			if remaining == -1.0:
+				push_warning("[AbilityRouter] Lock huérfano detectado en _dispatch_with_target | peer: ", caster_id, " slot: ", slot_index, " — liberando.")
+				cd.release_lock(caster_id, slot_index)
 		cd.start_lock(caster_id, slot_index)
 
 	var handler: AbilityBase = ability_data.ability_script.new()
@@ -193,6 +198,11 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 	# ── 13. Lockear slot (evita spam) ───────────────────────────────────
 	if cd and cd.has_method("start_lock"):
+		if not cd.is_ready(peer_id, slot_index):
+			var remaining = cd.get_remaining(peer_id, slot_index)
+			if remaining == -1.0:
+				push_warning("[AbilityRouter] Lock huérfano detectado en _process_request | peer: ", peer_id, " slot: ", slot_index, " — liberando.")
+				cd.release_lock(peer_id, slot_index)
 		cd.start_lock(peer_id, slot_index)
 
 	# ── 14. Despachar ───────────────────────────────────────────────────

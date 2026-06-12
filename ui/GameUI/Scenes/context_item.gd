@@ -23,10 +23,13 @@ var _style: StyleBoxFlat = null
 signal item_clicked(peer_id: int)
 
 
-func setup(peer_id: int, display_name: String, icon: Texture2D) -> void:
+func setup(peer_id: int, display_name: String, icon: Texture2D, player_name: String = "") -> void:
 	_peer_id = peer_id
 	if name_label:
-		name_label.text = display_name.to_upper()
+		var txt = display_name.to_upper()
+		if not player_name.is_empty():
+			txt += "  (%s)" % player_name
+		name_label.text = txt
 	if icon_rect:
 		if icon:
 			icon_rect.texture = icon

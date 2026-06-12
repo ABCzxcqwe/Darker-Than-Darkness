@@ -14,12 +14,6 @@ var timer_active: bool = true
 var _focus_idx := 0
 var _selection_locked := false
 
-const PANEL_TEX = {
-	0: preload("res://sprites/kris_panel.png"),
-	1: preload("res://sprites/susie_panel.png"),
-	3: preload("res://sprites/jevil_panel.png"),
-}
-
 
 func _ready() -> void:
 	add_to_group("character_select_screen")
@@ -50,7 +44,8 @@ func _build_character_options() -> void:
 
 	for data in CharacterRegistry.get_all():
 		if data.team.to_lower().strip_edges() == local_role.to_lower().strip_edges():
-			available_char_ids.append(data.id)
+			if data.panel_texture:
+				available_char_ids.append(data.id)
 
 	_focus_idx = 0
 	_selection_locked = false
@@ -79,6 +74,7 @@ func _build_character_options() -> void:
 
 	for i in available_char_ids.size():
 		var char_id = available_char_ids[i]
+		var char_data = CharacterRegistry.get_character(char_id)
 
 		var panel_wrap := PanelContainer.new()
 		panel_wrap.custom_minimum_size = Vector2(220, 330)
@@ -88,9 +84,7 @@ func _build_character_options() -> void:
 		panel_wrap.set_meta("border_off", border_off)
 
 		var tex := TextureRect.new()
-		tex.texture = PANEL_TEX.get(char_id)
-		if not tex.texture:
-			continue
+		tex.texture = char_data.panel_texture
 		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex.mouse_filter = Control.MOUSE_FILTER_STOP
 		tex.gui_input.connect(func(event: InputEvent):

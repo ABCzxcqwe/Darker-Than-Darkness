@@ -49,7 +49,7 @@ const KILLER_ONLY := [
 @export var bleed_out_time: float = 60.0
 @export var can_be_executed: bool = true
 @export var revive_health: int = 60
-@export var revive_time: float = 3.0
+@export var revive_time: float = 1.5
 @export var revive_range: float = 150.0
 @export var lms_music: AudioStream
 @export var lms_duration: float = 140.0
@@ -86,6 +86,7 @@ const KILLER_ONLY := [
 
 @export_group("Visuales")
 @export var icon: Texture2D
+@export var panel_texture: Texture2D
 @export var animation_frames: SpriteFrames
 ## Color temático del personaje — se usa en la barra de HP y bordes del panel.
 ## Ejemplos: Kris = cian, Susie = magenta, Ralsei = verde claro.

@@ -4,6 +4,7 @@ extends Node
 
 var current_game_manager: Node = null
 var last_match_results: Dictionary = {}
+var _resetting := false
 
 const MAIN_SCENE := preload("uid://c4oma0j4cetoj")
 
@@ -77,6 +78,9 @@ func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 
 
 func reset_to_menu() -> void:
+	if _resetting:
+		return
+	_resetting = true
 	print("[MatchCoordinator] reset_to_menu")
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()

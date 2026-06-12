@@ -5,6 +5,7 @@ signal health_changed(peer_id: int, current_hp: int, max_hp: int)
 signal player_state_changed(peer_id: int, state: String)
 
 var _states: Dictionary = {}
+var _permanently_dead: Dictionary = {}
 
 func is_alive(peer_id: int) -> bool:
 	return _get_state(peer_id) == "alive"
@@ -37,6 +38,15 @@ func take_damage(player_node: Node, amount: int) -> void:
 	if revive_svc:
 		revive_svc.cancel_revive(peer_id)
 
+	if player_node.state != 0:
+		var combat = GameServiceLocator.get_service("CombatMediator")
+		if combat:
+			combat.remove_root(player_node)
+		player_node.reset_ability_state()
+		if is_instance_valid(player_node):
+			player_node.rpc("_sync_cancel_ability")
+		print("[HealthService] Habilidad cancelada en peer ", peer_id, " por recibir daño.")
+
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
 	if player_node.health <= 0:
@@ -44,8 +54,12 @@ func take_damage(player_node: Node, amount: int) -> void:
 		broadcast_health_update(peer_id, 0, max_hp, "downed")
 		_down(player_node)
 	else:
+		var radar_svc = GameServiceLocator.get_service("RadarService")
+		if radar_svc:
+			radar_svc.show_hit_indicator(player_node, player_node.global_position)
 		broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
-		player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
+		if is_instance_valid(player_node):
+			player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
 
 
 func heal(player_node: Node, amount: int) -> void:
@@ -62,7 +76,8 @@ func heal(player_node: Node, amount: int) -> void:
 	print("[HealthService] ", peer_id, " curado | vida: ", player_node.health)
 
 	broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
-	player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
+	if is_instance_valid(player_node):
+		player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
 
 
 func revive(player_node: Node) -> void:
@@ -78,13 +93,18 @@ func revive(player_node: Node) -> void:
 	var revive_hp: int = player_node.character_data.revive_health if player_node.character_data else 60
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.remove_down_indicator(peer_id)
+
 	player_node.health = revive_hp
 	_set_state(peer_id, "alive")
 
 	print("[HealthService] ", peer_id, " rescatado | vida: ", revive_hp)
 
 	broadcast_health_update(peer_id, revive_hp, max_hp, "alive")
-	player_node.rpc("_sync_state", "alive", revive_hp)
+	if is_instance_valid(player_node):
+		player_node.rpc("_sync_state", "alive", revive_hp)
 
 
 func execute(player_node: Node) -> void:
@@ -110,6 +130,7 @@ func register(player_node: Node) -> void:
 
 func unregister(peer_id: int) -> void:
 	_cancel_bleed_timer(peer_id)
+	_permanently_dead.erase(peer_id)
 	if _states.has(peer_id):
 		_states.erase(peer_id)
 	print("[HealthService] Peer ", peer_id, " eliminado de los estados de salud.")
@@ -140,10 +161,15 @@ func _down(player_node: Node) -> void:
 	player_node.health = 0
 	_set_state(peer_id, "downed")
 
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.show_down_indicator(player_node)
+
 	print("[HealthService] ", peer_id, " ha caído por primera vez!")
 
 	broadcast_health_update(peer_id, 0, max_hp, "downed")
-	player_node.rpc("_sync_state", "downed", 0)
+	if is_instance_valid(player_node):
+		player_node.rpc("_sync_state", "downed", 0)
 
 	var fx_svc = GameServiceLocator.get_service("StatusEffectService")
 	if fx_svc and fx_svc.has_method("_recalculate_speed"):
@@ -172,16 +198,26 @@ func _kill(player_node: Node) -> void:
 	var peer_id := player_node.get_multiplayer_authority()
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
+	var radar_svc = GameServiceLocator.get_service("RadarService")
+	if radar_svc:
+		radar_svc.remove_down_indicator(peer_id)
+
 	_set_state(peer_id, "dead")
+	_permanently_dead[peer_id] = true
 
 	print("[HealthService] ", peer_id, " ha muerto.")
 
 	broadcast_health_update(peer_id, 0, max_hp, "dead")
-	player_node.rpc("_sync_state", "dead", 0)
 	survivor_died_permanently.emit(peer_id)
+
+	var cd = GameServiceLocator.get_service("CooldownService")
+	if cd and cd.has_method("clear_player"):
+		cd.clear_player(peer_id)
+		print("[HealthService] Cooldowns limpiados para peer ", peer_id, " al morir.")
 
 	await get_tree().process_frame
 	if is_instance_valid(player_node):
+		player_node.rpc("_sync_state", "dead", 0)
 		player_node.queue_free()
 
 
@@ -195,6 +231,8 @@ func _cancel_bleed_timer(peer_id: int) -> void:
 
 
 func _get_state(peer_id: int) -> String:
+	if _permanently_dead.has(peer_id):
+		return "dead"
 	if not _states.has(peer_id):
 		return "alive"
 	return _states[peer_id]["state"]

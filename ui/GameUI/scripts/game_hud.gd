@@ -45,6 +45,8 @@ var _on_confirm:       Callable = Callable()
 var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
+var _name_labels:      Dictionary = {}
+var _radar_layer:      Control    = null
 
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
@@ -85,6 +87,17 @@ func setup(player_node: Node) -> void:
 	if allies_panel and allies_panel.has_method("setup"):
 		allies_panel.setup(my_id, _my_team)
 
+	# 4. RadarLayer
+	var radar_script := load("res://ui/GameUI/scripts/radar_layer.gd")
+	if radar_script and not _radar_layer:
+		_radar_layer = Control.new()
+		_radar_layer.name = "RadarLayer"
+		_radar_layer.set_script(radar_script)
+		_radar_layer.setup(my_id, _my_team)
+		add_child(_radar_layer)
+		_radar_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_radar_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+
 	_configure_killer_hp_visibility(player_node)
 
 	# 4. Conectar señales globales de servicios
@@ -108,6 +121,8 @@ func setup(player_node: Node) -> void:
 	if health_svc and health_svc.has_signal("player_state_changed"):
 		health_svc.player_state_changed.connect(_on_player_state_changed)
 
+	NetworkManager.player_left.connect(_on_player_left_for_label)
+
 	var revive_svc: Node = GameServiceLocator.get_service("ReviveService")
 	if revive_svc:
 		if revive_svc.has_signal("revive_started"):
@@ -116,6 +131,8 @@ func setup(player_node: Node) -> void:
 			revive_svc.revive_cancelled.connect(_on_revive_session_cancelled)
 		if revive_svc.has_signal("revive_completed"):
 			revive_svc.revive_completed.connect(_on_revive_session_completed)
+
+	_create_name_labels()
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -171,11 +188,15 @@ func visual_devolve_slot(slot_index: int) -> void:
 		ability_bar.on_slot_devolved(slot_index)
 
 func _on_slot_evolved(peer_id: int, slot_index: int) -> void:
+	if not is_instance_valid(_player_node):
+		return
 	if peer_id != _player_node.get_multiplayer_authority(): return
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
 		ability_bar.on_slot_evolved(slot_index)
 
 func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
+	if not is_instance_valid(_player_node):
+		return
 	if peer_id != _player_node.get_multiplayer_authority(): return
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
 		ability_bar.on_slot_devolved(slot_index)
@@ -228,7 +249,8 @@ func _build_context_items(filter_peer_id: int = -1) -> void:
 		context_grid.add_child(item)
 
 		var icon: Texture2D = data.icon if data.icon else null
-		item.setup(p_id, data.display_name, icon)
+		var p_name = NetworkManager.players.get(p_id, {}).get("name", "")
+		item.setup(p_id, data.display_name, icon, p_name)
 		item.item_clicked.connect(_on_ctx_item_clicked)
 
 		_ctx_items.append(item)
@@ -261,6 +283,26 @@ func _input(event: InputEvent) -> void:
 		return
 
 	var cols: int = context_grid.columns if context_grid else 2
+	var is_key: bool = event is InputEventKey and event.pressed and not event.echo
+	if is_key:
+		match event.keycode:
+			KEY_S, KEY_DOWN:
+				_select_ctx_item(_ctx_selected_idx + cols)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_W, KEY_UP:
+				_select_ctx_item(_ctx_selected_idx - cols)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_D, KEY_RIGHT:
+				_select_ctx_item(_ctx_selected_idx + 1)
+				get_viewport().set_input_as_handled()
+				return
+			KEY_A, KEY_LEFT:
+				_select_ctx_item(_ctx_selected_idx - 1)
+				get_viewport().set_input_as_handled()
+				return
+
 	if event.is_action_pressed("ui_down"):
 		_select_ctx_item(_ctx_selected_idx + cols)
 		get_viewport().set_input_as_handled()
@@ -459,6 +501,88 @@ func _process(_delta: float) -> void:
 			panel.visible = dist <= 200.0
 		else:
 			panel.visible = true
+
+	for pid in _name_labels:
+		var entry = _name_labels[pid]
+		if not entry:
+			continue
+		var player = entry.get("player")
+		var panel = entry.get("panel")
+		if not is_instance_valid(player) or not is_instance_valid(panel):
+			_name_labels.erase(pid)
+			continue
+		var cam = get_viewport().get_camera_2d()
+		if not cam:
+			continue
+		var screen_pos = cam.get_canvas_transform() * player.global_position
+		panel.position = screen_pos + Vector2(-panel.size.x * 0.5, -120)
+
+		if _player_node and is_instance_valid(_player_node):
+			var dist = _player_node.global_position.distance_to(player.global_position)
+			panel.visible = dist <= 1200.0
+		else:
+			panel.visible = true
+
+
+# ── Name labels sobre los personajes ──────────────────────────────────
+func _create_name_labels() -> void:
+	for player in get_tree().get_nodes_in_group("players"):
+		var pid = player.get_multiplayer_authority()
+		if _name_labels.has(pid) or pid == _my_id:
+			continue
+		_create_name_label(player, pid)
+
+
+func _create_name_label(player: Node, peer_id: int) -> void:
+	var name_str = NetworkManager.players.get(peer_id, {}).get("name", "Jugador %d" % peer_id)
+
+	var panel := PanelContainer.new()
+	panel.name = "NameLabel_%d" % peer_id
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.6)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color.WHITE
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_left = 3
+	style.corner_radius_bottom_right = 3
+	panel.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = name_str
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font", FONT_DELTARUNE)
+	label.add_theme_font_size_override("font_size", 12)
+	label.modulate = Color.WHITE
+	label.custom_minimum_size = Vector2(100, 20)
+
+	panel.add_child(label)
+	panel.size = Vector2(100, 22)
+
+	add_child(panel)
+	_name_labels[peer_id] = {
+		"player": player,
+		"panel": panel,
+	}
+
+
+func _remove_name_label(peer_id: int) -> void:
+	var entry = _name_labels.get(peer_id)
+	if not entry:
+		return
+	var panel = entry.get("panel")
+	if is_instance_valid(panel):
+		panel.queue_free()
+	_name_labels.erase(peer_id)
+
+
+func _on_player_left_for_label(peer_id: int) -> void:
+	_remove_name_label(peer_id)
 
 
 # ── Utilidades ─────────────────────────────────────────────────────────

@@ -2,10 +2,9 @@
 
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="1_0fdf6"]
 [ext_resource type="Resource" uid="uid://bpguaq8p5p4rl" path="res://Characters/Kris/Kris.tres" id="2_0fdf6"]
-[ext_resource type="Resource" uid="uid://cvcih78qe7y8q" path="res://Characters/Susie/Susie.tres" id="3_susie"]
 [ext_resource type="Resource" uid="uid://qm3jto47sra3" path="res://Characters/Jevil/Jevil.tres" id="9_mgrb0"]
 [ext_resource type="Script" uid="uid://cva4utk4fditj" path="res://Characters/scripts/CharacterDatabase.gd" id="12_vygkj"]
 
 [resource]
 script = ExtResource("12_vygkj")
-character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("3_susie"), ExtResource("9_mgrb0")])
+character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("9_mgrb0")])

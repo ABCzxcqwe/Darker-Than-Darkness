@@ -69,10 +69,10 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 			if not is_instance_valid(player_node):
 				return
 
+			combat.remove_root(player_node)
+
 			if player_node.state != 2 or player_node.active_ability_slot != slot_index:
 				return
-
-			combat.remove_root(player_node)
 
 			var evolved_count: int = 0
 			var t_node := player_node.get_tree().root.find_child(str(target_peer_id), true, false)
@@ -94,7 +94,10 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 				cd_svc.start(caster_id, slot_index, data.cooldown)
 
 			player_node.rpc("_sync_cancel_ability")
-
+			if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+				AudioManager.play_sfx(9, Vector2( player_node.global_position.x, player_node.global_position.y))
+				# El potenciado lo escucha privado, posicionado en él mismo
+				AudioManager.rpc_id(target_peer_id, "play_sfx_on_peer", 9, t_node.global_position.x, t_node.global_position.y)
 			print("[ACT] Kris (", caster_id, ") potenció a peer ", target_peer_id,
 				  " | slots evolucionados: ", evolved_count)
 	)

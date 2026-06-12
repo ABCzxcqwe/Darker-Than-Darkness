@@ -8,9 +8,11 @@
 [ext_resource type="Texture2D" uid="uid://bughct40pnk50" path="res://Characters/Kris/assets/Sprites/icon.png" id="6_kpcxu"]
 [ext_resource type="AudioStream" uid="uid://bbfkcvgaj6dsc" path="res://Characters/Kris/assets/Music/Penumbra Phantasm.mp3" id="6_uf4gy"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]
+[ext_resource type="Texture2D" uid="uid://bori46sdkmtc0" path="res://Characters/Kris/assets/Sprites/kris_panel.png" id="8_hywcm"]
 
 [resource]
 script = ExtResource("7_n1uxm")
+id = 1
 display_name = "KRIS"
 speed = 500.0
 max_health = 120
@@ -21,6 +23,9 @@ h_size_x = 45
 h_size_y = 120
 h_position_x = -2
 h_position_y = -2
+bleed_out_time = 30.0
+can_be_executed = false
+revive_health = 65
 lms_music = ExtResource("6_uf4gy")
 lms_duration = 270.0
 lms_heal_amount = 70
@@ -28,5 +33,6 @@ ability_slots = Array[ExtResource("1_uf4gy")]([ExtResource("2_kpcxu"), ExtResour
 tp_gain_time = 0.8
 stamina_regen_rate = 12.0
 icon = ExtResource("6_kpcxu")
+panel_texture = ExtResource("8_hywcm")
 animation_frames = ExtResource("5_uf4gy")
 metadata/_custom_type_script = "uid://2kq331ai6c40"

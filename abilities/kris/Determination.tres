@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("1_sb2xv")
-display_name = "Determination"
+display_name = "Coraje"
 icon = ExtResource("2_gpqhh")
 ability_type = 1
 ability_script = ExtResource("2_ml33v")

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
 [ext_resource type="Texture2D" uid="uid://bocyfrfdi2owq" path="res://Characters/Jevil/assets/icon.png" id="6_fnfn6"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
+[ext_resource type="Texture2D" uid="uid://cekacln1fbfw1" path="res://Characters/Jevil/assets/jevil_panel.png" id="8_bkbox"]
 [ext_resource type="Resource" uid="uid://dwxwdg3talehj" path="res://abilities/jevil/Teleport.tres" id="8_teleport"]
 
 [sub_resource type="Resource" id="Resource_r2u3k"]
@@ -23,11 +24,11 @@ metadata/_custom_type_script = "uid://bodks86qovy6s"
 
 [resource]
 script = ExtResource("5_ueqpj")
-id = 3
+id = 4
 display_name = "Jevil"
 team = "killer"
 speed = 600.0
-max_health = 300
+max_health = 1000
 size_x = 70
 size_y = 50
 position_y = 50
@@ -43,6 +44,7 @@ stamina_max = 120.0
 stamina_regen_rate = 10.0
 stamina_sprint_drain = 29.0
 icon = ExtResource("6_fnfn6")
+panel_texture = ExtResource("8_bkbox")
 animation_frames = ExtResource("4_hq0h8")
 theme_color = Color(0.5860059, 0.25085285, 1, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
