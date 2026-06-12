@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cugio7sjdu0b3"
-path="res://.godot/imported/Decoracio2 .png-aec491563f97f3d8469c0bc48891330a.ctex"
+uid="uid://du8xpn3kqdb3q"
+path="res://.godot/imported/The rial sprite.png-9b4b63bcf88660f0a32c7fff53592882.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Maps/Card Castle/Assets/Decoracio2 .png"
-dest_files=["res://.godot/imported/Decoracio2 .png-aec491563f97f3d8469c0bc48891330a.ctex"]
+source_file="res://Maps/Card Castle/Assets/The rial sprite.png"
+dest_files=["res://.godot/imported/The rial sprite.png-9b4b63bcf88660f0a32c7fff53592882.ctex"]
 
 [params]
 

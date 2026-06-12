@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0kj8ms54torp"
-path="res://.godot/imported/Decoracion1 .png-fb5ef88dddc45ca24fd158a1f0c0b7db.ctex"
+uid="uid://dqju05jl2f7ni"
+path="res://.godot/imported/deco.png-7708930d5b0c2586eabfb4ec766f4155.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Maps/Card Castle/Assets/Decoracion1 .png"
-dest_files=["res://.godot/imported/Decoracion1 .png-fb5ef88dddc45ca24fd158a1f0c0b7db.ctex"]
+source_file="res://Maps/Card Castle/Assets/deco.png"
+dest_files=["res://.godot/imported/deco.png-7708930d5b0c2586eabfb4ec766f4155.ctex"]
 
 [params]
 
