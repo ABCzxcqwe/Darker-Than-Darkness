@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b3imse5pxqpel"
+path="res://.godot/imported/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3-f050d6ad99aa1a6c253a9d01879f94cd.mp3str"
+
+[deps]
+
+source_file="res://Characters/Ralsei/assets/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3"
+dest_files=["res://.godot/imported/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3-f050d6ad99aa1a6c253a9d01879f94cd.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
