@@ -180,6 +180,32 @@ func _input(event: InputEvent) -> void:
 				  " | state: ", state, " | pending_slot: ", _pending_selection_slot,
 				  " | active_slot: ", active_ability_slot)
 
+			if aiming_slot >= 0:
+				print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
+				if action == "ability_0":
+					print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
+					var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+					if multiplayer.is_server():
+						AbilityRouter.request_ability(aiming_slot, mouse_dir)
+					else:
+						AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+					aiming_slot = -1
+					print("[Player] aiming_slot reseteado a -1, retornando")
+					return
+				elif slot == aiming_slot:
+					print("[Player] Misma tecla detectada en aim mode → cancelando slot ", aiming_slot)
+					var peer_id = get_multiplayer_authority()
+					if multiplayer.is_server():
+						AbilityRouter.cancel_aim(peer_id, aiming_slot)
+					else:
+						AbilityRouter.rpc_id(1, "cancel_aim", peer_id, aiming_slot)
+					aiming_slot = -1
+					print("[Player] Cancelación enviada, aiming_slot reseteado")
+					return
+				else:
+					print("[Player] Otra tecla en aim mode, ignorando")
+					return
+
 			if _pending_selection_slot == slot:
 				print("[Player] Menú abierto para este slot, cancelando selección.")
 				var huds := get_tree().get_nodes_in_group("game_hud")
@@ -626,7 +652,7 @@ func _sync_speed(new_speed: float) -> void:
 	speed = new_speed
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_aiming_mode(slot: int, active: bool) -> void:
 	aiming_slot = slot if active else -1
 

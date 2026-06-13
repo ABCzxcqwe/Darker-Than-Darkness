@@ -99,6 +99,7 @@ func _close_non_lms_exits() -> void:
 
 func _open_random_lms_exits() -> void:
 	var pool: Array[String] = []
+	var use_fallback := false
 	for exit_id in _exits:
 		var exit = _exits[exit_id]
 		if not exit.is_active and exit.open_during_lms:
@@ -106,11 +107,12 @@ func _open_random_lms_exits() -> void:
 
 	if pool.is_empty():
 		pool = _get_inactive_exits()
+		use_fallback = true
 
 	pool.shuffle()
 	var to_open = mini(lms_exits_to_open, pool.size())
 	for i in to_open:
-		activate_exit(pool[i])
+		activate_exit(pool[i], use_fallback)
 
 
 func _get_inactive_exits() -> Array[String]:
@@ -218,12 +220,12 @@ func _execute_action(event: MapPhaseEvent) -> void:
 
 # ── Exit Management ───────────────────────────────────────
 
-func activate_exit(exit_id: String) -> void:
+func activate_exit(exit_id: String, force: bool = false) -> void:
 	if not _exits.has(exit_id):
 		push_warning("[MapEventCoordinator] Exit '", exit_id, "' no encontrado.")
 		return
 	var exit = _exits[exit_id]
-	if _lms_active and not exit.open_during_lms:
+	if not force and _lms_active and not exit.open_during_lms:
 		return
 	exit.activate()
 	exit_activated.emit(exit_id)

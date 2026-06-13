@@ -3,6 +3,12 @@
 [ext_resource type="Script" uid="uid://fii83qtguhcy" path="res://Maps/base_map.gd" id="1_ailet"]
 [ext_resource type="Texture2D" uid="uid://du8xpn3kqdb3q" path="res://Maps/Card Castle/Assets/The rial sprite.png" id="2_dhxrk"]
 [ext_resource type="Texture2D" uid="uid://dqju05jl2f7ni" path="res://Maps/Card Castle/Assets/deco.png" id="3_ixumo"]
+[ext_resource type="Script" uid="uid://bw4hqjvrmy6ii" path="res://Maps/events/MapExit.gd" id="4_e57ox"]
+[ext_resource type="AudioStream" uid="uid://yq4xrhd8noxw" path="res://audio/S3K_68.wav" id="5_rgbx3"]
+[ext_resource type="AudioStream" uid="uid://c80lg2prsx85l" path="res://audio/S3K_66.wav" id="6_5yfke"]
+[ext_resource type="SpriteFrames" uid="uid://bc8nudwomc8of" path="res://Maps/Test/Assets/puerta.tres" id="7_g6luu"]
+[ext_resource type="Script" uid="uid://bm7lrxxmab4b8" path="res://Maps/events/MapPhaseEvent.gd" id="8_t3mmx"]
+[ext_resource type="Script" uid="uid://dgbn5cl3vm2th" path="res://Maps/events/MapSpawnPoint.gd" id="9_38gtg"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ixumo"]
 texture = ExtResource("2_dhxrk")
@@ -5547,6 +5553,9 @@ texture = ExtResource("3_ixumo")
 [sub_resource type="TileSet" id="TileSet_ykh6y"]
 sources/0 = SubResource("TileSetAtlasSource_1h35g")
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1o3en"]
+size = Vector2(256, 250)
+
 [node name="TestMap" type="Node2D" unique_id=1731724692]
 position = Vector2(-3, -647)
 script = ExtResource("1_ailet")
@@ -5588,7 +5597,7 @@ scale = Vector2(1.0035356, 1.0190057)
 polygon = PackedVector2Array(-1811.598, 283.5134, -1805.6191, 280.56934, -1802.6298, 984.1964, 183.34843, 986.1592, 2574.8926, 988.1218, 2578.8787, 292.34552)
 
 [node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Colision" unique_id=1805825737]
-polygon = PackedVector2Array(18, -304, -2682, -305, -2681, 417, -4431, 416, -5384, 416, -5383, 1352, -3626, 1355, -3626, 3628, -3624, 7705, -3796, 7714, -3814, 1546, -5515, 1537, -5507, 15, -4642, -2, -2828, 13, -2823, -677, 4090, -663, 4111, -304)
+polygon = PackedVector2Array(18, -304, -2682, -305, -2681, 417, -4431, 416, -5384, 416, -5383, 1352, -3626, 1355, -3626, 3628, -3624, 7705, -3796, 7714, -3814, 1546, -5515, 1537, -5507, 15, -4642, -2, -2828, 13, -2823, -677, 4090, -663, 4111, -304, 884, -311, 881, -421, 617, -421, 623.4342, -304.00012)
 
 [node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="Colision" unique_id=172969734]
 polygon = PackedVector2Array(3975, -302, 4129, -310, 4121, 499, 6714, 499, 6711, 2304, 7472, 2301, 7467, 3391, 6720, 3391, 6709, 5533, 5021, 5545, 5018, 7711, -3624, 7710, -3621, 7594, 4839, 7584, 4839, 6673, 4550, 6673, 4552, 6495, 4840, 6495, 4843, 5411, 6572, 5410, 6567, 3275, 7320, 3277, 7316, 2564, 6590, 2564, 6548, 1327, 6544, 801, 3958, 797, 3966, -30, 3973, -115)
@@ -5616,3 +5625,41 @@ polygon = PackedVector2Array(-2249, 5775, -2345, 5774, -2346, 6193, -1047, 6192,
 
 [node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="Colision" unique_id=454622998]
 polygon = PackedVector2Array(3484, 6520, 3448, 6518, 3448, 7153, 3561, 7152, 3560, 6672, 4217, 6672, 4218, 6519, 3559, 6520)
+
+[node name="MapEvents" type="Node2D" parent="." unique_id=1329688481]
+
+[node name="ExitNorth" type="Area2D" parent="MapEvents" unique_id=2138766356]
+z_index = 4
+position = Vector2(750, -500)
+audio_bus_override = true
+audio_bus_name = &"SFX"
+script = ExtResource("4_e57ox")
+exit_id = "exit_north"
+open_sfx = ExtResource("5_rgbx3")
+close_sfx = ExtResource("6_5yfke")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapEvents/ExitNorth" unique_id=1915607408]
+shape = SubResource("RectangleShape2D_1o3en")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=1198162202]
+scale = Vector2(4, 4)
+sprite_frames = ExtResource("7_g6luu")
+animation = &"cerrando"
+
+[node name="OpenExitsPhase" type="Node" parent="MapEvents" unique_id=128559321]
+script = ExtResource("8_t3mmx")
+event_id = "open_exits_at_120s"
+condition_value = 80.0
+action_target = "exit_north"
+
+[node name="SpawnPoints" type="Node2D" parent="MapEvents" unique_id=2001424923]
+
+[node name="SpawnCenter" type="Marker2D" parent="MapEvents/SpawnPoints" unique_id=244548471]
+position = Vector2(726, 750)
+script = ExtResource("9_38gtg")
+spawn_id = "center"
+
+[node name="SpawnCorner" type="Marker2D" parent="MapEvents/SpawnPoints" unique_id=2031111410]
+position = Vector2(1242, 729)
+script = ExtResource("9_38gtg")
+spawn_id = "corner"

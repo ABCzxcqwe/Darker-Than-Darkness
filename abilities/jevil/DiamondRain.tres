@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" path="res://abilities/jevil/scripts/DiamondRain.gd" id="2_diamondrain"]
+[ext_resource type="PackedScene" path="res://Hitboxes/Jevil/DiamondHitbox.tscn" id="3_diamondhitbox"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "Diamond Rain"
+description = "Invoca diamantes que caen del cielo en una zona"
+ability_script = ExtResource("2_diamondrain")
+ability_scene = ExtResource("3_diamondhitbox")
+action_animation = "jevil_attack"
+cooldown = 20.0
+move_restriction = 1
+base_damage = 15
+range_ = 700.0
+attack_type = "normal"
+projectile_count = 25

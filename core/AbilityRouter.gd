@@ -124,9 +124,13 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd and not cd.is_ready(peer_id, slot_index):
 		var remaining = cd.get_remaining(peer_id, slot_index)
-		print("[AbilityRouter] Bloqueado por cooldown | slot: ", slot_index,
-			  " | restante: ", remaining, "s")
-		return
+		if remaining == -1.0:
+			push_warning("[AbilityRouter] Lock huérfano detectado en cooldown check | peer: ", peer_id, " slot: ", slot_index, " — liberando y continuando.")
+			cd.release_lock(peer_id, slot_index)
+		else:
+			print("[AbilityRouter] Bloqueado por cooldown | slot: ", slot_index,
+				  " | restante: ", remaining, "s")
+			return
 
 	# ── 8. ¿Efectos que bloquean? ────────────────────────────────────────
 	var status = GameServiceLocator.get_service("StatusEffectService")
@@ -246,6 +250,53 @@ func _cancel_ability(peer_id: int, player_node: Node, slot_index: int,
 
 	print("[AbilityRouter] Habilidad cancelada | peer: ", peer_id,
 		  " | slot: ", slot_index, " | nombre: ", ability_data.display_name)
+
+
+# ── Cancelación de apuntado ──────────────────────────────────────────────────
+
+@rpc("any_peer", "reliable")
+func cancel_aim(peer_id: int, slot_index: int) -> void:
+	print("[AbilityRouter] cancel_aim() recibido | peer: ", peer_id, " | slot: ", slot_index)
+	var player_node := _get_player_node(peer_id)
+	if not player_node:
+		print("[AbilityRouter] cancel_aim() → player_node no encontrado")
+		return
+
+	var char_data: CharacterData = player_node.character_data
+	if not char_data or slot_index < 0 or slot_index >= char_data.ability_slots.size():
+		print("[AbilityRouter] cancel_aim() → char_data inválido o slot fuera de rango")
+		return
+
+	var ability_data: AbilityData = char_data.ability_slots[slot_index]
+	var cd = GameServiceLocator.get_service("CooldownService")
+	print("[AbilityRouter] cancel_aim() → datos válidos, procediendo limpieza")
+
+	player_node.rpc("_sync_aiming_mode", slot_index, false)
+	player_node.rpc("_sync_effect", "free_look", false)
+	print("[AbilityRouter] cancel_aim() → RPCs sync enviados")
+
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if combat:
+		combat.remove_root(player_node)
+		print("[AbilityRouter] cancel_aim() → combat root removido")
+
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	if abs_svc and abs_svc.is_mode_active(peer_id, slot_index):
+		abs_svc.deactivate_mode(peer_id, slot_index)
+		print("[AbilityRouter] cancel_aim() → modo desactivado")
+	else:
+		print("[AbilityRouter] cancel_aim() → modo no estaba activo o abs_svc null")
+
+	if cd and cd.has_method("release_lock"):
+		cd.release_lock(peer_id, slot_index)
+		print("[AbilityRouter] cancel_aim() → lock liberado")
+
+	if cd and cd.has_method("start") and ability_data and ability_data.cooldown_cancel > 0.0:
+		cd.start(peer_id, slot_index, ability_data.cooldown_cancel)
+		print("[AbilityRouter] cancel_aim() → cooldown_cancel iniciado: ", ability_data.cooldown_cancel)
+
+	player_node.rpc("_sync_cancel_ability")
+	print("[AbilityRouter] Apuntado cancelado | peer: ", peer_id, " | slot: ", slot_index)
 
 
 # ── Menú contextual ─────────────────────────────────────────────────────────

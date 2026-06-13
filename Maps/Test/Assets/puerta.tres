@@ -6,66 +6,38 @@
 atlas = ExtResource("1_ua0xl")
 region = Rect2(408, 96, 68, 96)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_4hwy4"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_cj517"]
 atlas = ExtResource("1_ua0xl")
-region = Rect2(340, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_d6fbk"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(272, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_vgeib"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(204, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_xqjay"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(136, 96, 68, 96)
+region = Rect2(0, 96, 68, 96)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4tf3v"]
 atlas = ExtResource("1_ua0xl")
 region = Rect2(68, 96, 68, 96)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_cj517"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(0, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_bf8bg"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(0, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_n8xu0"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(68, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_nko80"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_xqjay"]
 atlas = ExtResource("1_ua0xl")
 region = Rect2(136, 96, 68, 96)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_g6tto"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_vgeib"]
 atlas = ExtResource("1_ua0xl")
 region = Rect2(204, 96, 68, 96)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_xqu0i"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_d6fbk"]
 atlas = ExtResource("1_ua0xl")
 region = Rect2(272, 96, 68, 96)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_4v8pk"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_4hwy4"]
 atlas = ExtResource("1_ua0xl")
 region = Rect2(340, 96, 68, 96)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_c3gca"]
-atlas = ExtResource("1_ua0xl")
-region = Rect2(408, 96, 68, 96)
 
 [resource]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_cj517")
+"texture": SubResource("AtlasTexture_t8svx")
 }],
 "loop": true,
-"name": &"cerrado",
+"name": &"abierto",
 "speed": 5.0
 }, {
 "frames": [{
@@ -92,14 +64,14 @@ animations = [{
 }],
 "loop": false,
 "name": &"abriendo",
-"speed": 10.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_t8svx")
+"texture": SubResource("AtlasTexture_cj517")
 }],
 "loop": true,
-"name": &"abierto",
+"name": &"cerrado",
 "speed": 5.0
 }, {
 "frames": [{
@@ -126,5 +98,5 @@ animations = [{
 }],
 "loop": false,
 "name": &"cerrando",
-"speed": 10.0
+"speed": 30.0
 }]

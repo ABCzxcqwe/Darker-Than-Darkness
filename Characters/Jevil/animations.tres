@@ -157,7 +157,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_n10w5")
 }],
-"loop": true,
+"loop": false,
 "name": &"jevil_attack",
 "speed": 16.0
 }, {
