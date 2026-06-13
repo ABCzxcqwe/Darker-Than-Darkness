@@ -177,11 +177,11 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	# ── 11. Animación — Cancelación unificada ───────────────────────────
 	var anim_state: int = player_node.state
 
-	if anim_state == 2: # PREPARE
+	if anim_state == 1: # PREPARE
 		_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
 		return
 
-	if anim_state == 1: # ABILITY
+	if anim_state == 2: # ABILITY
 		if slot_index == player_node.active_ability_slot and base_data.can_cancel:
 			_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
 		else:

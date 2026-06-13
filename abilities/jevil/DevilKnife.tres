@@ -13,6 +13,7 @@ action_animation = "jevil_attack"
 cooldown = 12.0
 cooldown_cancel = 2.0
 move_restriction = 1
+can_target_self = null
 base_damage = 25
 range_ = 80.0
 spawn_delay = 0.4

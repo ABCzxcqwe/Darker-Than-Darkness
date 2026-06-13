@@ -207,18 +207,25 @@ func visual_tp_ready(slot_index: int, is_ready: bool) -> void:
 		ability_bar.on_tp_ready(slot_index, is_ready)
 
 # ── Menú contextual Simplificado (Aparición directa) ───────────────────
-func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1) -> void:
+func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1, can_target_self: bool = false) -> void:
 	if _menu_open: return
 	_menu_open   = true
 	_on_confirm  = on_confirm
 	_on_cancel   = on_cancel
 
-	_build_context_items(filter_peer_id)
+	_build_context_items(filter_peer_id, can_target_self)
 
 	if context_title:
 		context_title.text = title.to_upper()
 	if context_menu:
-		context_menu.visible = true # Aparece al instante
+		context_menu.visible = true
+
+	if _ctx_items.is_empty() and can_target_self and filter_peer_id > 0:
+		print("[GameHUD] Sin aliados disponibles — auto-curando al caster")
+		_close_context_menu()
+		if _on_confirm.is_valid():
+			_on_confirm.call(filter_peer_id)
+		return
 
 	if not _ctx_items.is_empty():
 		_select_ctx_item(0)
@@ -230,7 +237,7 @@ func cancel_selection() -> void:
 		_on_cancel.call()
 	selection_cancelled.emit()
 
-func _build_context_items(filter_peer_id: int = -1) -> void:
+func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = false) -> void:
 	for child in context_grid.get_children():
 		child.queue_free()
 	_ctx_items.clear()
@@ -241,8 +248,8 @@ func _build_context_items(filter_peer_id: int = -1) -> void:
 		if not data: continue
 
 		var p_id = player.get_multiplayer_authority()
-		# Saltar al propio caster (ACT no puede potenciarse a sí mismo)
-		if filter_peer_id > 0 and p_id == filter_peer_id:
+		# Saltar al propio caster si can_target_self es false
+		if filter_peer_id > 0 and p_id == filter_peer_id and not can_target_self:
 			continue
 
 		var item = CONTEXT_ITEM_SCENE.instantiate()

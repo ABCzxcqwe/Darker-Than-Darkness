@@ -14,6 +14,7 @@ action_animation = "jevil_attack"
 cooldown = 20.0
 cooldown_cancel = 3.0
 move_restriction = 1
+can_target_self = null
 base_damage = 15
 range_ = 700.0
 projectile_count = 25
