@@ -12,6 +12,7 @@ ability_script = ExtResource("2_diamondrain")
 ability_scene = ExtResource("3_diamondhitbox")
 action_animation = "jevil_attack"
 cooldown = 20.0
+cooldown_cancel = 3.0
 move_restriction = 1
 base_damage = 15
 range_ = 700.0

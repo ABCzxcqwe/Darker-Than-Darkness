@@ -123,14 +123,9 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	# ── 7. Cooldown listo? ───────────────────────────────────────────────
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd and not cd.is_ready(peer_id, slot_index):
-		var remaining = cd.get_remaining(peer_id, slot_index)
-		if remaining == -1.0:
-			push_warning("[AbilityRouter] Lock huérfano detectado en cooldown check | peer: ", peer_id, " slot: ", slot_index, " — liberando y continuando.")
-			cd.release_lock(peer_id, slot_index)
-		else:
-			print("[AbilityRouter] Bloqueado por cooldown | slot: ", slot_index,
-				  " | restante: ", remaining, "s")
-			return
+		print("[AbilityRouter] Bloqueado por cooldown/lock | slot: ", slot_index,
+			  " | restante: ", cd.get_remaining(peer_id, slot_index), "s")
+		return
 
 	# ── 8. ¿Efectos que bloquean? ────────────────────────────────────────
 	var status = GameServiceLocator.get_service("StatusEffectService")
@@ -202,11 +197,6 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 	# ── 13. Lockear slot (evita spam) ───────────────────────────────────
 	if cd and cd.has_method("start_lock"):
-		if not cd.is_ready(peer_id, slot_index):
-			var remaining = cd.get_remaining(peer_id, slot_index)
-			if remaining == -1.0:
-				push_warning("[AbilityRouter] Lock huérfano detectado en _process_request | peer: ", peer_id, " slot: ", slot_index, " — liberando.")
-				cd.release_lock(peer_id, slot_index)
 		cd.start_lock(peer_id, slot_index)
 
 	# ── 14. Despachar ───────────────────────────────────────────────────

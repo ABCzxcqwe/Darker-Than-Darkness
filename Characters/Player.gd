@@ -26,6 +26,7 @@ var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
+var _last_slot_request_time: Dictionary = {}
 var _is_sprinting: bool = false
 var is_spectator: bool = false
 
@@ -173,56 +174,62 @@ func _input(event: InputEvent) -> void:
 		aiming_slot = -1
 		return
 
-	for action in action_map:
-		if event.is_action_pressed(action):
-			var slot: int = action_map[action]
-			print("[Player] Tecla detectada | action: ", action, " | slot: ", slot,
-				  " | state: ", state, " | pending_slot: ", _pending_selection_slot,
-				  " | active_slot: ", active_ability_slot)
+		for action in action_map:
+			if event.is_action_pressed(action):
+				var slot: int = action_map[action]
+				print("[Player] Tecla detectada | action: ", action, " | slot: ", slot,
+					  " | state: ", state, " | pending_slot: ", _pending_selection_slot,
+					  " | active_slot: ", active_ability_slot)
 
-			if aiming_slot >= 0:
-				print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
-				if action == "ability_0":
-					print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
-					var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-					if multiplayer.is_server():
-						AbilityRouter.request_ability(aiming_slot, mouse_dir)
-					else:
-						AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
-					aiming_slot = -1
-					print("[Player] aiming_slot reseteado a -1, retornando")
+				var now := Time.get_ticks_msec()
+				if _last_slot_request_time.has(slot) and now - _last_slot_request_time[slot] < 150:
+					print("[Player] Ignorado (debounce) | slot: ", slot)
 					return
-				elif slot == aiming_slot:
-					print("[Player] Misma tecla detectada en aim mode → cancelando slot ", aiming_slot)
-					var peer_id = get_multiplayer_authority()
-					if multiplayer.is_server():
-						AbilityRouter.cancel_aim(peer_id, aiming_slot)
+				_last_slot_request_time[slot] = now
+
+				if aiming_slot >= 0:
+					print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
+					if action == "ability_0":
+						print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
+						var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+						if multiplayer.is_server():
+							AbilityRouter.request_ability(aiming_slot, mouse_dir)
+						else:
+							AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+						aiming_slot = -1
+						print("[Player] aiming_slot reseteado a -1, retornando")
+						return
+					elif slot == aiming_slot:
+						print("[Player] Misma tecla detectada en aim mode → cancelando slot ", aiming_slot)
+						var peer_id = get_multiplayer_authority()
+						if multiplayer.is_server():
+							AbilityRouter.cancel_aim(peer_id, aiming_slot)
+						else:
+							AbilityRouter.rpc_id(1, "cancel_aim", peer_id, aiming_slot)
+						aiming_slot = -1
+						print("[Player] Cancelación enviada, aiming_slot reseteado")
+						return
 					else:
-						AbilityRouter.rpc_id(1, "cancel_aim", peer_id, aiming_slot)
-					aiming_slot = -1
-					print("[Player] Cancelación enviada, aiming_slot reseteado")
+						print("[Player] Otra tecla en aim mode, ignorando")
+						return
+
+				if _pending_selection_slot == slot:
+					print("[Player] Menú abierto para este slot, cancelando selección.")
+					var huds := get_tree().get_nodes_in_group("game_hud")
+					if not huds.is_empty():
+						huds[0].cancel_selection()
 					return
+
+				var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+
+				if multiplayer.is_server():
+					print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
+					AbilityRouter.request_ability(slot, mouse_dir)
 				else:
-					print("[Player] Otra tecla en aim mode, ignorando")
-					return
-
-			if _pending_selection_slot == slot:
-				print("[Player] Menú abierto para este slot, cancelando selección.")
-				var huds := get_tree().get_nodes_in_group("game_hud")
-				if not huds.is_empty():
-					huds[0].cancel_selection()
-				return
-
-			var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-
-			if multiplayer.is_server():
-				print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
-				AbilityRouter.request_ability(slot, mouse_dir)
-			else:
-				print("[Player] Enviando RPC request_ability al servidor | slot: ", slot)
-				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
-			ability_used.emit(slot)
-			break
+					print("[Player] Enviando RPC request_ability al servidor | slot: ", slot)
+					AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
+				ability_used.emit(slot)
+				break
 
 	if event.is_action_pressed("interact"):
 		_try_revive()

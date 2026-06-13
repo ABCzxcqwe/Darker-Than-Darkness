@@ -11,6 +11,7 @@ ability_script = ExtResource("2_devilknife")
 ability_scene = ExtResource("3_pike")
 action_animation = "jevil_attack"
 cooldown = 12.0
+cooldown_cancel = 2.0
 move_restriction = 1
 base_damage = 25
 range_ = 80.0
