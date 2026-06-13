@@ -167,7 +167,7 @@ func _scan_children(node: Node) -> void:
 
 # ── Phase Events ──────────────────────────────────────────
 
-func _on_timer_changed(current_time: float) -> void:
+func _on_timer_changed(_current_time: float) -> void:
 	_evaluate_phase_events()
 	if _lms_active and not _lms_exits_opened:
 		_check_lms_exit_condition()

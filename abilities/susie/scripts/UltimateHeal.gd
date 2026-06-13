@@ -27,14 +27,12 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			_release_lock_for(caster_id, slot_index)
 			return
 
-	var heal_ratio: float = 0.0
+	var heal_amount: int = 0
 	if abs_svc:
-		heal_ratio = abs_svc.get_scaled_value(caster_id, slot_index, data)
+		heal_amount = int(abs_svc.get_scaled_value(caster_id, slot_index, data))
 	else:
-		heal_ratio = data.scaling_base_value
-
-	var max_hp: int = target_node.character_data.max_health if target_node.character_data else 100
-	var heal_amount: int = maxi(1, int(max_hp * heal_ratio))
+		heal_amount = int(data.scaling_base_value)
+	heal_amount = maxi(1, heal_amount)
 
 	var health_svc = GameServiceLocator.get_service("HealthService")
 	if not health_svc:
@@ -65,7 +63,6 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	var use_count: int = abs_svc.get_use_count(caster_id, slot_index) if abs_svc else 0
 	print("[UltimateHealth] Curación aplicada | caster: ", caster_id,
 		  " | objetivo: ", target_peer_id, " | uso #", use_count,
-		  " | ratio: ", "%.1f" % (heal_ratio * 100), "%",
 		  " | HP: ", heal_amount)
 
 

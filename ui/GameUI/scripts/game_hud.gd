@@ -220,8 +220,8 @@ func request_selection(title: String, on_confirm: Callable, on_cancel: Callable 
 	if context_menu:
 		context_menu.visible = true
 
-	if _ctx_items.is_empty() and can_target_self and filter_peer_id > 0:
-		print("[GameHUD] Sin aliados disponibles — auto-curando al caster")
+	if can_target_self and filter_peer_id > 0 and _ctx_items.size() == 1:
+		print("[GameHUD] Solo el caster disponible — auto-curando")
 		_close_context_menu()
 		if _on_confirm.is_valid():
 			_on_confirm.call(filter_peer_id)
