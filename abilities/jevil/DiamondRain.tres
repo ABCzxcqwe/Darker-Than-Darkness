@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="AbilityData" format=3]
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://h6edn1w0pri1"]
 
-[ext_resource type="Script" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
-[ext_resource type="Script" path="res://abilities/jevil/scripts/DiamondRain.gd" id="2_diamondrain"]
-[ext_resource type="PackedScene" path="res://Hitboxes/Jevil/DiamondHitbox.tscn" id="3_diamondhitbox"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" uid="uid://bn605ooew1jrc" path="res://abilities/jevil/scripts/DiamondRain.gd" id="2_diamondrain"]
+[ext_resource type="PackedScene" uid="uid://dclh3afhrc5qs" path="res://Hitboxes/Jevil/DiamondHitbox.tscn" id="3_diamondhitbox"]
 
 [resource]
 script = ExtResource("1_abilitydata")
@@ -15,5 +15,4 @@ cooldown = 20.0
 move_restriction = 1
 base_damage = 15
 range_ = 700.0
-attack_type = "normal"
 projectile_count = 25

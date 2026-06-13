@@ -79,7 +79,7 @@ func _launch(direction: Vector2) -> void:
 
 	var combat = GameServiceLocator.get_service("CombatMediator")
 	var tp_svc = GameServiceLocator.get_service("TPService")
-	var hs = GameServiceLocator.get_service("HitboxService")
+	var _hs = GameServiceLocator.get_service("HitboxService")
 
 	if _data and _data.tp_cost > 0.0 and tp_svc:
 		print("[DevilKnife] _launch() → verificando TP cost: ", _data.tp_cost)
@@ -116,7 +116,7 @@ func _launch(direction: Vector2) -> void:
 	)
 
 
-func _on_anim_timer(pn: Node, cid: int, sid: int, d: AbilityData, dir: Vector2) -> void:
+func _on_anim_timer(pn: Node, cid: int, _sid: int, d: AbilityData, dir: Vector2) -> void:
 	print("[DevilKnife] _on_anim_timer() | peer: ", cid)
 	if not is_instance_valid(pn):
 		print("[DevilKnife] _on_anim_timer() → player_node inválido")

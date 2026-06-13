@@ -124,20 +124,22 @@ properties/3/path = NodePath("AnimatedSprite2D:frame")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 
-[node name="DiamondHitbox" type="Area2D"]
+[node name="DiamondHitbox" type="Area2D" unique_id=420904568]
 z_index = 3
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_hitbox")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1291153698]
 scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_diamond")
 animation = &"hit"
 autoplay = "travel"
+frame = 11
+frame_progress = 1.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=555114965]
 shape = SubResource("RectangleShape2D_shape")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=376849493]
 replication_config = SubResource("SceneReplicationConfig_diamond")

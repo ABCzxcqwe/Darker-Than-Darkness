@@ -652,7 +652,7 @@ func _sync_speed(new_speed: float) -> void:
 	speed = new_speed
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_aiming_mode(slot: int, active: bool) -> void:
 	aiming_slot = slot if active else -1
 

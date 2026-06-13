@@ -109,21 +109,44 @@ func _do_teleport() -> bool:
 		return false
 
 	var spawn_dist: float = _data.range_ if _data and _data.range_ > 0 else 100.0
-	var dir_to_target: Vector2 = (_current_target.global_position - _player_node.global_position).normalized()
+	var target_pos: Vector2 = _current_target.global_position
+	var jevil_pos: Vector2 = _player_node.global_position
+	var dir_to_target: Vector2 = (target_pos - jevil_pos).normalized()
 	if dir_to_target == Vector2.ZERO:
 		dir_to_target = Vector2.RIGHT
 
-	var new_pos: Vector2 = _current_target.global_position - dir_to_target * spawn_dist
-	_player_node.global_position = new_pos
+	var desired_pos: Vector2 = target_pos - dir_to_target * spawn_dist
+	var safe_pos: Vector2 = _find_safe_position(desired_pos, target_pos, dir_to_target)
+	_player_node.global_position = safe_pos
 	_player_node.facing_right = dir_to_target.x >= 0.0
-	_player_node.rpc("_sync_server_position", new_pos)
+	_player_node.rpc("_sync_server_position", safe_pos)
 
-	print("[Teleport] Teletransportado a ", new_pos)
+	print("[Teleport] Teletransportado a ", safe_pos, " (deseado: ", desired_pos, ")")
 	_set_visible(true)
 
 	if _data and _data.prepare_animation != "":
 		_player_node.play_prepare_animation(_data.prepare_animation, _slot_index, _player_node.facing_right)
 	return true
+
+
+func _find_safe_position(desired: Vector2, target_pos: Vector2, dir_to_target: Vector2) -> Vector2:
+	var space_state = _player_node.get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(target_pos, desired)
+	query.collision_mask = 1
+	query.exclude = [_player_node, _current_target]
+
+	var result = space_state.intersect_ray(query)
+	if result.is_empty():
+		return desired
+
+	var margin: float = 35.0
+	var hit_pos: Vector2 = result.position
+	var dist_to_target: float = target_pos.distance_to(hit_pos)
+
+	if dist_to_target < margin * 2:
+		return desired
+
+	return hit_pos + dir_to_target * margin
 
 
 func _do_attack() -> bool:

@@ -1,11 +1,11 @@
 extends AbilityBase
 
 const AIM_TIMEOUT: float = 8.0
-const DIAMOND_COUNT: int = 25
-const AOE_RADIUS: float = 300.0
+const DIAMOND_COUNT: int = 45
+const AOE_RADIUS: float = 800.0
 const DIAMOND_SPEED: float = 400.0
-const DIAMOND_LIFETIME: float = 2.0
-const SPAWN_INTERVAL: float = 0.12
+const DIAMOND_LIFETIME: float = 3.0
+const SPAWN_INTERVAL: float = 0.05
 
 var _active: bool = false
 var _player_node: Node = null
@@ -101,7 +101,7 @@ func _launch(direction: Vector2) -> void:
 	)
 
 
-func _on_anim_timer(pn: Node, cid: int, sid: int, d: AbilityData, dir: Vector2) -> void:
+func _on_anim_timer(pn: Node, cid: int, _sid: int, d: AbilityData, dir: Vector2) -> void:
 	print("[DiamondRain] _on_anim_timer() | peer: ", cid)
 	if not is_instance_valid(pn):
 		_cancel_aim()
