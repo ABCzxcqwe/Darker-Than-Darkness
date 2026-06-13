@@ -163,10 +163,11 @@ func _input(event: InputEvent) -> void:
 		"ability_4": 4,
 		"ability_0": 0,
 	}
+	var mouse_dir: Vector2
 
 	if event.is_action_pressed("confirm") and aiming_slot >= 0:
 		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
-		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		mouse_dir = (get_global_mouse_position() - global_position).normalized()
 		if multiplayer.is_server():
 			AbilityRouter.request_ability(aiming_slot, mouse_dir)
 		else:
@@ -191,7 +192,7 @@ func _input(event: InputEvent) -> void:
 					print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
 					if action == "ability_0":
 						print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
-						var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+						mouse_dir = (get_global_mouse_position() - global_position).normalized()
 						if multiplayer.is_server():
 							AbilityRouter.request_ability(aiming_slot, mouse_dir)
 						else:
@@ -220,7 +221,7 @@ func _input(event: InputEvent) -> void:
 						huds[0].cancel_selection()
 					return
 
-				var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+				mouse_dir = (get_global_mouse_position() - global_position).normalized()
 
 				if multiplayer.is_server():
 					print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
