@@ -1,19 +1,18 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://cs0v01bpeipn5"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
-[ext_resource type="Script" uid="uid://cxqrp2j7vg0bk" path="res://abilities/jevil/scripts/DevilKnife.gd" id="2_devilknife"]
+[ext_resource type="Script" uid="uid://dnrblbd6lon43" path="res://abilities/jevil/scripts/asd/DevilKnife.gd" id="2_k2lcl"]
 [ext_resource type="PackedScene" uid="uid://cwyvwtu4eg3cm" path="res://Hitboxes/Jevil/PikeHitbox.tscn" id="3_pike"]
 
 [resource]
 script = ExtResource("1_abilitydata")
 display_name = "Devil Knife"
-ability_script = ExtResource("2_devilknife")
+ability_script = ExtResource("2_k2lcl")
 ability_scene = ExtResource("3_pike")
 action_animation = "jevil_attack"
 cooldown = 12.0
 cooldown_cancel = 2.0
 move_restriction = 1
-can_target_self = null
 base_damage = 25
 range_ = 80.0
 spawn_delay = 0.4
