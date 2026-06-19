@@ -2,18 +2,36 @@
 
 [ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://Characters/Player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
+[ext_resource type="Texture2D" uid="uid://b17pqxnwyl7f" path="res://Characters/Susie/assets/susie_idle.png" id="2_vb825"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_65n15"]
+atlas = ExtResource("2_vb825")
+region = Rect2(192, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l48on"]
+atlas = ExtResource("2_vb825")
+region = Rect2(0, 0, 192, 192)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_65n15")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l48on")
+}],
 "loop": false,
 "name": &"idle_horizontal",
 "speed": 8.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5slg2"]
+size = Vector2(50, 48)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
+radius = 40.0
+height = 120.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sweqy"]
 properties/0/path = NodePath(".:position")
@@ -44,6 +62,7 @@ zoom = Vector2(0.8, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
 z_index = 4
+position = Vector2(0, 48)
 shape = SubResource("RectangleShape2D_5slg2")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=634505925]
@@ -53,6 +72,7 @@ script = ExtResource("2_onrkg")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=193273634]
 z_index = 4
+position = Vector2(0, 12)
 shape = SubResource("CapsuleShape2D_i3pqv")
 debug_color = Color(0, 0.52156866, 0.69803923, 0.41960785)
 

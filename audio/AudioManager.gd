@@ -159,9 +159,12 @@ func _update_proximities(player: Node, delta: float) -> void:
 
 	var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
 
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+
 	if is_killer:
 		for s in survivors:
 			if not is_instance_valid(s): continue
+			if coord and coord.has_player_escaped(s.get_multiplayer_authority()): continue
 			var d: float = player.global_position.distance_to(s.global_position)
 			if d <= chase_range:
 				if not _is_chasing:
@@ -393,7 +396,7 @@ func _rpc_deactivate_lms_audio() -> void:
 		lms_music_player.stop()
 	lms_music_player.stream = null
 	
-@rpc("authority", "reliable")
+@rpc("authority", "call_local", "reliable")
 func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
 

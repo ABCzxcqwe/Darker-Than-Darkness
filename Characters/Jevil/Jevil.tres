@@ -4,12 +4,14 @@
 [ext_resource type="PackedScene" uid="uid://vt7t7p1b0c3x" path="res://Hitboxes/Jevil/JHitbox.tscn" id="2_8ecap"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="3_r2u3k"]
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/Jevil/animations.tres" id="4_hq0h8"]
+[ext_resource type="Resource" uid="uid://cs0v01bpeipn5" path="res://abilities/jevil/DevilKnife.tres" id="4_ixf75"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Sonic. Exe Chase .ogg" id="5_r2u3k"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
 [ext_resource type="Texture2D" uid="uid://bocyfrfdi2owq" path="res://Characters/Jevil/assets/icon.png" id="6_fnfn6"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 [ext_resource type="Texture2D" uid="uid://cekacln1fbfw1" path="res://Characters/Jevil/assets/jevil_panel.png" id="8_bkbox"]
 [ext_resource type="Resource" uid="uid://dwxwdg3talehj" path="res://abilities/jevil/Teleport.tres" id="8_teleport"]
+[ext_resource type="Resource" uid="uid://h6edn1w0pri1" path="res://abilities/jevil/DiamondRain.tres" id="9_diamondrain"]
 
 [sub_resource type="Resource" id="Resource_r2u3k"]
 script = ExtResource("1_hjm08")
@@ -39,7 +41,8 @@ terror_radius = 1000.0
 chase_radius = 500.0
 terror_music = ExtResource("7_hq0h8")
 chase_music = ExtResource("5_r2u3k")
-ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), ExtResource("8_teleport"), null, null, null])
+ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), ExtResource("4_ixf75"), ExtResource("9_diamondrain"), ExtResource("8_teleport"), null])
+tp_gain_time = 3.0
 stamina_max = 120.0
 stamina_regen_rate = 10.0
 stamina_sprint_drain = 29.0

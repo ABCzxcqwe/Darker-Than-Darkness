@@ -19,6 +19,11 @@ func _ready() -> void:
 
 	await _load_map()
 
+	# Inicializar eventos del mapa (coordinador)
+	var coordinator = GameServiceLocator.get_service("MapEventCoordinator")
+	if coordinator and coordinator.has_method("setup") and current_map_node:
+		coordinator.setup(current_map_node)
+
 	# Spawnear jugadores AHORA que el mapa ya está cargado
 	if multiplayer.is_server():
 		var player_characters = get_meta("player_characters", {})

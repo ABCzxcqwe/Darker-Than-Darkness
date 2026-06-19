@@ -123,9 +123,8 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	# ── 7. Cooldown listo? ───────────────────────────────────────────────
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd and not cd.is_ready(peer_id, slot_index):
-		var remaining = cd.get_remaining(peer_id, slot_index)
-		print("[AbilityRouter] Bloqueado por cooldown | slot: ", slot_index,
-			  " | restante: ", remaining, "s")
+		print("[AbilityRouter] Bloqueado por cooldown/lock | slot: ", slot_index,
+			  " | restante: ", cd.get_remaining(peer_id, slot_index), "s")
 		return
 
 	# ── 8. ¿Efectos que bloquean? ────────────────────────────────────────
@@ -178,11 +177,11 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	# ── 11. Animación — Cancelación unificada ───────────────────────────
 	var anim_state: int = player_node.state
 
-	if anim_state == 2: # PREPARE
+	if anim_state == 1: # PREPARE
 		_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
 		return
 
-	if anim_state == 1: # ABILITY
+	if anim_state == 2: # ABILITY
 		if slot_index == player_node.active_ability_slot and base_data.can_cancel:
 			_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
 		else:
@@ -198,11 +197,6 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 	# ── 13. Lockear slot (evita spam) ───────────────────────────────────
 	if cd and cd.has_method("start_lock"):
-		if not cd.is_ready(peer_id, slot_index):
-			var remaining = cd.get_remaining(peer_id, slot_index)
-			if remaining == -1.0:
-				push_warning("[AbilityRouter] Lock huérfano detectado en _process_request | peer: ", peer_id, " slot: ", slot_index, " — liberando.")
-				cd.release_lock(peer_id, slot_index)
 		cd.start_lock(peer_id, slot_index)
 
 	# ── 14. Despachar ───────────────────────────────────────────────────
@@ -246,6 +240,53 @@ func _cancel_ability(peer_id: int, player_node: Node, slot_index: int,
 
 	print("[AbilityRouter] Habilidad cancelada | peer: ", peer_id,
 		  " | slot: ", slot_index, " | nombre: ", ability_data.display_name)
+
+
+# ── Cancelación de apuntado ──────────────────────────────────────────────────
+
+@rpc("any_peer", "reliable")
+func cancel_aim(peer_id: int, slot_index: int) -> void:
+	print("[AbilityRouter] cancel_aim() recibido | peer: ", peer_id, " | slot: ", slot_index)
+	var player_node := _get_player_node(peer_id)
+	if not player_node:
+		print("[AbilityRouter] cancel_aim() → player_node no encontrado")
+		return
+
+	var char_data: CharacterData = player_node.character_data
+	if not char_data or slot_index < 0 or slot_index >= char_data.ability_slots.size():
+		print("[AbilityRouter] cancel_aim() → char_data inválido o slot fuera de rango")
+		return
+
+	var ability_data: AbilityData = char_data.ability_slots[slot_index]
+	var cd = GameServiceLocator.get_service("CooldownService")
+	print("[AbilityRouter] cancel_aim() → datos válidos, procediendo limpieza")
+
+	player_node.rpc("_sync_aiming_mode", slot_index, false)
+	player_node.rpc("_sync_effect", "free_look", false)
+	print("[AbilityRouter] cancel_aim() → RPCs sync enviados")
+
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if combat:
+		combat.remove_root(player_node)
+		print("[AbilityRouter] cancel_aim() → combat root removido")
+
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	if abs_svc and abs_svc.is_mode_active(peer_id, slot_index):
+		abs_svc.deactivate_mode(peer_id, slot_index)
+		print("[AbilityRouter] cancel_aim() → modo desactivado")
+	else:
+		print("[AbilityRouter] cancel_aim() → modo no estaba activo o abs_svc null")
+
+	if cd and cd.has_method("release_lock"):
+		cd.release_lock(peer_id, slot_index)
+		print("[AbilityRouter] cancel_aim() → lock liberado")
+
+	if cd and cd.has_method("start") and ability_data and ability_data.cooldown_cancel > 0.0:
+		cd.start(peer_id, slot_index, ability_data.cooldown_cancel)
+		print("[AbilityRouter] cancel_aim() → cooldown_cancel iniciado: ", ability_data.cooldown_cancel)
+
+	player_node.rpc("_sync_cancel_ability")
+	print("[AbilityRouter] Apuntado cancelado | peer: ", peer_id, " | slot: ", slot_index)
 
 
 # ── Menú contextual ─────────────────────────────────────────────────────────

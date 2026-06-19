@@ -26,7 +26,13 @@ func _ready() -> void:
 		result_label.text = "¡VICTORIA DEL KILLER!\nTodos los supervivientes fueron eliminados."
 		result_label.modulate = Color.MAGENTA
 	elif reason_code == "survivors_escaped":
-		result_label.text = "¡LOS SURVIVORS ESCAPARON!\nSe terminó el tiempo de caza."
+		var escaped = results.get("escaped_count", 0)
+		var total = results.get("total_survivors", 0)
+		var not_escaped = total - escaped
+		if escaped > 0:
+			result_label.text = "¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron." % [escaped, not_escaped]
+		else:
+			result_label.text = "¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate."
 		result_label.modulate = Color.CYAN
 	else:
 		# Fallback por si el cliente se desconectó de golpe y el diccionario se rompió

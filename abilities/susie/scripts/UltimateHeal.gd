@@ -11,33 +11,38 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	var target_node: Node = _resolve_target(player_node, caster_id)
 	if not is_instance_valid(target_node):
 		print("[UltimateHealth] Sin objetivo válido. Cancelado.")
+		_release_lock_for(caster_id, slot_index)
 		return
 
 	var target_peer_id: int = target_node.get_multiplayer_authority()
 
 	var tp_svc = GameServiceLocator.get_service("TPService")
-	if data.tp_cost > 0.0 and tp_svc:
-		if not tp_svc.consume_tp(caster_id, data.tp_cost):
+	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	var effective_cost: float = data.tp_cost
+	if data.is_scalable and abs_svc and abs_svc.has_method("get_dynamic_tp_cost"):
+		effective_cost = abs_svc.get_dynamic_tp_cost(caster_id, slot_index)
+	if effective_cost > 0.0 and tp_svc:
+		if not tp_svc.consume_tp(caster_id, effective_cost):
 			push_warning("[UltimateHealth] consume_tp falló para peer ", caster_id)
+			_release_lock_for(caster_id, slot_index)
 			return
 
-	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
-	var heal_ratio: float = 0.0
+	var heal_amount: int = 0
 	if abs_svc:
-		heal_ratio = abs_svc.get_scaled_value(caster_id, slot_index, data)
+		heal_amount = int(abs_svc.get_scaled_value(caster_id, slot_index, data))
 	else:
-		heal_ratio = data.scaling_base_value
-
-	var max_hp: int = target_node.character_data.max_health if target_node.character_data else 100
-	var heal_amount: int = maxi(1, int(max_hp * heal_ratio))
+		heal_amount = int(data.scaling_base_value)
+	heal_amount = maxi(1, heal_amount)
 
 	var health_svc = GameServiceLocator.get_service("HealthService")
 	if not health_svc:
 		push_error("[UltimateHealth] HealthService no disponible.")
+		_release_lock_for(caster_id, slot_index)
 		return
 
 	if not health_svc.is_alive(target_peer_id):
 		print("[UltimateHealth] El objetivo está caído o muerto.")
+		_release_lock_for(caster_id, slot_index)
 		return
 
 	health_svc.heal(target_node, heal_amount)
@@ -58,8 +63,13 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	var use_count: int = abs_svc.get_use_count(caster_id, slot_index) if abs_svc else 0
 	print("[UltimateHealth] Curación aplicada | caster: ", caster_id,
 		  " | objetivo: ", target_peer_id, " | uso #", use_count,
-		  " | ratio: ", "%.1f" % (heal_ratio * 100), "%",
 		  " | HP: ", heal_amount)
+
+
+func _release_lock_for(peer_id: int, slot_index: int) -> void:
+	var cd_svc = GameServiceLocator.get_service("CooldownService")
+	if cd_svc and cd_svc.has_method("release_lock"):
+		cd_svc.release_lock(peer_id, slot_index)
 
 
 func _resolve_target(player_node: Node, caster_id: int) -> Node:

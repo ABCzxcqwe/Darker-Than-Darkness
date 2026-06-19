@@ -1,7 +1,11 @@
 [gd_scene format=4 uid="uid://ctjsceyvkt4sn"]
 
 [ext_resource type="Script" uid="uid://fii83qtguhcy" path="res://Maps/base_map.gd" id="1_trq3l"]
+[ext_resource type="Script" uid="uid://bw4hqjvrmy6ii" path="res://Maps/events/MapExit.gd" id="2_exit"]
 [ext_resource type="Texture2D" uid="uid://cs85gn7ehl05w" path="res://Maps/Test/Assets/forest2.png" id="2_trq3l"]
+[ext_resource type="Script" uid="uid://bm7lrxxmab4b8" path="res://Maps/events/MapPhaseEvent.gd" id="3_phase"]
+[ext_resource type="SpriteFrames" uid="uid://bc8nudwomc8of" path="res://Maps/Test/Assets/puerta.tres" id="3_puerta"]
+[ext_resource type="Script" uid="uid://dgbn5cl3vm2th" path="res://Maps/events/MapSpawnPoint.gd" id="4_spawn"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_trq3l"]
 texture = ExtResource("2_trq3l")
@@ -418,6 +422,12 @@ texture = ExtResource("2_trq3l")
 [sub_resource type="TileSet" id="TileSet_eg64c"]
 sources/0 = SubResource("TileSetAtlasSource_trq3l")
 
+[sub_resource type="RectangleShape2D" id="1_exit_north"]
+size = Vector2(64, 64)
+
+[sub_resource type="RectangleShape2D" id="2_exit_south"]
+size = Vector2(64, 64)
+
 [node name="TestMap" type="Node2D" unique_id=1731724692]
 script = ExtResource("1_trq3l")
 
@@ -445,3 +455,51 @@ position = Vector2(105, 222)
 
 [node name="Marker2D3" type="Marker2D" parent="SpawnPoints/SurvivorSpawns" unique_id=1632036384]
 position = Vector2(117, 97)
+
+[node name="MapEvents" type="Node2D" parent="." unique_id=37862477]
+
+[node name="ExitNorth" type="Area2D" parent="MapEvents" unique_id=1000000001]
+z_index = 4
+position = Vector2(180, 786)
+audio_bus_override = true
+audio_bus_name = &"SFX"
+script = ExtResource("2_exit")
+exit_id = "exit_north"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapEvents/ExitNorth" unique_id=3396036]
+shape = SubResource("1_exit_north")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=259427699]
+sprite_frames = ExtResource("3_puerta")
+animation = &"cerrado"
+
+[node name="ExitSouth" type="Area2D" parent="MapEvents" unique_id=1000000002]
+position = Vector2(1272, 800)
+script = ExtResource("2_exit")
+exit_id = "exit_south"
+open_during_lms = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapEvents/ExitSouth" unique_id=1595503167]
+shape = SubResource("2_exit_south")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitSouth" unique_id=20252027]
+sprite_frames = ExtResource("3_puerta")
+animation = &"cerrado"
+
+[node name="OpenExitsPhase" type="Node" parent="MapEvents" unique_id=1000000003]
+script = ExtResource("3_phase")
+event_id = "open_exits_at_120s"
+condition_value = 80.0
+action_target = "exit_north"
+
+[node name="SpawnPoints" type="Node2D" parent="MapEvents" unique_id=1265736970]
+
+[node name="SpawnCenter" type="Marker2D" parent="MapEvents/SpawnPoints" unique_id=1000000004]
+position = Vector2(726, 750)
+script = ExtResource("4_spawn")
+spawn_id = "center"
+
+[node name="SpawnCorner" type="Marker2D" parent="MapEvents/SpawnPoints" unique_id=1000000005]
+position = Vector2(1242, 729)
+script = ExtResource("4_spawn")
+spawn_id = "corner"

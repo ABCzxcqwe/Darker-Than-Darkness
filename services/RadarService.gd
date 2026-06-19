@@ -58,9 +58,9 @@ func remove_down_indicator(peer_id: int) -> void:
 			return
 
 
-func show_map_indicator(target_pos: Vector2, duration: float = 0.0, _target_peer: int = 0) -> void:
+func show_map_indicator(target_pos: Vector2, duration: float = 0.0, _target_peer: int = 0) -> int:
 	if not multiplayer.is_server():
-		return
+		return -1
 	var arrow_id := _next_id
 	_next_id += 1
 	_server_arrows[arrow_id] = {
@@ -72,6 +72,7 @@ func show_map_indicator(target_pos: Vector2, duration: float = 0.0, _target_peer
 		await get_tree().create_timer(duration).timeout
 		if _server_arrows.has(arrow_id):
 			_server_arrows.erase(arrow_id)
+	return arrow_id
 
 
 func remove_map_indicator(arrow_id: int) -> void:

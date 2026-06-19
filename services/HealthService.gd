@@ -130,7 +130,6 @@ func register(player_node: Node) -> void:
 
 func unregister(peer_id: int) -> void:
 	_cancel_bleed_timer(peer_id)
-	_permanently_dead.erase(peer_id)
 	if _states.has(peer_id):
 		_states.erase(peer_id)
 	print("[HealthService] Peer ", peer_id, " eliminado de los estados de salud.")

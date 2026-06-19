@@ -70,4 +70,5 @@ func modify_time(seconds: float) -> void:
 func _sync_time_client(server_time: float) -> void:
 	if not multiplayer.is_server():
 		time_left = server_time
+		is_active = server_time > 0.0
 		timer_changed.emit(time_left)

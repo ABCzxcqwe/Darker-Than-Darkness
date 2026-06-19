@@ -25,6 +25,8 @@ var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var _pending_selection_slot: int = -1
+var aiming_slot: int = -1
+var _last_slot_request_time: Dictionary = {}
 var _is_sprinting: bool = false
 var is_spectator: bool = false
 
@@ -161,6 +163,17 @@ func _input(event: InputEvent) -> void:
 		"ability_4": 4,
 		"ability_0": 0,
 	}
+	var mouse_dir: Vector2
+
+	if event.is_action_pressed("confirm") and aiming_slot >= 0:
+		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
+		mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		if multiplayer.is_server():
+			AbilityRouter.request_ability(aiming_slot, mouse_dir)
+		else:
+			AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+		aiming_slot = -1
+		return
 
 	for action in action_map:
 		if event.is_action_pressed(action):
@@ -169,6 +182,38 @@ func _input(event: InputEvent) -> void:
 				  " | state: ", state, " | pending_slot: ", _pending_selection_slot,
 				  " | active_slot: ", active_ability_slot)
 
+			var now := Time.get_ticks_msec()
+			if _last_slot_request_time.has(slot) and now - _last_slot_request_time[slot] < 150:
+				print("[Player] Ignorado (debounce) | slot: ", slot)
+				return
+			_last_slot_request_time[slot] = now
+
+			if aiming_slot >= 0:
+				print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
+				if action == "ability_0":
+					print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
+					mouse_dir = (get_global_mouse_position() - global_position).normalized()
+					if multiplayer.is_server():
+						AbilityRouter.request_ability(aiming_slot, mouse_dir)
+					else:
+						AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+					aiming_slot = -1
+					print("[Player] aiming_slot reseteado a -1, retornando")
+					return
+				elif slot == aiming_slot:
+					print("[Player] Misma tecla detectada en aim mode → cancelando slot ", aiming_slot)
+					var peer_id = get_multiplayer_authority()
+					if multiplayer.is_server():
+						AbilityRouter.cancel_aim(peer_id, aiming_slot)
+					else:
+						AbilityRouter.rpc_id(1, "cancel_aim", peer_id, aiming_slot)
+					aiming_slot = -1
+					print("[Player] Cancelación enviada, aiming_slot reseteado")
+					return
+				else:
+					print("[Player] Otra tecla en aim mode, ignorando")
+					return
+
 			if _pending_selection_slot == slot:
 				print("[Player] Menú abierto para este slot, cancelando selección.")
 				var huds := get_tree().get_nodes_in_group("game_hud")
@@ -176,7 +221,7 @@ func _input(event: InputEvent) -> void:
 					huds[0].cancel_selection()
 				return
 
-			var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+			mouse_dir = (get_global_mouse_position() - global_position).normalized()
 
 			if multiplayer.is_server():
 				print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
@@ -220,6 +265,13 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 	var filter_peer_id: int = -1
 	if selection_type == 0: # ALLY
 		filter_peer_id = get_multiplayer_authority()
+
+	var can_target_self: bool = false
+	if character_data and slot >= 0 and slot < character_data.ability_slots.size():
+		var ad: AbilityData = character_data.ability_slots[slot]
+		if ad:
+			can_target_self = ad.can_target_self
+
 	huds[0].request_selection(
 		title,
 		func(target_peer_id: int) -> void:
@@ -236,7 +288,8 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 					_cancel_ability_selection(slot)
 				else:
 					rpc_id(1, "_cancel_ability_selection", slot),
-		filter_peer_id
+		filter_peer_id,
+		can_target_self
 	)
 
 
@@ -615,6 +668,11 @@ func _sync_speed(new_speed: float) -> void:
 	speed = new_speed
 
 
+@rpc("authority", "call_local", "reliable")
+func _sync_aiming_mode(slot: int, active: bool) -> void:
+	aiming_slot = slot if active else -1
+
+
 @rpc("any_peer", "call_local", "reliable")
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
@@ -657,6 +715,27 @@ func _sync_state(new_state: String, new_health: int) -> void:
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_escape() -> void:
+	var caller = multiplayer.get_remote_sender_id()
+	if caller != 0 and caller != 1:
+		return
+	visible = false
+	_disable_corpse()
+	_prepare_spectator_mode()
+	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	if coord and not coord.has_player_escaped(get_multiplayer_authority()):
+		if coord.has_method("_register_escaped"):
+			coord._register_escaped(get_multiplayer_authority())
+	var hud = get_tree().get_first_node_in_group("game_hud")
+	if hud and hud.has_method("_remove_name_label"):
+		hud._remove_name_label(get_multiplayer_authority())
+	var hs = GameServiceLocator.get_service("HealthService")
+	if hs:
+		hs.player_state_changed.emit(get_multiplayer_authority(), "escaped")
+
 
 @rpc("authority", "call_local", "reliable")
 func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:

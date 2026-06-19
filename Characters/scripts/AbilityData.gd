@@ -143,6 +143,11 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Solo se lee si requires_selection = true.
 @export var selection_type: SelectionType = SelectionType.ALLY
 
+## Si true, el menú contextual incluye al propio caster como objetivo seleccionable.
+## Si no hay otros objetivos disponibles, se auto-selecciona automáticamente.
+## Solo se lee si requires_selection = true.
+@export var can_target_self: bool = false
+
 ## Si true, el AbilityRouter NO inicia el cooldown al despachar.
 ## La habilidad es responsable de iniciarlo en su on_end o cuando corresponda.
 ## Úsalo cuando el cooldown depende del resultado (golpeó/falló/canceló).
@@ -166,6 +171,9 @@ enum SelectionType { ALLY, ENEMY, ANY }
 
 ## Alcance del hitbox en píxeles desde el centro del caster.
 @export var range_: float = 100.0
+
+## Retraso en segundos entre la animación de lanzamiento y la aparición del proyectil.
+@export var spawn_delay: float = 0.0
 
 ## Tipo de ataque para el sistema de invencibilidad de HealthService.
 ## Debe coincidir con los valores que verifica CharacterData.special_defense_against.
