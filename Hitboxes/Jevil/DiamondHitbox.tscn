@@ -131,7 +131,7 @@ collision_mask = 0
 script = ExtResource("1_hitbox")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1291153698]
-scale = Vector2(1.5, 1.5)
+scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_diamond")
 animation = &"hit"
 autoplay = "travel"
@@ -139,6 +139,7 @@ frame = 11
 frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=555114965]
+scale = Vector2(2, 2)
 shape = SubResource("RectangleShape2D_shape")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=376849493]
