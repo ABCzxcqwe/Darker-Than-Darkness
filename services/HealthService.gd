@@ -157,6 +157,8 @@ func _down(player_node: Node) -> void:
 		_kill(player_node)
 		return
 
+	_play_downed_sound(player_node)
+
 	player_node.health = 0
 	_set_state(peer_id, "downed")
 
@@ -196,6 +198,8 @@ func _down(player_node: Node) -> void:
 func _kill(player_node: Node) -> void:
 	var peer_id := player_node.get_multiplayer_authority()
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
+
+	_play_death_sound(player_node)
 
 	var radar_svc = GameServiceLocator.get_service("RadarService")
 	if radar_svc:
@@ -278,3 +282,19 @@ func check_all_survivors_incapacitated() -> bool:
 func _exit_tree() -> void:
 	_states.clear()
 	print("[HealthService] Limpiado.")
+
+
+func _play_downed_sound(player_node: Node) -> void:
+	if not player_node or not player_node.character_data:
+		return
+	var cd := player_node.character_data
+	if cd.downed_sfx and player_node.multiplayer.is_server():
+		AudioManager.rpc("play_stream_2d_rpc", cd.downed_sfx.resource_path, player_node.global_position.x, player_node.global_position.y)
+
+
+func _play_death_sound(player_node: Node) -> void:
+	if not player_node or not player_node.character_data:
+		return
+	var cd := player_node.character_data
+	if cd.death_sfx and player_node.multiplayer.is_server():
+		AudioManager.rpc("play_stream_2d_rpc", cd.death_sfx.resource_path, player_node.global_position.x, player_node.global_position.y)

@@ -49,7 +49,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		player_node.play_prepare_animation(data.prepare_animation, slot_index, player_node.facing_right)
 
 	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
-		AudioManager.play_sfx_networked.rpc(10, player_node.global_position.x, player_node.global_position.y)
+		AudioManager.play_sfx_networked.rpc(SfxId.GRAB, player_node.global_position.x, player_node.global_position.y)
 
 	hs.create({
 		"attacker_id"   : caster_id,
@@ -113,7 +113,7 @@ func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: 
 			combat.apply_damage(target, attacker, dmg, data.attack_type if data else "normal")
 
 		if is_instance_valid(target) and target.multiplayer.is_server():
-			AudioManager.play_sfx_networked.rpc(17, target.global_position.x, target.global_position.y)
+			AudioManager.play_sfx_networked.rpc(SfxId.HIT, target.global_position.x, target.global_position.y)
 
 		var is_killer: bool = attacker.is_in_group("killer")
 		if not is_killer and attacker.get("character_data"):

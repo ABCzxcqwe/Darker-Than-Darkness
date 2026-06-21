@@ -5594,28 +5594,28 @@ position = Vector2(3908, 5535)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Colision" unique_id=1181285236]
 position = Vector2(259.15387, -4.289503)
 scale = Vector2(0.81155765, 1.0232441)
-polygon = PackedVector2Array(-1747.4468, 284.67252, -1747.4468, 285.64978, -1741.2859, 974.6349, 183.34843, 986.1592, 2574.8926, 988.1218, 2578.8787, 292.34552)
+polygon = PackedVector2Array(-1747.4468, 284.67252, -1738.8215, 973.6576, 2591.1235, 973.6576, 2588.6592, 276.85425)
 
 [node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Colision" unique_id=1805825737]
 position = Vector2(620, 0)
-polygon = PackedVector2Array(2, -304, -2676, -304, -2676, 416, -5380, 416, -5380, 1347, -3620, 1349, -3619, 7568, -3796, 7568, -3796, 1536, -5508, 1536, -5508, 16, -2820, 16, -2820, -672, 3260, -672, 3260, -304, 258, -304, 258, -503, 2, -503)
+polygon = PackedVector2Array(2, -304, -2676, -304, -2676, 416, -5380, 416, -5380, 1216, -3620, 1216, -3619, 7568, -3796, 7568, -3796, 1536, -5508, 1536, -5508, 16, -2820, 16, -2820, -672, 3260, -672, 3260, -304, 258, -304, 258, -503, 2, -503)
 
 [node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="Colision" unique_id=172969734]
-position = Vector2(-251, -127)
-polygon = PackedVector2Array(3975, -302, 4129, -310, 4133, 625, 6722, 622, 6725, 2432, 7475, 2427, 7476, 3520, 6716, 3518, 6724, 5503, 5031, 5500, 5027, 7695, -2925, 7695, -2925, 7519, 4851, 7519, 4851, 6655, 4563, 6655, 4563, 6415, 4859, 6415, 4851, 5326, 6579, 5327, 6575, 3440, 7330, 3441, 7334, 2688, 6567, 2692, 6576, 1326, 6583, 907, 3985, 911, 3983, -23, 3986, -122)
+position = Vector2(-255, -124)
+polygon = PackedVector2Array(3975, -302, 4129, -310, 4133, 625, 6727, 620, 6727, 2428, 7479, 2428, 7479, 3516, 6727, 3516, 6723, 5503, 5031, 5500, 5031, 7692, -2921, 7692, -2921, 7516, 4855, 7516, 4855, 6652, 4567, 6652, 4567, 6412, 4855, 6412, 4855, 5324, 6583, 5324, 6583, 3340, 7335, 3340, 7335, 2684, 6583, 2684, 6583, 908, 3985, 911, 3983, -23, 3986, -122)
 
 [node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="Colision" unique_id=32335064]
 position = Vector2(637, -20)
-polygon = PackedVector2Array(-2122, 273, -2346, 267, -2342, 2539, -3096, 2540, -3097, 2704, -2199, 2704, -2214, 1013, -1990, 1012, -1967, 1013, -1972, 273)
+polygon = PackedVector2Array(-2357, 266, -2358, 2436, -3109, 2436, -3109, 2724, -2213, 2724, -2213, 1012, -1967, 1012, -1974, 266)
 
 [node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="Colision" unique_id=467267382]
 position = Vector2(-243, 0)
-polygon = PackedVector2Array(2743, 272, 3288, 270, 3289, 2576, 4234, 2576, 4235, 2710, 3143, 2704, 3143, 988, 2744, 990, 2742, 273)
+polygon = PackedVector2Array(3288, 270, 3291, 2448, 4235, 2448, 4235, 2704, 3147, 2704, 3147, 992, 2748, 992, 2747, 270)
 
 [node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="Colision" unique_id=1262445564]
 position = Vector2(241.5979, -1.9997559)
 scale = Vector2(0.83732975, 0.9999999)
-polygon = PackedVector2Array(-3243.1643, 3121, -3238.3872, 3105, -2199, 3108, -2200, 4031, 221.42065, 4033.0002, 220.22638, 4193.0005, -2343, 4192, -2344.237, 3637.9197, -2345, 3296, -3235.9985, 3297, -3238.3872, 3146)
+polygon = PackedVector2Array(-3240.7756, 3010, -2170.7075, 3010, -2170.7075, 3954.0002, 217.83783, 3951.0002, 217.83783, 4194.0005, -2342.6826, 4194.0005, -2344.237, 3637.9197, -2342.6826, 3298, -3240.7756, 3298)
 
 [node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="Colision" unique_id=2120144122]
 position = Vector2(17.29802, -0.00048828125)
@@ -5624,7 +5624,7 @@ polygon = PackedVector2Array(1096, 4051, 1095, 4193, 3041.8545, 4186, 3038.8445,
 
 [node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="Colision" unique_id=334523651]
 position = Vector2(-246, -13)
-polygon = PackedVector2Array(4892, 1749, 4888, 1722, 4887, 4113, 6153, 4112, 6153, 1719, 4888, 1717)
+polygon = PackedVector2Array(4894, 4125, 6158, 4125, 6158, 1565, 4894, 1565)
 
 [node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="Colision" unique_id=1573599024]
 position = Vector2(628, -154)

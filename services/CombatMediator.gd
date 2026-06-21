@@ -52,7 +52,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	damage_dealt.emit(att_id, target_peer, final_damage, attack_type)
 
 	if target.character_data and target.character_data.team == "survivor":
-		AudioManager.play_sfx_networked.rpc(6, target.global_position.x, target.global_position.y)
+		_play_hurt_sound(target)
 
 	return final_damage
 
@@ -140,8 +140,7 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> voi
 		return
 
 	if target and target.character_data and target.character_data.team == "killer":
-		var ha_id: int = 24 if randi() % 2 == 0 else 25
-		AudioManager.play_sfx_networked.rpc(ha_id, target.global_position.x, target.global_position.y)
+		_play_killer_hit_sound(target)
 
 	var target_peer: int = target.get_multiplayer_authority() if target else -1
 	stun_applied.emit(target_peer, duration)
@@ -277,3 +276,21 @@ func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
 	return get_tree().root.find_child(str(peer_id), true, false)
+
+
+func _play_hurt_sound(target: Node) -> void:
+	var cd := target.character_data
+	if cd and cd.hurt_sfx:
+		AudioManager.rpc("play_stream_2d_rpc", cd.hurt_sfx.resource_path, target.global_position.x, target.global_position.y)
+	else:
+		AudioManager.play_sfx_networked.rpc(SfxId.HURT, target.global_position.x, target.global_position.y)
+
+
+func _play_killer_hit_sound(target: Node) -> void:
+	var cd := target.character_data
+	if cd and cd.hit_sfx and not cd.hit_sfx.is_empty():
+		var stream := cd.hit_sfx[randi() % cd.hit_sfx.size()]
+		AudioManager.rpc("play_stream_2d_rpc", stream.resource_path, target.global_position.x, target.global_position.y)
+	else:
+		var ha_id := SfxId.JEVIL_HA0 if randi() % 2 == 0 else SfxId.JEVIL_HA1
+		AudioManager.play_sfx_networked.rpc(ha_id, target.global_position.x, target.global_position.y)

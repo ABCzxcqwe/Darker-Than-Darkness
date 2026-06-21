@@ -65,7 +65,7 @@ func _input(event):
 		if new_idx >= 0 and new_idx < _focus_items.size():
 			_focus_idx = new_idx
 			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(2)
+			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
 			get_viewport().set_input_as_handled()
 
 func _populate_map_list() -> void:
@@ -94,7 +94,7 @@ func _update_map_icon(index: int) -> void:
 	map_icon.texture = data.icon if data.icon else null
 
 func _on_create_pressed() -> void:
-	AudioManager.play_sfx_ui(1)
+	AudioManager.play_sfx_ui(SfxId.SELECT)
 	var player_name: String = player_name_input.text.strip_edges()
 	if player_name.is_empty():
 		status_label.text = "Ingresá tu nombre."
@@ -115,7 +115,7 @@ func _on_server_created() -> void:
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_back_pressed() -> void:
-	AudioManager.play_sfx_ui(1)
+	AudioManager.play_sfx_ui(SfxId.SELECT)
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree() -> void:

@@ -51,9 +51,55 @@ const MIN_DB := -80.0
 const MAX_DB := 0.0
 
 # =======================================================================
-# SFX
+# SFX POOL
 # =======================================================================
+const SFX_POOL_SIZE := 16
+
 var _sfx_library: Dictionary = {}  # int id -> AudioStream
+var _pool_2d: Array[AudioStreamPlayer2D] = []
+var _pool: Array[AudioStreamPlayer] = []
+
+func _init_sfx_pool() -> void:
+	for i in SFX_POOL_SIZE:
+		var p := AudioStreamPlayer2D.new()
+		p.bus = &"SFX"
+		p.finished.connect(_release_2d.bind(p))
+		add_child(p)
+		_pool_2d.append(p)
+
+		var pu := AudioStreamPlayer.new()
+		pu.bus = &"SFX"
+		pu.finished.connect(_release.bind(pu))
+		add_child(pu)
+		_pool.append(pu)
+
+func _acquire_2d() -> AudioStreamPlayer2D:
+	for p in _pool_2d:
+		if not p.playing:
+			return p
+	var p := AudioStreamPlayer2D.new()
+	p.bus = &"SFX"
+	p.finished.connect(_release_2d.bind(p))
+	add_child(p)
+	_pool_2d.append(p)
+	return p
+
+func _acquire() -> AudioStreamPlayer:
+	for p in _pool:
+		if not p.playing:
+			return p
+	var p := AudioStreamPlayer.new()
+	p.bus = &"SFX"
+	p.finished.connect(_release.bind(p))
+	add_child(p)
+	_pool.append(p)
+	return p
+
+func _release_2d(p: AudioStreamPlayer2D) -> void:
+	p.stream = null
+
+func _release(p: AudioStreamPlayer) -> void:
+	p.stream = null
 
 func _load_sfx_files() -> void:
 	_sfx_library.clear()
@@ -70,12 +116,9 @@ func play_sfx(sfx_id: int, position: Vector2) -> void:
 	if not stream:
 		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
 		return
-	var player := AudioStreamPlayer2D.new()
+	var player := _acquire_2d()
 	player.stream = stream
-	player.bus = &"SFX"
 	player.global_position = position
-	player.finished.connect(player.queue_free)
-	add_child(player)
 	player.play()
 
 func play_sfx_ui(sfx_id: int) -> void:
@@ -83,16 +126,34 @@ func play_sfx_ui(sfx_id: int) -> void:
 	if not stream:
 		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
 		return
-	var player := AudioStreamPlayer.new()
+	var player := _acquire()
 	player.stream = stream
-	player.bus = &"SFX"
-	player.finished.connect(player.queue_free)
-	add_child(player)
+	player.play()
+
+func play_stream(stream: AudioStream) -> void:
+	if not stream:
+		return
+	var player := _acquire()
+	player.stream = stream
+	player.play()
+
+func play_stream_2d(stream: AudioStream, position: Vector2) -> void:
+	if not stream:
+		return
+	var player := _acquire_2d()
+	player.stream = stream
+	player.global_position = position
 	player.play()
 
 @rpc("authority", "reliable", "call_local")
 func play_sfx_networked(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
+
+@rpc("authority", "reliable", "call_local")
+func play_stream_2d_rpc(path: String, x: float, y: float) -> void:
+	var stream := load(path) as AudioStream
+	if stream:
+		play_stream_2d(stream, Vector2(x, y))
 
 # =======================================================================
 # CICLO DE VIDA
@@ -100,6 +161,8 @@ func play_sfx_networked(sfx_id: int, x: float, y: float) -> void:
 func _ready() -> void:
 	if DisplayServer.get_name() == "headless":
 		set_process(false)
+		return
+	_init_sfx_pool()
 	_load_sfx_files()
 
 func _process(delta: float) -> void:

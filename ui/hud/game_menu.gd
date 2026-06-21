@@ -2,8 +2,8 @@ extends Control
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
 
-const BUS_MUSIC := 1
-const BUS_SFX := 2
+var _bus_music: int
+var _bus_sfx: int
 
 var _is_open := false
 
@@ -17,6 +17,8 @@ var _focus_items: Array[Control] = []
 var _focus_idx := 0
 
 func _ready() -> void:
+	_bus_music = AudioServer.get_bus_index(&"Music")
+	_bus_sfx = AudioServer.get_bus_index(&"SFX")
 	_build_ui()
 	exit_button.pressed.connect(_on_exit_pressed)
 	music_slider.value_changed.connect(_on_music_changed)
@@ -63,12 +65,12 @@ func _input(event):
 		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
 			_focus_idx -= 1
 			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(2)
+			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
 			get_viewport().set_input_as_handled()
 		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
 			_focus_idx += 1
 			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(2)
+			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
 			get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -177,8 +179,8 @@ func _open() -> void:
 	_is_open = true
 	overlay.visible = true
 	menu_panel.visible = true
-	music_slider.value = db_to_linear(AudioServer.get_bus_volume_db(BUS_MUSIC))
-	sfx_slider.value = db_to_linear(AudioServer.get_bus_volume_db(BUS_SFX))
+	music_slider.value = db_to_linear(AudioServer.get_bus_volume_db(_bus_music))
+	sfx_slider.value = db_to_linear(AudioServer.get_bus_volume_db(_bus_sfx))
 	music_slider.grab_focus()
 
 func _close() -> void:
@@ -187,11 +189,11 @@ func _close() -> void:
 	menu_panel.visible = false
 
 func _on_music_changed(value: float) -> void:
-	AudioServer.set_bus_volume_db(BUS_MUSIC, linear_to_db(value))
+	AudioServer.set_bus_volume_db(_bus_music, linear_to_db(value))
 
 func _on_sfx_changed(value: float) -> void:
-	AudioServer.set_bus_volume_db(BUS_SFX, linear_to_db(value))
+	AudioServer.set_bus_volume_db(_bus_sfx, linear_to_db(value))
 
 func _on_exit_pressed() -> void:
-	AudioManager.play_sfx_ui(1)
+	AudioManager.play_sfx_ui(SfxId.SELECT)
 	MatchCoordinator.reset_to_menu()

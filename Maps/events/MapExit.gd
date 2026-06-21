@@ -9,20 +9,10 @@ class_name MapExit
 var is_active: bool = false
 
 @onready var _anim := $AnimatedSprite2D as AnimatedSprite2D
-var _sfx_player: AudioStreamPlayer = null
-
-
-func _ready() -> void:
-	_sfx_player = AudioStreamPlayer.new()
-	_sfx_player.bus = &"SFX"
-	add_child(_sfx_player)
 
 
 func _play_sfx(stream: AudioStream) -> void:
-	if not stream or not _sfx_player:
-		return
-	_sfx_player.stream = stream
-	_sfx_player.play()
+	AudioManager.play_stream(stream)
 
 
 func activate() -> void:

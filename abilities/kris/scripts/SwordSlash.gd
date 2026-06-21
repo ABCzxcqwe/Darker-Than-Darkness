@@ -48,7 +48,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
 
 	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
-		AudioManager.play_sfx_networked.rpc(17, player_node.global_position.x, player_node.global_position.y)
+		AudioManager.play_sfx_networked.rpc(SfxId.HIT, player_node.global_position.x, player_node.global_position.y)
 
 	var anim_dur := _get_anim_duration(player_node, data.action_animation)
 	player_node.get_tree().create_timer(anim_dur).timeout.connect(

@@ -89,7 +89,7 @@ func _build_character_options() -> void:
 		tex.mouse_filter = Control.MOUSE_FILTER_STOP
 		tex.gui_input.connect(func(event: InputEvent):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				AudioManager.play_sfx_ui(1)
+				AudioManager.play_sfx_ui(SfxId.SELECT)
 				_focus_idx = available_char_ids.find(char_id)
 				_confirm_selection(char_id)
 		)
@@ -142,7 +142,7 @@ func _input(event):
 			return
 
 		if is_enter and available_char_ids.size() > 0:
-			AudioManager.play_sfx_ui(1)
+			AudioManager.play_sfx_ui(SfxId.SELECT)
 			_confirm_selection(available_char_ids[_focus_idx])
 			get_viewport().set_input_as_handled()
 			return
@@ -158,7 +158,7 @@ func _input(event):
 		else:
 			return
 
-		AudioManager.play_sfx_ui(2)
+		AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
 		_update_selection(prev)
 		get_viewport().set_input_as_handled()
 

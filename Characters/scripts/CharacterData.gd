@@ -8,12 +8,14 @@ const SURVIVOR_ONLY := [
 	"revive_health", "revive_time", "revive_range",
 	"lms_music", "lms_duration", "lms_heal_amount",
 	"lms_damage_resistance", "lms_exit_timer_threshold",
+	"hurt_sfx", "downed_sfx", "death_sfx",
 ]
 
 const KILLER_ONLY := [
 	"can_take_damage", "terror_radius", "chase_radius",
 	"terror_music", "chase_music",
 	"lms_music_", "lms_duration_",
+	"hit_sfx",
 ]
 
 @export_group("Información Básica")
@@ -56,6 +58,9 @@ const KILLER_ONLY := [
 @export var lms_heal_amount: int = 60
 @export var lms_damage_resistance: float = 0.0
 @export var lms_exit_timer_threshold: float = 30.0
+@export var hurt_sfx: AudioStream
+@export var downed_sfx: AudioStream
+@export var death_sfx: AudioStream
 
 
 @export_group("Killer State")
@@ -66,6 +71,7 @@ const KILLER_ONLY := [
 @export var chase_music: AudioStream
 @export var lms_music_: AudioStream
 @export var lms_duration_: float = 140.0
+@export var hit_sfx: Array[AudioStream]
 
 
 @export_group("Habilidades")

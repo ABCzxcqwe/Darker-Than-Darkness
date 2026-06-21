@@ -1,11 +1,11 @@
 extends AbilityBase
 
 const AIM_TIMEOUT: float = 8.0
-const DIAMOND_COUNT: int = 30
+const DIAMOND_COUNT: int = 40
 const AOE_RADIUS: float = 1000.0
-const DIAMOND_SPEED: float = 400.0
+const DIAMOND_SPEED: float = 500.0
 const DIAMOND_LIFETIME: float = 2.0
-const SPAWN_INTERVAL: float = 0.1
+const SPAWN_INTERVAL: float = 0.08
 
 var _active: bool = false
 var _player_node: Node = null
