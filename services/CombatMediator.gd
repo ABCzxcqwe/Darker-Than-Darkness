@@ -279,7 +279,7 @@ func _find_player_node_by_peer_id(peer_id: int) -> Node:
 
 
 func _play_hurt_sound(target: Node) -> void:
-	var cd := target.character_data
+	var cd := target.character_data as CharacterData
 	if cd and cd.hurt_sfx:
 		AudioManager.rpc("play_stream_2d_rpc", cd.hurt_sfx.resource_path, target.global_position.x, target.global_position.y)
 	else:
@@ -287,7 +287,7 @@ func _play_hurt_sound(target: Node) -> void:
 
 
 func _play_killer_hit_sound(target: Node) -> void:
-	var cd := target.character_data
+	var cd := target.character_data as CharacterData
 	if cd and cd.hit_sfx and not cd.hit_sfx.is_empty():
 		var stream := cd.hit_sfx[randi() % cd.hit_sfx.size()]
 		AudioManager.rpc("play_stream_2d_rpc", stream.resource_path, target.global_position.x, target.global_position.y)

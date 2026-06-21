@@ -28,9 +28,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var cd_svc = GameServiceLocator.get_service("CooldownService")
 	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
-	if status:
-		status.apply(player_node, "root", { "duration": HITBOX_LIFETIME })
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if combat:
+		combat.apply_root(player_node, HITBOX_LIFETIME)
 
 	hs.create({
 		"attacker_id"   : attacker_id,
@@ -49,14 +49,11 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		"on_hit": func(target_node: Node) -> void:
 			if not is_instance_valid(target_node):
 				return
-			if dmg > 0:
-				var combat = GameServiceLocator.get_service("CombatMediator")
-				if combat:
-					combat.apply_damage(player_node, target_node, dmg, atk_type)
+			if dmg > 0 and combat:
+				combat.apply_damage(player_node, target_node, dmg, atk_type)
 			if target_node.is_in_group("killer"):
-				var s = GameServiceLocator.get_service("StatusEffectService")
-				if s and stun_dur > 0.0:
-					s.apply(target_node, "stun", { "duration": stun_dur })
+				if combat and stun_dur > 0.0:
+					combat.apply_stun(target_node, stun_dur)
 				if tp_reward > 0.0 and tp_svc:
 					tp_svc.add_tp_custom(attacker_id, tp_reward)
 
@@ -66,9 +63,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				cd_svc.start(attacker_id, slot_index, data.cooldown),
 
 		"on_end": func(_hit_count: int) -> void:
-			var s = GameServiceLocator.get_service("StatusEffectService")
-			if s and is_instance_valid(player_node):
-				s.remove_effect(player_node, "root")
+			var c = GameServiceLocator.get_service("CombatMediator")
+			if c and is_instance_valid(player_node):
+				c.remove_root(player_node)
 
 			if _hit_count == 0 and cd_svc:
 				if cd_svc.has_method("release_lock"):

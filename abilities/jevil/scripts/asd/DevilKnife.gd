@@ -155,10 +155,10 @@ func _on_anim_timer(pn: Node, cid: int, _sid: int, d: AbilityData, dir: Vector2)
 				if is_instance_valid(target_node) and cmbt:
 					cmbt.apply_damage(pn, target_node, d.base_damage if d else 10, d.attack_type if d else "normal")
 					if target_node.is_in_group("killer"):
-						var status = GameServiceLocator.get_service("StatusEffectService")
+						var combat = GameServiceLocator.get_service("CombatMediator")
 						var stun_dur = (d.stun_duration + d.evo_status_duration_bonus) if d else 0.0
-						if status and stun_dur > 0.0:
-							status.apply(target_node, "stun", { "duration": stun_dur })
+						if combat and stun_dur > 0.0:
+							combat.apply_stun(target_node, stun_dur)
 		})
 		print("[DevilKnife] _on_anim_timer() → hs.create() ejecutado")
 	else:

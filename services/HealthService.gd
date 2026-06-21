@@ -287,7 +287,7 @@ func _exit_tree() -> void:
 func _play_downed_sound(player_node: Node) -> void:
 	if not player_node or not player_node.character_data:
 		return
-	var cd := player_node.character_data
+	var cd := player_node.character_data as CharacterData
 	if cd.downed_sfx and player_node.multiplayer.is_server():
 		AudioManager.rpc("play_stream_2d_rpc", cd.downed_sfx.resource_path, player_node.global_position.x, player_node.global_position.y)
 
@@ -295,6 +295,6 @@ func _play_downed_sound(player_node: Node) -> void:
 func _play_death_sound(player_node: Node) -> void:
 	if not player_node or not player_node.character_data:
 		return
-	var cd := player_node.character_data
+	var cd := player_node.character_data as CharacterData
 	if cd.death_sfx and player_node.multiplayer.is_server():
 		AudioManager.rpc("play_stream_2d_rpc", cd.death_sfx.resource_path, player_node.global_position.x, player_node.global_position.y)

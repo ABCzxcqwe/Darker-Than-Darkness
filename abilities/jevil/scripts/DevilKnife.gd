@@ -47,9 +47,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 					if cmbt:
 						cmbt.apply_damage(player_node, target_node, data.base_damage, data.attack_type)
 					if target_node.is_in_group("killer") and data.stun_duration > 0.0:
-						var status = GameServiceLocator.get_service("StatusEffectService")
-						if status:
-							status.apply(target_node, "stun", { "duration": data.stun_duration })
+						var combat = GameServiceLocator.get_service("CombatMediator")
+						if combat:
+							combat.apply_stun(target_node, data.stun_duration)
 		})
 
 	var cd = GameServiceLocator.get_service("CooldownService")

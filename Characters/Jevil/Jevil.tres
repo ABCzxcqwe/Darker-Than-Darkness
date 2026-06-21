@@ -11,7 +11,9 @@
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 [ext_resource type="Texture2D" uid="uid://cekacln1fbfw1" path="res://Characters/Jevil/assets/jevil_panel.png" id="8_bkbox"]
 [ext_resource type="Resource" uid="uid://dwxwdg3talehj" path="res://abilities/jevil/Teleport.tres" id="8_teleport"]
+[ext_resource type="AudioStream" uid="uid://b50mh88nebllf" path="res://audio/SFX/snd_joker_ha0.wav" id="9_0l8st"]
 [ext_resource type="Resource" uid="uid://h6edn1w0pri1" path="res://abilities/jevil/DiamondRain.tres" id="9_diamondrain"]
+[ext_resource type="AudioStream" uid="uid://bet6l5kk461ac" path="res://audio/SFX/snd_joker_ha1.wav" id="10_7uki1"]
 
 [sub_resource type="Resource" id="Resource_r2u3k"]
 script = ExtResource("1_hjm08")
@@ -41,6 +43,7 @@ terror_radius = 1000.0
 chase_radius = 500.0
 terror_music = ExtResource("7_hq0h8")
 chase_music = ExtResource("5_r2u3k")
+hit_sfx = Array[AudioStream]([ExtResource("9_0l8st"), ExtResource("10_7uki1")])
 ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), ExtResource("4_ixf75"), ExtResource("9_diamondrain"), ExtResource("8_teleport"), null])
 tp_gain_time = 3.0
 stamina_max = 120.0

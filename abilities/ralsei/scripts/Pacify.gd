@@ -57,12 +57,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				return
 
 			if slow_mag > 0.0:
-				var status = GameServiceLocator.get_service("StatusEffectService")
-				if status:
-					status.apply(target_node, "slow", {
-						"duration"  : slow_dur,
-						"magnitude" : slow_mag
-					})
+				var combat = GameServiceLocator.get_service("CombatMediator")
+				if combat:
+					combat.apply_slow(target_node, slow_dur, slow_mag)
 
 			if stun_applied[0]:
 				return
@@ -76,9 +73,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				stun_applied[0] = true
 				abs_svc.reset_hit_counter(caster_id, slot_index)
 
-				var status = GameServiceLocator.get_service("StatusEffectService")
-				if status and stun_dur > 0.0:
-					status.apply(target_node, "stun", { "duration": stun_dur })
+				var combat = GameServiceLocator.get_service("CombatMediator")
+				if combat and stun_dur > 0.0:
+					combat.apply_stun(target_node, stun_dur)
 
 				print("[Pacify] STUN aplicado! | killer: ", target_node.name,
 					  " | duración: ", stun_dur, "s"),

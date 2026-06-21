@@ -18,6 +18,7 @@ var health_state:     String = "alive"
 var last_animation:   String = "idle_horizontal"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
+var _original_modulate: Color
 
 var facing: Vector2 = Vector2.RIGHT
 
@@ -72,6 +73,21 @@ func _ready() -> void:
 
 	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
 		animated_sprite.animation_finished.connect(_on_anim_finished)
+
+	if animated_sprite:
+		_original_modulate = animated_sprite.modulate
+
+
+func _process(_delta: float) -> void:
+	if not animated_sprite:
+		return
+
+	var now := Time.get_ticks_msec()
+	if now < invincible_until:
+		var show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
+		animated_sprite.modulate.a = _original_modulate.a if show else 0.2
+	elif not animated_sprite.modulate.is_equal_approx(_original_modulate):
+		animated_sprite.modulate = _original_modulate
 
 
 # ── Rescate ───────────────────────────────────────────────────────────
@@ -674,6 +690,11 @@ func _sync_aiming_mode(slot: int, active: bool) -> void:
 
 
 @rpc("any_peer", "call_local", "reliable")
+func _sync_invincibility(timestamp: int) -> void:
+	invincible_until = timestamp
+
+
+@rpc("any_peer", "call_local", "reliable")
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
 		active_effects[effect_name] = true
@@ -756,7 +777,7 @@ func _sync_server_position(pos: Vector2) -> void:
 	global_position = pos
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_show_aoe_indicator(center: Vector2) -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:
@@ -771,7 +792,7 @@ func _sync_show_aoe_indicator(center: Vector2) -> void:
 	world.add_child(indicator)
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_hide_aoe_indicator() -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:

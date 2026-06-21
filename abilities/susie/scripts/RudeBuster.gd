@@ -63,9 +63,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 					combat.apply_damage(player_node, target_node, dmg, atk_type)
 
 			if target_node.is_in_group("killer"):
-				var status = GameServiceLocator.get_service("StatusEffectService")
-				if status and stun_dur > 0.0:
-					status.apply(target_node, "stun", { "duration": stun_dur })
+				var combat = GameServiceLocator.get_service("CombatMediator")
+				if combat and stun_dur > 0.0:
+					combat.apply_stun(target_node, stun_dur)
 				if tp_reward > 0.0 and tp_svc:
 					tp_svc.add_tp_custom(attacker_id, tp_reward)
 

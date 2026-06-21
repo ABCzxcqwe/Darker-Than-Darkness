@@ -105,15 +105,16 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 	var instances: Array = _effects[peer_id][effect_name]
 
 	if instances.size() > 0:
-		# Refresh: tomar la duración mayor
-		var prev_duration: float = instances[0]["timer"]
-		instances[0]["timer"] = maxf(prev_duration, duration)
-
 		if effect_name == "stun":
-			var old_original = instances[0].get("timer_original", duration)
-			instances[0]["timer_original"] = maxf(old_original, duration)
+			instances[0]["timer"] += duration
+			instances[0]["timer_original"] = instances[0].get("timer_original", 0.0) + duration
 			if params.has("post_stun_dr"):
 				instances[0]["post_stun_dr"] = params.get("post_stun_dr")
+			print("[StatusEffectService] stun acumulado para peer ", peer_id,
+				  " | duración total restante: ", instances[0]["timer"])
+		else:
+			var prev_duration: float = instances[0]["timer"]
+			instances[0]["timer"] = maxf(prev_duration, duration)
 
 		# BUG 3 FIX: el slow acumulable necesita append, no refresh.
 		# _calculate_speed suma todas las instancias del array, pero apply()
@@ -215,6 +216,8 @@ func _on_stun_expired(peer_id: int, instance: Dictionary) -> void:
 
 	if player_node.character_data and player_node.character_data.team == "killer":
 		_stun_immunity[peer_id] = immunity_duration
+		player_node.invincible_until = Time.get_ticks_msec() + int(immunity_duration * 1000)
+		player_node.rpc("_sync_invincibility", player_node.invincible_until)
 		print("[StatusEffectService] Killer ", peer_id,
 			  " tiene inmunidad post-stun por ", immunity_duration, "s")
 	else:

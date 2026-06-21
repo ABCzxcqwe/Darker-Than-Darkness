@@ -55,9 +55,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	player_node.get_tree().create_timer(0.4).timeout.connect(func() -> void:
 		if is_instance_valid(player_node):
-			var status = GameServiceLocator.get_service("StatusEffectService")
-			if status:
-				status.apply(player_node, "root", { "duration": 0.001 })
+			var combat = GameServiceLocator.get_service("CombatMediator")
+			if combat:
+				combat.apply_root(player_node, 0.001)
 	)
 
 	print("[HealPrayer] Curación aplicada | caster: ", caster_id,
