@@ -15,7 +15,6 @@ var _slot_index: int = -1
 var _data: AbilityData = null
 var _target_center: Vector2 = Vector2.ZERO
 
-
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		return
