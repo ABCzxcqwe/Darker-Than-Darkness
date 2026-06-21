@@ -754,3 +754,28 @@ func _sync_server_position(pos: Vector2) -> void:
 	if sender != 0 and sender != 1:
 		return
 	global_position = pos
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_show_aoe_indicator(center: Vector2) -> void:
+	var world = get_tree().root.find_child("World", true, false)
+	if not world:
+		return
+	var existing = world.find_child("DiamondRainAOE_local", true, false)
+	if existing:
+		existing.queue_free()
+	var indicator = Node2D.new()
+	indicator.name = "DiamondRainAOE_local"
+	indicator.global_position = center
+	indicator.set_script(preload("res://abilities/jevil/scripts/AoEIndicator.gd"))
+	world.add_child(indicator)
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_hide_aoe_indicator() -> void:
+	var world = get_tree().root.find_child("World", true, false)
+	if not world:
+		return
+	var existing = world.find_child("DiamondRainAOE_local", true, false)
+	if existing:
+		existing.queue_free()
