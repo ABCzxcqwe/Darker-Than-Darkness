@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="1_hitbox"]
 [ext_resource type="Texture2D" uid="uid://jbx6046dg1ls" path="res://Hitboxes/Jevil/hit.png" id="2_0rv7q"]
+[ext_resource type="Texture2D" uid="uid://dunp75ckwg2j1" path="res://Hitboxes/Jevil/dinamond.png" id="3_eh3cf"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4qulg"]
 atlas = ExtResource("2_0rv7q")
@@ -51,10 +52,6 @@ region = Rect2(840, 0, 84, 84)
 atlas = ExtResource("2_0rv7q")
 region = Rect2(924, 0, 84, 84)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_diamond_travel"]
-atlas = ExtResource("2_0rv7q")
-region = Rect2(0, 0, 84, 84)
-
 [sub_resource type="SpriteFrames" id="SpriteFrames_diamond"]
 animations = [{
 "frames": [{
@@ -100,7 +97,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_diamond_travel")
+"texture": ExtResource("3_eh3cf")
 }],
 "loop": false,
 "name": &"travel",
@@ -108,7 +105,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shape"]
-size = Vector2(32, 24)
+size = Vector2(20, 30)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_diamond"]
 properties/0/path = NodePath(".:position")
@@ -133,10 +130,8 @@ script = ExtResource("1_hitbox")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1291153698]
 scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_diamond")
-animation = &"hit"
+animation = &"travel"
 autoplay = "travel"
-frame = 11
-frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=555114965]
 scale = Vector2(2, 2)

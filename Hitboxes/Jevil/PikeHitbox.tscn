@@ -109,7 +109,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shape"]
-size = Vector2(32, 24)
+size = Vector2(28, 20)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_pike"]
 properties/0/path = NodePath(".:position")
@@ -134,10 +134,8 @@ script = ExtResource("1_hitbox")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=234949598]
 scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_pike")
-animation = &"hit"
+animation = &"travel"
 autoplay = "travel"
-frame = 11
-frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1561420448]
 shape = SubResource("RectangleShape2D_shape")

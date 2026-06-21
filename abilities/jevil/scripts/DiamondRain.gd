@@ -4,9 +4,9 @@ const CHARGE_DURATION: float = 2.0
 const STUN_POLL_INTERVAL: float = 0.1
 const DIAMOND_COUNT: int = 30
 const AOE_RADIUS: float = 1000.0
-const DIAMOND_SPEED: float = 100.0
-const DIAMOND_LIFETIME: float = 2.0
-const SPAWN_INTERVAL: float = 0.1
+const DIAMOND_SPEED: float = 600.0
+const DIAMOND_LIFETIME: float = 3.0
+const SPAWN_INTERVAL: float = 0.08
 
 var _active: bool = false
 var _player_node: Node = null
@@ -171,6 +171,7 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 	var hitbox = hs.create(config)
 	if hitbox:
 		hitbox.global_position = spawn_pos
+		hitbox.rotation = 0.0
 
 
 func _show_aoe_indicator(center: Vector2) -> void:

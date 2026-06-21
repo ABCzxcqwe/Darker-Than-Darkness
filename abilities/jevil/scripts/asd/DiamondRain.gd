@@ -172,6 +172,7 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 	var hitbox = hs.create(config)
 	if hitbox:
 		hitbox.global_position = spawn_pos
+		hitbox.rotation = 0.0
 
 
 func _cancel_aim() -> void:
