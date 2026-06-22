@@ -59,7 +59,8 @@ func take_damage(player_node: Node, amount: int) -> void:
 			radar_svc.show_hit_indicator(player_node, player_node.global_position)
 		broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
 		if is_instance_valid(player_node):
-			player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
+			var remaining := maxi(0, player_node.invincible_until - Time.get_ticks_msec())
+			player_node.rpc("_sync_health", player_node.health, remaining)
 
 
 func heal(player_node: Node, amount: int) -> void:
@@ -77,7 +78,8 @@ func heal(player_node: Node, amount: int) -> void:
 
 	broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
 	if is_instance_valid(player_node):
-		player_node.rpc("_sync_health", player_node.health, player_node.invincible_until)
+		var remaining := maxi(0, player_node.invincible_until - Time.get_ticks_msec())
+		player_node.rpc("_sync_health", player_node.health, remaining)
 
 
 func revive(player_node: Node) -> void:

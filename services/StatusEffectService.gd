@@ -217,7 +217,7 @@ func _on_stun_expired(peer_id: int, instance: Dictionary) -> void:
 	if player_node.character_data and player_node.character_data.team == "killer":
 		_stun_immunity[peer_id] = immunity_duration
 		player_node.invincible_until = Time.get_ticks_msec() + int(immunity_duration * 1000)
-		player_node.rpc("_sync_invincibility", player_node.invincible_until)
+		player_node.rpc("_sync_invincibility", int(immunity_duration * 1000))
 		print("[StatusEffectService] Killer ", peer_id,
 			  " tiene inmunidad post-stun por ", immunity_duration, "s")
 	else:

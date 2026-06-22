@@ -634,12 +634,12 @@ func _sync_cancel_ability() -> void:
 # ── Sincronización desde el servidor ──────────────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")
-func _sync_health(new_health: int, new_invincible_until: int) -> void:
+func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 	var old_health = health
 	var _old_state = health_state
 
 	health = new_health
-	invincible_until = new_invincible_until
+	invincible_until = Time.get_ticks_msec() + invincibility_duration_ms
 
 	var should_be_state = ""
 	if health <= 0:
@@ -690,8 +690,8 @@ func _sync_aiming_mode(slot: int, active: bool) -> void:
 
 
 @rpc("any_peer", "call_local", "reliable")
-func _sync_invincibility(timestamp: int) -> void:
-	invincible_until = timestamp
+func _sync_invincibility(duration_ms: int) -> void:
+	invincible_until = Time.get_ticks_msec() + duration_ms
 
 
 @rpc("any_peer", "call_local", "reliable")
