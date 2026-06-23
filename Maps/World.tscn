@@ -18,7 +18,7 @@ spawn_limit = 7
 script = ExtResource("2_2dftf")
 
 [node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1428571428]
-_spawnable_scenes = PackedStringArray("uid://cwyvwtu4eg3cm", "uid://d0osfj5o7sa6u", "uid://dclh3afhrc5qs")
+_spawnable_scenes = PackedStringArray("uid://cwyvwtu4eg3cm", "uid://d0osfj5o7sa6u", "uid://dclh3afhrc5qs", "uid://c4f4ilt8pj623")
 spawn_path = NodePath("../Projectiles")
 spawn_limit = 55
 script = ExtResource("6_pbmw8")
