@@ -63,6 +63,9 @@ func _sync_remove_player(peer_id: int):
 	if not multiplayer.is_server():
 		if world_instance and world_instance.has_node(str(peer_id)):
 			world_instance.get_node(str(peer_id)).queue_free()
+	var hud = get_tree().get_first_node_in_group("game_hud")
+	if hud and hud.has_method("_remove_name_label"):
+		hud._remove_name_label(peer_id)
 
 func _on_server_disconnected():
 	print("Servidor desconectado, limpiando...")

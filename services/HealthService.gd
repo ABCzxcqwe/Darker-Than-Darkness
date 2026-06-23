@@ -223,7 +223,6 @@ func _kill(player_node: Node) -> void:
 	await get_tree().process_frame
 	if is_instance_valid(player_node):
 		player_node.rpc("_sync_state", "dead", 0)
-		player_node.queue_free()
 
 
 func _cancel_bleed_timer(peer_id: int) -> void:

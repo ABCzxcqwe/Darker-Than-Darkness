@@ -37,10 +37,9 @@ func _process(delta: float) -> void:
 
 	for rescuer_id in _sessions.keys():
 		var session: Dictionary = _sessions[rescuer_id]
-		var rescuer_node: Node  = _get_player(rescuer_id)
-		var target_node: Node   = session["target"]
+		var rescuer_node  = _get_player(rescuer_id)
+		var target_node   = session.get("target")
 
-		# 1. Validar que ambos nodos sigan siendo válidos en el árbol
 		if not is_instance_valid(rescuer_node) or not is_instance_valid(target_node):
 			_cancel(rescuer_id, true)
 			continue
@@ -136,8 +135,11 @@ func _cancel(rescuer_id: int, notify: bool) -> void:
 		return
 
 	var session: Dictionary = _sessions[rescuer_id]
-	var target_node: Node = session.get("target")
-	var target_id: int = target_node.get_multiplayer_authority() if is_instance_valid(target_node) else -1
+	var target_node = session.get("target")
+	if not is_instance_valid(target_node):
+		_sessions.erase(rescuer_id)
+		return
+	var target_id: int = target_node.get_multiplayer_authority()
 
 	_sessions.erase(rescuer_id)
 	print("[ReviveService] Rescate cancelado para el peer: ", rescuer_id, " -> target: ", target_id)

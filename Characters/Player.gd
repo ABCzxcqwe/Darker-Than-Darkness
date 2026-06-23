@@ -31,6 +31,12 @@ var _last_slot_request_time: Dictionary = {}
 var _is_sprinting: bool = false
 var is_spectator: bool = false
 
+# ── Modo espectador ─────────────────────────────────────────────────────
+var _follow_target: Node = null
+var _spectator_mode: int = 0       # 0 = seguir, 1 = cámara libre
+var _free_cam_speed: float = 400.0
+var _spectator_camera: Camera2D = null
+
 
 func _ready() -> void:
 	print("[Player] _ready() | nombre: ", name, " | autoridad: ", is_multiplayer_authority())
@@ -76,6 +82,8 @@ func _ready() -> void:
 
 	if animated_sprite:
 		_original_modulate = animated_sprite.modulate
+
+	_spectator_camera = $Camera2D
 
 
 func _process(_delta: float) -> void:
@@ -170,6 +178,11 @@ func _exit_tree() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
+
+	if is_spectator:
+		_handle_spectator_input(event)
+		return
+
 	if health_state != "alive": return
 
 	var action_map = {
@@ -418,6 +431,11 @@ func _setup_collision_layers(data: CharacterData) -> void:
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer: return
 	if not is_multiplayer_authority(): return
+
+	if is_spectator:
+		_update_spectator_camera(_delta)
+		return
+
 	if health_state == "dead": return
 
 	if state == AnimState.IDLE or active_effects.has("free_look"):
@@ -427,7 +445,7 @@ func _physics_process(_delta: float) -> void:
 	if state == AnimState.IDLE:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
-		var want_sprint = Input.is_key_pressed(KEY_SHIFT) and input_dir.length() > 0.1
+		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > 0.1
 		var can_sprint = false
 		var stam_svc = GameServiceLocator.get_service("StaminaService")
 		if stam_svc:
@@ -484,8 +502,6 @@ func _restore_idle() -> void:
 # ── Muerte definitiva ────────────────────────────────────────────────
 
 func _disable_corpse() -> void:
-	set_physics_process(false)
-	set_process_input(false)
 	print("[Player] _disable_corpse: lógica no-física ejecutada.")
 
 	if not _disable_collisions():
@@ -531,10 +547,64 @@ func _disable_collisions() -> bool:
 
 func _prepare_spectator_mode() -> void:
 	is_spectator = true
-	if is_multiplayer_authority():
-		pass
-		# TODO: liberar cámara para modo espectador,
-		#       seguir a otro jugador, UI de espectador, etc.
+	if not is_multiplayer_authority():
+		return
+
+	set_process_input(true)
+	set_physics_process(true)
+	if _spectator_camera:
+		_spectator_camera.enabled = true
+
+	_spectator_mode = 0
+	_cycle_target(1)
+
+
+func _handle_spectator_input(event: InputEvent) -> void:
+	if event.is_action_pressed("spec_next"):
+		_cycle_target(1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("spec_prev"):
+		_cycle_target(-1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("spec_toggle"):
+		_spectator_mode = 1 - _spectator_mode
+		if _spectator_mode == 0:
+			_cycle_target(1)
+		get_viewport().set_input_as_handled()
+
+
+func _cycle_target(direction: int) -> void:
+	var alive := []
+	for p in get_tree().get_nodes_in_group("players"):
+		if p == self or not is_instance_valid(p):
+			continue
+		if p.health_state == "alive":
+			alive.append(p)
+	if alive.is_empty():
+		_follow_target = null
+		return
+
+	if _follow_target == null or not is_instance_valid(_follow_target):
+		_follow_target = alive[0] if direction > 0 else alive[-1]
+	else:
+		var idx := alive.find(_follow_target)
+		if idx == -1:
+			_follow_target = alive[0]
+		else:
+			idx = (idx + direction) % alive.size()
+			_follow_target = alive[idx]
+
+
+func _update_spectator_camera(_delta: float) -> void:
+	if _spectator_mode == 0:
+		if _follow_target and is_instance_valid(_follow_target) and _follow_target.health_state == "alive":
+			global_position = _follow_target.global_position
+		else:
+			_cycle_target(1)
+	else:
+		var dir := Input.get_vector("spec_left", "spec_right", "spec_up", "spec_down")
+		if dir.length() > 0.1:
+			global_position += dir * _free_cam_speed * _delta
 
 
 func _get_corpse_container() -> Node:
@@ -728,10 +798,15 @@ func _sync_state(new_state: String, new_health: int) -> void:
 					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
 				animated_sprite.play(anim)
 				last_animation = anim
+				if synchronizer:
+					synchronizer.queue_free()
 				animated_sprite.reparent(_get_corpse_container(), true)
 			animated_sprite.z_index = 1
 			_disable_corpse()
 			_prepare_spectator_mode()
+			var hud = get_tree().get_first_node_in_group("game_hud")
+			if hud and hud.has_method("_remove_name_label"):
+				hud._remove_name_label(get_multiplayer_authority())
 
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:

@@ -48,6 +48,13 @@ var _revive_prompts:   Dictionary = {}
 var _name_labels:      Dictionary = {}
 var _radar_layer:      Control    = null
 
+# ── Espectador ──────────────────────────────────────────────────────────
+var _is_spectator:        bool        = false
+var _spectator_panel:     PanelContainer = null
+var _spectator_name:      Label       = null
+var _spectator_hp_bar:    ProgressBar = null
+var _spectating_peer_id:  int         = -1
+
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
 
@@ -244,6 +251,8 @@ func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = fals
 	_ctx_selected_idx = 0
 
 	for player in get_tree().get_nodes_in_group("survivor"):
+		if "health_state" in player and player.health_state != "alive":
+			continue
 		var data: CharacterData = player.character_data if player.get("character_data") else null
 		if not data: continue
 
@@ -332,6 +341,9 @@ func _input(event: InputEvent) -> void:
 
 # ── Revive prompts (marcador sobre el caído con barra de progreso) ───
 func _on_player_state_changed(peer_id: int, state: String) -> void:
+	if peer_id == _my_id and state in ["dead", "escaped"]:
+		_enter_spectator_mode()
+
 	if _my_team == "killer":
 		return
 	if state == "downed":
@@ -473,6 +485,9 @@ func _on_revive_session_completed(rescuer_id: int, target_id: int) -> void:
 
 
 func _process(_delta: float) -> void:
+	if _is_spectator:
+		_update_spectator_target()
+
 	for pid in _revive_prompts.keys():
 		var entry = _revive_prompts[pid]
 		if not entry:
@@ -600,3 +615,161 @@ func _apply_panel_border_color(panel: PanelContainer, color: Color) -> void:
 		var s := style.duplicate() as StyleBoxFlat
 		s.border_color = color
 		panel.add_theme_stylebox_override("panel", s)
+
+
+# ── Modo espectador ─────────────────────────────────────────────────────
+
+func _enter_spectator_mode() -> void:
+	if _is_spectator:
+		return
+	_is_spectator = true
+
+	if player_panel_wrap:
+		player_panel_wrap.visible = false
+	if allies_panel:
+		allies_panel.visible = false
+	if tp_bar:
+		tp_bar.visible = false
+	if context_menu:
+		context_menu.visible = false
+	if killer_hp_public:
+		killer_hp_public.visible = false
+
+	_build_spectator_panel()
+
+	var hs = GameServiceLocator.get_service("HealthService")
+	if hs and hs.has_signal("health_changed"):
+		if not hs.health_changed.is_connected(_on_spectator_health_changed):
+			hs.health_changed.connect(_on_spectator_health_changed)
+
+	print("[GameHUD] Modo espectador activado para peer: ", _my_id)
+
+
+func _build_spectator_panel() -> void:
+	_spectator_panel = PanelContainer.new()
+	_spectator_panel.name = "SpectatorPanel"
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.8)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(1, 1, 1, 0.5)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	_spectator_panel.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+
+	var title := Label.new()
+	title.text = "— MODO ESPECTADOR —"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", FONT_DELTARUNE)
+	title.add_theme_font_size_override("font_size", 18)
+	title.modulate = Color(1, 1, 0.5, 1)
+	title.custom_minimum_size = Vector2(220, 24)
+	vbox.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "[Q] Anterior  [E] Siguiente  [Espacio] Alternar modo"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_override("font", FONT_DELTARUNE)
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.modulate = Color(1, 1, 1, 0.7)
+	hint.custom_minimum_size = Vector2(280, 16)
+	vbox.add_child(hint)
+
+	var sep := HSeparator.new()
+	sep.modulate = Color(1, 1, 1, 0.3)
+	vbox.add_child(sep)
+
+	var name_row := HBoxContainer.new()
+	var name_lbl := Label.new()
+	name_lbl.text = "Siguiendo:"
+	name_lbl.add_theme_font_override("font", FONT_DELTARUNE)
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	name_lbl.modulate = Color(0.7, 0.7, 1, 1)
+	name_lbl.custom_minimum_size = Vector2(80, 20)
+	name_row.add_child(name_lbl)
+
+	_spectator_name = Label.new()
+	_spectator_name.text = "—"
+	_spectator_name.add_theme_font_override("font", FONT_DELTARUNE)
+	_spectator_name.add_theme_font_size_override("font_size", 14)
+	_spectator_name.modulate = Color.WHITE
+	_spectator_name.custom_minimum_size = Vector2(140, 20)
+	name_row.add_child(_spectator_name)
+	vbox.add_child(name_row)
+
+	var hp_row := HBoxContainer.new()
+	var hp_lbl := Label.new()
+	hp_lbl.text = "HP:"
+	hp_lbl.add_theme_font_override("font", FONT_DELTARUNE)
+	hp_lbl.add_theme_font_size_override("font_size", 12)
+	hp_lbl.modulate = Color(0.7, 0.7, 1, 1)
+	hp_lbl.custom_minimum_size = Vector2(80, 20)
+	hp_row.add_child(hp_lbl)
+
+	_spectator_hp_bar = ProgressBar.new()
+	_spectator_hp_bar.custom_minimum_size = Vector2(140, 16)
+	_spectator_hp_bar.size = Vector2(140, 16)
+	_spectator_hp_bar.max_value = 100
+	_spectator_hp_bar.value = 100
+	_spectator_hp_bar.modulate = Color(0.4, 1, 0.4, 1)
+	hp_row.add_child(_spectator_hp_bar)
+	vbox.add_child(hp_row)
+
+	_spectator_panel.add_child(vbox)
+	_spectator_panel.size = Vector2(300, 120)
+
+	add_child(_spectator_panel)
+
+	_spectator_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_spectator_panel.position = Vector2(10, 10)
+
+
+func _update_spectator_target() -> void:
+	if not _player_node or not is_instance_valid(_player_node):
+		return
+	if not _spectator_name or not _spectator_hp_bar:
+		return
+	var target = _player_node.get("_follow_target")
+	var pid := -1
+	if target and is_instance_valid(target):
+		pid = target.get_multiplayer_authority()
+	if pid != _spectating_peer_id:
+		_spectating_peer_id = pid
+		if pid == -1:
+			_spectator_name.text = "—"
+			_spectator_hp_bar.value = 0
+			_spectator_hp_bar.max_value = 1
+		else:
+			var name_str = NetworkManager.players.get(pid, {}).get("name", "Jugador %d" % pid)
+			_spectator_name.text = name_str
+			var current_hp = target.health if "health" in target else 0
+			var max_hp = 100
+			if "character_data" in target and target.character_data:
+				max_hp = target.character_data.max_health
+			_spectator_hp_bar.max_value = max_hp
+			_spectator_hp_bar.value = current_hp
+			_on_spectator_health_changed(pid, current_hp, max_hp)
+
+
+func _on_spectator_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:
+	if peer_id != _spectating_peer_id:
+		return
+	if not _spectator_hp_bar:
+		return
+	_spectator_hp_bar.max_value = max_hp
+	_spectator_hp_bar.value = current_hp
+	var ratio := float(current_hp) / float(max_hp) if max_hp > 0 else 0.0
+	if ratio > 0.5:
+		_spectator_hp_bar.modulate = Color(0.4, 1, 0.4, 1)
+	elif ratio > 0.2:
+		_spectator_hp_bar.modulate = Color(1, 0.8, 0.2, 1)
+	else:
+		_spectator_hp_bar.modulate = Color(1, 0.2, 0.2, 1)

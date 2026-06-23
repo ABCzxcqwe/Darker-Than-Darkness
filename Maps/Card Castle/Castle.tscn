@@ -5654,6 +5654,7 @@ close_sfx = ExtResource("6_5yfke")
 shape = SubResource("RectangleShape2D_1o3en")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=1198162202]
+z_as_relative = false
 scale = Vector2(4, 4)
 sprite_frames = ExtResource("7_g6luu")
 animation = &"cerrando"

@@ -189,6 +189,15 @@ func _is_disconnected_or_menu() -> bool:
 # LÓGICA DE PROXIMIDAD
 # =======================================================================
 func _update_proximities(player: Node, delta: float) -> void:
+	if not is_instance_valid(player):
+		return
+	if "is_spectator" in player and player.is_spectator:
+		var target = player.get("_follow_target")
+		if is_instance_valid(target):
+			player = target
+		else:
+			return
+
 	var killers = get_tree().get_nodes_in_group("killer")
 	var survivors = get_tree().get_nodes_in_group("survivor")
 
@@ -227,6 +236,7 @@ func _update_proximities(player: Node, delta: float) -> void:
 	if is_killer:
 		for s in survivors:
 			if not is_instance_valid(s): continue
+			if "health_state" in s and s.health_state != "alive": continue
 			if coord and coord.has_player_escaped(s.get_multiplayer_authority()): continue
 			var d: float = player.global_position.distance_to(s.global_position)
 			if d <= chase_range:
@@ -467,8 +477,11 @@ func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
 # HELPERS
 # =======================================================================
 func _restore_base() -> void:
-	var survivors = get_tree().get_nodes_in_group("survivor")
-	if survivors.size() <= 1 and lms_music_player and lms_music_player.stream:
+	var alive_count := 0
+	for s in get_tree().get_nodes_in_group("survivor"):
+		if "health_state" in s and s.health_state == "alive":
+			alive_count += 1
+	if alive_count <= 1 and lms_music_player and lms_music_player.stream:
 		activate_lms_audio()
 	else:
 		lms_bloqueo_activo = false

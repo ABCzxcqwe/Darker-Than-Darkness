@@ -30,8 +30,18 @@ func setup(player_node: Node) -> void:
 	if hp_label:
 		hp_label.text = _format_hp(player_node.health, data.max_health)
 
-	_apply_bar_color("alive")
-	_apply_border_color(_theme_color)
+	var current_state = player_node.health_state if "health_state" in player_node else "alive"
+	_apply_bar_color(current_state)
+	match current_state:
+		"dead":
+			if name_label: name_label.modulate = Color(0.3, 0.3, 0.3)
+			_apply_border_color(Color(0.2, 0.2, 0.2))
+			modulate.a = 0.35
+		"downed":
+			if name_label: name_label.modulate = Color(1.0, 0.5, 0.0)
+			_apply_border_color(Color(1.0, 0.5, 0.0))
+		_:
+			_apply_border_color(_theme_color)
 
 	var coord = GameServiceLocator.get_service("MapEventCoordinator")
 	if coord and coord.has_player_escaped(_peer_id):

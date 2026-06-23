@@ -62,8 +62,9 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 			"shape_scene": data.ability_scene,
 			"damage": data.base_damage,
 			"attack_type": data.attack_type,
-			"hit_limit": 1,
+			"hit_limit": 0,
 			"team_filter": "enemy",
+			"detect_walls": true,
 			"lifetime": data.projectile_lifetime if data.projectile_lifetime > 0 else 2.0,
 			"speed": data.projectile_speed if data.projectile_speed > 0 else 600.0,
 			"offset": data.range_,
@@ -82,5 +83,7 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd:
 		cd.start(caster_id, slot_index, data.cooldown)
+
+	player_node.rpc("_sync_cancel_ability")
 
 	print("[DevilKnife] Lanzado | peer: ", caster_id, " | dir: ", proj_dir)
