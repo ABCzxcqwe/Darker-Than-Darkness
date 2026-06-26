@@ -31,6 +31,7 @@
 [ext_resource type="AudioStream" uid="uid://cig0qk1u567un" path="res://audio/SFX/snd_joker_metamorphosis.wav" id="27_jevil_metamorphosis"]
 [ext_resource type="AudioStream" uid="uid://cx5je04mb3nbe" path="res://audio/SFX/snd_joker_oh.wav" id="28_jevil_oh"]
 [ext_resource type="AudioStream" uid="uid://dlto5febw033n" path="res://audio/SFX/snd_impact.wav" id="29_impact"]
+[ext_resource type="AudioStream" uid="uid://badssowa13fdn" path="res://audio/SFX/snd_heal.wav" id="30_heal"]
 
 [sub_resource type="Resource" id="Sfx1"]
 script = ExtResource("2_b81f2")
@@ -235,6 +236,13 @@ name = "impact"
 stream = ExtResource("29_impact")
 metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
+[sub_resource type="Resource" id="Sfx31"]
+script = ExtResource("2_b81f2")
+id = 31
+name = "heal"
+stream = ExtResource("30_heal")
+metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
+
 [resource]
 script = ExtResource("1_a53g7")
-sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Resource_7u4fr"), SubResource("Resource_1btyq"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29"), SubResource("Sfx30")])
+sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Resource_7u4fr"), SubResource("Resource_1btyq"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29"), SubResource("Sfx30"), SubResource("Sfx31")])

@@ -30,3 +30,4 @@ const JEVIL_LAUGH1 := 27
 const JEVIL_METAMORPHOSIS := 28
 const JEVIL_OH := 29
 const IMPACT := 30
+const HEAL := 31

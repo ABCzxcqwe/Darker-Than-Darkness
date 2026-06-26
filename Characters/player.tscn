@@ -8,15 +8,15 @@ animations = [{
 "frames": [],
 "loop": true,
 "name": &"idle_horizontal",
-"speed": 2.0
+"speed": 10.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5slg2"]
-size = Vector2(50, 48)
+size = Vector2(54, 60)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
-radius = 40.0
-height = 120.0
+radius = 31.0
+height = 112.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sweqy"]
 properties/0/path = NodePath(".:position")
@@ -40,14 +40,14 @@ script = ExtResource("1_onrkg")
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_4flbx")
 animation = &"idle_horizontal"
-frame_progress = 0.5390821
+frame_progress = 0.30182087
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
 zoom = Vector2(0.8, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
 z_index = 4
-position = Vector2(0, 48)
+position = Vector2(0, 30)
 shape = SubResource("RectangleShape2D_5slg2")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=634505925]
@@ -57,7 +57,6 @@ script = ExtResource("2_onrkg")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=193273634]
 z_index = 4
-position = Vector2(0, 12)
 shape = SubResource("CapsuleShape2D_i3pqv")
 debug_color = Color(0, 0.52156866, 0.69803923, 0.41960785)
 

@@ -92,8 +92,8 @@ func _process(_delta: float) -> void:
 
 	var now := Time.get_ticks_msec()
 	if now < invincible_until:
-		var show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
-		animated_sprite.modulate.a = _original_modulate.a if show else 0.2
+		var _show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
+		animated_sprite.modulate.a = _original_modulate.a if _show else 0.2
 	elif not animated_sprite.modulate.is_equal_approx(_original_modulate):
 		animated_sprite.modulate = _original_modulate
 
