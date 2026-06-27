@@ -37,6 +37,18 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if proj_dir == Vector2.ZERO:
 		proj_dir = Vector2.RIGHT if player_node.facing_right else Vector2.LEFT
 
+	var facing_right: bool = proj_dir.x >= 0.0
+	if data.action_animation != "":
+		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
+
+	var anim_dur := _get_anim_duration(player_node, data.action_animation)
+	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+		player_node.get_tree().create_timer(anim_dur).timeout.connect(
+			func() -> void:
+				if is_instance_valid(player_node):
+					player_node.rpc("_sync_cancel_ability")
+		)
+
 	hs.create({
 		"attacker_id"   : attacker_id,
 		"attacker_node" : player_node,
@@ -90,3 +102,18 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		  " | dmg: ", dmg,
 		  " | stun: ", stun_dur, "s",
 		  " | tp_reward: ", tp_reward)
+
+
+func _get_anim_duration(player_node: Node, anim_name: String) -> float:
+	if anim_name == "":
+		return PROJECTILE_LIFETIME
+	var sprite: AnimatedSprite2D = player_node.get_node_or_null("AnimatedSprite2D")
+	if not sprite or not sprite.sprite_frames:
+		return PROJECTILE_LIFETIME
+	if not sprite.sprite_frames.has_animation(anim_name):
+		return PROJECTILE_LIFETIME
+	var frame_count: int = sprite.sprite_frames.get_frame_count(anim_name)
+	var fps: float = sprite.sprite_frames.get_animation_speed(anim_name)
+	if fps <= 0.0:
+		return PROJECTILE_LIFETIME
+	return frame_count / fps

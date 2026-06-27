@@ -1,6 +1,8 @@
 # res://core/NetworkManager.gd
 extends Node
 
+enum NetworkMode { LAN, STEAM }
+
 const MAX_PLAYERS := 5
 const PORT := 4242
 
@@ -10,21 +12,77 @@ signal server_disconnected()
 signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
+signal steam_lobby_list_updated(lobbies: Array)
 
 
-var peer: ENetMultiplayerPeer
+var peer: MultiplayerPeer
 var players: Dictionary = {}        # peer_id -> { name, is_host, character_id, killer_points, assigned_role }
 var local_player_name: String = ""
 var selected_map: String = ""
 var is_host: bool = false
+var network_mode: NetworkMode = NetworkMode.LAN
+var steam_lobby_id: int = 0
 var _disconnecting := false
+
+var _steam: Variant = null
+var _steam_ready := false
+
+func _process(_delta: float):
+	if _steam:
+		_steam.run_callbacks()
 
 func _ready():
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected_ok)
 	multiplayer.connection_failed.connect(_on_connect_fail)
-	multiplayer.server_disconnected.connect(_on_internal_server_disconnected) 
+	multiplayer.server_disconnected.connect(_on_internal_server_disconnected)
+	_steam = Engine.get_singleton("Steam")
+	if _steam:
+		_init_steam_once()
+
+func _init_steam_once():
+	print("[NetworkManager] Inicializando Steam...")
+	var init_result = _steam.steamInit()
+	if typeof(init_result) == TYPE_DICTIONARY:
+		var status = init_result.get("status", -1)
+		if status != _steam.STEAM_API_INIT_RESULT_OK:
+			print("[NetworkManager] Steam init falló (status=" + str(status) + "): ", init_result)
+			return
+	elif typeof(init_result) == TYPE_BOOL:
+		if not init_result:
+			print("[NetworkManager] Steam init devolvió false")
+			print("[NetworkManager] Verificá que steam_appid.txt exista o configura el App ID en Project Settings > Steam")
+			return
+	else:
+		print("[NetworkManager] Resultado inesperado de steamInit: ", typeof(init_result))
+		return
+	if not _steam.isSteamRunning():
+		print("[NetworkManager] Steam está inicializado pero el cliente Steam no responde")
+		return
+	_steam.lobby_created.connect(_on_steam_lobby_created)
+	_steam.lobby_joined.connect(_on_steam_lobby_joined)
+	_steam.lobby_match_list.connect(_on_steam_lobby_list)
+	_steam.lobby_chat_update.connect(_on_steam_lobby_chat_update)
+	_steam_ready = true
+	print("[NetworkManager] Steam listo para usar")
+
+func initialize_steam() -> bool:
+	if not _steam:
+		print("[NetworkManager] GodotSteam no está instalado")
+		return false
+	if not _steam_ready:
+		print("[NetworkManager] Steam no se pudo inicializar. Revisá la consola para más detalles.")
+		return false
+	network_mode = NetworkMode.STEAM
+	print("[NetworkManager] Modo Steam activado")
+	return true
+
+func is_steam_ready() -> bool:
+	return _steam_ready
+
+func set_lan_mode():
+	network_mode = NetworkMode.LAN
 
 func _on_internal_server_disconnected():
 	if _disconnecting:
@@ -39,20 +97,28 @@ func create_server(player_name: String, map_name: String) -> bool:
 	selected_map = map_name
 	is_host = true
 
-	peer = ENetMultiplayerPeer.new()
-	var err = peer.create_server(PORT, MAX_PLAYERS)
-	if err != OK:
-		print("Error al crear servidor: ", err)
-		return false
+	if network_mode == NetworkMode.LAN:
+		peer = ENetMultiplayerPeer.new()
+		var err = peer.create_server(PORT, MAX_PLAYERS)
+		if err != OK:
+			print("Error al crear servidor: ", err)
+			return false
+	else:
+		if not _steam_ready:
+			print("[NetworkManager] Steam API no inicializada. Usá modo LAN.")
+			return false
+		print("[NetworkManager] Creando lobby Steam...")
+		_steam.createLobby(_steam.LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
+		return true
+
 	multiplayer.multiplayer_peer = peer
 
-	# CORRECCIÓN: Inicializar al Host de forma estructurada en su ID correspondiente (1)
 	var my_id = multiplayer.get_unique_id()
 	players[my_id] = {
 		"name": player_name,
 		"is_host": true,
-		"character_id": -1,       # Obliga a elegir personaje en la nueva pantalla
-		"killer_points": 0,       # Puntos de sesión para sorteo de Killer
+		"character_id": -1,
+		"killer_points": 0,
 		"assigned_role": "survivor"
 	}
 	
@@ -60,18 +126,35 @@ func create_server(player_name: String, map_name: String) -> bool:
 	emit_signal("connection_succeeded")
 	return true
 
-func join_server(player_name: String, ip: String = "127.0.0.1") -> bool:
+func join_server(player_name: String, ip_or_lobby_id = "127.0.0.1") -> bool:
 	_disconnecting = false
 	local_player_name = player_name
 	is_host = false
 
-	peer = ENetMultiplayerPeer.new()
-	var err = peer.create_client(ip, PORT)
-	if err != OK:
-		print("Error al conectar: ", err)
-		return false
-	multiplayer.multiplayer_peer = peer
-	return true
+	if network_mode == NetworkMode.LAN:
+		peer = ENetMultiplayerPeer.new()
+		var err = peer.create_client(ip_or_lobby_id as String, PORT)
+		if err != OK:
+			print("Error al conectar: ", err)
+			return false
+		multiplayer.multiplayer_peer = peer
+		return true
+	else:
+		if not _steam_ready:
+			print("[NetworkManager] Steam API no inicializada")
+			return false
+		var lobby_id = ip_or_lobby_id as int
+		_steam.joinLobby(lobby_id)
+		return true
+
+const GAME_ID_FILTER := "darker_than_darkness"
+
+func request_lobby_list():
+	if _steam_ready:
+		_steam.addRequestLobbyListResultCountFilter(MAX_LOBBIES)
+		_steam.addRequestLobbyListDistanceFilter(_steam.LOBBY_DISTANCE_FILTER_WORLDWIDE)
+		_steam.addRequestLobbyListStringFilter("game_id", GAME_ID_FILTER, _steam.LOBBY_COMPARISON_EQUAL)
+		_steam.requestLobbyList()
 
 func get_player_list() -> Array:
 	var list = []
@@ -254,10 +337,81 @@ func _on_connected_ok():
 func _on_connect_fail():
 	emit_signal("connection_failed")
 
+const MAX_LOBBIES := 16
+
+# ── STEAM CALLBACKS ──
+
+func _on_steam_lobby_created(connect_or_result: int, lobby_id: int):
+	print("[Steam] Callback lobby_created -> result:", connect_or_result, " lobby_id:", lobby_id)
+	if connect_or_result == 1 and lobby_id != 0:
+		steam_lobby_id = lobby_id
+		print("[Steam] Lobby creado exitosamente! ID:", lobby_id)
+		_steam.setLobbyData(lobby_id, "name", local_player_name)
+		_steam.setLobbyData(lobby_id, "map", selected_map)
+		_steam.setLobbyData(lobby_id, "game_id", GAME_ID_FILTER)
+		_steam.setLobbyJoinable(lobby_id, true)
+		_steam.setLobbyType(lobby_id, _steam.LOBBY_TYPE_PUBLIC)
+		_steam.allowP2PPacketRelay(true)
+
+		peer = SteamMultiplayerPeer.new()
+		var err = peer.host_with_lobby(lobby_id)
+		if err != OK:
+			print("[Steam] Error en host_with_lobby: ", err)
+			emit_signal("connection_failed")
+			return
+		multiplayer.multiplayer_peer = peer
+
+		var my_id = multiplayer.get_unique_id()
+		players[my_id] = {
+			"name": local_player_name,
+			"is_host": true,
+			"character_id": -1,
+			"killer_points": 0,
+			"assigned_role": "survivor"
+		}
+		emit_signal("player_joined", my_id, players[my_id])
+		emit_signal("connection_succeeded")
+	else:
+		print("[Steam] Error al crear lobby, código:", connect_or_result)
+		emit_signal("connection_failed")
+
+func _on_steam_lobby_joined(lobby_id: int, perm: int, locked: bool, response: int):
+	print("[Steam] Callback lobby_joined -> lobby:", lobby_id, " response:", response)
+	if response == _steam.CHAT_ROOM_ENTER_RESPONSE_SUCCESS:
+		steam_lobby_id = lobby_id
+		if is_host or _steam.getLobbyOwner(lobby_id) == _steam.getSteamID():
+			print("[Steam] Somos el host, ignoramos lobby_joined para connect")
+			return
+		print("[Steam] Conectando al lobby como cliente...")
+		_steam.allowP2PPacketRelay(true)
+		peer = SteamMultiplayerPeer.new()
+		var err = peer.connect_to_lobby(lobby_id)
+		if err != OK:
+			print("[Steam] Error en connect_to_lobby: ", err)
+			emit_signal("connection_failed")
+			return
+		multiplayer.multiplayer_peer = peer
+		emit_signal("connection_succeeded")
+	else:
+		print("[Steam] Error al unirse al lobby, response:", response)
+		emit_signal("connection_failed")
+
+func _on_steam_lobby_list(lobbies: Array):
+	print("[Steam] Callback lobby_match_list -> count:", lobbies.size())
+	emit_signal("steam_lobby_list_updated", lobbies)
+
+func _on_steam_lobby_chat_update(lobby_id: int, changed_id: int, making_change_id: int, chat_state: int):
+	pass
+
+# ── DISCONNECT ──
+
 func disconnect_from_server():
 	if _disconnecting:
 		return
 	_disconnecting = true
+	if _steam and steam_lobby_id != 0:
+		_steam.leaveLobby(steam_lobby_id)
+		steam_lobby_id = 0
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null

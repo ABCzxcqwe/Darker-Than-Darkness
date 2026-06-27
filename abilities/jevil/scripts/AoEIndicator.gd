@@ -2,6 +2,7 @@ extends Node2D
 
 var radius: float = 1000.0
 var blink_speed: float = 6.0
+var color: Color = Color(1, 0, 0)
 var _time: float = 0.0
 
 
@@ -13,5 +14,7 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, radius, Color(1, 0, 0, modulate.a * 0.3))
-	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, Color(1, 0.2, 0.2, minf(modulate.a + 0.2, 1.0)), 4.0)
+	var fill := Color(color.r, color.g, color.b, modulate.a * 0.3)
+	var outline := Color(color.r * 1.2, color.g * 1.2, color.b * 1.2, minf(modulate.a + 0.2, 1.0))
+	draw_circle(Vector2.ZERO, radius, fill)
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, outline, 4.0)

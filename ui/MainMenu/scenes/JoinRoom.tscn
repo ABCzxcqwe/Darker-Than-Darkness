@@ -56,6 +56,19 @@ text = "127.0.0.1"
 placeholder_text = "IP del servidor (ej: 192.168.1.100)"
 max_length = 20
 
+[node name="LobbyList" type="ItemList" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+allow_reselect = true
+
+[node name="RefreshLobbies" type="Button" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+text = "Buscar Salas Steam"
+visible = false
+
 [node name="JoinButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1285223474]
 custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
@@ -78,3 +91,5 @@ horizontal_alignment = 1
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/JoinButton" to="." method="_on_join_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_pressed"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer/LobbyList" to="." method="_on_lobby_selected"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/RefreshLobbies" to="." method="_on_refresh_pressed"]

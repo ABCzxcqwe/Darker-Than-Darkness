@@ -36,10 +36,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			return
 
 	var combat = GameServiceLocator.get_service("CombatMediator")
-	var facing_right: bool = player_node.facing_right
 
 	if data.action_animation != "":
-		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
+		player_node.play_ability_animation(data.action_animation, slot_index, player_node.facing_right)
 
 	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
 		AudioManager.play_sfx_networked.rpc(SfxId.SPELLCAST, player_node.global_position.x, player_node.global_position.y)

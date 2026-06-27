@@ -2,12 +2,17 @@ extends Control
 
 @onready var create_room_btn = $MarginContainer/VBoxContainer/CreateRoomButton
 @onready var join_room_btn = $MarginContainer/VBoxContainer/JoinRoomButton
+@onready var mode_btn = $MarginContainer/VBoxContainer/ModeButton
 @onready var quit_btn = $MarginContainer/VBoxContainer/QuitButton
 var _focus_items: Array[Control] = []
 var _focus_idx := 0
 
 func _ready():
 	await get_tree().process_frame
+	if NetworkManager.network_mode == NetworkManager.NetworkMode.LAN:
+		mode_btn.text = "Modo: LAN"
+	else:
+		mode_btn.text = "Modo: Steam"
 	_setup_focus()
 
 func _setup_focus() -> void:
@@ -20,7 +25,7 @@ func _setup_focus() -> void:
 	focus_style.border_width_bottom = 3
 	focus_style.set_corner_radius_all(3)
 	focus_style.set_expand_margin_all(5)
-	_focus_items = [create_room_btn, join_room_btn, quit_btn]
+	_focus_items = [create_room_btn, join_room_btn, mode_btn, quit_btn]
 	for i in _focus_items.size():
 		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
 		_focus_items[i].focus_entered.connect(_update_focus.bind(i))
@@ -79,6 +84,17 @@ func _on_join_room_pressed():
 	await _full_network_reset()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/JoinRoom.tscn")
 
+
+func _on_mode_pressed():
+	AudioManager.play_sfx_ui(SfxId.SELECT)
+	if NetworkManager.network_mode == NetworkManager.NetworkMode.LAN:
+		if NetworkManager.initialize_steam():
+			mode_btn.text = "Modo: Steam"
+		else:
+			print("[Menu] Steam no disponible - revisá la consola")
+	else:
+		NetworkManager.set_lan_mode()
+		mode_btn.text = "Modo: LAN"
 
 func _on_quit_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)

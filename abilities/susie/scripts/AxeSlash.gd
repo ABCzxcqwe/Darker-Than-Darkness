@@ -26,11 +26,23 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 			return
 
 	var cd_svc = GameServiceLocator.get_service("CooldownService")
-	var slash_dir: Vector2 = Vector2.RIGHT if direction.x >= 0.0 else Vector2.LEFT
+	var facing_right: bool = direction.x >= 0.0
+	var slash_dir: Vector2 = Vector2.RIGHT if facing_right else Vector2.LEFT
 
 	var combat = GameServiceLocator.get_service("CombatMediator")
 	if combat:
 		combat.apply_root(player_node, HITBOX_LIFETIME)
+
+	if data.action_animation != "":
+		player_node.play_ability_animation(data.action_animation, slot_index, facing_right)
+
+	var anim_dur := _get_anim_duration(player_node, data.action_animation)
+	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+		player_node.get_tree().create_timer(anim_dur).timeout.connect(
+			func() -> void:
+				if is_instance_valid(player_node):
+					player_node.rpc("_sync_cancel_ability")
+		)
 
 	hs.create({
 		"attacker_id"   : attacker_id,
@@ -76,3 +88,18 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	print("[AxeSlash] Activado | peer: ", attacker_id,
 		  " | dir: ", slash_dir, " | stun: ", stun_dur, "s")
+
+
+func _get_anim_duration(player_node: Node, anim_name: String) -> float:
+	if anim_name == "":
+		return HITBOX_LIFETIME
+	var sprite: AnimatedSprite2D = player_node.get_node_or_null("AnimatedSprite2D")
+	if not sprite or not sprite.sprite_frames:
+		return HITBOX_LIFETIME
+	if not sprite.sprite_frames.has_animation(anim_name):
+		return HITBOX_LIFETIME
+	var frame_count: int = sprite.sprite_frames.get_frame_count(anim_name)
+	var fps: float = sprite.sprite_frames.get_animation_speed(anim_name)
+	if fps <= 0.0:
+		return HITBOX_LIFETIME
+	return frame_count / fps

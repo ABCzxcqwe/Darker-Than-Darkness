@@ -12,6 +12,7 @@ display_name = "Rude Buster"
 icon = ExtResource("4_mx50e")
 ability_script = ExtResource("2_yva0h")
 ability_scene = ExtResource("1_yva0h")
+action_animation = "axe_atack"
 cooldown = 25.0
 tp_cost = 20.0
 tp_reward = 5.0

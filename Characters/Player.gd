@@ -875,3 +875,30 @@ func _sync_hide_aoe_indicator() -> void:
 	var existing = world.find_child("DiamondRainAOE_local", true, false)
 	if existing:
 		existing.queue_free()
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_show_pacify_indicator(center: Vector2, area_radius: float) -> void:
+	var world = get_tree().root.find_child("World", true, false)
+	if not world:
+		return
+	var existing = world.find_child("PacifyAOE_local", true, false)
+	if existing:
+		existing.queue_free()
+	var indicator = Node2D.new()
+	indicator.name = "PacifyAOE_local"
+	indicator.global_position = center
+	indicator.set_script(preload("res://abilities/jevil/scripts/AoEIndicator.gd"))
+	indicator.radius = area_radius
+	indicator.color = Color(0.3, 0.5, 1.0)
+	world.add_child(indicator)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_hide_pacify_indicator() -> void:
+	var world = get_tree().root.find_child("World", true, false)
+	if not world:
+		return
+	var existing = world.find_child("PacifyAOE_local", true, false)
+	if existing:
+		existing.queue_free()
