@@ -5,6 +5,10 @@ signal ability_used(ability_index: int)
 
 enum AnimState { IDLE, PREPARE, ABILITY }
 
+const HURT_FLASH_DURATION_MS: int = 300
+const LOW_HP_THRESHOLD: float = 0.25
+const WALK_SPEED_THRESHOLD: float = 650.0
+
 @export var speed = 200
 @onready var synchronizer      = $Synchronizer
 @onready var animated_sprite   = $AnimatedSprite2D
@@ -18,6 +22,7 @@ var health_state:     String = "alive"
 var last_animation:   String = "idle_horizontal"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
+var hurt_flash_until: int    = 0
 var _original_modulate: Color
 
 var facing: Vector2 = Vector2.RIGHT
@@ -465,12 +470,15 @@ func _physics_process(_delta: float) -> void:
 		move_and_slide()
 
 		if health_state == "alive":
-			var is_moving = velocity.length() > 0.1
-			var anim_name = "walk_horizontal" if is_moving else "idle_horizontal"
+			var vel_len = velocity.length()
+			var is_moving = vel_len > 0.1
+			var is_running = vel_len > WALK_SPEED_THRESHOLD
+			var use_hurt = _should_use_hurt_sprite()
+			var anim_name = _select_movement_anim(is_moving, is_running, use_hurt)
 			if last_animation != anim_name:
 				animated_sprite.play(anim_name)
 				last_animation = anim_name
-			animated_sprite.speed_scale = 1.5 if _is_sprinting and is_moving else 1.0
+			animated_sprite.speed_scale = clamp(vel_len / speed, 0.5, 2.0) if is_moving and speed > 0 else 1.0
 	else:
 		velocity = Vector2.ZERO
 
@@ -480,6 +488,40 @@ func update_facing_and_flip(dir: Vector2) -> void:
 		facing_right = dir.x > 0
 		animated_sprite.flip_h = not facing_right
 		facing = Vector2.RIGHT if facing_right else Vector2.LEFT
+
+
+func _should_use_hurt_sprite() -> bool:
+	var now = Time.get_ticks_msec()
+	if now < hurt_flash_until:
+		return true
+	if character_data and health > 0:
+		return health <= character_data.max_health * LOW_HP_THRESHOLD
+	return false
+
+
+func _select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool) -> String:
+	var prioritized: Array[String] = []
+
+	if use_hurt:
+		if is_running:
+			prioritized = ["run_hurt_horizontal", "run_horizontal", "walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"]
+		elif is_moving:
+			prioritized = ["walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"]
+		else:
+			prioritized = ["idle_hurt_horizontal", "idle_horizontal"]
+	else:
+		if is_running:
+			prioritized = ["run_horizontal", "walk_horizontal", "idle_horizontal"]
+		elif is_moving:
+			prioritized = ["walk_horizontal", "idle_horizontal"]
+		else:
+			prioritized = ["idle_horizontal"]
+
+	var frames = animated_sprite.sprite_frames
+	for name in prioritized:
+		if frames and frames.has_animation(name):
+			return name
+	return "default"
 
 
 # ── Animación de habilidades ──────────────────────────────────────────
@@ -495,8 +537,9 @@ func _restore_idle() -> void:
 	if health_state != "alive":
 		return
 	animated_sprite.flip_h = not facing_right
-	animated_sprite.play("idle_horizontal")
-	last_animation = "idle_horizontal"
+	var anim_name = _select_movement_anim(false, false, _should_use_hurt_sprite())
+	animated_sprite.play(anim_name)
+	last_animation = anim_name
 
 
 # ── Muerte definitiva ────────────────────────────────────────────────
@@ -710,6 +753,8 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 
 	health = new_health
 	invincible_until = Time.get_ticks_msec() + invincibility_duration_ms
+	if new_health < old_health:
+		hurt_flash_until = Time.get_ticks_msec() + HURT_FLASH_DURATION_MS
 
 	var should_be_state = ""
 	if health <= 0:
