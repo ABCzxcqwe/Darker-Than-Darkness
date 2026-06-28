@@ -20,6 +20,7 @@ func setup(player_node: Node) -> void:
 		push_warning("[AbilityBar] Player sin character_data.")
 		return
 
+	var peer_id: int = player_node.get_multiplayer_authority()
 	var slots: Array = player_node.character_data.ability_slots
 	for i in slots.size():
 		var data: AbilityData = slots[i]
@@ -29,7 +30,7 @@ func setup(player_node: Node) -> void:
 		var key_name: String = KEY_NAMES.get(i, str(i))
 		var btn := ABILITY_BUTTON_SCENE.instantiate()
 		add_child(btn)
-		btn.setup(data, i, key_name)
+		btn.setup(data, i, key_name, peer_id)
 		_buttons[i] = btn
 
 
