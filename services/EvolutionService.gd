@@ -156,11 +156,6 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 
 		_set_tp_ready(peer_id, i, tp_sufficient)
 
-		if tp_sufficient or is_permanent:
-			_sync_visual_to_client(peer_id, i, true)
-		else:
-			_sync_visual_to_client(peer_id, i, false)
-
 
 func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 	if not _tp_ready_slots.has(peer_id):

@@ -1,19 +1,19 @@
 extends Control
 
-@onready var panel:             Panel       = $Panel
-@onready var icon_rect:         TextureRect = $Panel/IconRect
-@onready var cooldown_overlay:  ColorRect   = $Panel/CooldownOverlay
-@onready var cooldown_label:    Label       = $Panel/CooldownLabel
-@onready var key_label:         Label       = $Panel/KeyLabel
-@onready var lock_icon:         TextureRect = $Panel/LockIcon if has_node("Panel/LockIcon") else null
-@onready var border_fill_mask:   Control = $BorderFillMask
-@onready var border_fill_orange: Panel   = $BorderFillMask/BorderFillOrange
-@onready var border_fill_yellow: Panel   = $BorderFillMask/BorderFillYellow
+@onready var panel:              Panel       = $Panel
+@onready var icon_rect:          TextureRect = $Panel/IconRect
+@onready var cooldown_overlay:   ColorRect   = $Panel/CooldownOverlay
+@onready var cooldown_label:     Label       = $Panel/CooldownLabel
+@onready var key_label:          Label       = $Panel/KeyLabel
+@onready var lock_icon:          TextureRect = $Panel/LockIcon if has_node("Panel/LockIcon") else null
+@onready var border_fill_mask:   Control     = $BorderFillMask
+@onready var base_fill_rect:     Panel       = $BorderFillMask/BaseFillRect
+@onready var evolution_fill_rect: Panel      = $BorderFillMask/EvolutionFillRect
 
-const BORDER_COLOR_NORMAL   := Color(0.8156863, 0.4745098, 0.0, 1.0)
+const BORDER_COLOR_NORMAL    := Color(0.8156863, 0.4745098, 0.0, 1.0)
 const BORDER_COLOR_EVOLVED_A := Color(1.0, 0.9, 0.0, 1.0)
 const BORDER_COLOR_EVOLVED_B := Color(1.0, 1.0, 1.0, 1.0)
-const EVOLVED_FADE_DURATION  := 0.5
+const EVOLVED_FADE_DURATION   := 0.5
 
 const PANEL_BG_COLOR := Color(0, 0, 0, 0.47058824)
 const PANEL_CORNER_DETAIL := 1
@@ -31,8 +31,8 @@ var _evolved_data:       AbilityData = null
 var _peer_id:            int         = -1
 var _tp_service:         Node        = null
 var _last_known_tp:      float       = 0.0
-var _last_t1_ratio:      float       = 0.0
-var _last_t2_ratio:      float       = 0.0
+var _ratio_base:         float       = 0.0
+var _ratio_evo:          float       = 0.0
 var _fill_tween:         Tween       = null
 
 
@@ -65,8 +65,8 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 		key_label.text = key_name
 
 	# El panel base ya no dibuja el borde cuando hay una habilidad real —
-	# el borde de habilidades con datos lo dibuja BorderFillRect (relleno por TP).
-	# Para un slot vacío, mantenemos el borde estático de siempre.
+	# el borde de habilidades con datos lo dibujan BaseFillRect/EvolutionFillRect
+	# (relleno por TP). Para un slot vacío, mantenemos el borde estático de siempre.
 	var style := StyleBoxFlat.new()
 	style.bg_color = PANEL_BG_COLOR
 	style.set_corner_radius_all(3)
@@ -111,11 +111,6 @@ func _process(delta: float) -> void:
 		cooldown_label.text = "%.1f" % _cooldown_remaining
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
-		_apply_border_fill(_last_t1_ratio, _last_t2_ratio)
-
-
 func set_cooldown_state(duration: float) -> void:
 	if not ability_data:
 		return
@@ -139,35 +134,26 @@ func set_cooldown_state(duration: float) -> void:
 			  " ('", ability_data.display_name, "') duración: ", duration, "s")
 
 
+## Se mantiene por compatibilidad con EvolutionService/ability_bar (que siguen
+## emitiendo on_slot_evolved/on_slot_devolved). Ya NO controla el ícono — eso
+## ahora lo decide _update_tp_fill() según el tramo 2 (más confiable, porque
+## usa el TP real en vez de depender de un RPC aparte).
 func set_evolved(evolved: bool) -> void:
 	if not ability_data:
 		return
 	if _is_evolved == evolved:
 		return
-
 	_is_evolved = evolved
-
-	if icon_rect:
-		if evolved and _evolved_data and _evolved_data.icon:
-			icon_rect.texture = _evolved_data.icon
-		elif _base_data and _base_data.icon:
-			icon_rect.texture = _base_data.icon
-		else:
-			icon_rect.texture = null
-
-	# Cambió la habilidad "activa" (base <-> evolucionada), así que el costo
-	# de TP a comparar también cambió — recalculamos el relleno ya mismo.
 	_update_tp_fill(_last_known_tp)
 
 
-## Mantenido por compatibilidad con EvolutionService/ability_bar — ya no hace
-## falta que nos digan "is_ready" desde afuera, el botón escucha el TPService
-## directamente y calcula su propio estado en _update_tp_fill().
+## Igual, se mantiene por compatibilidad pero ya no hace nada — el botón
+## escucha el TPService directo y calcula su propio estado.
 func set_tp_ready(_is_ready: bool) -> void:
 	pass
 
 
-# --- Relleno de borde según TP (aplica a toda habilidad con datos) ---
+# --- Relleno de borde por TP, en dos tramos (base -> evolución) ---
 
 func _setup_tp_tracking() -> void:
 	_disconnect_tp_service()
@@ -180,40 +166,16 @@ func _setup_tp_tracking() -> void:
 
 	if border_fill_mask:
 		border_fill_mask.visible = true
+	if icon_rect:
+		icon_rect.visible = false
 
-	var orange_style := StyleBoxFlat.new()
-	orange_style.bg_color = Color(0, 0, 0, 0)
-	orange_style.border_width_left = 2
-	orange_style.border_width_top = 0
-	orange_style.border_width_right = 2
-	orange_style.border_width_bottom = 2
-	orange_style.set_corner_radius_all(3)
-	orange_style.corner_detail = PANEL_CORNER_DETAIL
-	orange_style.anti_aliasing = false
-	orange_style.border_color = BORDER_COLOR_NORMAL
-	if border_fill_orange:
-		border_fill_orange.add_theme_stylebox_override("panel", orange_style)
-		border_fill_orange.size = Vector2.ZERO
-		border_fill_orange.position = Vector2.ZERO
+	_build_fill_style(base_fill_rect, BORDER_COLOR_NORMAL)
+	_build_fill_style(evolution_fill_rect, BORDER_COLOR_EVOLVED_A)
+	if evolution_fill_rect:
+		evolution_fill_rect.visible = false
 
-	var yellow_style := StyleBoxFlat.new()
-	yellow_style.bg_color = Color(0, 0, 0, 0)
-	yellow_style.border_width_left = 2
-	yellow_style.border_width_top = 0
-	yellow_style.border_width_right = 2
-	yellow_style.border_width_bottom = 2
-	yellow_style.set_corner_radius_all(3)
-	yellow_style.corner_detail = PANEL_CORNER_DETAIL
-	yellow_style.anti_aliasing = false
-	yellow_style.border_color = BORDER_COLOR_EVOLVED_A
-	if border_fill_yellow:
-		border_fill_yellow.add_theme_stylebox_override("panel", yellow_style)
-		border_fill_yellow.size = Vector2.ZERO
-		border_fill_yellow.position = Vector2.ZERO
-		border_fill_yellow.visible = false
-
-	_last_t1_ratio = 0.0
-	_last_t2_ratio = 0.0
+	_ratio_base = 0.0
+	_ratio_evo  = 0.0
 
 	_tp_service = GameServiceLocator.get_service("TPService")
 	if _tp_service:
@@ -221,7 +183,24 @@ func _setup_tp_tracking() -> void:
 		_update_tp_fill(_tp_service.get_tp_for_peer(_peer_id))
 	else:
 		push_warning("[AbilityButton] TPService no disponible — slot " + str(slot_index))
-		_update_tp_fill(0.0)
+
+
+func _build_fill_style(rect: Panel, color: Color) -> void:
+	if not rect:
+		return
+	var fstyle := StyleBoxFlat.new()
+	fstyle.bg_color = Color(0, 0, 0, 0)
+	fstyle.border_width_left = 2
+	fstyle.border_width_top = 0
+	fstyle.border_width_right = 2
+	fstyle.border_width_bottom = 2
+	fstyle.set_corner_radius_all(3)
+	fstyle.corner_detail = PANEL_CORNER_DETAIL
+	fstyle.anti_aliasing = false
+	fstyle.border_color = color
+	rect.add_theme_stylebox_override("panel", fstyle)
+	rect.size = Vector2.ZERO
+	rect.position = Vector2.ZERO
 
 
 func _disconnect_tp_service() -> void:
@@ -231,81 +210,88 @@ func _disconnect_tp_service() -> void:
 
 
 func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
-	if _peer_id != -1 and peer_id != _peer_id:
+	if peer_id != _peer_id:
 		return
 	_update_tp_fill(current_tp)
 
 
 func _update_tp_fill(current_tp: float) -> void:
-	if not ability_data:
+	if not ability_data or not _base_data:
 		return
 
 	_last_known_tp = current_tp
 
-	var base_cost: float = _base_data.tp_cost if _base_data else 0.0
-	var is_permanent: bool = _evolved_data and _evolved_data.evolution_consume == 1
+	var has_evolution: bool = _evolved_data != null
+	var is_permanent: bool  = has_evolution and _evolved_data.evolution_consume == 1
+	# Si la evolución es permanente y ya se disparó, el slot adopta la
+	# identidad de la habilidad evolucionada por completo: mismo medidor
+	# naranja de siempre, pero usando su costo y su ícono (reemplaza al base).
+	var permanent_swapped: bool = is_permanent and _is_evolved
 
-	# -- Tramo 1 (naranja): de 0 a tp_cost base
-	var t1_ratio: float = clampf(current_tp / base_cost, 0.0, 1.0) if base_cost > 0 else 1.0
+	# --- Tramo 1: habilidad "activa" (base, o evolucionada si ya cambió para siempre) ---
+	var active_data: AbilityData = _evolved_data if permanent_swapped else _base_data
+	var base_cost: float = active_data.tp_cost
+	_ratio_base = clampf(current_tp / base_cost, 0.0, 1.0) if base_cost > 0.0 else 1.0
 
-	# -- Tramo 2 (amarillo): solo si evolucionado, no permanente, y tramo 1 completo
-	var t2_ratio: float = 0.0
-	var in_tramo_2: bool = false
-	if _is_evolved and _evolved_data and not is_permanent and base_cost > 0:
-		var t2_total: float = max(_evolved_data.tp_cost - base_cost, 0.0)
-		if t2_total > 0 and current_tp >= base_cost:
-			t2_ratio = clampf((current_tp - base_cost) / t2_total, 0.0, 1.0)
-			in_tramo_2 = true
-
-	_last_t1_ratio = t1_ratio
-	_last_t2_ratio = t2_ratio
-	_apply_border_fill(t1_ratio, t2_ratio)
-
-	# -- Visibilidad del yellow fill
-	if border_fill_yellow:
-		border_fill_yellow.visible = in_tramo_2
-
-	# -- Icono
-	var t1_complete: bool = t1_ratio >= 1.0
-	var t2_complete: bool = t2_ratio >= 1.0
+	_apply_growing_border(base_fill_rect, _ratio_base)
 
 	if icon_rect:
-		if is_permanent or not _is_evolved:
-			icon_rect.visible = t1_complete
-		else:
-			if t2_complete:
-				var evo_icon: Texture2D = _evolved_data.icon if _evolved_data and _evolved_data.icon else null
-				icon_rect.texture = evo_icon if evo_icon else (_base_data.icon if _base_data else null)
-				icon_rect.visible = true
-			else:
-				icon_rect.texture = _base_data.icon if _base_data else null
-				icon_rect.visible = t1_complete
+		icon_rect.visible = _ratio_base >= 1.0
+		icon_rect.texture = active_data.icon if active_data.icon else null
 
-	# -- Parpadeo solo si tramo 2 completo y evolucionado no-permanente
-	if t2_complete and _is_evolved and not is_permanent:
+	if not has_evolution or permanent_swapped or is_permanent:
+		# Sin evolución, ya evolucionada para siempre, o evolución permanente
+		# que aún no se disparó: ninguno de estos casos usa el tramo 2.
+		if evolution_fill_rect:
+			evolution_fill_rect.visible = false
+		_stop_fill_tween()
+		_ratio_evo = 0.0
+		return
+
+	# --- Tramo 2: evolución temporal. Empieza recién cuando el tramo 1 cerró. ---
+	if evolution_fill_rect:
+		evolution_fill_rect.visible = true
+
+	var evolved_cost: float = _evolved_data.tp_cost
+
+	if _ratio_base >= 1.0:
+		if evolved_cost > base_cost:
+			_ratio_evo = clampf((current_tp - base_cost) / (evolved_cost - base_cost), 0.0, 1.0)
+		else:
+			_ratio_evo = 1.0 if current_tp >= evolved_cost else 0.0
+	else:
+		_ratio_evo = 0.0
+
+	_apply_growing_border(evolution_fill_rect, _ratio_evo)
+
+	if icon_rect and _ratio_evo >= 1.0:
+		icon_rect.texture = _evolved_data.icon if _evolved_data.icon else _base_data.icon
+
+	if _ratio_evo >= 1.0:
 		if not (_fill_tween and _fill_tween.is_valid()):
 			_start_fill_tween()
 	else:
 		_stop_fill_tween()
-		_set_fill_border_color(BORDER_COLOR_NORMAL)
-		if border_fill_yellow:
-			_set_panel_border_color(border_fill_yellow, BORDER_COLOR_EVOLVED_A)
+		_set_fill_border_color(BORDER_COLOR_EVOLVED_A)
 
 
-func _apply_border_fill(t1_ratio: float, t2_ratio: float) -> void:
+## Hace crecer `rect` de abajo hacia arriba según `ratio` (0..1). El borde
+## superior se mantiene oculto (ancho 0) hasta que el tramo llega al 100%;
+## ahí "cierra" el recuadro de golpe.
+func _apply_growing_border(rect: Panel, ratio: float) -> void:
+	if not rect:
+		return
+
 	var full_size: Vector2 = size if size.y > 0.0 else border_fill_mask.size
+	var clamped: float = clampf(ratio, 0.0, 1.0)
+	var h: float = full_size.y * clamped
 
-	if border_fill_orange:
-		var h1: float = full_size.y * t1_ratio
-		border_fill_orange.size     = Vector2(full_size.x, h1)
-		border_fill_orange.position = Vector2(0.0, full_size.y - h1)
-		_set_top_border(border_fill_orange, t1_ratio >= 1.0)
+	rect.size     = Vector2(full_size.x, h)
+	rect.position = Vector2(0.0, full_size.y - h)
 
-	if border_fill_yellow and border_fill_yellow.visible:
-		var h2: float = full_size.y * t2_ratio
-		border_fill_yellow.size     = Vector2(full_size.x, h2)
-		border_fill_yellow.position = Vector2(0.0, full_size.y - h2)
-		_set_top_border(border_fill_yellow, t2_ratio >= 1.0)
+	var style = rect.get_theme_stylebox("panel")
+	if style is StyleBoxFlat:
+		style.border_width_top = 2 if clamped >= 1.0 else 0
 
 
 func _start_fill_tween() -> void:
@@ -313,8 +299,8 @@ func _start_fill_tween() -> void:
 	_fill_tween.set_loops()
 	_fill_tween.set_ease(Tween.EASE_IN_OUT)
 	_fill_tween.set_trans(Tween.TRANS_SINE)
-	_fill_tween.tween_method(_set_yellow_border_color, BORDER_COLOR_EVOLVED_A, BORDER_COLOR_EVOLVED_B, EVOLVED_FADE_DURATION)
-	_fill_tween.tween_method(_set_yellow_border_color, BORDER_COLOR_EVOLVED_B, BORDER_COLOR_EVOLVED_A, EVOLVED_FADE_DURATION)
+	_fill_tween.tween_method(_set_fill_border_color, BORDER_COLOR_EVOLVED_A, BORDER_COLOR_EVOLVED_B, EVOLVED_FADE_DURATION)
+	_fill_tween.tween_method(_set_fill_border_color, BORDER_COLOR_EVOLVED_B, BORDER_COLOR_EVOLVED_A, EVOLVED_FADE_DURATION)
 
 
 func _stop_fill_tween() -> void:
@@ -324,37 +310,13 @@ func _stop_fill_tween() -> void:
 
 
 func _set_fill_border_color(color: Color) -> void:
-	if not border_fill_orange:
+	if not evolution_fill_rect:
 		return
-	if not border_fill_orange.has_theme_stylebox_override("panel"):
+	if not evolution_fill_rect.has_theme_stylebox_override("panel"):
 		return
-	var style = border_fill_orange.get_theme_stylebox("panel")
+	var style = evolution_fill_rect.get_theme_stylebox("panel")
 	if style is StyleBoxFlat:
 		style.border_color = color
-
-
-func _set_panel_border_color(panel: Panel, color: Color) -> void:
-	if not panel:
-		return
-	if not panel.has_theme_stylebox_override("panel"):
-		return
-	var style = panel.get_theme_stylebox("panel")
-	if style is StyleBoxFlat:
-		style.border_color = color
-
-
-func _set_yellow_border_color(color: Color) -> void:
-	_set_panel_border_color(border_fill_yellow, color)
-
-
-func _set_top_border(panel: Panel, visible: bool) -> void:
-	if not panel:
-		return
-	if not panel.has_theme_stylebox_override("panel"):
-		return
-	var style = panel.get_theme_stylebox("panel")
-	if style is StyleBoxFlat:
-		style.border_width_top = 2 if visible else 0
 
 
 func _exit_tree() -> void:

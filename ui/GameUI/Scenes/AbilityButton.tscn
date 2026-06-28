@@ -82,11 +82,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BorderFillOrange" type="Panel" parent="BorderFillMask"]
+[node name="BaseFillRect" type="Panel" parent="BorderFillMask"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="BorderFillYellow" type="Panel" parent="BorderFillMask"]
+[node name="EvolutionFillRect" type="Panel" parent="BorderFillMask"]
 layout_mode = 2
 mouse_filter = 2
-visible = false

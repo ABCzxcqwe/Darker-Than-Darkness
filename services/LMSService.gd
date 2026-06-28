@@ -101,7 +101,7 @@ func _apply_lms_evolutions() -> void:
 	for i in char_data.ability_slots.size():
 		var data = char_data.ability_slots[i]
 		if data and data.lms_auto_evolve and data.evolved_version:
-			_evolution_service.evolve_slot(_lms_survivor_peer, i, true)
+			_evolution_service.evolve_slot(_lms_survivor_peer, i, false)
 			_evolved_lms_slots.append(i)
 			print("[LMSService] Slot ", i, " (", data.display_name, ") auto-evolucionado para LMS")
 
