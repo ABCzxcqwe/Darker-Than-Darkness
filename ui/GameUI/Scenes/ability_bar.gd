@@ -19,7 +19,6 @@ func setup(player_node: Node) -> void:
 	if not player_node.character_data:
 		push_warning("[AbilityBar] Player sin character_data.")
 		return
-
 	var peer_id: int = player_node.get_multiplayer_authority()
 	var slots: Array = player_node.character_data.ability_slots
 	for i in slots.size():
