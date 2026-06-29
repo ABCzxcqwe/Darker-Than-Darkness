@@ -1,9 +1,9 @@
 extends Control
 
-@onready var tp_letters:  Label          = $TpLetters
-@onready var tp_track:    PanelContainer = $TpTrack
-@onready var tp_fill:     ColorRect      = $TpTrack/TpFill
-@onready var tp_percent:  Label          = $TpPercent
+@onready var tp_letters:  Label          = $HBoxContainer/VBoxContainer/TpLetters
+@onready var tp_track:    PanelContainer = $HBoxContainer/TpTrack
+@onready var tp_fill:     ColorRect      = $HBoxContainer/TpTrack/TpFill
+@onready var tp_percent:  Label          = $HBoxContainer/VBoxContainer/TpPercent
 
 const COLOR_NORMAL: Color = Color(0.816, 0.592, 0.0, 1.0)
 const COLOR_MAX:    Color = Color(1.0, 0.871, 0.0, 1.0)

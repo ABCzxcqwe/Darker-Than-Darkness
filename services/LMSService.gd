@@ -51,6 +51,10 @@ func start_lms(survivor_node: Node, killer_node: Node) -> void:
 	# Auto-evolucionar slots con lms_auto_evolve
 	_apply_lms_evolutions()
 
+	# Forzar re-sincronización visual en el cliente (robustez ante RPCs perdidos)
+	if _evolution_service and _evolution_service.has_method("resync_client_visuals"):
+		_evolution_service.resync_client_visuals(_lms_survivor_peer)
+
 	if _audio_manager:
 		var lms_music = char_data.lms_music if char_data and "lms_music" in char_data else null
 		if lms_music:
@@ -116,5 +120,5 @@ func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 		if char_data and slot_index < char_data.ability_slots.size():
 			var data = char_data.ability_slots[slot_index]
 			if data and data.lms_auto_evolve and data.evolved_version:
-				_evolution_service.evolve_slot(peer_id, slot_index, true)
+				_evolution_service.evolve_slot(peer_id, slot_index, false)
 				print("[LMSService] Slot ", slot_index, " re-evolucionado tras consumo en LMS")

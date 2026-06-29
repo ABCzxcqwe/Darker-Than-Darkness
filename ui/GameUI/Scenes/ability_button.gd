@@ -94,6 +94,13 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 	_apply_visual_state()
 	_setup_tp_tracking()
 
+	# Sincronizar estado de evolución existente (ej: evolución permanente previa, o LMS)
+	var evo_svc = GameServiceLocator.get_service("EvolutionService")
+	if evo_svc and evo_svc.has_method("is_evolved"):
+		var was_evolved = evo_svc.is_evolved(_peer_id, slot_index)
+		if was_evolved != _is_evolved:
+			set_evolved(was_evolved)
+
 
 func _process(delta: float) -> void:
 	if _state != State.COOLDOWN:
@@ -134,16 +141,20 @@ func set_cooldown_state(duration: float) -> void:
 			  " ('", ability_data.display_name, "') duración: ", duration, "s")
 
 
-## Se mantiene por compatibilidad con EvolutionService/ability_bar (que siguen
-## emitiendo on_slot_evolved/on_slot_devolved). Ya NO controla el ícono — eso
-## ahora lo decide _update_tp_fill() según el tramo 2 (más confiable, porque
-## usa el TP real en vez de depender de un RPC aparte).
 func set_evolved(evolved: bool) -> void:
 	if not ability_data:
 		return
 	if _is_evolved == evolved:
 		return
 	_is_evolved = evolved
+
+	if icon_rect:
+		if evolved and _evolved_data and _evolved_data.icon:
+			icon_rect.texture = _evolved_data.icon
+		else:
+			icon_rect.texture = _base_data.icon if _base_data and _base_data.icon else null
+		icon_rect.visible = true
+
 	_update_tp_fill(_last_known_tp)
 
 
@@ -190,10 +201,10 @@ func _build_fill_style(rect: Panel, color: Color) -> void:
 		return
 	var fstyle := StyleBoxFlat.new()
 	fstyle.bg_color = Color(0, 0, 0, 0)
-	fstyle.border_width_left = 3
+	fstyle.border_width_left = 2
 	fstyle.border_width_top = 0
-	fstyle.border_width_right = 3
-	fstyle.border_width_bottom = 3
+	fstyle.border_width_right = 2
+	fstyle.border_width_bottom = 2
 	fstyle.set_corner_radius_all(3)
 	fstyle.corner_detail = PANEL_CORNER_DETAIL
 	fstyle.anti_aliasing = false
@@ -219,13 +230,14 @@ func _update_tp_fill(current_tp: float) -> void:
 	if not ability_data or not _base_data:
 		return
 
+	# Re-resolver _evolved_data por si no estaba disponible en setup()
+	if _evolved_data == null and _base_data:
+		_evolved_data = _base_data.evolved_version
+
 	_last_known_tp = current_tp
 
 	var has_evolution: bool = _evolved_data != null
-	var is_permanent: bool  = has_evolution and _evolved_data.evolution_consume == 1
-	# Si la evolución es permanente y ya se disparó, el slot adopta la
-	# identidad de la habilidad evolucionada por completo: mismo medidor
-	# naranja de siempre, pero usando su costo y su ícono (reemplaza al base).
+	var is_permanent: bool  = has_evolution and int(_evolved_data.evolution_consume) == AbilityData.EvolutionConsume.PERMANENT
 	var permanent_swapped: bool = is_permanent and _is_evolved
 
 	# --- Tramo 1: habilidad "activa" (base, o evolucionada si ya cambió para siempre) ---
@@ -239,9 +251,10 @@ func _update_tp_fill(current_tp: float) -> void:
 		icon_rect.visible = _ratio_base >= 1.0
 		icon_rect.texture = active_data.icon if active_data.icon else null
 
-	if not has_evolution or permanent_swapped or is_permanent:
-		# Sin evolución, ya evolucionada para siempre, o evolución permanente
-		# que aún no se disparó: ninguno de estos casos usa el tramo 2.
+	var skip_tramo_2: bool = not has_evolution or permanent_swapped or is_permanent or not _is_evolved
+
+	if skip_tramo_2:
+		# Sin evolución, permanente, o evolución temporal no activada aún.
 		if evolution_fill_rect:
 			evolution_fill_rect.visible = false
 		_stop_fill_tween()

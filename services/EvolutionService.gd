@@ -4,6 +4,7 @@ signal slot_evolved(peer_id: int, slot_index: int)
 signal slot_devolved(peer_id: int, slot_index: int)
 
 var _evolved_slots: Dictionary = {}
+var _client_evolved_slots: Dictionary = {}
 var _tp_ready_slots: Dictionary = {}
 
 
@@ -47,11 +48,12 @@ func evolve_slot(peer_id: int, slot_index: int, skip_rpc: bool = false) -> void:
 
 
 func is_evolved(peer_id: int, slot_index: int) -> bool:
-	if not _evolved_slots.has(peer_id):
+	var slots = _evolved_slots if multiplayer.is_server() else _client_evolved_slots
+	if not slots.has(peer_id):
 		return false
 	if slot_index < 0 or slot_index >= 5:
 		return false
-	return _evolved_slots[peer_id][slot_index]
+	return slots[peer_id][slot_index]
 
 
 func consume_evolution(peer_id: int, slot_index: int) -> void:
@@ -115,16 +117,30 @@ func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> voi
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
+	var peer_id = multiplayer.get_unique_id()
+	if not _client_evolved_slots.has(peer_id):
+		_client_evolved_slots[peer_id] = [false, false, false, false, false]
+	if slot_index >= 0 and slot_index < 5:
+		_client_evolved_slots[peer_id][slot_index] = evolved
+
 	var huds = get_tree().get_nodes_in_group("game_hud")
-	if huds.is_empty():
-		return
-	var hud = huds[0]
-	if evolved:
-		if hud.has_method("visual_evolve_slot"):
-			hud.visual_evolve_slot(slot_index)
-	else:
-		if hud.has_method("visual_devolve_slot"):
-			hud.visual_devolve_slot(slot_index)
+	for hud in huds:
+		if evolved:
+			if hud.has_method("visual_evolve_slot"):
+				hud.visual_evolve_slot(slot_index)
+		else:
+			if hud.has_method("visual_devolve_slot"):
+				hud.visual_devolve_slot(slot_index)
+
+
+func resync_client_visuals(peer_id: int) -> void:
+	if NetworkManager.players.has(peer_id):
+		var evolved = _evolved_slots.get(peer_id)
+		if evolved == null:
+			return
+		for i in evolved.size():
+			if evolved[i]:
+				rpc_id(peer_id, "_rpc_evolve_slot", i, true)
 
 
 func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
@@ -145,7 +161,7 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 
 		var is_lms: bool = data.lms_auto_evolve
 		var tp_sufficient: bool = current_tp >= data.evolved_version.tp_cost
-		var is_permanent: bool = data.evolved_version.evolution_consume == 1
+		var _aaaasdssasis_permanent: bool = data.evolved_version.evolution_consume == 1
 
 		if not is_lms:
 			continue
