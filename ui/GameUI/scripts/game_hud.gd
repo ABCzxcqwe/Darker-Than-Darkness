@@ -194,6 +194,20 @@ func visual_devolve_slot(slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
 		ability_bar.on_slot_devolved(slot_index)
 
+func resync_evolution_state() -> void:
+	if not is_instance_valid(_player_node):
+		return
+	var evo_svc = GameServiceLocator.get_service("EvolutionService")
+	if not evo_svc or not evo_svc.has_method("is_evolved"):
+		return
+	var peer_id = _player_node.get_multiplayer_authority()
+	var slots = _player_node.character_data.ability_slots if _player_node.character_data else []
+	for i in slots.size():
+		if evo_svc.is_evolved(peer_id, i):
+			if ability_bar and ability_bar.has_method("on_slot_evolved"):
+				ability_bar.on_slot_evolved(i)
+
+
 func _on_slot_evolved(peer_id: int, slot_index: int) -> void:
 	if not is_instance_valid(_player_node):
 		return

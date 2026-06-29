@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
+content_margin_left = 3.0
+content_margin_top = 3.0
+content_margin_right = 3.0
 bg_color = Color(0.3808012, 0.052263863, 0, 1)
 border_width_left = 3
 border_width_top = 3
@@ -20,6 +23,10 @@ border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 120
 corner_radius_bottom_right = 120
 corner_detail = 1
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
 anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
@@ -94,7 +101,7 @@ horizontal_alignment = 1
 layout_mode = 3
 anchor_left = 0.01
 anchor_top = 0.2
-anchor_right = 0.03
+anchor_right = 0.05
 anchor_bottom = 0.7
 grow_horizontal = 2
 grow_vertical = 2
@@ -102,19 +109,22 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource("2_ecre4")
 
-[node name="TpArrowTop" type="Control" parent="TpBar" unique_id=209724176]
+[node name="HBoxContainer" type="HBoxContainer" parent="TpBar" unique_id=1182673139]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.1
-
-[node name="TpLetters" type="Label" parent="TpBar" unique_id=167869725]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.1
-anchor_right = 1.0
-anchor_bottom = 0.2
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TpBar/HBoxContainer" unique_id=711126216]
+layout_mode = 2
+alignment = 1
+
+[node name="TpLetters" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=167869725]
+layout_mode = 2
 theme_override_constants/line_spacing = -21
 theme_override_fonts/font = ExtResource("5_8ord7")
 theme_override_font_sizes/font_size = 18
@@ -122,36 +132,32 @@ text = "TP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TpTrack" type="PanelContainer" parent="TpBar" unique_id=1188802328]
-clip_children = 2
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.2
-anchor_right = 1.0
-anchor_bottom = 0.8
-theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
-
-[node name="TpFill" type="ColorRect" parent="TpBar/TpTrack" unique_id=1159643669]
-texture_filter = 1
+[node name="TpPercent" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=1310723264]
 layout_mode = 2
-
-[node name="TpPercent" type="Label" parent="TpBar" unique_id=1310723264]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.8
-anchor_right = 1.0
-anchor_bottom = 0.9
-offset_bottom = 2.0
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 text = "0%"
 horizontal_alignment = 1
 
-[node name="TpArrowBottom" type="Control" parent="TpBar" unique_id=355385712]
-layout_mode = 1
-anchor_top = 0.9
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="Label" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=1390589693]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 15
+text = " /
+100"
+
+[node name="TpTrack" type="PanelContainer" parent="TpBar/HBoxContainer" unique_id=1188802328]
+clip_children = 2
+custom_minimum_size = Vector2(30, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
+
+[node name="TpFill" type="ColorRect" parent="TpBar/HBoxContainer/TpTrack" unique_id=1159643669]
+texture_filter = 1
+layout_mode = 2
+color = Color(0, 0, 0, 0)
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
 visible = false

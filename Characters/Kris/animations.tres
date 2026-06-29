@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://8n28wot35fa5" path="res://Characters/Kris/assets/Sprites/kris_atack.png" id="4_lvorv"]
 [ext_resource type="Texture2D" uid="uid://cji8aeqh7wg42" path="res://Characters/Kris/assets/Sprites/kris_down.png" id="5_rfioo"]
 [ext_resource type="Texture2D" uid="uid://c7ygn7p512h87" path="res://Characters/Kris/assets/Sprites/kris_defend.png" id="6_0b5te"]
+[ext_resource type="Texture2D" uid="uid://bub6ldcbjc3w7" path="res://Characters/Kris/assets/Sprites/kris_run2.png" id="6_nnm51"]
 [ext_resource type="Texture2D" uid="uid://bjgdxig30u53w" path="res://Characters/Kris/assets/Sprites/kris_run.png" id="8_nrm4i"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ojg4i"]
@@ -72,6 +73,38 @@ region = Rect2(384, 0, 192, 192)
 [sub_resource type="AtlasTexture" id="AtlasTexture_umupi"]
 atlas = ExtResource("2_ogjsw")
 region = Rect2(576, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ea5d5"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(0, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_71pgg"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(384, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yhjnj"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(768, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_68vsw"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(1152, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bdb2g"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(1536, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ghqm"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(1920, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpw3w"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(2304, 0, 384, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p68av"]
+atlas = ExtResource("6_nnm51")
+region = Rect2(2688, 0, 384, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nnm51"]
 atlas = ExtResource("6_0b5te")
@@ -261,6 +294,35 @@ animations = [{
 "loop": true,
 "name": &"player_dead",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ea5d5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_71pgg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yhjnj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_68vsw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bdb2g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ghqm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cpw3w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p68av")
+}],
+"loop": true,
+"name": &"run_horizontal",
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,

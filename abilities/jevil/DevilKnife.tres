@@ -12,6 +12,7 @@ ability_scene = ExtResource("1_k2lcl")
 action_animation = "jevil_attack"
 cooldown = 12.0
 cooldown_cancel = 2.0
+tp_cost = 30.0
 move_restriction = 1
 base_damage = 25
 range_ = 80.0
