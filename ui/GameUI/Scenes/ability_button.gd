@@ -190,10 +190,10 @@ func _build_fill_style(rect: Panel, color: Color) -> void:
 		return
 	var fstyle := StyleBoxFlat.new()
 	fstyle.bg_color = Color(0, 0, 0, 0)
-	fstyle.border_width_left = 2
+	fstyle.border_width_left = 3
 	fstyle.border_width_top = 0
-	fstyle.border_width_right = 2
-	fstyle.border_width_bottom = 2
+	fstyle.border_width_right = 3
+	fstyle.border_width_bottom = 3
 	fstyle.set_corner_radius_all(3)
 	fstyle.corner_detail = PANEL_CORNER_DETAIL
 	fstyle.anti_aliasing = false
