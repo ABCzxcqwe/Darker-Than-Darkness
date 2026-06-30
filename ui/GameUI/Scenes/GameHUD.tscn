@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
 [ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
+[ext_resource type="Shader" uid="uid://di0w5keic4hth" path="res://ui/GameUI/Scenes/GameHUD.gdshader" id="10_y1uvi"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -19,15 +20,21 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0, 0, 0, 1)
+border_color = Color(0.11119685, 0.11119684, 0.11119684, 1)
 corner_radius_top_left = 120
 corner_radius_bottom_right = 120
 corner_detail = 1
-expand_margin_left = 3.0
 expand_margin_top = 3.0
-expand_margin_right = 3.0
-expand_margin_bottom = 3.0
+expand_margin_bottom = 4.0
 anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
+bg_color = Color(0, 0, 0, 0.49019608)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
 content_margin_left = 0.0
@@ -38,11 +45,12 @@ bg_color = Color(0, 0, 0, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
+border_width_bottom = 3
 border_color = Color(0, 0.91795, 0.877851, 1)
 corner_detail = 10
-expand_margin_left = 9.0
+expand_margin_left = 12.0
 expand_margin_top = 9.0
-expand_margin_right = 9.0
+expand_margin_right = 12.0
 expand_margin_bottom = 11.0
 anti_aliasing = false
 
@@ -57,16 +65,21 @@ anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4ubg7"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
-bg_color = Color(0, 0, 0, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
-expand_margin_left = 9.0
-expand_margin_top = 9.0
-expand_margin_right = 9.0
-expand_margin_bottom = 20.0
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4ubg7"]
+shader = ExtResource("10_y1uvi")
+shader_parameter/vhs_resolution = Vector2(1600, 900)
+shader_parameter/samples = 4
+shader_parameter/crease_noise = 2.0
+shader_parameter/crease_opacity = 0.5
+shader_parameter/filter_intensity = 0.10000000149012
+shader_parameter/tape_crease_smear = 0.20000000298024
+shader_parameter/tape_crease_intensity = 0.2
+shader_parameter/tape_crease_jitter = 0.1
+shader_parameter/tape_crease_speed = 0.5
+shader_parameter/tape_crease_discoloration = 2.0
+shader_parameter/bottom_border_thickness = 1.0000000149012
+shader_parameter/bottom_border_jitter = 24.0
+shader_parameter/noise_intensity = 0.0
 
 [node name="GameHud" type="CanvasLayer" unique_id=1755802739]
 script = ExtResource("1_o4xvh")
@@ -101,7 +114,7 @@ horizontal_alignment = 1
 layout_mode = 3
 anchor_left = 0.01
 anchor_top = 0.2
-anchor_right = 0.05
+anchor_right = 0.06
 anchor_bottom = 0.7
 grow_horizontal = 2
 grow_vertical = 2
@@ -120,6 +133,7 @@ grow_vertical = 2
 alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TpBar/HBoxContainer" unique_id=711126216]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 alignment = 1
 
@@ -139,16 +153,9 @@ theme_override_font_sizes/font_size = 15
 text = "0%"
 horizontal_alignment = 1
 
-[node name="Label" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=1390589693]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 15
-text = " /
-100"
-
 [node name="TpTrack" type="PanelContainer" parent="TpBar/HBoxContainer" unique_id=1188802328]
 clip_children = 2
-custom_minimum_size = Vector2(30, 350)
+custom_minimum_size = Vector2(30, 360)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -160,7 +167,6 @@ layout_mode = 2
 color = Color(0, 0, 0, 0)
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
-visible = false
 anchors_preset = -1
 offset_left = 8.0
 offset_top = 8.0
@@ -192,12 +198,33 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 9
 text = "0/ 0"
 
+[node name="AbilityPanel" type="PanelContainer" parent="." unique_id=547767753]
+anchors_preset = -1
+anchor_left = 0.74
+anchor_top = 0.88
+anchor_right = 0.99
+anchor_bottom = 0.98
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
+script = ExtResource("6_s5e2t")
+
+[node name="AbilityBar" type="HBoxContainer" parent="AbilityPanel" unique_id=772607126]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+alignment = 1
+script = ExtResource("6_8ord7")
+
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
-anchor_left = 0.05
-anchor_top = 0.85
-anchor_right = 0.225
-anchor_bottom = 1.0
+anchor_left = 0.02
+anchor_top = 0.86
+anchor_right = 0.3
+anchor_bottom = 0.99
+offset_top = 0.8999634
+offset_right = -80.00003
 grow_vertical = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -214,16 +241,19 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="IconRect" type="TextureRect" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=824795816]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_vertical = 4
 stretch_mode = 5
 
 [node name="NameLabel" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=555215661]
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 26
 text = "KRIS"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="InfoColumn" type="VBoxContainer" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=126860999]
 layout_mode = 2
@@ -234,7 +264,7 @@ alignment = 1
 [node name="HpNumbers" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn" unique_id=1496910452]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 18
 text = "0/ 0"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -246,7 +276,7 @@ theme_override_constants/separation = 4
 [node name="HpTag" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/HpRow" unique_id=553920330]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 15
 text = "HP"
 
 [node name="HpBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/HpRow" unique_id=459864694]
@@ -263,10 +293,12 @@ show_percentage = false
 layout_mode = 2
 
 [node name="StaminaTag" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=1243353430]
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 10
-text = "       ST"
+theme_override_font_sizes/font_size = 15
+text = "ST"
+horizontal_alignment = 2
 
 [node name="StaminaBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=566906426]
 custom_minimum_size = Vector2(150, 12)
@@ -279,24 +311,11 @@ value = 50.0
 allow_greater = true
 show_percentage = false
 
-[node name="AbilityPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=547767753]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
-script = ExtResource("6_s5e2t")
-
-[node name="AbilityBar" type="HBoxContainer" parent="PlayerPanelWrap/AbilityPanel" unique_id=772607126]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-theme_override_constants/separation = 6
-alignment = 1
-script = ExtResource("6_8ord7")
-
 [node name="ContextMenu" type="PanelContainer" parent="." unique_id=1216142140]
 anchors_preset = -1
-anchor_left = 0.04
+anchor_left = 0.06
 anchor_top = 0.4
-anchor_right = 0.25
+anchor_right = 0.3
 anchor_bottom = 0.8
 offset_left = 8.0
 grow_vertical = 0
@@ -327,10 +346,10 @@ text = "↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR"
 
 [node name="AlliesPanel" type="VBoxContainer" parent="." unique_id=542984232]
 anchors_preset = -1
-anchor_left = 0.875
+anchor_left = 0.8
 anchor_top = 0.02
 anchor_right = 0.98
-anchor_bottom = 0.35
+anchor_bottom = 0.4
 grow_horizontal = 0
 theme_override_constants/separation = 4
 script = ExtResource("4_su3ou")
@@ -338,3 +357,14 @@ script = ExtResource("4_su3ou")
 [node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("7_abcd")]
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="VHS" type="ColorRect" parent="." unique_id=77874783]
+visible = false
+material = SubResource("ShaderMaterial_4ubg7")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_behavior_recursive = 1

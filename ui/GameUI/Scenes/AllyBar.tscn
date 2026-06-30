@@ -10,10 +10,12 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.25, 0.25, 0.3, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
 corner_radius_bottom_left = 2
+expand_margin_left = 4.0
+expand_margin_right = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar_bg"]
 bg_color = Color(0.38039216, 0.050980393, 0, 1)
@@ -23,7 +25,7 @@ border_color = Color(0.25, 0.25, 0.3, 1)
 bg_color = Color(0.27, 0.78, 0.95, 1)
 
 [node name="AllyBar" type="Control" unique_id=334822665]
-custom_minimum_size = Vector2(220, 54)
+custom_minimum_size = Vector2(260, 60)
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_l5k6c")
@@ -51,20 +53,23 @@ grow_vertical = 2
 theme_override_constants/separation = 5
 
 [node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=1645154293]
-custom_minimum_size = Vector2(40, 40)
+custom_minimum_size = Vector2(45, 45)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1297903543]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2_f5yb8")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 text = "NOMBRE"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="InfoColumn" type="VBoxContainer" parent="HBoxContainer" unique_id=526978414]
 layout_mode = 2

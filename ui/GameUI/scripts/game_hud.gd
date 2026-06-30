@@ -17,8 +17,8 @@ extends CanvasLayer
 
 @onready var player_panel_wrap: VBoxContainer  = $PlayerPanelWrap
 @onready var player_panel:      PanelContainer = $PlayerPanelWrap/PlayerPanel
-@onready var ability_panel:     PanelContainer = $PlayerPanelWrap/AbilityPanel
-@onready var ability_bar:       HBoxContainer  = $PlayerPanelWrap/AbilityPanel/AbilityBar
+@onready var ability_panel:     PanelContainer = $AbilityPanel
+@onready var ability_bar:       HBoxContainer  = $AbilityPanel/AbilityBar
 
 @onready var context_menu:     PanelContainer  = $ContextMenu
 @onready var context_title:    Label           = $ContextMenu/VBoxContainer/ContextTitle

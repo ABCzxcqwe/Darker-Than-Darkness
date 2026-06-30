@@ -174,7 +174,7 @@ environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 
 [steam]
 
-initialization/app_data/app_type=0
+initialization/app_data/app_type=2
 initialization/app_data/app_id=0
 initialization/app_data/demo_id=0
 initialization/app_data/playtest_id=0
