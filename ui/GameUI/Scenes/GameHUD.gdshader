@@ -3,8 +3,6 @@
 
 shader_type canvas_item;
 
-// TODO: Add uniforms for tape crease discoloration and image jiggle
-
 uniform sampler2D screen_texture: hint_screen_texture, filter_linear_mipmap, repeat_disable;
 
 uniform vec2 vhs_resolution = vec2(320.0, 240.0);
@@ -14,6 +12,11 @@ uniform float crease_noise: hint_range(0.0, 2.0, 0.1) = 1.0;
 uniform float crease_opacity: hint_range(0.0, 1.0, 0.1) = 0.5;
 uniform float filter_intensity: hint_range(0.0, 1.0, 0.1) = 0.1;
 
+// --- NUEVO: Grupo para controlar la curvatura CRT ---
+group_uniforms crt_curvature;
+uniform float curvature_amount: hint_range(0.0, 0.5, 0.01) = 0.08;
+uniform float border_feather: hint_range(0.001, 0.1, 0.001) = 0.02;
+
 group_uniforms tape_crease;
 uniform float tape_crease_smear: hint_range(0.0, 2.0, 0.1) = 0.2;
 uniform float tape_crease_intensity: hint_range(0.0, 1.0, 0.1) = 0.2;
@@ -22,7 +25,7 @@ uniform float tape_crease_speed: hint_range(-2.0, 2.0, 0.1) = 0.5;
 uniform float tape_crease_discoloration: hint_range(0.0, 2.0, 0.1) = 1.0;
 
 group_uniforms bottom_border;
-uniform float bottom_border_thickness: hint_range(0.0,32.0, 0.1) = 6.0;
+uniform float bottom_border_thickness: hint_range(0.0, 32.0, 0.1) = 6.0;
 uniform float bottom_border_jitter: hint_range(0.0, 24.0, 0.5) = 6.0;
 
 group_uniforms noise;
@@ -58,8 +61,18 @@ vec3 vhx_tex_2D(sampler2D tex, vec2 uv, float rot) {
 	return yiq2rgb(yiq);
 }
 
+// --- NUEVO: Función para calcular la deformación de lente ---
+vec2 curve_uv(vec2 uv) {
+	vec2 uvc = uv - 0.5;
+	// Multiplica los ejes por su distancia al centro al cuadrado para crear el efecto barril
+	uvc.x *= 1.0 + pow(uvc.y * curvature_amount * 2.0, 2.0);
+	uvc.y *= 1.0 + pow(uvc.x * curvature_amount * 2.0, 2.0);
+	return uvc + 0.5;
+}
+
 void fragment() {
-	vec2 uvn = UV;
+	// Aplicamos la curvatura antes de cualquier otro cálculo de distorsión VHS
+	vec2 uvn = curve_uv(UV);
 	vec3 col = vec3(0.0, 0.0, 0.0);
 
 	// Tape wave.
@@ -74,7 +87,7 @@ void fragment() {
 
 	// switching noise
 	float sn_phase = smoothstep(1.0 - bottom_border_thickness / vhs_resolution.y, 1.0, uvn.y);
-	uvn.x += sn_phase * (v2random(vec2(UV.y * 100.0, TIME * 10.0)) - 0.5) / vhs_resolution.x * bottom_border_jitter;
+	uvn.x += sn_phase * (v2random(vec2(uvn.y * 100.0, TIME * 10.0)) - 0.5) / vhs_resolution.x * bottom_border_jitter;
 
 	// fetch
 	col = vhx_tex_2D(screen_texture, uvn, tc_phase * 0.2 + sn_phase * 2.0);
@@ -92,7 +105,7 @@ void fragment() {
 	}
 
 	// ac beat
-	col *= 1.0 + 0.1 * smoothstep(0.4, 0.6, v2random(vec2(0.0, 0.1 * (UV.y + TIME * 0.2)) / 10.0));
+	col *= 1.0 + 0.1 * smoothstep(0.4, 0.6, v2random(vec2(0.0, 0.1 * (uvn.y + TIME * 0.2)) / 10.0));
 
 	// color noise
 	col *= 1.0 - noise_intensity * 0.5 + noise_intensity * texture(noise_texture, mod(uvn * vec2(1.0, 1.0) + TIME * vec2(5.97, 4.45), vec2(1.0))).xyz;
@@ -102,6 +115,11 @@ void fragment() {
 	col = rgb2yiq(col);
 	col = vec3(0.9, 1.1, 1.5) * col + vec3(0.1, -0.1, 0.0) * filter_intensity;
 	col = yiq2rgb(col);
+
+	// --- NUEVO: Recorte de bordes estilo monitor CRT ---
+	// Crea una máscara suave que vuelve negro todo lo que quede fuera de las coordenadas corregidas (0.0 a 1.0)
+	vec2 edge_mask = smoothstep(vec2(0.0), vec2(border_feather), uvn) * smoothstep(vec2(1.0), vec2(1.0 - border_feather), uvn);
+	col *= edge_mask.x * edge_mask.y;
 
 	COLOR = vec4(col, 1.0);
 }

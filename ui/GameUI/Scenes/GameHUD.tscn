@@ -68,18 +68,20 @@ anti_aliasing = false
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4ubg7"]
 shader = ExtResource("10_y1uvi")
 shader_parameter/vhs_resolution = Vector2(1600, 900)
-shader_parameter/samples = 4
+shader_parameter/samples = 5
 shader_parameter/crease_noise = 2.0
 shader_parameter/crease_opacity = 0.5
 shader_parameter/filter_intensity = 0.10000000149012
-shader_parameter/tape_crease_smear = 0.20000000298024
+shader_parameter/curvature_amount = 0.2999999932944
+shader_parameter/border_feather = 0.020000000950000003
+shader_parameter/tape_crease_smear = 0.5000000074506
 shader_parameter/tape_crease_intensity = 0.2
 shader_parameter/tape_crease_jitter = 0.1
 shader_parameter/tape_crease_speed = 0.5
-shader_parameter/tape_crease_discoloration = 2.0
-shader_parameter/bottom_border_thickness = 1.0000000149012
-shader_parameter/bottom_border_jitter = 24.0
-shader_parameter/noise_intensity = 0.0
+shader_parameter/tape_crease_discoloration = 1.0
+shader_parameter/bottom_border_thickness = 6.0
+shader_parameter/bottom_border_jitter = 6.0
+shader_parameter/noise_intensity = 0.1
 
 [node name="GameHud" type="CanvasLayer" unique_id=1755802739]
 script = ExtResource("1_o4xvh")
@@ -112,9 +114,9 @@ horizontal_alignment = 1
 
 [node name="TpBar" type="Control" parent="." unique_id=1504409030]
 layout_mode = 3
-anchor_left = 0.01
+anchor_left = 0.03
 anchor_top = 0.2
-anchor_right = 0.06
+anchor_right = 0.08
 anchor_bottom = 0.7
 grow_horizontal = 2
 grow_vertical = 2
@@ -167,6 +169,7 @@ layout_mode = 2
 color = Color(0, 0, 0, 0)
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
+visible = false
 anchors_preset = -1
 offset_left = 8.0
 offset_top = 8.0
@@ -200,9 +203,9 @@ text = "0/ 0"
 
 [node name="AbilityPanel" type="PanelContainer" parent="." unique_id=547767753]
 anchors_preset = -1
-anchor_left = 0.74
+anchor_left = 0.7
 anchor_top = 0.88
-anchor_right = 0.99
+anchor_right = 0.95
 anchor_bottom = 0.98
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
@@ -219,9 +222,9 @@ script = ExtResource("6_8ord7")
 
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
-anchor_left = 0.02
+anchor_left = 0.05
 anchor_top = 0.86
-anchor_right = 0.3
+anchor_right = 0.28
 anchor_bottom = 0.99
 offset_top = 0.8999634
 offset_right = -80.00003
@@ -250,7 +253,7 @@ stretch_mode = 5
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 30
 text = "KRIS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -313,9 +316,9 @@ show_percentage = false
 
 [node name="ContextMenu" type="PanelContainer" parent="." unique_id=1216142140]
 anchors_preset = -1
-anchor_left = 0.06
+anchor_left = 0.1
 anchor_top = 0.4
-anchor_right = 0.3
+anchor_right = 0.35
 anchor_bottom = 0.8
 offset_left = 8.0
 grow_vertical = 0
@@ -330,6 +333,7 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("2_kqcow")
 theme_override_font_sizes/font_size = 20
 text = "SELECCIONAR OBJETIVO"
+horizontal_alignment = 1
 
 [node name="ContextGrid" type="GridContainer" parent="ContextMenu/VBoxContainer" unique_id=1436223351]
 layout_mode = 2
@@ -341,14 +345,15 @@ columns = 2
 modulate = Color(0.5, 0.5, 0.5, 1)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_kqcow")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 text = "↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR"
 
 [node name="AlliesPanel" type="VBoxContainer" parent="." unique_id=542984232]
+custom_minimum_size = Vector2(240, 0)
 anchors_preset = -1
-anchor_left = 0.8
-anchor_top = 0.02
-anchor_right = 0.98
+anchor_left = 0.75
+anchor_top = 0.05
+anchor_right = 0.9
 anchor_bottom = 0.4
 grow_horizontal = 0
 theme_override_constants/separation = 4
@@ -359,9 +364,9 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VHS" type="ColorRect" parent="." unique_id=77874783]
-visible = false
 material = SubResource("ShaderMaterial_4ubg7")
-anchors_preset = 15
+use_parent_material = true
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
