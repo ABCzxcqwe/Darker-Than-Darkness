@@ -70,6 +70,8 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 	var style := StyleBoxFlat.new()
 	style.bg_color = PANEL_BG_COLOR
 	style.set_corner_radius_all(3)
+	style.corner_radius_top_left = 1
+	style.corner_radius_top_right = 1
 	style.corner_detail = PANEL_CORNER_DETAIL
 	style.expand_margin_left = 2.0
 	style.expand_margin_top = 2.0
@@ -83,10 +85,11 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 		style.border_width_right = 0
 		style.border_width_bottom = 0
 	else:
-		style.border_width_left = 2
-		style.border_width_top = 2
-		style.border_width_right = 2
-		style.border_width_bottom = 2
+		style.set_corner_radius_all(3)
+		style.border_width_left = 3
+		style.border_width_top = 3
+		style.border_width_right = 3
+		style.border_width_bottom = 3
 		style.border_color = BORDER_COLOR_NORMAL
 
 	panel.add_theme_stylebox_override("panel", style)

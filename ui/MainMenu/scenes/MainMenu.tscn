@@ -19,10 +19,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -24.0
-offset_top = 143.0
-offset_right = -24.0
-offset_bottom = 143.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 100
@@ -56,10 +52,19 @@ custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
 text = "Salir"
 
-[node name="Dark2" type="Sprite2D" parent="." unique_id=1460481098]
-position = Vector2(769, 284)
-scale = Vector2(7.7380953, 7.7380953)
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1022760673]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.05
+anchor_right = 0.7
+anchor_bottom = 0.3
+offset_left = -48.0
+offset_right = 48.0
+offset_bottom = 42.0
+grow_horizontal = 2
 texture = ExtResource("3_yrfys")
+stretch_mode = 5
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/CreateRoomButton" to="." method="_on_create_room_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/JoinRoomButton" to="." method="_on_join_room_pressed"]

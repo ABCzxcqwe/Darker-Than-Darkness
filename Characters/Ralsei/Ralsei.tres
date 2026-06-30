@@ -13,7 +13,6 @@ script = ExtResource("6_qrkhd")
 id = 3
 display_name = "Ralsei"
 speed = 550.0
-max_health = 80
 lms_music = ExtResource("5_o4xcy")
 lms_duration = 164.0
 ability_slots = Array[ExtResource("1_a3olq")]([null, ExtResource("2_krx5n"), ExtResource("3_pacify"), null, null])

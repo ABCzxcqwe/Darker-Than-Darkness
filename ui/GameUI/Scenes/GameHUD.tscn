@@ -28,14 +28,6 @@ expand_margin_top = 3.0
 expand_margin_bottom = 4.0
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
-bg_color = Color(0, 0, 0, 0.49019608)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
 content_margin_left = 0.0
 content_margin_top = 0.0
@@ -65,15 +57,21 @@ anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4ubg7"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ord7"]
+bg_color = Color(0, 0, 0, 1)
+border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
+corner_radius_top_right = 80
+corner_radius_bottom_left = 80
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4ubg7"]
 shader = ExtResource("10_y1uvi")
-shader_parameter/vhs_resolution = Vector2(1600, 900)
+shader_parameter/vhs_resolution = Vector2(1024, 768)
 shader_parameter/samples = 5
 shader_parameter/crease_noise = 2.0
 shader_parameter/crease_opacity = 0.5
 shader_parameter/filter_intensity = 0.10000000149012
 shader_parameter/curvature_amount = 0.2999999932944
-shader_parameter/border_feather = 0.020000000950000003
+shader_parameter/border_feather = 0.02000000095
 shader_parameter/tape_crease_smear = 0.5000000074506
 shader_parameter/tape_crease_intensity = 0.2
 shader_parameter/tape_crease_jitter = 0.1
@@ -114,9 +112,9 @@ horizontal_alignment = 1
 
 [node name="TpBar" type="Control" parent="." unique_id=1504409030]
 layout_mode = 3
-anchor_left = 0.03
+anchor_left = 0.04
 anchor_top = 0.2
-anchor_right = 0.08
+anchor_right = 0.09
 anchor_bottom = 0.7
 grow_horizontal = 2
 grow_vertical = 2
@@ -169,7 +167,6 @@ layout_mode = 2
 color = Color(0, 0, 0, 0)
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
-visible = false
 anchors_preset = -1
 offset_left = 8.0
 offset_top = 8.0
@@ -200,25 +197,6 @@ show_percentage = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 9
 text = "0/ 0"
-
-[node name="AbilityPanel" type="PanelContainer" parent="." unique_id=547767753]
-anchors_preset = -1
-anchor_left = 0.7
-anchor_top = 0.88
-anchor_right = 0.95
-anchor_bottom = 0.98
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
-script = ExtResource("6_s5e2t")
-
-[node name="AbilityBar" type="HBoxContainer" parent="AbilityPanel" unique_id=772607126]
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_constants/separation = 6
-alignment = 1
-script = ExtResource("6_8ord7")
 
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
@@ -358,6 +336,25 @@ anchor_bottom = 0.4
 grow_horizontal = 0
 theme_override_constants/separation = 4
 script = ExtResource("4_su3ou")
+
+[node name="AbilityPanel" type="PanelContainer" parent="." unique_id=547767753]
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.85
+anchor_right = 0.98
+anchor_bottom = 0.98
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
+script = ExtResource("6_s5e2t")
+
+[node name="AbilityBar" type="HBoxContainer" parent="AbilityPanel" unique_id=772607126]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+alignment = 1
+script = ExtResource("6_8ord7")
 
 [node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("7_abcd")]
 grow_horizontal = 2
