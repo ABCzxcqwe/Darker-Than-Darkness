@@ -43,7 +43,6 @@ animation = &"idle_horizontal"
 frame_progress = 0.96888244
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
-zoom = Vector2(0.8, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
 z_index = 4

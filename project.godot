@@ -35,8 +35,9 @@ MatchCoordinator="*uid://b8e8e7uvc056"
 
 [display]
 
-window/size/viewport_width=1600
-window/size/viewport_height=900
+window/size/viewport_width=1440
+window/size/viewport_height=1080
+window/size/mode=3
 window/stretch/mode="viewport"
 
 [dotnet]

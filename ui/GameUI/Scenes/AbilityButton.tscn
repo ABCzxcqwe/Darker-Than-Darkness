@@ -6,7 +6,6 @@
 [node name="AbilityButton" type="Control" unique_id=172959363]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 3
-anchors_preset = 0
 offset_right = 60.0
 offset_bottom = 60.0
 theme = ExtResource("1_eu371")
