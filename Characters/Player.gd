@@ -17,6 +17,7 @@ const WALK_SPEED_THRESHOLD: float = 650.0
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var world_c           = $CollisionShape2D
 @onready var hurtbox_c         = $Hurtbox/CollisionShape2D
+@onready var name_tag: PanelContainer = $NameTag
 
 var character_data:   CharacterData
 var health:           int    = 0
@@ -92,6 +93,37 @@ func _ready() -> void:
 		
 
 	_spectator_camera = $Camera2D
+
+	_setup_name_tag()
+
+
+func _setup_name_tag() -> void:
+	var peer_id := get_multiplayer_authority()
+
+	if is_multiplayer_authority():
+		name_tag.visible = false
+		return
+
+	var name_str = NetworkManager.players.get(peer_id, {}).get("name", "Jugador %d" % peer_id)
+	var name_label: Label = name_tag.get_node("NameLabel")
+	name_label.text = name_str
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.6)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color.WHITE
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_left = 3
+	style.corner_radius_bottom_right = 3
+	name_tag.add_theme_stylebox_override("panel", style)
+
+	var font := preload("res://Fonts/deltarune font.ttf")
+	name_label.add_theme_font_override("font", font)
+	name_label.add_theme_font_size_override("font_size", 12)
 
 
 
@@ -856,9 +888,8 @@ func _sync_state(new_state: String, new_health: int) -> void:
 			animated_sprite.z_index = 1
 			_disable_corpse()
 			_prepare_spectator_mode()
-			var hud = get_tree().get_first_node_in_group("game_hud")
-			if hud and hud.has_method("_remove_name_label"):
-				hud._remove_name_label(get_multiplayer_authority())
+			if name_tag:
+				name_tag.visible = false
 
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
@@ -871,15 +902,14 @@ func _sync_escape() -> void:
 	if caller != 0 and caller != 1:
 		return
 	visible = false
+	if name_tag:
+		name_tag.visible = false
 	_disable_corpse()
 	_prepare_spectator_mode()
 	var coord = GameServiceLocator.get_service("MapEventCoordinator")
 	if coord and not coord.has_player_escaped(get_multiplayer_authority()):
 		if coord.has_method("_register_escaped"):
 			coord._register_escaped(get_multiplayer_authority())
-	var hud = get_tree().get_first_node_in_group("game_hud")
-	if hud and hud.has_method("_remove_name_label"):
-		hud._remove_name_label(get_multiplayer_authority())
 	var hs = GameServiceLocator.get_service("HealthService")
 	if hs:
 		hs.player_state_changed.emit(get_multiplayer_authority(), "escaped")

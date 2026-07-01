@@ -1,11 +1,9 @@
 extends Node
 
-var _hud: CanvasLayer = null
 var _vision_overlay: ColorRect = null
 var _vision_material: ShaderMaterial = null
 
 func _ready() -> void:
-	_hud = get_tree().get_first_node_in_group("game_hud")
 	var player = get_parent()
 	if not player or not player.is_multiplayer_authority():
 		return
@@ -52,9 +50,6 @@ func _process(_delta: float) -> void:
 		return
 	if _vision_overlay:
 		_vision_overlay.visible = true
-
-	if not _hud:
-		_hud = get_tree().get_first_node_in_group("game_hud")
 
 	var data = player.character_data
 	if not data:
@@ -109,8 +104,6 @@ func _update_player_visibility(player: Node2D, data: CharacterData) -> void:
 			if angle <= cone_angle * 0.5:
 				in_vision = true
 		other.animated_sprite.visible = in_vision
-		if _hud:
-			var pid = other.get_multiplayer_authority()
-			var label = _hud.get_node_or_null("NameLabel_%d" % pid)
-			if label:
-				label.visible = in_vision
+		var tag = other.get_node_or_null("NameTag")
+		if tag:
+			tag.visible = in_vision and dist <= 1200.0 and other.health_state == "alive"

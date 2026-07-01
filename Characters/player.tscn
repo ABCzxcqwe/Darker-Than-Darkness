@@ -67,5 +67,23 @@ z_index = 4
 shape = SubResource("CapsuleShape2D_i3pqv")
 debug_color = Color(0, 0.52156866, 0.69803923, 0.41960785)
 
+[node name="NameTag" type="PanelContainer" parent="." unique_id=1729849509]
+z_index = 10
+custom_minimum_size = Vector2(100, 22)
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+offset_bottom = -75.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="NameTag" unique_id=980162363]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
 replication_config = SubResource("SceneReplicationConfig_sweqy")
