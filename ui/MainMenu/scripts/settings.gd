@@ -5,7 +5,6 @@ extends Control
 @onready var network_option: OptionButton = $VBoxContainer/NetworkRow/NetworkOption
 @onready var display_option: OptionButton = $VBoxContainer/DisplayRow/DisplayOption
 @onready var vhs_check: CheckBox = $VBoxContainer/VHSRow/VHSCheckBox
-@onready var fog_check: CheckBox = $VBoxContainer/FogRow/FogCheckBox
 @onready var back_btn: Button = $VBoxContainer/BackButton
 
 var _focus_items: Array[Control] = []
@@ -22,17 +21,25 @@ func _load_from_settings() -> void:
 	network_option.selected = SettingsManager.network_mode
 	display_option.selected = 0 if SettingsManager.display_mode == 0 else 1
 	vhs_check.button_pressed = SettingsManager.vhs_enabled
-	fog_check.button_pressed = SettingsManager.fog_enabled
+	_sync_network_mode()
 
 func _setup_signals() -> void:
 	music_slider.value_changed.connect(func(v): SettingsManager.music_volume = v)
 	sfx_slider.value_changed.connect(func(v): SettingsManager.sfx_volume = v)
-	network_option.item_selected.connect(func(i): SettingsManager.network_mode = i)
+	network_option.item_selected.connect(func(i):
+		SettingsManager.network_mode = i
+		_sync_network_mode()
+	)
 	display_option.item_selected.connect(func(i):
 		SettingsManager.display_mode = display_option.get_item_id(i)
 	)
 	vhs_check.toggled.connect(func(b): SettingsManager.vhs_enabled = b)
-	fog_check.toggled.connect(func(b): SettingsManager.fog_enabled = b)
+
+func _sync_network_mode() -> void:
+	if SettingsManager.network_mode == 1:
+		NetworkManager.initialize_steam()
+	else:
+		NetworkManager.set_lan_mode()
 
 func _setup_focus() -> void:
 	var focus_style := StyleBoxFlat.new()
@@ -44,7 +51,7 @@ func _setup_focus() -> void:
 	focus_style.border_width_bottom = 3
 	focus_style.set_corner_radius_all(3)
 	focus_style.set_expand_margin_all(5)
-	_focus_items = [music_slider, sfx_slider, network_option, display_option, vhs_check, fog_check, back_btn]
+	_focus_items = [music_slider, sfx_slider, network_option, display_option, vhs_check, back_btn]
 	for i in _focus_items.size():
 		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
 		_focus_items[i].focus_entered.connect(_update_focus.bind(i))

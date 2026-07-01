@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://Characters/Player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
 [ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
+[ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -47,6 +48,9 @@ frame_progress = 0.96888244
 zoom = Vector2(0.75, 0.75)
 script = ExtResource("3_cam")
 zoom_sprint = 0.65
+
+[node name="Vision" type="Node" parent="." unique_id=1869788754]
+script = ExtResource("4_vis")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
 z_index = 4

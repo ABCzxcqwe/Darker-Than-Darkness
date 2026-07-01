@@ -63,6 +63,7 @@ corner_radius_top_right = 80
 corner_radius_bottom_left = 80
 
 [node name="GameHud" type="CanvasLayer" unique_id=1755802739]
+layer = 100
 script = ExtResource("1_o4xvh")
 
 [node name="TimerPanel" type="PanelContainer" parent="." unique_id=650307735]

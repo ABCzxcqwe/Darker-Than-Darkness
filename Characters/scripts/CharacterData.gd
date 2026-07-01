@@ -91,6 +91,11 @@ const KILLER_ONLY := [
 ## Cuánta stamina se gasta por segundo al correr.
 @export var stamina_sprint_drain: float = 25.0
 
+@export_group("Visión")
+@export var vision_circle_radius: float = 800.0
+@export var vision_cone_angle: float = 120.0
+@export var vision_cone_range: float = 1200.0
+
 @export_group("Visuales")
 @export var icon: Texture2D
 @export var panel_texture: Texture2D

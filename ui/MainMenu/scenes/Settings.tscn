@@ -115,19 +115,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
-[node name="FogRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1972139372]
-layout_mode = 2
-alignment = 1
-
-[node name="FogLabel" type="Label" parent="VBoxContainer/FogRow" unique_id=905491930]
-layout_mode = 2
-text = "Niebla de guerra"
-
-[node name="FogCheckBox" type="CheckBox" parent="VBoxContainer/FogRow" unique_id=1283358139]
-layout_mode = 2
-size_flags_horizontal = 3
-button_pressed = true
-
 [node name="BackButton" type="Button" parent="VBoxContainer" unique_id=564612996]
 layout_mode = 2
 text = "Volver"
