@@ -9,6 +9,8 @@ const HURT_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const WALK_SPEED_THRESHOLD: float = 650.0
 
+
+
 @export var speed = 200
 @onready var synchronizer      = $Synchronizer
 @onready var animated_sprite   = $AnimatedSprite2D
@@ -87,8 +89,11 @@ func _ready() -> void:
 
 	if animated_sprite:
 		_original_modulate = animated_sprite.modulate
+		
 
 	_spectator_camera = $Camera2D
+
+
 
 
 func _process(_delta: float) -> void:
