@@ -755,6 +755,8 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 	invincible_until = Time.get_ticks_msec() + invincibility_duration_ms
 	if new_health < old_health:
 		hurt_flash_until = Time.get_ticks_msec() + HURT_FLASH_DURATION_MS
+		if is_multiplayer_authority():
+			$Camera2D.shake(5.0, 0.2)
 
 	var should_be_state = ""
 	if health <= 0:

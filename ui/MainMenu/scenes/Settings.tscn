@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://cygyb2f5s47pc"]
+
+[ext_resource type="Script" uid="uid://bn6y0aqlxkiyo" path="res://ui/MainMenu/scripts/settings.gd" id="1_hr74d"]
+
+[node name="Settings" type="Control" unique_id=1998726356]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hr74d")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=22112601]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -175.0
+offset_right = 120.0
+offset_bottom = 175.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=734236198]
+layout_mode = 2
+text = "CONFIGURACIÓN"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MusicRow" type="HBoxContainer" parent="VBoxContainer" unique_id=255212067]
+layout_mode = 2
+alignment = 1
+
+[node name="MusicLabel" type="Label" parent="VBoxContainer/MusicRow" unique_id=244143074]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+text = "Música"
+
+[node name="MusicSlider" type="HSlider" parent="VBoxContainer/MusicRow" unique_id=727365400]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SFXRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1625591825]
+layout_mode = 2
+alignment = 1
+
+[node name="SFXLabel" type="Label" parent="VBoxContainer/SFXRow" unique_id=1314238782]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+text = "SFX"
+
+[node name="SFXSlider" type="HSlider" parent="VBoxContainer/SFXRow" unique_id=1736068549]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="NetworkRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1686654115]
+layout_mode = 2
+alignment = 1
+
+[node name="NetworkLabel" type="Label" parent="VBoxContainer/NetworkRow" unique_id=1522317293]
+layout_mode = 2
+text = "Modo de red"
+
+[node name="NetworkOption" type="OptionButton" parent="VBoxContainer/NetworkRow" unique_id=203801842]
+layout_mode = 2
+size_flags_horizontal = 3
+selected = 0
+item_count = 2
+popup/item_0/text = "LAN"
+popup/item_0/id = 0
+popup/item_1/text = "Steam"
+popup/item_1/id = 1
+
+[node name="DisplayRow" type="HBoxContainer" parent="VBoxContainer" unique_id=260637826]
+layout_mode = 2
+alignment = 1
+
+[node name="DisplayLabel" type="Label" parent="VBoxContainer/DisplayRow" unique_id=722797528]
+layout_mode = 2
+text = "Pantalla"
+
+[node name="DisplayOption" type="OptionButton" parent="VBoxContainer/DisplayRow" unique_id=258403474]
+layout_mode = 2
+size_flags_horizontal = 3
+selected = 1
+item_count = 2
+popup/item_0/text = "Ventana"
+popup/item_0/id = 0
+popup/item_1/text = "Pantalla completa"
+popup/item_1/id = 3
+
+[node name="VHSRow" type="HBoxContainer" parent="VBoxContainer" unique_id=648580575]
+layout_mode = 2
+alignment = 1
+
+[node name="VHSLabel" type="Label" parent="VBoxContainer/VHSRow" unique_id=1774164506]
+layout_mode = 2
+text = "Efecto VHS"
+
+[node name="VHSCheckBox" type="CheckBox" parent="VBoxContainer/VHSRow" unique_id=1048173717]
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+
+[node name="FogRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1972139372]
+layout_mode = 2
+alignment = 1
+
+[node name="FogLabel" type="Label" parent="VBoxContainer/FogRow" unique_id=905491930]
+layout_mode = 2
+text = "Niebla de guerra"
+
+[node name="FogCheckBox" type="CheckBox" parent="VBoxContainer/FogRow" unique_id=1283358139]
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+
+[node name="BackButton" type="Button" parent="VBoxContainer" unique_id=564612996]
+layout_mode = 2
+text = "Volver"
+
+[connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_pressed"]

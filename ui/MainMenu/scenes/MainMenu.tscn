@@ -42,10 +42,10 @@ custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
 text = "Join"
 
-[node name="ModeButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=550910203]
+[node name="OptionsButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=550910203]
 custom_minimum_size = Vector2(400, 50)
 layout_mode = 2
-text = "Modo: LAN"
+text = "Opciones"
 
 [node name="QuitButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=151365772]
 custom_minimum_size = Vector2(400, 50)
@@ -68,5 +68,5 @@ stretch_mode = 5
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/CreateRoomButton" to="." method="_on_create_room_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/JoinRoomButton" to="." method="_on_join_room_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/ModeButton" to="." method="_on_mode_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/OptionsButton" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/QuitButton" to="." method="_on_quit_pressed"]

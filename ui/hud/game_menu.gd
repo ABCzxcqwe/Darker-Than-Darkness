@@ -2,9 +2,6 @@ extends Control
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
 
-var _bus_music: int
-var _bus_sfx: int
-
 var _is_open := false
 
 var overlay: ColorRect
@@ -17,8 +14,6 @@ var _focus_items: Array[Control] = []
 var _focus_idx := 0
 
 func _ready() -> void:
-	_bus_music = AudioServer.get_bus_index(&"Music")
-	_bus_sfx = AudioServer.get_bus_index(&"SFX")
 	_build_ui()
 	exit_button.pressed.connect(_on_exit_pressed)
 	music_slider.value_changed.connect(_on_music_changed)
@@ -179,8 +174,8 @@ func _open() -> void:
 	_is_open = true
 	overlay.visible = true
 	menu_panel.visible = true
-	music_slider.value = db_to_linear(AudioServer.get_bus_volume_db(_bus_music))
-	sfx_slider.value = db_to_linear(AudioServer.get_bus_volume_db(_bus_sfx))
+	music_slider.value = SettingsManager.music_volume
+	sfx_slider.value = SettingsManager.sfx_volume
 	music_slider.grab_focus()
 
 func _close() -> void:
@@ -189,10 +184,10 @@ func _close() -> void:
 	menu_panel.visible = false
 
 func _on_music_changed(value: float) -> void:
-	AudioServer.set_bus_volume_db(_bus_music, linear_to_db(value))
+	SettingsManager.music_volume = value
 
 func _on_sfx_changed(value: float) -> void:
-	AudioServer.set_bus_volume_db(_bus_sfx, linear_to_db(value))
+	SettingsManager.sfx_volume = value
 
 func _on_exit_pressed() -> void:
 	AudioManager.play_sfx_ui(SfxId.SELECT)

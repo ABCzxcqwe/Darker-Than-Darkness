@@ -375,7 +375,7 @@ func _on_steam_lobby_created(connect_or_result: int, lobby_id: int):
 		print("[Steam] Error al crear lobby, código:", connect_or_result)
 		emit_signal("connection_failed")
 
-func _on_steam_lobby_joined(lobby_id: int, perm: int, locked: bool, response: int):
+func _on_steam_lobby_joined(lobby_id: int, _perm: int, _locked: bool, response: int):
 	print("[Steam] Callback lobby_joined -> lobby:", lobby_id, " response:", response)
 	if response == _steam.CHAT_ROOM_ENTER_RESPONSE_SUCCESS:
 		steam_lobby_id = lobby_id
@@ -400,7 +400,7 @@ func _on_steam_lobby_list(lobbies: Array):
 	print("[Steam] Callback lobby_match_list -> count:", lobbies.size())
 	emit_signal("steam_lobby_list_updated", lobbies)
 
-func _on_steam_lobby_chat_update(lobby_id: int, changed_id: int, making_change_id: int, chat_state: int):
+func _on_steam_lobby_chat_update(_lobby_id: int, _changed_id: int, _making_change_id: int, _chat_state: int):
 	pass
 
 # ── DISCONNECT ──

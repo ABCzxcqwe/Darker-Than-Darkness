@@ -9,7 +9,6 @@
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
 [ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
-[ext_resource type="Shader" uid="uid://di0w5keic4hth" path="res://ui/GameUI/Scenes/GameHUD.gdshader" id="10_y1uvi"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -62,24 +61,6 @@ bg_color = Color(0, 0, 0, 1)
 border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
 corner_radius_top_right = 80
 corner_radius_bottom_left = 80
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_4ubg7"]
-shader = ExtResource("10_y1uvi")
-shader_parameter/vhs_resolution = Vector2(1024, 768)
-shader_parameter/samples = 5
-shader_parameter/crease_noise = 2.0
-shader_parameter/crease_opacity = 0.5
-shader_parameter/filter_intensity = 0.10000000149012
-shader_parameter/curvature_amount = 0.2999999932944
-shader_parameter/border_feather = 0.02000000095
-shader_parameter/tape_crease_smear = 0.5000000074506
-shader_parameter/tape_crease_intensity = 0.2
-shader_parameter/tape_crease_jitter = 0.1
-shader_parameter/tape_crease_speed = 0.5
-shader_parameter/tape_crease_discoloration = 1.0
-shader_parameter/bottom_border_thickness = 6.0
-shader_parameter/bottom_border_jitter = 6.0
-shader_parameter/noise_intensity = 0.1
 
 [node name="GameHud" type="CanvasLayer" unique_id=1755802739]
 script = ExtResource("1_o4xvh")
@@ -360,13 +341,3 @@ script = ExtResource("6_8ord7")
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VHS" type="ColorRect" parent="." unique_id=77874783]
-material = SubResource("ShaderMaterial_4ubg7")
-use_parent_material = true
-anchors_preset = -1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-mouse_behavior_recursive = 1
