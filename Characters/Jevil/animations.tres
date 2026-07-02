@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bl4hxyw1276uc" path="res://Characters/Jevil/assets/jevil_idle1.png" id="2_hv41d"]
 [ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/jevil_stun.png" id="3_1l7jp"]
 [ext_resource type="Texture2D" uid="uid://cmcs184nxk67p" path="res://Characters/Jevil/assets/jevil_sprint.png" id="3_4x2lg"]
+[ext_resource type="Texture2D" uid="uid://dnt05j3ou5012" path="res://Characters/Jevil/assets/jevil_teleport.png" id="4_0mbdn"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5pes3"]
 atlas = ExtResource("1_byono")
@@ -69,6 +70,14 @@ region = Rect2(400, 0, 400, 180)
 [sub_resource type="AtlasTexture" id="AtlasTexture_n10w5"]
 atlas = ExtResource("2_aqfmo")
 region = Rect2(0, 0, 400, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lfj08"]
+atlas = ExtResource("4_0mbdn")
+region = Rect2(0, 0, 160, 160)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nhohh"]
+atlas = ExtResource("4_0mbdn")
+region = Rect2(160, 0, 160, 160)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lhbhu"]
 atlas = ExtResource("3_1l7jp")
@@ -337,6 +346,17 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_lfj08")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nhohh")
+}],
+"loop": false,
+"name": &"jevil_tp",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_lhbhu")
 }, {
 "duration": 1.0,
@@ -516,7 +536,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"walk_horizontal",
-"speed": 8.0
+"speed": 9.0
 }, {
 "frames": [{
 "duration": 1.0,

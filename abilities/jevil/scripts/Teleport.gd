@@ -78,6 +78,8 @@ func _run() -> void:
 		if _teleports_done < MAX_TELEPORTS:
 			if not await _wait(TIME_BETWEEN_TELEPORTS):
 				return
+	if is_instance_valid(_player_node):
+		await _player_node.get_tree().create_timer(1.0).timeout
 	_finish()
 
 
