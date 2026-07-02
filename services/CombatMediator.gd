@@ -1,5 +1,8 @@
 extends Node
 
+const SPEED_BOOST_DURATION: float = 1.5
+const SPEED_BOOST_MULTIPLIER: float = 1.3
+
 enum ProtectionType {
 	DAMAGE_SHARE,
 	DAMAGE_REDUCE,
@@ -47,6 +50,13 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	target.invincible_until = now + int(target.character_data.invincibility_frames * 1000)
 
 	health_svc.take_damage(target, final_damage)
+
+	var status_svc = GameServiceLocator.get_service("StatusEffectService")
+	if status_svc and target.character_data and target.character_data.team == "survivor":
+		status_svc.apply(target, "speed_boost", {
+			"duration": SPEED_BOOST_DURATION,
+			"multiplier": SPEED_BOOST_MULTIPLIER
+		})
 
 	var att_id: int = attacker.get_multiplayer_authority() if attacker else 0
 	damage_dealt.emit(att_id, target_peer, final_damage, attack_type)
