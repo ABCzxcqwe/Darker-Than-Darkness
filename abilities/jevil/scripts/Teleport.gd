@@ -8,7 +8,7 @@ const PIKE_IMPACT_LIFETIME: float = 0.3
 # Duración máxima de la habilidad completa para el root:
 # 3 × (0.2 espera + 0.4 ataque) + 2 × 1.0 entre teleports = 3.8s
 # Se usa un margen holgado para que el root no expire antes que la habilidad.
-const ROOT_DURATION: float = 5.0
+const ROOT_DURATION: float = 4.0
 
 # Evita que el RefCounted sea recolectado mientras la habilidad está activa.
 static var _keep_alive: Array = []

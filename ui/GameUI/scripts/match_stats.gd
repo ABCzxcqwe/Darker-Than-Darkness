@@ -23,7 +23,7 @@ func _ready() -> void:
 		result_label.text = "¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida."
 		result_label.modulate = Color.CYAN
 	elif winner_team == "killer" or reason_code == "killer_elimination":
-		result_label.text = "¡VICTORIA DEL KILLER!\nTodos los supervivientes fueron eliminados."
+		result_label.text = "¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar."
 		result_label.modulate = Color.MAGENTA
 	elif reason_code == "survivors_escaped":
 		var escaped = results.get("escaped_count", 0)

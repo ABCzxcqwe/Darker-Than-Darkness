@@ -7,7 +7,7 @@
 [ext_resource type="Resource" uid="uid://b2crfnqna57t1" path="res://abilities/susie/RudeBuster.tres" id="5_1w3rf"]
 [ext_resource type="Texture2D" uid="uid://bma25qygs8t1o" path="res://Characters/Susie/assets/icon.png" id="6_23gak"]
 [ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal.tres" id="6_pssrv"]
-[ext_resource type="AudioStream" uid="uid://ytooc83o3p28" path="res://Characters/Susie/assets/VS Susie Reprise.mp3" id="6_skbg1"]
+[ext_resource type="AudioStream" uid="uid://daa42slj1ra1k" path="res://Characters/Susie/assets/Battle Against The Dragon  Deltarune UST.mp3" id="7_7ajh4"]
 [ext_resource type="Texture2D" uid="uid://b3xhknxqvva27" path="res://Characters/Susie/assets/susie_panel.png" id="7_xc3v2"]
 
 [resource]
@@ -22,10 +22,14 @@ position_y = 48
 h_size_y = 120
 h_position_y = 12
 bleed_out_time = 20.0
-lms_music = ExtResource("6_skbg1")
-lms_duration = 208.0
-lms_exit_timer_threshold = 80.0
+lms_music = ExtResource("7_7ajh4")
+lms_duration = 225.0
+lms_exit_timer_threshold = 60.0
 ability_slots = Array[ExtResource("1_a50v8")]([ExtResource("2_66qii"), ExtResource("5_1w3rf"), ExtResource("6_pssrv"), null, null])
+tp_gain_time = 1.2
+stamina_max = 200.0
+stamina_regen_rate = 25.0
+stamina_sprint_drain = 35.0
 icon = ExtResource("6_23gak")
 panel_texture = ExtResource("7_xc3v2")
 animation_frames = ExtResource("3_66qii")

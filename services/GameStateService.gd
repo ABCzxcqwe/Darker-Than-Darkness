@@ -8,8 +8,8 @@ signal state_changed(new_state: State, old_state: State)
 
 var current_state: State = State.INTRO : set = _set_state
 
-const BASE_TIME := 90.0
-const TIME_PER_SURVIVOR := 30.0
+const BASE_TIME := 100.0
+const TIME_PER_SURVIVOR := 60.0
 
 var _health_service: Node = null
 var _timer_service: Node = null
@@ -106,14 +106,17 @@ func _on_timer_timeout() -> void:
 		_lms_service.stop_lms()
 	var coord = GameServiceLocator.get_service("MapEventCoordinator")
 	var escaped = coord.get_escaped_count() if coord else 0
-	var total_survivors := 0
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["assigned_role"] == "survivor":
-			total_survivors += 1
-	transition_to_ended("survivors_escaped", {
-		"escaped_count": escaped,
-		"total_survivors": total_survivors
-	})
+	if escaped > 0:
+		var total_survivors := 0
+		for pid in NetworkManager.players:
+			if NetworkManager.players[pid]["assigned_role"] == "survivor":
+				total_survivors += 1
+		transition_to_ended("survivors_escaped", {
+			"escaped_count": escaped,
+			"total_survivors": total_survivors
+		})
+	else:
+		transition_to_ended("killer_elimination")
 
 
 # ─── DEATH ───────────────────────────────────────────────
@@ -121,7 +124,7 @@ func _on_timer_timeout() -> void:
 func _on_survivor_death(_peer_id: int) -> void:
 	if current_state != State.PLAYING:
 		return
-	_timer_service.modify_time(15.0)
+	_timer_service.modify_time(20.0)
 	_evaluate_match()
 
 
@@ -142,7 +145,7 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 		_timer_service.stop_timer()
 		transition_to_ended("killer_disconnected")
 	elif abandoned_role == "survivor":
-		_timer_service.modify_time(10.0)
+		_timer_service.modify_time(15.0)
 		if _lms_service and _lms_service.is_lms_active() and _lms_service.get_active_survivor() \
 				and _lms_service.get_active_survivor().get_multiplayer_authority() == peer_id:
 			_lms_service.stop_lms()
