@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5gjk6xpsyb7m"
-path="res://.godot/imported/susie_rudebuster.png-2c63dbccb1fea52ecf30769b3f729fd5.ctex"
+uid="uid://cunootty1jft6"
+path="res://.godot/imported/susie_rude_buster.png-8b8e8c5ef58a96a45278b8ede606f5cb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/assets/susie_rudebuster.png"
-dest_files=["res://.godot/imported/susie_rudebuster.png-2c63dbccb1fea52ecf30769b3f729fd5.ctex"]
+source_file="res://Characters/Susie/assets/susie_rude_buster.png"
+dest_files=["res://.godot/imported/susie_rude_buster.png-8b8e8c5ef58a96a45278b8ede606f5cb.ctex"]
 
 [params]
 
