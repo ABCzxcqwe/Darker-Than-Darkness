@@ -1,19 +1,20 @@
 extends AbilityBase
 
-const CHARGE_DURATION: float = 2.0
-const STUN_POLL_INTERVAL: float = 0.1
 const DIAMOND_COUNT: int = 30
 const AOE_RADIUS: float = 1000.0
 const DIAMOND_SPEED: float = 600.0
 const DIAMOND_LIFETIME: float = 3.0
 const SPAWN_INTERVAL: float = 0.08
+const RING_SLOT_COUNT: int = 80
+const ABILITY_DURATION: float = 6.0
 
 var _active: bool = false
 var _player_node: Node = null
 var _caster_id: int = -1
 var _slot_index: int = -1
 var _data: AbilityData = null
-var _target_center: Vector2 = Vector2.ZERO
+var _ring_picas: Array = []
+
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
@@ -32,93 +33,85 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			return
 
 	if data.action_animation != "":
-		player_node.play_ability_animation(data.action_animation, _slot_index, player_node.facing_right)
+		player_node.play_ability_animation("idle_down", _slot_index, player_node.facing_right)
 
 	var combat = GameServiceLocator.get_service("CombatMediator")
 	if combat:
-		combat.apply_root(_player_node, CHARGE_DURATION + 0.5)
-
-	_target_center = player_node.global_position
-
-	_show_aoe_indicator(_target_center)
-
-	player_node.get_tree().create_timer(CHARGE_DURATION).timeout.connect(
-		func():
-			_on_charge_complete()
-	)
-	player_node.get_tree().create_timer(STUN_POLL_INTERVAL).timeout.connect(
-		func():
-			_check_stun()
-	)
-
-	print("[DiamondRain] Carga iniciada | peer: ", _caster_id, " | centro: ", _target_center)
-
-
-func _check_stun() -> void:
-	if not _active or not is_instance_valid(_player_node):
-		return
+		combat.apply_root(_player_node, ABILITY_DURATION)
 
 	var status = GameServiceLocator.get_service("StatusEffectService")
-	if status and status.is_stunned(_caster_id):
-		_cancel_charge()
-		return
+	if status:
+		status.grant_stun_immunity(_caster_id, ABILITY_DURATION)
 
-	if _active:
-		_player_node.get_tree().create_timer(STUN_POLL_INTERVAL).timeout.connect(
-			func():
-				_check_stun()
-		)
+	var target_center = player_node.global_position
 
-
-func _cancel_charge() -> void:
-	if not _active:
-		return
-	_active = false
-
-	_hide_aoe_indicator()
-
-	var combat = GameServiceLocator.get_service("CombatMediator")
-	if combat and is_instance_valid(_player_node):
-		combat.remove_root(_player_node)
+	_spawn_ring(target_center)
+	_launch_diamonds(target_center)
 
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
-		if _data and _data.cooldown_cancel > 0.0:
-			cd.start(_caster_id, _slot_index, _data.cooldown_cancel)
+		if _data and _data.cooldown > 0.0:
+			cd.start(_caster_id, _slot_index, _data.cooldown)
 
-	if is_instance_valid(_player_node):
-		_player_node.rpc("_sync_cancel_ability")
+	player_node.get_tree().create_timer(ABILITY_DURATION).timeout.connect(
+		func():
+			_finish_ability()
+	)
 
-	# TODO: reproducir sonido de fallo
-	print("[DiamondRain] Carga cancelada por stun | peer: ", _caster_id)
+	print("[DiamondRain] Habilidad iniciada | peer: ", _caster_id, " | centro: ", target_center)
 
 
-func _on_charge_complete() -> void:
-	if not _active:
+func _spawn_ring(center: Vector2) -> void:
+	if not is_instance_valid(_player_node):
 		return
-	_active = false
 
-	_hide_aoe_indicator()
+	var hs = GameServiceLocator.get_service("HitboxService")
+	var cmbt = GameServiceLocator.get_service("CombatMediator")
+	var d = _data
+	var cid = _caster_id
+	var pn = _player_node
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
-	if combat and is_instance_valid(_player_node):
-		combat.remove_root(_player_node)
+	for i in range(RING_SLOT_COUNT):
+		var angle = (float(i) / float(RING_SLOT_COUNT)) * TAU
+		var pos = center + Vector2(cos(angle), sin(angle)) * AOE_RADIUS
 
-	var cd = GameServiceLocator.get_service("CooldownService")
-	if cd:
-		cd.release_lock(_caster_id, _slot_index)
-		cd.start(_caster_id, _slot_index, _data.cooldown if _data else 15.0)
+		var config = {
+			"attacker_id": cid,
+			"attacker_node": pn,
+			"type": "projectile",
+			"aim_mode": "fixed",
+			"direction": Vector2.RIGHT,
+			"shape_scene": d.ability_scene if d else null,
+			"damage": d.base_damage if d else 10,
+			"attack_type": d.attack_type if d else "normal",
+			"hit_limit": 0,
+			"team_filter": "enemy",
+			"lifetime": ABILITY_DURATION,
+			"speed": 0.0,
+			"offset": 0.0,
+			"on_hit": func(target_node: Node) -> void:
+				if is_instance_valid(target_node) and cmbt and d:
+					cmbt.apply_damage(pn, target_node, d.base_damage, d.attack_type)
+		}
 
-	if is_instance_valid(_player_node):
-		_player_node.rpc("_sync_cancel_ability")
+		var hitbox = hs.create(config)
+		if hitbox:
+			hitbox.global_position = pos
+			hitbox.rotation = angle
+			_ring_picas.append(hitbox)
 
-	_launch_diamonds()
-
-	print("[DiamondRain] Carga completada | peer: ", _caster_id)
+	print("[DiamondRain] Ring creado con ", _ring_picas.size(), " picas alrededor de ", center)
 
 
-func _launch_diamonds() -> void:
+func _clear_ring() -> void:
+	for pica in _ring_picas:
+		if is_instance_valid(pica):
+			pica.queue_free()
+	_ring_picas.clear()
+
+
+func _launch_diamonds(target_center: Vector2) -> void:
 	if not is_instance_valid(_player_node):
 		return
 
@@ -132,7 +125,7 @@ func _launch_diamonds() -> void:
 	for i in range(DIAMOND_COUNT):
 		pn.get_tree().create_timer(i * SPAWN_INTERVAL).timeout.connect(
 			func():
-				_spawn_diamond(pn, cid, d, hs, cmbt, _target_center, spawn_altitude)
+				_spawn_diamond(pn, cid, d, hs, cmbt, target_center, spawn_altitude)
 		)
 
 
@@ -173,16 +166,30 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 		hitbox.rotation = 0.0
 
 
-func _show_aoe_indicator(center: Vector2) -> void:
-	_player_node.rpc("_sync_show_aoe_indicator", center)
+func _finish_ability() -> void:
+	if not _active:
+		return
+	_active = false
 
+	_clear_ring()
 
-func _hide_aoe_indicator() -> void:
-	_player_node.rpc("_sync_hide_aoe_indicator")
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if combat and is_instance_valid(_player_node):
+		combat.remove_root(_player_node)
+
+	var status = GameServiceLocator.get_service("StatusEffectService")
+	if status:
+		status.grant_stun_immunity(_caster_id, 0.0)
+
+	if is_instance_valid(_player_node):
+		_player_node.rpc("_sync_cancel_ability")
+
+	print("[DiamondRain] Habilidad finalizada | peer: ", _caster_id)
 
 
 func _fail_cleanup() -> void:
 	_active = false
+	_clear_ring()
 	var cd = GameServiceLocator.get_service("CooldownService")
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)

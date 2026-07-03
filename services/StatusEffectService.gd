@@ -178,6 +178,15 @@ func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost"
 func has_stun_immunity(peer_id: int) -> bool:
 	return _stun_immunity.has(peer_id)
 
+## Activa o desactiva inmunidad a stun manualmente (usado por habilidades).
+## duration > 0.0 → concede inmunidad por esa duración
+## duration = 0.0 → elimina la inmunidad inmediatamente
+func grant_stun_immunity(peer_id: int, duration: float) -> void:
+	if duration > 0.0:
+		_stun_immunity[peer_id] = duration
+	else:
+		_stun_immunity.erase(peer_id)
+
 ## Devuelve la reducción de daño post-stun activa para un survivor (0.0 si no tiene)
 func get_post_stun_dr(peer_id: int) -> float:
 	if not _post_stun_dr.has(peer_id):
