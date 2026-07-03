@@ -1,7 +1,30 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://qg4vjxg66xfx"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_se41e"]
+[ext_resource type="Script" uid="uid://bpjrmkrie0hdp" path="res://abilities/ralsei/scripts/FluffyFilling.gd" id="2_ffscr"]
+[ext_resource type="PackedScene" uid="uid://d2fluffypj35hitbox" path="res://Hitboxes/Ralsei/FluffyHitbox.tscn" id="3_ffhitbox"]
 
 [resource]
 script = ExtResource("1_se41e")
+display_name = "Fluffy Filling"
+description = "Lanza 3 proyectiles con movimiento serpentino. Al golpear al Killer le roba TP y lo devuelve a Ralsei. Al golpear a un aliado le otorga TP."
+ability_type = 1
+ability_script = ExtResource("2_ffscr")
+ability_scene = ExtResource("3_ffhitbox")
+action_animation = "magic"
+prepare_animation = "magic_prepare"
+can_cancel = true
+cooldown = 20.0
+cooldown_cancel = 5.0
+cooldown_fail = 5.0
+tp_cost = 20.0
+consume_tp_on_use = false
+move_restriction = 0
+requires_selection = false
+defer_cooldown = true
+is_projectile = true
+projectile_speed = 700.0
+projectile_lifetime = 3.0
+projectile_max_range = 500.0
+arc_angle = 15.0
 metadata/_custom_type_script = "uid://bodks86qovy6s"

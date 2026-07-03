@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cmcs184nxk67p"
-path="res://.godot/imported/jevil_sprint.png-7f31de44a0742379be48d5bf1065c0a4.ctex"
+uid="uid://ddmibu80fb6ii"
+path="res://.godot/imported/deco2.png-565395b28453a8e23d8b8c970cf89f2c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Jevil/assets/jevil_sprint.png"
-dest_files=["res://.godot/imported/jevil_sprint.png-7f31de44a0742379be48d5bf1065c0a4.ctex"]
+source_file="res://Maps/Card Castle test/Assets/deco2.png"
+dest_files=["res://.godot/imported/deco2.png-565395b28453a8e23d8b8c970cf89f2c.ctex"]
 
 [params]
 

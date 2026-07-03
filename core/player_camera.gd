@@ -2,8 +2,8 @@ extends Camera2D
 
 @export var mouse_peek_amount: float = 0.3
 @export var mouse_peek_limit: float = 120.0
-@export var zoom_base: float = 0.75
-@export var zoom_sprint: float = 0.5
+@export var zoom_base: float = 0.7
+@export var zoom_sprint: float = 0.45
 @export var zoom_speed: float = 3.0
 @export var smooth_speed: float = 5.0
 

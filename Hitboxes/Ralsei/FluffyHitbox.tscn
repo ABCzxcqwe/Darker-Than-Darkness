@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://d2fluffypj35hitbox"]
+
+[ext_resource type="Script" path="res://Hitboxes/Ralsei/FluffyProjectile.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_shape"]
+size = Vector2(20, 20)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hitbox"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+
+[node name="FluffyHitbox" type="Area2D"]
+collision_layer = 32
+collision_mask = 8
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_shape")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_hitbox")

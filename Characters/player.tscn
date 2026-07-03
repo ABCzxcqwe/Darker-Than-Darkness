@@ -45,7 +45,7 @@ animation = &"idle_horizontal"
 frame_progress = 0.96888244
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
-zoom = Vector2(0.75, 0.75)
+zoom = Vector2(0.7, 0.7)
 script = ExtResource("3_cam")
 zoom_sprint = 0.65
 
@@ -87,3 +87,12 @@ vertical_alignment = 1
 
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
 replication_config = SubResource("SceneReplicationConfig_sweqy")
+
+[node name="VisionCircle" type="PointLight2D" parent="." unique_id=433607292]
+energy = 1.25
+blend_mode = 2
+shadow_enabled = true
+
+[node name="VisionCone" type="PointLight2D" parent="." unique_id=1372732865]
+blend_mode = 2
+shadow_enabled = true

@@ -8,7 +8,7 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
-const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind"]
+const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost"]
 
 # { peer_id: { effect_name: [...instancias...] } }
 var _effects: Dictionary = {}
@@ -147,6 +147,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			if params.has("post_stun_dr"):
 				instance["post_stun_dr"] = params.get("post_stun_dr")
 		instances.append(instance)
+		if effect_name == "speed_boost":
+			instance["multiplier"] = params.get("multiplier", 1.3)
 		print("[StatusEffectService] ", effect_name, " aplicado a peer ", peer_id,
 			  " | duración: ", duration)
 
@@ -170,6 +172,7 @@ func is_slowed(peer_id: int)   -> bool: return has_effect(peer_id, "slow")
 func is_rooted(peer_id: int)   -> bool: return has_effect(peer_id, "root")
 func is_silenced(peer_id: int) -> bool: return has_effect(peer_id, "silence")
 func is_blinded(peer_id: int)  -> bool: return has_effect(peer_id, "blind")
+func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost")
 
 ## Devuelve true si el killer tiene inmunidad post-stun activa
 func has_stun_immunity(peer_id: int) -> bool:
@@ -273,7 +276,13 @@ func _calculate_speed(peer_id: int, base_speed: float) -> float:
 		for instance in _effects[peer_id]["slow"]:
 			total_slow += instance["magnitude"]
 		total_slow = minf(total_slow, 0.9)
-		return base_speed * (1.0 - total_slow)
+		base_speed = base_speed * (1.0 - total_slow)
+
+	if has_effect(peer_id, "speed_boost"):
+		var max_multiplier := 1.0
+		for instance in _effects[peer_id]["speed_boost"]:
+			max_multiplier = maxf(max_multiplier, instance.get("multiplier", 1.3))
+		base_speed = base_speed * max_multiplier
 		
 	return base_speed
 

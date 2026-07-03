@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cmcs184nxk67p"
-path="res://.godot/imported/jevil_sprint.png-7f31de44a0742379be48d5bf1065c0a4.ctex"
+uid="uid://f4cg6c4spt1s"
+path="res://.godot/imported/jevil_stun.png-fc48a80ceb0921dae3dd37844c7c533f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Jevil/assets/jevil_sprint.png"
-dest_files=["res://.godot/imported/jevil_sprint.png-7f31de44a0742379be48d5bf1065c0a4.ctex"]
+source_file="res://Characters/Jevil/assets/jevil_stun.png"
+dest_files=["res://.godot/imported/jevil_stun.png-fc48a80ceb0921dae3dd37844c7c533f.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@ extends CharacterBody2D
 
 signal ability_used(ability_index: int)
 
-enum AnimState { IDLE, PREPARE, ABILITY }
+enum AnimState { IDLE, PREPARE, ABILITY, STUNNED }
 
 const HURT_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
@@ -138,6 +138,11 @@ func _process(_delta: float) -> void:
 		animated_sprite.modulate.a = _original_modulate.a if _show else 0.2
 	elif not animated_sprite.modulate.is_equal_approx(_original_modulate):
 		animated_sprite.modulate = _original_modulate
+
+	if state == AnimState.IDLE and character_data and character_data.id == 4 and last_animation == "idle_horizontal":
+		animated_sprite.position.y = sin(Time.get_ticks_msec() * 0.005) * 16.0
+	else:
+		animated_sprite.position.y = 0.0
 
 
 # ── Rescate ───────────────────────────────────────────────────────────
@@ -564,7 +569,10 @@ func _select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool) ->
 # ── Animación de habilidades ──────────────────────────────────────────
 
 func _on_anim_finished() -> void:
-	if state == AnimState.ABILITY or state == AnimState.PREPARE:
+	if state == AnimState.STUNNED:
+		state = AnimState.IDLE
+		_restore_idle()
+	elif state == AnimState.ABILITY or state == AnimState.PREPARE:
 		state = AnimState.IDLE
 		active_ability_slot = -1
 		_restore_idle()
@@ -852,8 +860,14 @@ func _sync_invincibility(duration_ms: int) -> void:
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
 		active_effects[effect_name] = true
+		if effect_name == "stun" and animated_sprite.sprite_frames.has_animation("stun"):
+			state = AnimState.STUNNED
+			animated_sprite.play("stun")
 	else:
 		active_effects.erase(effect_name)
+		if effect_name == "stun" and state == AnimState.STUNNED:
+			state = AnimState.IDLE
+			_restore_idle()
 
 
 @rpc("any_peer", "call_local", "reliable")
