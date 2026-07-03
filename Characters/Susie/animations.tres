@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://ddw1my0xgngkx" path="res://Characters/Susie/assets/susie_attack.png" id="1_5fybr"]
 [ext_resource type="Texture2D" uid="uid://80lxhd7d032" path="res://Characters/Susie/assets/SusieSheet.png" id="1_ggmbj"]
-[ext_resource type="Texture2D" uid="uid://c143hcajkyf5n" path="res://Characters/Susie/assets/idle_susie.png" id="2_gbekj"]
+[ext_resource type="Texture2D" uid="uid://lwianv72cgda" path="res://Characters/Susie/assets/susie_idle.png" id="1_ugije"]
 [ext_resource type="Texture2D" uid="uid://j2ll0rv1ekvf" path="res://Characters/Susie/assets/susie_run.png" id="3_bs5v4"]
 [ext_resource type="Texture2D" uid="uid://c5iorobf8psnb" path="res://Characters/Susie/assets/susie_health.png" id="4_nise5"]
 [ext_resource type="Texture2D" uid="uid://dno0qkeb6ef8q" path="res://Characters/Susie/assets/susie_downed.png" id="4_rrjp6"]
@@ -27,19 +27,19 @@ atlas = ExtResource("1_5fybr")
 region = Rect2(1152, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_718th"]
-atlas = ExtResource("2_gbekj")
+atlas = ExtResource("1_ugije")
 region = Rect2(0, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_k3aj8"]
-atlas = ExtResource("2_gbekj")
+atlas = ExtResource("1_ugije")
 region = Rect2(384, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xvrxk"]
-atlas = ExtResource("2_gbekj")
+atlas = ExtResource("1_ugije")
 region = Rect2(768, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yu7qk"]
-atlas = ExtResource("2_gbekj")
+atlas = ExtResource("1_ugije")
 region = Rect2(1152, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ak0ej"]
