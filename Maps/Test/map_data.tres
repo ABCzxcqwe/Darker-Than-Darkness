@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("1_8dnib")
-id = "0"
+id = "2"
 display_name = "Test Map"
 map_scene = ExtResource("2_88b5i")
 map_bgm = ExtResource("2_8a12d")

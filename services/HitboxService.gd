@@ -68,10 +68,11 @@ func create(config: Dictionary) -> Node:
 		push_warning("[HitboxService] Falló spawn por ProjectileSpawner, usando modo local.")
 
 	# ── Crear hitbox ──────────────────────────────────────────────────
-	var hitbox: Area2D
+	var hitbox: CollisionObject2D
 	if shape_scene:
 		hitbox = shape_scene.instantiate()
-		hitbox.set_script(HITBOX_SCRIPT)
+		if not config.get("custom_hitbox", false):
+			hitbox.set_script(HITBOX_SCRIPT)
 	else:
 		hitbox = Area2D.new()
 		hitbox.set_script(HITBOX_SCRIPT)
@@ -140,7 +141,8 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 		return null
 
 	var hitbox = shape_scene.instantiate()
-	hitbox.set_script(HITBOX_SCRIPT)
+	if not config.get("custom_hitbox", false):
+		hitbox.set_script(HITBOX_SCRIPT)
 
 	hitbox.attacker_id   = config.get("attacker_id",   -1)
 	hitbox.damage        = config.get("damage",        0)
@@ -153,7 +155,6 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	hitbox.detect_walls  = config.get("detect_walls",  false)
 	hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
 	hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
-
 	var on_hit = config.get("on_hit", Callable())
 	if on_hit.is_valid():
 		hitbox.on_hit_callback = on_hit
@@ -290,7 +291,7 @@ func _get_facing(attacker_node: Node) -> Vector2:
 # Capas definidas en Project Settings > Layer Names > 2D Physics:
 #   1 = world          2 = survivor_body   3 = killer_body
 #   4 = survivor_hurtbox   5 = killer_hurtbox   6 = hitbox   7 = projectile
-func _setup_hitbox_layers(hitbox: Area2D, team_filter: String, attacker_node: Node) -> void:
+func _setup_hitbox_layers(hitbox: CollisionObject2D, team_filter: String, attacker_node: Node) -> void:
 	var attacker_team: String = ""
 	if attacker_node and attacker_node.character_data:
 		attacker_team = attacker_node.character_data.team

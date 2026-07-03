@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://cs0v01bpeipn5"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
-[ext_resource type="PackedScene" uid="uid://c4f4ilt8pj623" path="res://Hitboxes/Jevil/DevilKnife.tscn" id="1_k2lcl"]
+[ext_resource type="PackedScene" uid="uid://bp13d3jfglp5h" path="res://Hitboxes/Jevil/DevilKnifeProjectile.tscn" id="1_k2lcl"]
 [ext_resource type="Script" uid="uid://cxqrp2j7vg0bk" path="res://abilities/jevil/scripts/DevilKnife.gd" id="2_k2lcl"]
 
 [resource]
@@ -20,6 +20,6 @@ spawn_delay = 0.4
 attack_type = "projectile"
 stun_duration = 3.0
 is_projectile = true
-projectile_speed = 900.0
-projectile_lifetime = 2.5
+projectile_speed = 950.0
+projectile_lifetime = 4.0
 projectile_piercing = true

@@ -570,8 +570,8 @@ func _select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool) ->
 
 func _on_anim_finished() -> void:
 	if state == AnimState.STUNNED:
-		state = AnimState.IDLE
-		_restore_idle()
+		if animated_sprite.animation == "stun_end":
+			_end_stun()
 	elif state == AnimState.ABILITY or state == AnimState.PREPARE:
 		state = AnimState.IDLE
 		active_ability_slot = -1
@@ -585,6 +585,11 @@ func _restore_idle() -> void:
 	var anim_name = _select_movement_anim(false, false, _should_use_hurt_sprite())
 	animated_sprite.play(anim_name)
 	last_animation = anim_name
+
+
+func _end_stun() -> void:
+	state = AnimState.IDLE
+	_restore_idle()
 
 
 # ── Muerte definitiva ────────────────────────────────────────────────
@@ -860,14 +865,19 @@ func _sync_invincibility(duration_ms: int) -> void:
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
 		active_effects[effect_name] = true
-		if effect_name == "stun" and animated_sprite.sprite_frames.has_animation("stun"):
+		if effect_name == "stun":
 			state = AnimState.STUNNED
-			animated_sprite.play("stun")
+			if animated_sprite.sprite_frames.has_animation("stun"):
+				animated_sprite.play("stun")
+			else:
+				animated_sprite.play("idle_horizontal")
 	else:
 		active_effects.erase(effect_name)
 		if effect_name == "stun" and state == AnimState.STUNNED:
-			state = AnimState.IDLE
-			_restore_idle()
+			if animated_sprite.sprite_frames.has_animation("stun_end"):
+				animated_sprite.play("stun_end")
+			else:
+				_end_stun()
 
 
 @rpc("any_peer", "call_local", "reliable")

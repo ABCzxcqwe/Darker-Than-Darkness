@@ -17527,8 +17527,17 @@ sources/0 = SubResource("TileSetAtlasSource_g6luu")
 sources/1 = SubResource("TileSetAtlasSource_t3mmx")
 sources/2 = SubResource("TileSetAtlasSource_38gtg")
 
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_5yfke"]
+polygon = PackedVector2Array(-3783, 2995, -3782, 3078, -4232, 3080, -4230, 4067, -5430, 4065, -5429, 4396, -4568, 4396, -4568, 4498, -3016, 4500, -3016, 3000)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_g6luu"]
+polygon = PackedVector2Array(-2455, 2520, -2454, 2604, -1702, 2606, -1703, 3952, 408, 3947, 408, 3850, -1593, 3856, -1593, 2522)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_t3mmx"]
+polygon = PackedVector2Array(-2456, 2015, -1592, 2015, -1581, 459, -1354, 459, -1356, 158, -1696, 158, -1704, 1952, -2456, 1949)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1o3en"]
-size = Vector2(161, 193)
+size = Vector2(161, 126)
 
 [node name="TestMap" type="Node2D" unique_id=1731724692]
 position = Vector2(-3, -647)
@@ -17566,46 +17575,55 @@ position = Vector2(-3642, 919)
 [node name="Colision" type="StaticBody2D" parent="." unique_id=1415743760]
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Colision" unique_id=1349687020]
-polygon = PackedVector2Array(-2051, -302, 571, -307, 571, -672, -2201, -673, -2201, 10, -4890, 13, -4890, 508, -6264, 510, -6264, 3055, -5003, 3057, -5001, 3378, -4507, 3376, -4507, 3566, -5686, 3568, -5691, 4302, -6425, 4296, -6423, 5633, -3177, 5633, -3178, 6719, -3000, 6722, -3000, 6440, -3000, 5472, -4551, 5475, -4552, 5361, -4561, 5360, -4569, 5361, -6264, 5357, -6265, 4607, -5607, 4609, -5608, 3808, -4423, 3808, -4424, 3234, -4920, 3234, -4921, 2926, -4957, 2922, -5002, 2927, -6187, 2918, -6181, 750, -4751, 753, -4761, 412, -2053, 421)
+polygon = PackedVector2Array(-2051, -302, 571, -308, 571, -672, -2201, -673, -2201, 10, -4890, 13, -4890, 508, -6264, 510, -6264, 3055, -5000, 3056, -5001, 3378, -4507, 3376, -4507, 3566, -5686, 3568, -5691, 4302, -6425, 4296, -6423, 5633, -3176, 5632, -3178, 6719, -3000, 6722, -3000, 5360, -4552, 5359, -4552, 5205, -6264, 5205, -6265, 4607, -5607, 4609, -5608, 3808, -4423, 3808, -4424, 3119, -4920, 3119, -4919, 2797, -6183, 2798, -6181, 750, -4751, 753, -4761, 412, -2053, 421)
 
 [node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Colision" unique_id=679262136]
-polygon = PackedVector2Array(573, -671, 573, -506, 735, -503, 735, -309, 3208, -302, 3208, 1104, 5494, 1104, 5495, 1330, 6870, 1329, 6871, 2546, 7334, 2547, 7333, 3213, 7334, 3400, 6953, 3401, 6868, 3396, 6871, 4539, 5495, 4543, 5499, 5270, 4014, 5281, 4006, 5389, 4006, 5576, 3784, 5572, 3777, 5726, 4008, 5729, 4009, 6586, -2998, 6571, -3002, 6723, 4185, 6726, 4184, 5376, 5640, 5374, 5640, 4658, 6958, 4656, 6956, 3488, 7478, 3487, 7478, 2290, 6956, 2284, 6952, 1038, 5641, 1034, 5643, 819, 3358, 815, 3358, -670)
+polygon = PackedVector2Array(571, -672, 571, -503, 736, -503, 736, -308, 3208, -304, 3208, 1104, 5496, 1104, 5496, 1328, 6872, 1328, 6872, 2544, 7336, 2544, 7336, 3273, 6872, 3273, 6872, 4436, 5496, 4435, 5496, 5163, 4008, 5163, 4008, 5445, 3784, 5445, 3784, 5728, 4008, 5728, 4008, 6505, -3000, 6500, -3000, 6720, 4184, 6720, 4184, 5376, 5640, 5376, 5640, 4656, 6952, 4656, 6952, 3488, 7480, 3488, 7480, 2288, 6952, 2288, 6952, 1040, 5641, 1040, 5640, 816, 3352, 816, 3352, -672)
 
 [node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="Colision" unique_id=1491840608]
-polygon = PackedVector2Array(-5979, 1081, -5980, 2465, -4825, 2466, -4825, 2241, -4391, 2239, -4392, 1360, -4759, 1360, -4759, 1081)
+polygon = PackedVector2Array(-5976, 960, -5976, 2464, -4824, 2465, -4824, 2240, -4392, 2240, -4392, 1195, -4760, 1195, -4760, 959)
 
 [node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="Colision" unique_id=369149117]
-polygon = PackedVector2Array(-4262, 1345, -3006, 1341, -3004, 2705, -3805, 2704, -3798, 2239, -4265, 2238)
+polygon = PackedVector2Array(-4265, 1194, -3000, 1194, -3000, 2704, -3800, 2704, -3800, 2240, -4264, 2240)
 
 [node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="Colision" unique_id=2022929231]
-polygon = PackedVector2Array(-4242, 3194, -2991, 3188, -3002, 4722, -4586, 4722, -4586, 4623, -5449, 4624, -5447, 4150, -5369, 4153, -4246, 4143)
+polygon = PackedVector2Array(-4248, 3118, -3800, 3118, -3800, 3005, -3000, 3004, -3000, 4720, -4584, 4720, -4584, 4624, -5448, 4624, -5448, 4078, -4248, 4078)
 
 [node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="Colision" unique_id=1287078083]
-polygon = PackedVector2Array(2676, 6207, 2790, 6209, 2793, 5727, 3447, 5728, 3447, 5581, 2680, 5582)
+polygon = PackedVector2Array(2680, 6208, 2792, 6208, 2792, 5728, 3448, 5728, 3448, 5448, 2680, 5448)
 
 [node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="Colision" unique_id=1058962128]
-polygon = PackedVector2Array(5495, 3334, 5496, 4064, 5640, 4064, 5640, 4032, 6697, 4032, 6697, 3334)
+polygon = PackedVector2Array(5496, 3260, 5496, 4064, 5640, 4064, 5640, 4032, 6696, 4032, 6696, 3260)
 
 [node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="Colision" unique_id=1054167818]
-polygon = PackedVector2Array(5495, 1859, 5495, 2550, 6700, 2547, 6697, 1857)
+polygon = PackedVector2Array(5496, 1746, 5496, 2544, 6696, 2544, 6696, 1746)
 
 [node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="Colision" unique_id=1795894886]
-polygon = PackedVector2Array(-2472, 2120, -1721, 2117, -1724, 265, -1335, 257, -1339, 992, -1576, 992, -1574, 2305, -2473, 2305)
+polygon = PackedVector2Array(-2472, 1979, -1721, 1978, -1720, 188, -1336, 188, -1336, 992, -1576, 992, -1576, 2304, -2472, 2304)
 
 [node name="CollisionPolygon2D10" type="CollisionPolygon2D" parent="Colision" unique_id=2025483851]
-polygon = PackedVector2Array(-2471, 2670, -1574, 2685, -1575, 3834, -1574, 4030, 424, 4028, 424, 4191, -1719, 4192, -1722, 2898, -2473, 2898)
+polygon = PackedVector2Array(-2472, 2563, -1576, 2563, -1576, 3891, 424, 3891, 424, 4192, -1720, 4192, -1720, 2896, -2472, 2896)
 
 [node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="Colision" unique_id=634087197]
-polygon = PackedVector2Array(4093, 1729, 4804, 1722, 4809, 4172, 4088, 4179)
+polygon = PackedVector2Array(4088, 1549, 4808, 1549, 4808, 4176, 4088, 4176)
 
 [node name="CollisionPolygon2D12" type="CollisionPolygon2D" parent="Colision" unique_id=671381419]
-polygon = PackedVector2Array(-1177, 246, -1181, 995, 1838, 993, 1832, 231)
+polygon = PackedVector2Array(-1176, 196, -1176, 992, 1834, 992, 1832, 197)
 
 [node name="CollisionPolygon2D13" type="CollisionPolygon2D" parent="Colision" unique_id=1180402335]
-polygon = PackedVector2Array(1979, 264, 1978, 992, 2368, 995, 2373, 2709, 3468, 2704, 3464, 2506, 2518, 2500, 2518, 261)
+polygon = PackedVector2Array(1976, 210, 1976, 992, 2376, 992, 2376, 2704, 3464, 2704, 3464, 2402, 2520, 2402, 2520, 210)
 
 [node name="CollisionPolygon2D14" type="CollisionPolygon2D" parent="Colision" unique_id=794685013]
-polygon = PackedVector2Array(921, 4001, 920, 4194, 2521, 4196, 2525, 3266, 3465, 3262, 3466, 3083, 2373, 3085, 2373, 4014)
+polygon = PackedVector2Array(920, 3902, 920, 4192, 2520, 4192, 2520, 3264, 3464, 3264, 3464, 2974, 2376, 2975, 2376, 3902)
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Colision" unique_id=146983093]
+occluder = SubResource("OccluderPolygon2D_5yfke")
+
+[node name="LightOccluder2D2" type="LightOccluder2D" parent="Colision" unique_id=908840667]
+occluder = SubResource("OccluderPolygon2D_g6luu")
+
+[node name="LightOccluder2D4" type="LightOccluder2D" parent="Colision" unique_id=350359554]
+occluder = SubResource("OccluderPolygon2D_t3mmx")
 
 [node name="MapEvents" type="Node2D" parent="." unique_id=1329688481]
 
@@ -17620,7 +17638,7 @@ open_sfx = ExtResource("5_rgbx3")
 close_sfx = ExtResource("6_5yfke")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MapEvents/ExitNorth" unique_id=1915607408]
-position = Vector2(-95.5, 94.5)
+position = Vector2(-95.5, 61)
 shape = SubResource("RectangleShape2D_1o3en")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=1198162202]

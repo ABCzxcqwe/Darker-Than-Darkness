@@ -1,9 +1,8 @@
-[gd_scene format=3 uid="uid://d2fluffypj35hitbox"]
+[gd_scene format=3 uid="uid://d02d1vtbv0irv"]
 
-[ext_resource type="Script" path="res://Hitboxes/Ralsei/FluffyProjectile.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bcavsyxkdt31p" path="res://Hitboxes/Ralsei/FluffyProjectile.gd" id="1_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shape"]
-size = Vector2(20, 20)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hitbox"]
 properties/0/path = NodePath(".:position")
@@ -13,13 +12,27 @@ properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 2
 
-[node name="FluffyHitbox" type="Area2D"]
+[node name="FluffyHitbox" type="Area2D" unique_id=1903204043]
+z_index = 3
+scale = Vector2(2, 2)
 collision_layer = 32
 collision_mask = 8
 script = ExtResource("1_script")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1754395213]
 shape = SubResource("RectangleShape2D_shape")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="ColorRect" type="ColorRect" parent="CollisionShape2D" unique_id=124397186]
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.61960787, 0, 1)
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=937807459]
 replication_config = SubResource("SceneReplicationConfig_hitbox")
