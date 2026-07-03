@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://c5iorobf8psnb" path="res://Characters/Susie/assets/susie_health.png" id="4_nise5"]
 [ext_resource type="Texture2D" uid="uid://dno0qkeb6ef8q" path="res://Characters/Susie/assets/susie_downed.png" id="4_rrjp6"]
 [ext_resource type="Texture2D" uid="uid://bt6dpju6yv3a7" path="res://Characters/Susie/assets/susie_down.png" id="5_xoerp"]
+[ext_resource type="Texture2D" uid="uid://c6x2a1tynccrv" path="res://Characters/Susie/assets/susie_walk.png" id="8_48uf1"]
 [ext_resource type="Texture2D" uid="uid://b5gjk6xpsyb7m" path="res://Characters/Susie/assets/susie_rudebuster.png" id="9_hwsp4"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mek44"]
@@ -167,40 +168,37 @@ region = Rect2(3840, 0, 384, 384)
 atlas = ExtResource("9_hwsp4")
 region = Rect2(4224, 0, 384, 384)
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_718th"]
-load_path = "res://.godot/imported/susie_run.png-957b45dc2794edea333a3b70f0900399.ctex"
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_gbekj"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(0, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(0, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5fybr"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(192, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(384, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rrjp6"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(384, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(768, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xoerp"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(576, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(1152, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_q6uwt"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(768, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(1536, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_eywc6"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(960, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(1920, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hwsp4"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(1152, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(2304, 0, 384, 384)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2jbsk"]
-atlas = SubResource("CompressedTexture2D_718th")
-region = Rect2(1344, 0, 192, 192)
+atlas = ExtResource("8_48uf1")
+region = Rect2(2688, 0, 384, 384)
 
 [resource]
 animations = [{
