@@ -643,6 +643,9 @@ func _prepare_spectator_mode() -> void:
 	if not is_multiplayer_authority():
 		return
 
+	if has_node("Vision"):
+		$Vision.notify_spectator_mode()
+
 	set_process_input(true)
 	set_physics_process(true)
 	if _spectator_camera:

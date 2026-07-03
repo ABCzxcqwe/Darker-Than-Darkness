@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="MapData" format=3 uid="uid://brm2fbmi75hjd"]
 
 [ext_resource type="AudioStream" uid="uid://cdc0y01gtc2bw" path="res://Maps/Card Castle/Assets/Deltarune - Card Castle (Sega Genesis Remix).mp3" id="1_2lybt"]
+[ext_resource type="AudioStream" uid="uid://d2a7ihc3yy3t0" path="res://Maps/Card Castle/Assets/The Escape Deltarune.wav" id="1_v5xa7"]
 [ext_resource type="PackedScene" uid="uid://b84ssskba2436" path="res://Maps/Card Castle/Castle.tscn" id="2_v5xa7"]
 [ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/map_data.gd" id="3_iv7ol"]
 
@@ -10,3 +11,4 @@ id = "1"
 display_name = "Card Castle"
 map_scene = ExtResource("2_v5xa7")
 map_bgm = ExtResource("1_2lybt")
+final_phase_music = ExtResource("1_v5xa7")

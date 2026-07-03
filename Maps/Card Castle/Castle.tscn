@@ -17536,6 +17536,36 @@ polygon = PackedVector2Array(-2455, 2520, -2454, 2604, -1702, 2606, -1703, 3952,
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_t3mmx"]
 polygon = PackedVector2Array(-2456, 2015, -1592, 2015, -1581, 459, -1354, 459, -1356, 158, -1696, 158, -1704, 1952, -2456, 1949)
 
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_38gtg"]
+polygon = PackedVector2Array(-3784, 2400, -3016, 2400, -3016, 1164, -4248, 1164, -4248, 2032, -3784, 2032)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_1o3en"]
+polygon = PackedVector2Array(-4840, 2225, -5960, 2224, -5960, 917, -4776, 917, -4776, 1169, -4408, 1169, -4408, 2036, -4840, 2036)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_nl8wk"]
+polygon = PackedVector2Array(-1155, 190, -1156, 574, 1813, 566, 1815, 200)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_ma8ny"]
+polygon = PackedVector2Array(1994, 193, 1999, 570, 2390, 575, 2391, 2447, 3448, 2448, 3448, 2361, 2504, 2368, 2503, 193)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_3a3vg"]
+polygon = PackedVector2Array(4105, 1510, 4787, 1510, 4791, 3830, 4107, 3830)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_iggt7"]
+polygon = PackedVector2Array(5514, 2303, 6679, 2305, 6679, 1753, 5514, 1755)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_0qaaa"]
+polygon = PackedVector2Array(5513, 3714, 6678, 3714, 6676, 3270, 5513, 3272)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_3jqli"]
+polygon = PackedVector2Array(937, 3856, 937, 3952, 2504, 3952, 2504, 3008, 3447, 3008, 3447, 2932, 2392, 2933, 2392, 3856)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_w677h"]
+polygon = PackedVector2Array(2698, 5949, 2774, 5949, 2772, 5484, 3430, 5482, 3431, 5403, 2695, 5403)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_dyqkr"]
+polygon = PackedVector2Array(3800, 5417, 4168, 5417, 4168, 5488, 3800, 5488)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1o3en"]
 size = Vector2(161, 126)
 
@@ -17625,6 +17655,40 @@ occluder = SubResource("OccluderPolygon2D_g6luu")
 [node name="LightOccluder2D4" type="LightOccluder2D" parent="Colision" unique_id=350359554]
 occluder = SubResource("OccluderPolygon2D_t3mmx")
 
+[node name="LightOccluder2D3" type="LightOccluder2D" parent="Colision" unique_id=1789509815]
+occluder = SubResource("OccluderPolygon2D_38gtg")
+
+[node name="LightOccluder2D5" type="LightOccluder2D" parent="Colision" unique_id=12868482]
+position = Vector2(0, -4)
+occluder = SubResource("OccluderPolygon2D_1o3en")
+
+[node name="LightOccluder2D6" type="LightOccluder2D" parent="Colision" unique_id=68573679]
+occluder = SubResource("OccluderPolygon2D_nl8wk")
+
+[node name="LightOccluder2D7" type="LightOccluder2D" parent="Colision" unique_id=1779985147]
+occluder = SubResource("OccluderPolygon2D_ma8ny")
+
+[node name="LightOccluder2D8" type="LightOccluder2D" parent="Colision" unique_id=147979196]
+occluder = SubResource("OccluderPolygon2D_3a3vg")
+
+[node name="LightOccluder2D9" type="LightOccluder2D" parent="Colision" unique_id=194287604]
+occluder = SubResource("OccluderPolygon2D_iggt7")
+
+[node name="LightOccluder2D10" type="LightOccluder2D" parent="Colision" unique_id=1310666151]
+occluder = SubResource("OccluderPolygon2D_0qaaa")
+
+[node name="LightOccluder2D11" type="LightOccluder2D" parent="Colision" unique_id=379502485]
+occluder = SubResource("OccluderPolygon2D_3jqli")
+
+[node name="LightOccluder2D12" type="LightOccluder2D" parent="Colision" unique_id=1456988629]
+occluder = SubResource("OccluderPolygon2D_w677h")
+
+[node name="LightOccluder2D13" type="LightOccluder2D" parent="Colision" unique_id=696697905]
+occluder = SubResource("OccluderPolygon2D_dyqkr")
+
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=401787612]
+color = Color(0.076835774, 0.07683585, 0.0768358, 1)
+
 [node name="MapEvents" type="Node2D" parent="." unique_id=1329688481]
 
 [node name="ExitNorth" type="Area2D" parent="MapEvents" unique_id=2138766356]
@@ -17651,7 +17715,7 @@ frame_progress = 0.602139
 
 [node name="OpenExitsPhase" type="Node" parent="MapEvents" unique_id=128559321]
 script = ExtResource("8_t3mmx")
-event_id = "open_exits_at_120s"
+event_id = "open_exits_at_80s"
 condition_value = 80.0
 action_target = "exit_north"
 

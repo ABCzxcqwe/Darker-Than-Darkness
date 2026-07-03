@@ -7820,5 +7820,4 @@ script = ExtResource("10_opnpn")
 spawn_id = "corner"
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=882330483]
-visible = false
 color = Color(0.076835774, 0.07683585, 0.0768358, 1)

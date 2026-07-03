@@ -19,6 +19,7 @@ var _game_state: Node = null
 var _lms_active: bool = false
 var _lms_exit_threshold: float = 0.0
 var _lms_exits_opened: bool = false
+var _final_phase_triggered: bool = false
 var _exit_arrows: Dictionary = {}
 
 
@@ -229,6 +230,9 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 		return
 	exit.activate()
 	exit_activated.emit(exit_id)
+	if not _final_phase_triggered:
+		_final_phase_triggered = true
+		AudioManager.activar_fase_final_del_mapa()
 	if multiplayer.is_server():
 		var radar = GameServiceLocator.get_service("RadarService")
 		if radar and not _exit_arrows.has(exit_id):
@@ -425,5 +429,6 @@ func clear() -> void:
 	_exit_arrows.clear()
 	_lms_active = false
 	_lms_exits_opened = false
+	_final_phase_triggered = false
 	_lms_exit_threshold = 0.0
 	_map_node = null
