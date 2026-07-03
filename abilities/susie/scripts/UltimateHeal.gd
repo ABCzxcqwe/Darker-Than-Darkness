@@ -27,6 +27,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			_release_lock_for(caster_id, slot_index)
 			return
 
+	if data.action_animation != "":
+		player_node.play_ability_animation(data.action_animation, slot_index, player_node.facing_right)
+
 	var heal_amount: int = 0
 	if abs_svc:
 		heal_amount = int(abs_svc.get_scaled_value(caster_id, slot_index, data))
