@@ -49,59 +49,66 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 					player_node.rpc("_sync_cancel_ability")
 		)
 
-	hs.create({
-		"attacker_id"   : attacker_id,
-		"attacker_node" : player_node,
-		"type"          : "projectile",
-		"aim_mode"      : "fixed",
-		"direction"     : proj_dir,
-		"shape_scene"   : data.ability_scene,
-		"damage"        : dmg,
-		"attack_type"   : atk_type,
-		"team_filter"   : "enemy",
-		"hit_limit"     : hit_limit,
-		"lifetime"      : PROJECTILE_LIFETIME,
-		"speed"         : PROJECTILE_SPEED,
-		"offset"        : 0.0,
-		"impact_lifetime": IMPACT_LIFETIME,
+	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+		player_node.get_tree().create_timer(0.5).timeout.connect(
+			func() -> void:
+				if not is_instance_valid(player_node) or not is_instance_valid(hs):
+					return
 
-		"on_hit": func(target_node: Node) -> void:
-			if not is_instance_valid(target_node):
-				return
+				hs.create({
+					"attacker_id"   : attacker_id,
+					"attacker_node" : player_node,
+					"type"          : "projectile",
+					"aim_mode"      : "fixed",
+					"direction"     : proj_dir,
+					"shape_scene"   : data.ability_scene,
+					"damage"        : dmg,
+					"attack_type"   : atk_type,
+					"team_filter"   : "enemy",
+					"hit_limit"     : hit_limit,
+					"lifetime"      : PROJECTILE_LIFETIME,
+					"speed"         : PROJECTILE_SPEED,
+					"offset"        : 0.0,
+					"impact_lifetime": IMPACT_LIFETIME,
 
-			if dmg > 0:
-				var combat = GameServiceLocator.get_service("CombatMediator")
-				if combat:
-					combat.apply_damage(player_node, target_node, dmg, atk_type)
+					"on_hit": func(target_node: Node) -> void:
+						if not is_instance_valid(target_node):
+							return
 
-			if target_node.is_in_group("killer"):
-				var combat = GameServiceLocator.get_service("CombatMediator")
-				if combat and stun_dur > 0.0:
-					combat.apply_stun(target_node, stun_dur)
-				if tp_reward > 0.0 and tp_svc:
-					tp_svc.add_tp_custom(attacker_id, tp_reward)
+						if dmg > 0:
+							var combat = GameServiceLocator.get_service("CombatMediator")
+							if combat:
+								combat.apply_damage(player_node, target_node, dmg, atk_type)
 
-			if cd and cd.has_method("release_lock"):
-				cd.release_lock(attacker_id, slot_index)
-			if cd:
-				cd.start(attacker_id, slot_index, data.cooldown),
+						if target_node.is_in_group("killer"):
+							var combat = GameServiceLocator.get_service("CombatMediator")
+							if combat and stun_dur > 0.0:
+								combat.apply_stun(target_node, stun_dur)
+							if tp_reward > 0.0 and tp_svc:
+								tp_svc.add_tp_custom(attacker_id, tp_reward)
 
-		"on_end": func(hit_count: int) -> void:
-			if hit_count == 0:
-				if cd and cd.has_method("release_lock"):
-					cd.release_lock(attacker_id, slot_index)
-				if cd:
-					var fail_cd: float = data.cooldown_fail if data.cooldown_fail > 0.0 else data.cooldown
-					cd.start(attacker_id, slot_index, fail_cd)
+						if cd and cd.has_method("release_lock"):
+							cd.release_lock(attacker_id, slot_index)
+						if cd:
+							cd.start(attacker_id, slot_index, data.cooldown),
 
-			print("[RudeBuster] Proyectil expiró | golpes: ", hit_count)
-	})
+					"on_end": func(hit_count: int) -> void:
+						if hit_count == 0:
+							if cd and cd.has_method("release_lock"):
+								cd.release_lock(attacker_id, slot_index)
+							if cd:
+								var fail_cd: float = data.cooldown_fail if data.cooldown_fail > 0.0 else data.cooldown
+								cd.start(attacker_id, slot_index, fail_cd)
 
-	print("[RudeBuster] Activado | peer: ", attacker_id,
-		  " | dir: ", proj_dir,
-		  " | dmg: ", dmg,
-		  " | stun: ", stun_dur, "s",
-		  " | tp_reward: ", tp_reward)
+						print("[RudeBuster] Proyectil expiró | golpes: ", hit_count)
+				})
+
+				print("[RudeBuster] Activado | peer: ", attacker_id,
+					  " | dir: ", proj_dir,
+					  " | dmg: ", dmg,
+					  " | stun: ", stun_dur, "s",
+					  " | tp_reward: ", tp_reward)
+		)
 
 
 func _get_anim_duration(player_node: Node, anim_name: String) -> float:
