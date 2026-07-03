@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dpd0t8ul7sqpv"
-path="res://.godot/imported/susie_heal.png-d68b9fcf29686c307f4f8b57622491cc.ctex"
+uid="uid://c5iorobf8psnb"
+path="res://.godot/imported/susie_health.png-c109549f11a663a342f4a6589ab3af2b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/assets/susie_heal.png"
-dest_files=["res://.godot/imported/susie_heal.png-d68b9fcf29686c307f4f8b57622491cc.ctex"]
+source_file="res://Characters/Susie/assets/susie_health.png"
+dest_files=["res://.godot/imported/susie_health.png-c109549f11a663a342f4a6589ab3af2b.ctex"]
 
 [params]
 

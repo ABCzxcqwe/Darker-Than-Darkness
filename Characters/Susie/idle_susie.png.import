@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b17pqxnwyl7f"
-path="res://.godot/imported/susie_idle.png-e44f67fb21cf85cfc6684dd734519b2c.ctex"
+uid="uid://dvebmwpotdpud"
+path="res://.godot/imported/idle_susie.png-295f7033c288f7f479bbfbc328c0ca7f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/assets/susie_idle.png"
-dest_files=["res://.godot/imported/susie_idle.png-e44f67fb21cf85cfc6684dd734519b2c.ctex"]
+source_file="res://Characters/Susie/idle_susie.png"
+dest_files=["res://.godot/imported/idle_susie.png-295f7033c288f7f479bbfbc328c0ca7f.ctex"]
 
 [params]
 
