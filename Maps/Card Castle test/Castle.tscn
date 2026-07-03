@@ -7791,6 +7791,7 @@ open_sfx = ExtResource("6_34787")
 close_sfx = ExtResource("7_v25h0")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MapEvents/ExitNorth" unique_id=1915607408]
+position = Vector2(-88, 82)
 shape = SubResource("RectangleShape2D_1o3en")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MapEvents/ExitNorth" unique_id=1198162202]
