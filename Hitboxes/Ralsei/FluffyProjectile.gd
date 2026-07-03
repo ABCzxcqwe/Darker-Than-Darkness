@@ -28,12 +28,14 @@ func _ready() -> void:
 		var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 		if anim and anim.sprite_frames and anim.sprite_frames.has_animation("travel"):
 			anim.play("travel")
+		print("[FluffyProj] _ready CLIENTE | pos: ", global_position)
 		return
 
 	_start_position = global_position
 	area_entered.connect(_on_area_entered)
 
 	var total_lifetime: float = (max_distance / speed) + lifetime_after_arrival + 0.5
+	print("[FluffyProj] _ready SERVER | pos: ", global_position, " | dir: ", direction, " | lifetime: ", total_lifetime, " | on_hit valido: ", on_hit_callback.is_valid(), " | on_end valido: ", on_end_callback.is_valid())
 	get_tree().create_timer(total_lifetime).timeout.connect(_expire)
 
 
@@ -61,20 +63,24 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
+	print("[FluffyProj] _on_area_entered | _expired: ", _expired, " | _hit: ", _hit, " | area grupo hurtbox: ", area.is_in_group("hurtbox"))
 	if _expired or _hit:
 		return
 	if not area.is_in_group("hurtbox"):
 		return
 
 	var target: Node = area.get_parent()
+	print("[FluffyProj] target: ", target, " | grupo players: ", target.is_in_group("players") if target else "no target", " | target_id: ", target.get_multiplayer_authority() if target else -1, " | attacker_id: ", attacker_id)
 	if not target or not target.is_in_group("players"):
 		return
 	if target.get_multiplayer_authority() == attacker_id:
+		print("[FluffyProj] self-hit ignorado")
 		return
 
 	_hit = true
 	set_physics_process(false)
 
+	print("[FluffyProj] GOLPEÓ a: ", target.name, " | on_hit_callback valido: ", on_hit_callback.is_valid())
 	if on_hit_callback.is_valid():
 		on_hit_callback.call(target)
 
@@ -86,6 +92,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _expire() -> void:
+	print("[FluffyProj] _expire | _expired: ", _expired, " | _hit: ", _hit, " | on_end valido: ", on_end_callback.is_valid())
 	if _expired:
 		return
 	_expired = true

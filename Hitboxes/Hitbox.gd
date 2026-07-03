@@ -140,7 +140,6 @@ func _on_body_entered(body: Node2D) -> void:
 	if body is StaticBody2D:
 		_do_impact()
 
-
 # ── Impacto (pared o jugador) ─────────────────────────────────────────
 func _do_impact(timeout_expire: bool = false) -> void:
 	if _impacted:

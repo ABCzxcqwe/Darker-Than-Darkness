@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dkfihqwcbxuvs" path="res://Hitboxes/Susie/hit.png" id="2_s85to"]
 [ext_resource type="Texture2D" uid="uid://bil3l71fv6nah" path="res://Hitboxes/Susie/Rude.png" id="3_yf8rb"]
 [ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="4_hitbox"]
+[ext_resource type="Script" uid="uid://fbcgqytt83tb" path="res://Hitboxes/GhostTrail2D.gd" id="5_dkccm"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qva7k"]
 size = Vector2(25, 50)
@@ -128,7 +129,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"travel",
-"speed": 10.0
+"speed": 12.0
 }]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_7ry3w"]
@@ -161,6 +162,9 @@ animation = &"hit"
 autoplay = "travel"
 frame = 9
 frame_progress = 1.0
+
+[node name="GhostTrail2D" type="Node2D" parent="." unique_id=81492668]
+script = ExtResource("5_dkccm")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=932993119]
 replication_config = SubResource("SceneReplicationConfig_7ry3w")

@@ -71,13 +71,13 @@ region = Rect2(400, 0, 400, 180)
 atlas = ExtResource("2_aqfmo")
 region = Rect2(0, 0, 400, 180)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_lfj08"]
-atlas = ExtResource("4_0mbdn")
-region = Rect2(0, 0, 160, 160)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_nhohh"]
 atlas = ExtResource("4_0mbdn")
 region = Rect2(160, 0, 160, 160)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lfj08"]
+atlas = ExtResource("4_0mbdn")
+region = Rect2(0, 0, 160, 160)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lhbhu"]
 atlas = ExtResource("3_1l7jp")
@@ -346,14 +346,26 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_lfj08")
+"texture": SubResource("AtlasTexture_nhohh")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nhohh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nhohh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lfj08")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lfj08")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lfj08")
 }],
 "loop": false,
 "name": &"jevil_tp",
-"speed": 5.0
+"speed": 6.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -464,7 +476,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_7566h")
 }],
-"loop": false,
+"loop": true,
 "name": &"stun",
 "speed": 7.2
 }, {

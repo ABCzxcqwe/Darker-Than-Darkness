@@ -7504,46 +7504,46 @@ polygon = PackedVector2Array(4863, 6412, 4583, 6412, 4583, 6324, 4855, 6324, 485
 polygon = PackedVector2Array(-1989, 156, -1989, 484, -2341, 484, -2341, 156)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_3ix87"]
-polygon = PackedVector2Array(-2341, 2436, -2341, 484, -2229, 484, -2230, 2425)
+polygon = PackedVector2Array(-2341, 2436, -2341, 484, -2229, 484, -2229, 2436)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_54c11"]
-polygon = PackedVector2Array(-2341, 2372, -2341, 2436, -2997, 2436, -3093, 2364, -2357, 2364, -2357, 2372)
+polygon = PackedVector2Array(-2341, 2372, -2341, 2436, -3093, 2436, -3093, 2364, -2357, 2364, -2357, 2372)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_0f72j"]
 polygon = PackedVector2Array(2763, 464, 2763, 136, 3275, 136, 3275, 464)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_8x518"]
-polygon = PackedVector2Array(3163, 464, 3267, 464, 3267, 472, 3275, 472, 3275, 2448, 3163, 2696)
+polygon = PackedVector2Array(3163, 464, 3267, 464, 3267, 472, 3275, 472, 3275, 2448, 3163, 2448)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_5i4fg"]
-polygon = PackedVector2Array(4219, 2696, 4123, 2448, 3275, 2448, 3275, 2368, 3291, 2368, 3291, 2360, 4219, 2360)
+polygon = PackedVector2Array(4219, 2448, 3275, 2448, 3275, 2368, 3291, 2368, 3291, 2360, 4219, 2360)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_2hxij"]
 polygon = PackedVector2Array(-2189.816, 3858.0002, -2170.7075, 3858.0002, -2170.7075, 3850.0002, 198.72946, 3850.0002, 198.72946, 3954.0002, -2189.816, 3954.0002)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_63vlj"]
-polygon = PackedVector2Array(-2189.816, 3010, -2189.816, 4186.0005, -2323.5745, 4186.0005, -2323.5745, 3010)
+polygon = PackedVector2Array(-2189.816, 3010, -2189.816, 3954.0002, -2323.5745, 3954.0002, -2323.5745, 3010)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_6064b"]
-polygon = PackedVector2Array(-3221.6672, 2922, -2189.816, 2922, -2189.816, 3010, -3107.017, 3010, -3107.017, 3290, -3221.6672, 3290)
+polygon = PackedVector2Array(-3221.6672, 2922, -2189.816, 2922, -2189.816, 3010, -3221.6672, 3010)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_brf6x"]
 polygon = PackedVector2Array(2912.4226, 3952, 1258.9037, 3952, 1098.3679, 3952, 1098.3679, 3848, 2896.369, 3848, 2896.369, 3856, 2912.4226, 3856)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_8mmx1"]
-polygon = PackedVector2Array(2912.4226, 2920.0002, 3971.959, 2920.0002, 3971.959, 3256.0002, 3875.6375, 3256.0002, 3876.6409, 3008.0002, 2912.4226, 3008.0002)
+polygon = PackedVector2Array(2912.4226, 2920.0002, 3971.959, 2920.0002, 3970.9556, 3008.0002, 2912.4226, 3008.0002)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_tx4ok"]
-polygon = PackedVector2Array(2912.4226, 3008.0002, 3024.7976, 3008.0002, 3024.7976, 4184, 2912.4226, 4184)
+polygon = PackedVector2Array(2912.4226, 3008.0002, 3024.7976, 3008.0002, 3024.7976, 3952, 2912.4226, 3952)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_adr7g"]
-polygon = PackedVector2Array(4910, 1429, 6142, 1429, 6142, 4117, 6046, 4117, 6046, 3789, 5006, 3789, 5006, 4117, 4910, 4117)
+polygon = PackedVector2Array(4910, 1429, 6142, 1429, 6142, 3789, 4910, 3789)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_kfc5g"]
-polygon = PackedVector2Array(-1068, 5218, -1068, 5618, -1180, 5618, -1180, 5306, -2236, 5306, -2236, 5618, -2332, 5618, -2332, 5218)
+polygon = PackedVector2Array(-1068, 5218, -1068, 5618, -1180, 5306, -2236, 5306, -2332, 5618, -2332, 5218)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_um5k7"]
-polygon = PackedVector2Array(-1063, 6183, -1175, 6183, -1175, 5983, -2231, 5983, -2231, 6183, -2327, 6183, -2327, 5783, -2231, 5783, -2231, 5903, -2215, 5903, -2215, 5895, -1191, 5895, -1191, 5903, -1175, 5903, -1175, 5783, -1063, 5783)
+polygon = PackedVector2Array(-1063, 5983, -1175, 5983, -2231, 5983, -2327, 5983, -2327, 5783, -2231, 5903, -2215, 5903, -2215, 5895, -1191, 5895, -1191, 5903, -1175, 5903, -1063, 5783)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_oul5r"]
 polygon = PackedVector2Array(3470, 6350, 4206, 6350, 4206, 6438, 3550, 6438, 3550, 6902, 3470, 6902)
@@ -7819,4 +7819,5 @@ script = ExtResource("10_opnpn")
 spawn_id = "corner"
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=882330483]
+visible = false
 color = Color(0.076835774, 0.07683585, 0.0768358, 1)
