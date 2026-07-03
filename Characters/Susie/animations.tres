@@ -42,6 +42,22 @@ region = Rect2(768, 0, 384, 384)
 atlas = ExtResource("2_gbekj")
 region = Rect2(1152, 0, 384, 384)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_718th"]
+atlas = ExtResource("2_gbekj")
+region = Rect2(0, 0, 384, 384)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k3aj8"]
+atlas = ExtResource("2_gbekj")
+region = Rect2(384, 0, 384, 384)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xvrxk"]
+atlas = ExtResource("2_gbekj")
+region = Rect2(768, 0, 384, 384)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yu7qk"]
+atlas = ExtResource("2_gbekj")
+region = Rect2(1152, 0, 384, 384)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_ak0ej"]
 atlas = ExtResource("1_ggmbj")
 region = Rect2(100, 300, 100, 100)
@@ -234,7 +250,19 @@ animations = [{
 "name": &"idle_horizontal",
 "speed": 5.0
 }, {
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_718th")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k3aj8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xvrxk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yu7qk")
+}],
 "loop": true,
 "name": &"idle_prepare",
 "speed": 5.0
@@ -280,9 +308,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_h3x6s")
 }],
-"loop": true,
+"loop": false,
 "name": &"magic_health",
-"speed": 5.0
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -360,7 +388,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"susie_rude_buster",
-"speed": 5.0
+"speed": 9.0
 }, {
 "frames": [{
 "duration": 1.0,
