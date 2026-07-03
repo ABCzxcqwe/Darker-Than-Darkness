@@ -6,6 +6,7 @@ signal ability_used(ability_index: int)
 enum AnimState { IDLE, PREPARE, ABILITY, STUNNED }
 
 const HURT_FLASH_DURATION_MS: int = 300
+const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const WALK_SPEED_THRESHOLD: float = 650.0
 
@@ -26,6 +27,7 @@ var last_animation:   String = "idle_horizontal"
 var facing_right:     bool   = true
 var invincible_until: int    = 0
 var hurt_flash_until: int    = 0
+var heal_flash_until: int    = 0
 var _original_modulate: Color
 
 var facing: Vector2 = Vector2.RIGHT
@@ -133,11 +135,18 @@ func _process(_delta: float) -> void:
 		return
 
 	var now := Time.get_ticks_msec()
+	var target_modulate := _original_modulate
+
 	if now < invincible_until:
 		var _show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
-		animated_sprite.modulate.a = _original_modulate.a if _show else 0.2
-	elif not animated_sprite.modulate.is_equal_approx(_original_modulate):
-		animated_sprite.modulate = _original_modulate
+		target_modulate.a = _original_modulate.a if _show else 0.2
+
+	if now < heal_flash_until:
+		var strength = float(heal_flash_until - now) / HEAL_FLASH_DURATION_MS
+		target_modulate *= Color(1.0, 1.0, 1.0).lerp(Color(0.5, 1.5, 0.5), strength)
+
+	if not animated_sprite.modulate.is_equal_approx(target_modulate):
+		animated_sprite.modulate = target_modulate
 
 	if state == AnimState.IDLE and character_data and character_data.id == 4 and last_animation == "idle_horizontal":
 		animated_sprite.position.y = sin(Time.get_ticks_msec() * 0.005) * 16.0
@@ -810,6 +819,8 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 		hurt_flash_until = Time.get_ticks_msec() + HURT_FLASH_DURATION_MS
 		if is_multiplayer_authority():
 			$Camera2D.shake(5.0, 0.2)
+	elif new_health > old_health:
+		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
 
 	var should_be_state = ""
 	if health <= 0:

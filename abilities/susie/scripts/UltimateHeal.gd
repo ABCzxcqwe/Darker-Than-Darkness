@@ -34,18 +34,13 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		heal_amount = int(data.scaling_base_value)
 	heal_amount = maxi(1, heal_amount)
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
-	if not health_svc:
-		push_error("[UltimateHealth] HealthService no disponible.")
+	var combat = GameServiceLocator.get_service("CombatMediator")
+	if not combat:
+		push_error("[UltimateHealth] CombatMediator no disponible.")
 		_release_lock_for(caster_id, slot_index)
 		return
 
-	if not health_svc.is_alive(target_peer_id):
-		print("[UltimateHealth] El objetivo está caído o muerto.")
-		_release_lock_for(caster_id, slot_index)
-		return
-
-	health_svc.heal(target_node, heal_amount)
+	combat.apply_heal(player_node, target_node, heal_amount)
 
 	if abs_svc:
 		abs_svc.register_use(caster_id, slot_index, data)

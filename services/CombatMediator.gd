@@ -13,6 +13,7 @@ var _protections: Dictionary = {}
 
 signal damage_dealt(attacker_id: int, target_id: int, final_damage: int, attack_type: String)
 signal stun_applied(target_id: int, duration: float)
+signal heal_applied(caster_id: int, target_id: int, amount: int)
 
 func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
 	if not multiplayer.is_server():
@@ -65,6 +66,25 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 		_play_hurt_sound(target)
 
 	return final_damage
+
+
+func apply_heal(caster: Node, target: Node, amount: int) -> int:
+	if not multiplayer.is_server():
+		return 0
+
+	var health_svc = GameServiceLocator.get_service("HealthService")
+	if not health_svc:
+		return 0
+
+	var target_peer: int = target.get_multiplayer_authority()
+	if not health_svc.is_alive(target_peer):
+		return 0
+
+	health_svc.heal(target, amount)
+
+	var caster_id: int = caster.get_multiplayer_authority() if caster else 0
+	heal_applied.emit(caster_id, target_peer, amount)
+	return amount
 
 
 func calculate_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
