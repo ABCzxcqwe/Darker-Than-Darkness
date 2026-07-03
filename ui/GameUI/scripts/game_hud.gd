@@ -262,6 +262,9 @@ func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = fals
 	for player in get_tree().get_nodes_in_group("survivor"):
 		if "health_state" in player and player.health_state != "alive":
 			continue
+		var coord = GameServiceLocator.get_service("MapEventCoordinator")
+		if coord and coord.has_player_escaped(player.get_multiplayer_authority()):
+			continue
 		var data: CharacterData = player.character_data if player.get("character_data") else null
 		if not data: continue
 
