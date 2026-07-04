@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://fv0xvgd6j6bb"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_i4atc"]
+[ext_resource type="Resource" uid="uid://fy2b3ca2wy3d" path="res://abilities/susie/AxeSlash.tres" id="2_er8to"]
+[ext_resource type="Resource" uid="uid://b2crfnqna57t1" path="res://abilities/susie/RudeBuster.tres" id="3_vjxak"]
+[ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal.tres" id="4_2iktt"]
+[ext_resource type="SpriteFrames" uid="uid://bbodi1wks2w6k" path="res://Characters/Susie(lms)/animations.tres" id="5_1e2ql"]
+[ext_resource type="Texture2D" uid="uid://b8j5ipk11wnms" path="res://Characters/Susie(lms)/assets/icon.png" id="6_wghvt"]
+[ext_resource type="AudioStream" uid="uid://x11owyieepwu" path="res://Characters/Susie(lms)/assets/VS Susie Reprise.mp3" id="7_kafre"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="8_h0sso"]
+
+[resource]
+script = ExtResource("8_h0sso")
+id = 2
+display_name = "SUSIE"
+speed = 510.0
+max_health = 140
+size_x = 50
+size_y = 28
+position_y = 48
+h_size_y = 120
+h_position_y = 12
+bleed_out_time = 20.0
+lms_music = ExtResource("7_kafre")
+lms_duration = 225.0
+lms_exit_timer_threshold = 60.0
+ability_slots = Array[ExtResource("1_i4atc")]([ExtResource("2_er8to"), ExtResource("3_vjxak"), ExtResource("4_2iktt"), null, null])
+tp_gain_time = 1.3
+stamina_max = 200.0
+stamina_regen_rate = 25.0
+stamina_sprint_drain = 35.0
+icon = ExtResource("6_wghvt")
+panel_texture = ExtResource("6_wghvt")
+animation_frames = ExtResource("5_1e2ql")
+theme_color = Color(0.9781738, 0.42510337, 0.93142635, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"
