@@ -191,8 +191,8 @@ func _is_disconnected_or_menu() -> bool:
 func _update_proximities(player: Node, delta: float) -> void:
 	if not is_instance_valid(player):
 		return
-	if "is_spectator" in player and player.is_spectator:
-		var target = player.get("_follow_target")
+	if "interaction" in player and player.interaction and player.interaction.is_spectator:
+		var target = player.interaction._follow_target
 		if is_instance_valid(target):
 			player = target
 		else:
@@ -231,7 +231,7 @@ func _update_proximities(player: Node, delta: float) -> void:
 
 	var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
 
-	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 
 	if is_killer:
 		for s in survivors:

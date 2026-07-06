@@ -22,7 +22,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	_active = true
 	_area_radius = data.range_ if data.range_ > 0.0 else 300.0
 
-	var tp_svc = GameServiceLocator.get_service("TPService")
+	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(_caster_id, data.tp_cost):
 			_fail_cleanup()
@@ -31,7 +31,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, _slot_index, player_node.facing_right)
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if combat:
 		combat.apply_root(_player_node, CHARGE_DURATION + 0.5)
 
@@ -56,7 +56,7 @@ func _check_stun() -> void:
 	if not _active or not is_instance_valid(_player_node):
 		return
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status and status.is_stunned(_caster_id):
 		_cancel_charge()
 		return
@@ -75,11 +75,11 @@ func _cancel_charge() -> void:
 
 	_hide_indicator()
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if combat and is_instance_valid(_player_node):
 		combat.remove_root(_player_node)
 
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		if _data and _data.cooldown_cancel > 0.0:
@@ -98,7 +98,7 @@ func _on_charge_complete() -> void:
 
 	_hide_indicator()
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if not is_instance_valid(_player_node):
 		return
 
@@ -107,7 +107,7 @@ func _on_charge_complete() -> void:
 
 	_apply_effects(combat)
 
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		cd.start(_caster_id, _slot_index, _data.cooldown if _data else 15.0)
@@ -121,7 +121,7 @@ func _on_charge_complete() -> void:
 
 func _apply_effects(combat: Node) -> void:
 	var center: Vector2 = _player_node.global_position
-	var status_svc = GameServiceLocator.get_service("StatusEffectService")
+	var status_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	var slow_dur: float = _data.slow_duration if _data and _data.slow_duration > 0.0 else 3.0
 	var slow_mag: float = _data.slow_magnitude if _data and _data.slow_magnitude > 0.0 else 0.3
 	var silence_dur: float = _data.stun_duration if _data and _data.stun_duration > 0.0 else 3.0
@@ -156,7 +156,7 @@ func _hide_indicator() -> void:
 
 func _fail_cleanup() -> void:
 	_active = false
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 	print("[Pacify] Fallo en activación | peer: ", _caster_id)

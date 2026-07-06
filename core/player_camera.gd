@@ -23,7 +23,7 @@ func _process(delta: float) -> void:
 	if not parent:
 		return
 
-	if parent.is_spectator:
+	if parent.interaction.is_spectator:
 		offset = Vector2.ZERO
 		return
 
@@ -59,7 +59,7 @@ func _update_shake(delta: float) -> void:
 
 func _update_zoom(parent: Node2D, delta: float) -> void:
 	var target := zoom_base
-	if parent._is_sprinting:
+	if parent.movement_component.is_sprinting():
 		target = zoom_sprint
 	zoom = zoom.lerp(Vector2(target, target), zoom_speed * delta)
 

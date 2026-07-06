@@ -18,14 +18,14 @@ func _on_server_disconnected() -> void:
 
 
 func host_launch_game() -> void:
-	if not NetworkManager.is_host:
+	if not LobbyManager.is_host:
 		return
 
 	var char_map = {}
-	for id in NetworkManager.players:
-		char_map[id] = NetworkManager.players[id].character_id
+	for id in LobbyManager.players:
+		char_map[id] = LobbyManager.players[id].character_id
 
-	rpc("_begin_game", char_map, NetworkManager.selected_map)
+	rpc("_begin_game", char_map, LobbyManager.selected_map)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -33,7 +33,7 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 	print("Comenzando partida con el mapa: ", map_id)
 	GameData.selected_map = map_id
 
-	for node in get_tree().get_nodes_in_group("character_select_screen"):
+	for node in get_tree().get_nodes_in_group(GroupNames.CHARACTER_SELECT_SCREEN):
 		node.queue_free()
 
 	current_game_manager = MAIN_SCENE.instantiate()
@@ -62,18 +62,18 @@ func _go_to_stats_screen(stats_data: Dictionary) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func host_return_to_lobby_reconfigured() -> void:
-	if not NetworkManager.is_host:
+	if not LobbyManager.is_host:
 		return
 
-	for pid in NetworkManager.players:
-		NetworkManager.players[pid]["character_id"] = -1
+	for pid in LobbyManager.players:
+		LobbyManager.players[pid]["character_id"] = -1
 
-	rpc("_back_to_lobby_scene", NetworkManager.players)
+	rpc("_back_to_lobby_scene", LobbyManager.players)
 
 
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
-	NetworkManager.players = reseted_players
+	LobbyManager.players = reseted_players
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 
@@ -82,18 +82,15 @@ func reset_to_menu() -> void:
 		return
 	_resetting = true
 	print("[MatchCoordinator] reset_to_menu")
-	if multiplayer.multiplayer_peer:
-		multiplayer.multiplayer_peer.close()
-	multiplayer.multiplayer_peer = null
-
 	cleanup_game_manager()
 
-	NetworkManager.players.clear()
-	NetworkManager.local_player_name = ""
-	NetworkManager.selected_map = ""
-	NetworkManager.is_host = false
+	NetworkManager.disconnect_from_server()
+	LobbyManager.reset_lobby_state()
+	LobbyManager.local_player_name = ""
+	LobbyManager.selected_map = ""
+	LobbyManager.is_host = false
 
-	for match_coordinator in get_tree().get_nodes_in_group("match_coordinator"):
+	for match_coordinator in get_tree().get_nodes_in_group(GroupNames.MATCH_COORDINATOR):
 		match_coordinator.queue_free()
 
 	call_deferred("_do_change_to_menu")

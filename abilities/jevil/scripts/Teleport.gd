@@ -37,14 +37,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	_active = true
 	_teleports_done = 0
 
-	_tp_svc = GameServiceLocator.get_service("TPService")
+	_tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 	if data.tp_cost > 0.0 and _tp_svc:
 		if not _tp_svc.consume_tp(_caster_id, data.tp_cost):
 			return
 
-	_cd_svc = GameServiceLocator.get_service("CooldownService")
-	_hs = GameServiceLocator.get_service("HitboxService")
-	_combat = GameServiceLocator.get_service("CombatMediator")
+	_cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	_hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
+	_combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 
 	if _combat:
 		_combat.apply_root(_player_node, ROOT_DURATION)
@@ -228,7 +228,7 @@ func _find_random_target():
 	var alive := []
 	for s in survivors:
 		if is_instance_valid(s):
-			var hp_svc = GameServiceLocator.get_service("HealthService")
+			var hp_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 			if hp_svc and hp_svc.is_alive(s.get_multiplayer_authority()):
 				alive.append(s)
 	if alive.is_empty():

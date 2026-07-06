@@ -61,10 +61,10 @@ func _full_network_reset():
 	if NetworkManager.multiplayer.multiplayer_peer:
 		NetworkManager.multiplayer.multiplayer_peer.close()
 	NetworkManager.multiplayer.multiplayer_peer = null
-	NetworkManager.players.clear()
-	NetworkManager.local_player_name = ""
-	NetworkManager.selected_map = ""
-	NetworkManager.is_host = false
+	LobbyManager.reset_lobby_state()
+	LobbyManager.local_player_name = ""
+	LobbyManager.selected_map = ""
+	LobbyManager.is_host = false
 	# Esperar múltiples frames para purgar caché
 	await get_tree().process_frame
 	await get_tree().process_frame

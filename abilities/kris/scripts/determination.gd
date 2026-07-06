@@ -10,12 +10,12 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var caster_id: int = player_node.get_multiplayer_authority()
 
-	var tp_svc = GameServiceLocator.get_service("TPService")
+	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
 			return
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if not combat:
 		return
 
@@ -24,7 +24,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	combat.register_protection(caster_id, caster_id,
 		combat.ProtectionType.DEATH_SHIELD, {})
 
-	var cd_svc = GameServiceLocator.get_service("CooldownService")
+	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	var timer := player_node.get_tree().create_timer(DURATION)
 	timer.timeout.connect(func() -> void:
 		combat.unregister_protection(caster_id, caster_id,

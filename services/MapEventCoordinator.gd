@@ -30,13 +30,13 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	_timer_service = GameServiceLocator.get_service("TimerService")
-	_health_service = GameServiceLocator.get_service("HealthService")
-	_game_state = GameServiceLocator.get_service("GameStateService")
+	_timer_service = GameServiceLocator.get_service(ServiceNames.TIMER)
+	_health_service = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	_game_state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
 	if _timer_service and _timer_service.has_signal("timer_changed"):
 		_timer_service.timer_changed.connect(_on_timer_changed)
 
-	var lms = GameServiceLocator.get_service("LMSService")
+	var lms = GameServiceLocator.get_service(ServiceNames.LMS)
 	if lms:
 		if lms.has_signal("lms_activated"):
 			lms.lms_activated.connect(_on_lms_activated)
@@ -194,7 +194,7 @@ func _check_condition(event: MapPhaseEvent) -> bool:
 			var alive = _count_alive_survivors()
 			return alive <= event.condition_value
 		MapPhaseEvent.ConditionType.LMS_ACTIVE:
-			var lms = GameServiceLocator.get_service("LMSService")
+			var lms = GameServiceLocator.get_service(ServiceNames.LMS)
 			return lms != null and lms.is_lms_active()
 		MapPhaseEvent.ConditionType.ALWAYS:
 			return true
@@ -202,6 +202,8 @@ func _check_condition(event: MapPhaseEvent) -> bool:
 
 
 func _execute_action(event: MapPhaseEvent) -> void:
+	if not multiplayer.is_server():
+		return
 	match event.action:
 		MapPhaseEvent.ActionType.ACTIVATE_EXIT:
 			activate_exit(event.action_target)
@@ -222,6 +224,8 @@ func _execute_action(event: MapPhaseEvent) -> void:
 # ── Exit Management ───────────────────────────────────────
 
 func activate_exit(exit_id: String, force: bool = false) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _exits.has(exit_id):
 		push_warning("[MapEventCoordinator] Exit '", exit_id, "' no encontrado.")
 		return
@@ -234,7 +238,7 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 		_final_phase_triggered = true
 		AudioManager.activar_fase_final_del_mapa()
 	if multiplayer.is_server():
-		var radar = GameServiceLocator.get_service("RadarService")
+		var radar = GameServiceLocator.get_service(ServiceNames.RADAR)
 		if radar and not _exit_arrows.has(exit_id):
 			var arrow_id = radar.show_map_indicator(exit.global_position)
 			if arrow_id >= 0:
@@ -243,12 +247,14 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 
 
 func deactivate_exit(exit_id: String) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _exits.has(exit_id):
 		return
 	_exits[exit_id].deactivate()
 	exit_deactivated.emit(exit_id)
 	if multiplayer.is_server() and _exit_arrows.has(exit_id):
-		var radar = GameServiceLocator.get_service("RadarService")
+		var radar = GameServiceLocator.get_service(ServiceNames.RADAR)
 		if radar:
 			radar.remove_map_indicator(_exit_arrows[exit_id])
 		_exit_arrows.erase(exit_id)
@@ -291,7 +297,7 @@ func _on_player_entered_exit(body: Node, exit_id: String) -> void:
 	var peer_id = body.get_multiplayer_authority()
 	if peer_id < 0:
 		return
-	if NetworkManager.players.get(peer_id, {}).get("assigned_role") != "survivor":
+	if LobbyManager.players.get(peer_id, {}).get("assigned_role") != "survivor":
 		return
 	_process_escape(peer_id, exit_id)
 
@@ -322,8 +328,8 @@ func _process_escape(peer_id: int, exit_id: String) -> void:
 func _check_match_end() -> void:
 	var total_survivors := 0
 	var escaped_count := 0
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["assigned_role"] != "survivor":
+	for pid in LobbyManager.players:
+		if LobbyManager.players[pid]["assigned_role"] != "survivor":
 			continue
 		total_survivors += 1
 		if pid in _escaped_players:
@@ -359,6 +365,8 @@ func _deactivate_trigger(trigger_id: String) -> void:
 # ── Spawn Points ──────────────────────────────────────────
 
 func spawn_at_point(spawn_id: String, parent: Node = null) -> Node:
+	if not multiplayer.is_server():
+		return null
 	if not _spawn_points.has(spawn_id):
 		return null
 	var instance = _spawn_points[spawn_id].spawn_random()
@@ -400,8 +408,8 @@ func _find_player(peer_id: int) -> Node:
 
 func _count_alive_survivors() -> int:
 	var count := 0
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+	for pid in LobbyManager.players:
+		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
 				count += 1
 	return count
@@ -421,6 +429,8 @@ func _register_escaped(peer_id: int) -> void:
 
 
 func clear() -> void:
+	if not multiplayer.is_server():
+		return
 	_exits.clear()
 	_triggers.clear()
 	_spawn_points.clear()

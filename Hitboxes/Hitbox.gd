@@ -101,11 +101,11 @@ func _physics_process(delta: float) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if _expired or _impacted:
 		return
-	if not area.is_in_group("hurtbox"):
+	if not area.is_in_group(GroupNames.HURTBOX):
 		return
 
 	var target: Node = area.get_parent()
-	if not target or not target.is_in_group("players"):
+	if not target or not target.is_in_group(GroupNames.PLAYERS):
 		return
 
 	# Sin auto-golpe

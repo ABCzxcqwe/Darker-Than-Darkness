@@ -11,12 +11,12 @@ var _focus_idx := 0
 
 func _ready():
 	add_to_group("lobby")
-	start_btn.visible = NetworkManager.is_host
-	map_label.text = "Mapa: " + NetworkManager.selected_map
+	start_btn.visible = LobbyManager.is_host
+	map_label.text = "Mapa: " + LobbyManager.selected_map
 
-	NetworkManager.lobby_updated.connect(_update_player_list)
-	NetworkManager.player_joined.connect(_on_player_joined)
-	NetworkManager.player_left.connect(_on_player_left)
+	LobbyManager.lobby_updated.connect(_update_player_list)
+	LobbyManager.player_joined.connect(_on_player_joined)
+	LobbyManager.player_left.connect(_on_player_left)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
 
 	_update_player_list()
@@ -66,25 +66,25 @@ func _input(event):
 
 func _update_player_list():
 	player_list.clear()
-	for p in NetworkManager.get_player_list():
+	for p in LobbyManager.get_player_list():
 		var text = p.name
 		if p.is_host:
 			text += " (HOST)"
 		var char_name = "?"
 		if p.character_id != -1:
-			var data := CharacterRegistry.get_character(p.character_id)
+			var data: CharacterData = CharacterRegistry.get_character(p.character_id)
 			if data:
 				char_name = data.display_name
 		text += " - Personaje: " + char_name
 		player_list.add_item(text)
 	
-	var map_id: String = NetworkManager.selected_map as String
+	var map_id: String = LobbyManager.selected_map as String
 	if MapRegistry.has_map(map_id):
 		var map_data: MapData = MapRegistry.get_map(map_id) as MapData
 		map_label.text = "Mapa: " + map_data.display_name
 	else:
 		map_label.text = "Mapa: " + (map_id if not map_id.is_empty() else "Cargando...")
-	status_label.text = "Jugadores: %d/%d" % [NetworkManager.players.size(), NetworkManager.MAX_PLAYERS]
+	status_label.text = "Jugadores: %d/%d" % [LobbyManager.players.size(), LobbyManager.MAX_PLAYERS]
 
 func _on_player_joined(_peer_id: int, _info: Dictionary):
 	_update_player_list()
@@ -101,14 +101,14 @@ func _on_server_disconnected():
 # En Lobby.gd, dentro de _on_start_pressed()
 func _on_start_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)
-	if not NetworkManager.is_host:
+	if not LobbyManager.is_host:
 		return
-	if NetworkManager.players.size() < 2:
+	if LobbyManager.players.size() < 2:
 		status_label.text = "No hay suficientes jugadores."
 		return
 	
 	# LLAMADA AL NUEVO SISTEMA ASIMÉTRICO
-	NetworkManager.host_start_character_selection()
+	LobbyManager.host_start_character_selection()
 
 func _on_leave_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)

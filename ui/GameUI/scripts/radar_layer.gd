@@ -26,7 +26,7 @@ var _my_team: String = "survivor"
 func setup(my_id: int, my_team: String) -> void:
 	_my_id = my_id
 	_my_team = my_team
-	var svc = GameServiceLocator.get_service("RadarService")
+	var svc = GameServiceLocator.get_service(ServiceNames.RADAR)
 	if svc:
 		if svc.arrow_spawned.is_connected(_on_arrow_spawned):
 			return

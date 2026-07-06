@@ -27,7 +27,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 		return 0
 
 	var target_peer: int = target.get_multiplayer_authority()
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if not health_svc:
 		return 0
 
@@ -52,7 +52,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	health_svc.take_damage(target, final_damage)
 
-	var status_svc = GameServiceLocator.get_service("StatusEffectService")
+	var status_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status_svc and target.character_data and target.character_data.team == "survivor":
 		status_svc.apply(target, "speed_boost", {
 			"duration": SPEED_BOOST_DURATION,
@@ -72,7 +72,7 @@ func apply_heal(caster: Node, target: Node, amount: int) -> int:
 	if not multiplayer.is_server():
 		return 0
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if not health_svc:
 		return 0
 
@@ -97,7 +97,7 @@ func _calculate_damage(_attacker: Node, target: Node, base_damage: int, _attack_
 	if not target.character_data:
 		return maxi(1, damage)
 
-	var lms_svc = GameServiceLocator.get_service("LMSService")
+	var lms_svc = GameServiceLocator.get_service(ServiceNames.LMS)
 	if lms_svc and lms_svc.is_lms_active():
 		var target_peer: int = target.get_multiplayer_authority()
 		var lms_survivor = lms_svc.get_active_survivor()
@@ -106,7 +106,7 @@ func _calculate_damage(_attacker: Node, target: Node, base_damage: int, _attack_
 			if resistance > 0.0:
 				damage = ceili(damage * (1.0 - resistance))
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status:
 		var target_peer: int = target.get_multiplayer_authority()
 		var dr: float = status.get_post_stun_dr(target_peer)
@@ -120,7 +120,7 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 	if not is_instance_valid(target):
 		return false
 
-	var abs_svc = GameServiceLocator.get_service("AbilityStateService")
+	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
 	if not abs_svc:
 		return false
 
@@ -138,10 +138,10 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 		if not base_data or not base_data.ability_script:
 			continue
 
-		var evolution_svc = GameServiceLocator.get_service("EvolutionService")
+		var evolution_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
 		var is_evolved: bool = evolution_svc != null and evolution_svc.is_evolved(target_peer, slot_index)
 
-		var lms_svc = GameServiceLocator.get_service("LMSService")
+		var lms_svc = GameServiceLocator.get_service(ServiceNames.LMS)
 		if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
 			if lms_svc and lms_svc.is_lms_active():
 				var lms_survivor = lms_svc.get_active_survivor()
@@ -175,7 +175,7 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> voi
 	var target_peer: int = target.get_multiplayer_authority() if target else -1
 	stun_applied.emit(target_peer, duration)
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status:
 		var params := { "duration": duration }
 		if post_stun_dr > 0.0:
@@ -187,7 +187,7 @@ func apply_slow(target: Node, duration: float, magnitude: float) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status:
 		status.apply(target, "slow", { "duration": duration, "magnitude": magnitude })
 
@@ -196,7 +196,7 @@ func apply_root(target: Node, duration: float) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status:
 		status.apply(target, "root", { "duration": duration })
 
@@ -217,12 +217,14 @@ func remove_effect(target: Node, effect_name: String) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var status = GameServiceLocator.get_service("StatusEffectService")
+	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status:
 		status.remove_effect(target, effect_name)
 
 
 func register_protection(protected_id: int, protector_id: int, type: int, params: Dictionary = {}) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _protections.has(protected_id):
 		_protections[protected_id] = []
 	_protections[protected_id].append({
@@ -233,6 +235,8 @@ func register_protection(protected_id: int, protector_id: int, type: int, params
 
 
 func unregister_protection(protected_id: int, protector_id: int, type: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _protections.has(protected_id):
 		return
 	_protections[protected_id] = _protections[protected_id].filter(
@@ -243,6 +247,8 @@ func unregister_protection(protected_id: int, protector_id: int, type: int) -> v
 
 
 func unregister_all_for_protector(protector_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	for protected_id in _protections.keys():
 		_protections[protected_id] = _protections[protected_id].filter(
 			func(p): return p.protector_id != protector_id
@@ -277,7 +283,7 @@ func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
 				var share_pct: float = p.params.get("share_pct", 0.5)
 				var shared: int = ceil(final_amount * share_pct)
 
-				var health_svc = GameServiceLocator.get_service("HealthService")
+				var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 				if not health_svc:
 					continue
 
@@ -305,7 +311,7 @@ func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
 
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
-	return get_tree().root.find_child(str(peer_id), true, false)
+	return PlayerRegistry.get_player(peer_id)
 
 
 func _play_hurt_sound(target: Node) -> void:

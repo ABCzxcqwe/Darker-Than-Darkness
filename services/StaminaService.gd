@@ -21,6 +21,8 @@ func _ready() -> void:
 
 
 func register_player(peer_id: int, data: Resource) -> void:
+	if not multiplayer.is_server():
+		return
 	_stamina[peer_id] = data.stamina_max
 	_character_data[peer_id] = data
 	_sprinting[peer_id] = false
@@ -30,13 +32,15 @@ func register_player(peer_id: int, data: Resource) -> void:
 
 
 func unregister_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	_stamina.erase(peer_id)
 	_character_data.erase(peer_id)
 	_sprinting.erase(peer_id)
 	_exhausted.erase(peer_id)
 
 
-@rpc("any_peer", "reliable")
+@rpc("authority", "call_local", "reliable")
 func sync_stamina_to_client(peer_id: int, current: float, max_s: float) -> void:
 	_stamina[peer_id] = current
 	stamina_changed.emit(peer_id, current, max_s)

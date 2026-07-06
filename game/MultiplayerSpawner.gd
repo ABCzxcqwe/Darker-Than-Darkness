@@ -19,8 +19,8 @@ func _custom_spawn(data: Array) -> Node:
 
 	# Posicionar según el rol (el mapa ya está cargado cuando se spawnea)
 	var player_role := "survivor"
-	if NetworkManager.players.has(id):
-		player_role = NetworkManager.players[id].get("assigned_role", "survivor")
+	if LobbyManager.players.has(id):
+		player_role = LobbyManager.players[id].get("assigned_role", "survivor")
 
 	var world_node = get_tree().root.find_child("World", true, false)
 	if world_node and world_node.current_map_node:

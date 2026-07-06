@@ -53,13 +53,13 @@ func setup(player_node: Node) -> void:
 	_apply_bar_color(player_node.health)
 
 	# Conectar señales de HealthService
-	var hs: Node = GameServiceLocator.get_service("HealthService")
+	var hs: Node = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if hs:
 		hs.health_changed.connect(_on_health_changed)
 		hs.player_state_changed.connect(_on_state_changed)
 
 	# Conectar señal de StaminaService
-	var ss: Node = GameServiceLocator.get_service("StaminaService")
+	var ss: Node = GameServiceLocator.get_service(ServiceNames.STAMINA)
 	if ss:
 		ss.stamina_changed.connect(_on_stamina_changed)
 		if stamina_bar:

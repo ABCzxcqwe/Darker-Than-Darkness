@@ -55,7 +55,7 @@ func _process(_delta: float) -> void:
 	var player = get_parent()
 	if not player or not player.is_multiplayer_authority():
 		return
-	if player.is_spectator:
+	if player.interaction.is_spectator:
 		$"../VisionCircle".visible = false
 		$"../VisionCone".visible = false
 		return

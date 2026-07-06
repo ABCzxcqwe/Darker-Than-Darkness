@@ -21,7 +21,7 @@ func setup(my_peer_id: int, my_team: String) -> void:
 	_build()
 
 	# Si un aliado muere permanentemente, reconstruir el panel
-	var hs: Node = GameServiceLocator.get_service("HealthService")
+	var hs: Node = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if hs:
 		hs.survivor_died_permanently.connect(_on_survivor_died)
 

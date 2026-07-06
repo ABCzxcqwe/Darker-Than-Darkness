@@ -20,13 +20,13 @@ var _ending_sequence_started := false
 func _ready() -> void:
 	if not multiplayer.is_server():
 		return
-	NetworkManager.player_left.connect(_on_network_player_left)
+	LobbyManager.player_left.connect(_on_network_player_left)
 
 
 func _connect_services() -> void:
-	_health_service = GameServiceLocator.get_service("HealthService")
-	_timer_service = GameServiceLocator.get_service("TimerService")
-	_lms_service = GameServiceLocator.get_service("LMSService")
+	_health_service = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	_timer_service = GameServiceLocator.get_service(ServiceNames.TIMER)
+	_lms_service = GameServiceLocator.get_service(ServiceNames.LMS)
 
 	if _health_service:
 		_health_service.survivor_died_permanently.connect(_on_survivor_death)
@@ -45,6 +45,8 @@ func is_in_game() -> bool:
 
 
 func transition_to_playing() -> void:
+	if not multiplayer.is_server():
+		return
 	_connect_services()
 	_add_start_of_match_points()
 	_set_state(State.PLAYING)
@@ -54,6 +56,8 @@ func transition_to_playing() -> void:
 
 
 func transition_to_ended(reason: String, extra: Dictionary = {}) -> void:
+	if not multiplayer.is_server():
+		return
 	_set_state(State.ENDED)
 	_cleanup_match_audio()
 	_calculate_killer_points(reason)
@@ -92,8 +96,8 @@ func _start_timer() -> void:
 	if not multiplayer.is_server():
 		return
 	var survivor_count := 0
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+	for pid in LobbyManager.players:
+		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			survivor_count += 1
 	var initial_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
 	_timer_service.start_timer(initial_time)
@@ -104,12 +108,12 @@ func _on_timer_timeout() -> void:
 		return
 	if _lms_service and _lms_service.is_lms_active():
 		_lms_service.stop_lms()
-	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 	var escaped = coord.get_escaped_count() if coord else 0
 	if escaped > 0:
 		var total_survivors := 0
-		for pid in NetworkManager.players:
-			if NetworkManager.players[pid]["assigned_role"] == "survivor":
+		for pid in LobbyManager.players:
+			if LobbyManager.players[pid]["assigned_role"] == "survivor":
 				total_survivors += 1
 		transition_to_ended("survivors_escaped", {
 			"escaped_count": escaped,
@@ -130,7 +134,7 @@ func _on_survivor_death(_peer_id: int) -> void:
 
 # ─── DISCONNECT ──────────────────────────────────────────
 
-# Llamado por señal NetworkManager.player_left (el jugador ya fue borrado del diccionario)
+# Llamado por señal LobbyManager.player_left (el jugador ya fue borrado del diccionario)
 # Solo usamos esto para cleanup de servicios, no para lógica de partida.
 func _on_network_player_left(peer_id: int) -> void:
 	_unregister_player_services(peer_id)
@@ -138,6 +142,8 @@ func _on_network_player_left(peer_id: int) -> void:
 
 # Llamado directamente por NetworkManager con el rol capturado ANTES de borrar al jugador
 func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
+	if not multiplayer.is_server():
+		return
 	if current_state != State.PLAYING:
 		return
 
@@ -156,8 +162,8 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 		var alive_in_health := 0
 		for pid in _health_service._states.keys():
 			if not _health_service.is_dead(pid):
-				if NetworkManager.players.has(pid) and \
-				   NetworkManager.players[pid]["assigned_role"] == "survivor":
+				if LobbyManager.players.has(pid) and \
+				   LobbyManager.players[pid]["assigned_role"] == "survivor":
 					alive_in_health += 1
 
 		if alive_in_health == 0:
@@ -168,31 +174,24 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 
 
 func _unregister_player_services(peer_id: int) -> void:
-	var tp = GameServiceLocator.get_service("TPService")
-	if tp and tp.has_method("unregister_player"):
-		tp.unregister_player(peer_id)
-	var evo = GameServiceLocator.get_service("EvolutionService")
-	if evo and evo.has_method("unregister_player"):
-		evo.unregister_player(peer_id)
-	var cd = GameServiceLocator.get_service("CooldownService")
-	if cd and cd.has_method("clear_player"):
-		cd.clear_player(peer_id)
-	var stam = GameServiceLocator.get_service("StaminaService")
-	if stam and stam.has_method("unregister_player"):
-		stam.unregister_player(peer_id)
+	var player_node = PlayerRegistry.get_player(peer_id)
+	if player_node:
+		PlayerLifecycleManager.unregister_player(peer_id, player_node)
 
 
 # ─── EVALUATE ────────────────────────────────────────────
 
 func _evaluate_match() -> void:
+	if not multiplayer.is_server():
+		return
 	var alive = _count_alive_survivors()
 	if alive == 0:
 		_timer_service.stop_timer()
-		var coord = GameServiceLocator.get_service("MapEventCoordinator")
+		var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 		if coord and coord.get_escaped_count() > 0:
 			var total_survivors := 0
-			for pid in NetworkManager.players:
-				if NetworkManager.players[pid]["assigned_role"] == "survivor":
+			for pid in LobbyManager.players:
+				if LobbyManager.players[pid]["assigned_role"] == "survivor":
 					total_survivors += 1
 			transition_to_ended("survivors_escaped", {
 				"escaped_count": coord.get_escaped_count(),
@@ -209,9 +208,9 @@ func _evaluate_match() -> void:
 
 func _count_alive_survivors() -> int:
 	var count := 0
-	var coord = GameServiceLocator.get_service("MapEventCoordinator")
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["assigned_role"] == "survivor":
+	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	for pid in LobbyManager.players:
+		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
 				if coord and coord.has_player_escaped(pid):
 					continue
@@ -220,7 +219,7 @@ func _count_alive_survivors() -> int:
 
 
 func _find_last_survivor() -> Node:
-	var coord = GameServiceLocator.get_service("MapEventCoordinator")
+	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 	for p in get_tree().get_nodes_in_group("players"):
 		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
 			var pid = p.get_multiplayer_authority()
@@ -246,6 +245,8 @@ func _find_any_survivor_node() -> Node:
 # ─── SUDDEN DEATH ────────────────────────────────────────
 
 func evaluate_sudden_death_condition() -> void:
+	if not multiplayer.is_server():
+		return
 	if current_state != State.PLAYING or _ending_sequence_started:
 		return
 	if _health_service and _health_service.check_all_survivors_incapacitated():
@@ -263,29 +264,29 @@ func evaluate_sudden_death_condition() -> void:
 func _add_start_of_match_points() -> void:
 	if not multiplayer.is_server():
 		return
-	for pid in NetworkManager.players:
-		var role = NetworkManager.players[pid]["assigned_role"]
+	for pid in LobbyManager.players:
+		var role = LobbyManager.players[pid]["assigned_role"]
 		if role == "killer":
-			NetworkManager.players[pid]["killer_points"] = 0
+			LobbyManager.players[pid]["killer_points"] = 0
 		else:
-			NetworkManager.players[pid]["killer_points"] += 1
+			LobbyManager.players[pid]["killer_points"] += 1
 
 
 # ─── END MATCH ───────────────────────────────────────────
 
 func _calculate_killer_points(reason: String) -> void:
-	for pid in NetworkManager.players:
-		if not NetworkManager.players.has(pid):
+	for pid in LobbyManager.players:
+		if not LobbyManager.players.has(pid):
 			continue
-		var role = NetworkManager.players[pid]["assigned_role"]
+		var role = LobbyManager.players[pid]["assigned_role"]
 		if role == "killer":
 			if reason == "killer_elimination":
-				NetworkManager.players[pid]["killer_points"] += 1
+				LobbyManager.players[pid]["killer_points"] += 1
 		elif role == "survivor":
 			if _health_service and _health_service.is_dead(pid):
-				NetworkManager.players[pid]["killer_points"] += 1
+				LobbyManager.players[pid]["killer_points"] += 1
 			else:
-				NetworkManager.players[pid]["killer_points"] += 2
+				LobbyManager.players[pid]["killer_points"] += 2
 
 
 func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
@@ -295,7 +296,7 @@ func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
 	var stats_data := {
 		"end_reason": reason,
 		"time_left": final_time,
-		"players_snapshot": NetworkManager.players.duplicate(true)
+		"players_snapshot": LobbyManager.players.duplicate(true)
 	}
 	if not extra.is_empty():
 		stats_data.merge(extra)

@@ -34,12 +34,12 @@ func take_damage(player_node: Node, amount: int) -> void:
 
 	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", player_node.health)
 
-	var revive_svc = GameServiceLocator.get_service("ReviveService")
+	var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
 	if revive_svc:
 		revive_svc.cancel_revive(peer_id)
 
 	if player_node.state != 0:
-		var combat = GameServiceLocator.get_service("CombatMediator")
+		var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 		if combat:
 			combat.remove_root(player_node)
 		player_node.reset_ability_state()
@@ -54,7 +54,7 @@ func take_damage(player_node: Node, amount: int) -> void:
 		broadcast_health_update(peer_id, 0, max_hp, "downed")
 		_down(player_node)
 	else:
-		var radar_svc = GameServiceLocator.get_service("RadarService")
+		var radar_svc = GameServiceLocator.get_service(ServiceNames.RADAR)
 		if radar_svc:
 			radar_svc.show_hit_indicator(player_node, player_node.global_position)
 		broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
@@ -95,7 +95,7 @@ func revive(player_node: Node) -> void:
 	var revive_hp: int = player_node.character_data.revive_health if player_node.character_data else 60
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
-	var radar_svc = GameServiceLocator.get_service("RadarService")
+	var radar_svc = GameServiceLocator.get_service(ServiceNames.RADAR)
 	if radar_svc:
 		radar_svc.remove_down_indicator(peer_id)
 
@@ -150,8 +150,8 @@ func _down(player_node: Node) -> void:
 		return
 
 	var alive_survivor_count := 0
-	for pid in NetworkManager.players.keys():
-		if NetworkManager.players[pid].get("assigned_role") == "survivor" and is_alive(pid):
+	for pid in LobbyManager.players.keys():
+		if LobbyManager.players[pid].get("assigned_role") == "survivor" and is_alive(pid):
 			alive_survivor_count += 1
 
 	if alive_survivor_count <= 1:
@@ -164,7 +164,7 @@ func _down(player_node: Node) -> void:
 	player_node.health = 0
 	_set_state(peer_id, "downed")
 
-	var radar_svc = GameServiceLocator.get_service("RadarService")
+	var radar_svc = GameServiceLocator.get_service(ServiceNames.RADAR)
 	if radar_svc:
 		radar_svc.show_down_indicator(player_node)
 
@@ -174,7 +174,7 @@ func _down(player_node: Node) -> void:
 	if is_instance_valid(player_node):
 		player_node.rpc("_sync_state", "downed", 0)
 
-	var fx_svc = GameServiceLocator.get_service("StatusEffectService")
+	var fx_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if fx_svc and fx_svc.has_method("_recalculate_speed"):
 		fx_svc._recalculate_speed(peer_id)
 
@@ -192,7 +192,7 @@ func _down(player_node: Node) -> void:
 	timer.start()
 	_states[peer_id]["timer"] = timer
 
-	var game_state_svc = GameServiceLocator.get_service("GameStateService")
+	var game_state_svc = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
 	if game_state_svc:
 		game_state_svc.evaluate_sudden_death_condition()
 
@@ -203,7 +203,7 @@ func _kill(player_node: Node) -> void:
 
 	_play_death_sound(player_node)
 
-	var radar_svc = GameServiceLocator.get_service("RadarService")
+	var radar_svc = GameServiceLocator.get_service(ServiceNames.RADAR)
 	if radar_svc:
 		radar_svc.remove_down_indicator(peer_id)
 
@@ -215,7 +215,7 @@ func _kill(player_node: Node) -> void:
 	broadcast_health_update(peer_id, 0, max_hp, "dead")
 	survivor_died_permanently.emit(peer_id)
 
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd and cd.has_method("clear_player"):
 		cd.clear_player(peer_id)
 		print("[HealthService] Cooldowns limpiados para peer ", peer_id, " al morir.")
@@ -267,13 +267,13 @@ func check_all_survivors_incapacitated() -> bool:
 		return false
 	var total_survivors := 0
 	var incapacitated_survivors := 0
-	for peer_id in NetworkManager.players.keys():
-		var player_data = NetworkManager.players[peer_id]
+	for peer_id in LobbyManager.players.keys():
+		var player_data = LobbyManager.players[peer_id]
 		if player_data.get("assigned_role") == "survivor":
 			total_survivors += 1
 			var downed: bool = is_downed(peer_id)
 			var dead_state: bool = is_dead(peer_id)
-			var player_node = get_tree().root.find_child(str(peer_id), true, false)
+			var player_node = PlayerRegistry.get_player(peer_id)
 			var permanent_death: bool = dead_state or not is_instance_valid(player_node)
 			if downed or permanent_death:
 				incapacitated_survivors += 1

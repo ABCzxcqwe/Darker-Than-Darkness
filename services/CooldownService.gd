@@ -25,7 +25,7 @@ func start_lock(peer_id: int, slot_index: int) -> void:
 	_cooldowns[peer_id][slot_index]["expiry"] = 0
 	_cooldowns[peer_id][slot_index]["lock_time"] = Time.get_ticks_msec()
 	print("[CooldownService] Lock activado -> Peer: ", peer_id, " | Slot: ", slot_index)
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, -1.0)
 
 
@@ -37,7 +37,7 @@ func release_lock(peer_id: int, slot_index: int) -> void:
 	_cooldowns[peer_id][slot_index]["lock"] = false
 	_cooldowns[peer_id][slot_index]["expiry"] = 0
 	print("[CooldownService] Lock liberado -> Peer: ", peer_id, " | Slot: ", slot_index)
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 
 
@@ -49,7 +49,7 @@ func start(peer_id: int, slot_index: int, duration: float) -> void:
 	_cooldowns[peer_id][slot_index]["lock"] = false
 	_cooldowns[peer_id][slot_index]["expiry"] = Time.get_ticks_msec() + int(duration * 1000)
 	print("[CooldownService] Cooldown iniciado -> Peer: ", peer_id, " | Slot: ", slot_index, " | Duración: ", duration, "s")
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, duration)
 
 
@@ -66,7 +66,7 @@ func is_ready(peer_id: int, slot_index: int) -> bool:
 			push_warning("[CooldownService] Lock timeout para peer ", peer_id, " slot ", slot_index, " — liberando automáticamente.")
 			state["lock"] = false
 			state["expiry"] = 0
-			if NetworkManager.players.has(peer_id):
+			if LobbyManager.players.has(peer_id):
 				rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 			return true
 		return false
@@ -87,7 +87,7 @@ func get_remaining(peer_id: int, slot_index: int) -> float:
 			push_warning("[CooldownService] Lock timeout en get_remaining para peer ", peer_id, " slot ", slot_index, " — liberando.")
 			state["lock"] = false
 			state["expiry"] = 0
-			if NetworkManager.players.has(peer_id):
+			if LobbyManager.players.has(peer_id):
 				rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 			return 0.0
 		return -1.0
@@ -99,9 +99,11 @@ func get_remaining(peer_id: int, slot_index: int) -> float:
 
 ## Limpia todos los cooldowns de un jugador.
 func clear_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if _cooldowns.has(peer_id):
 		_cooldowns.erase(peer_id)
-		if NetworkManager.players.has(peer_id):
+		if LobbyManager.players.has(peer_id):
 			for slot in range(5):
 				rpc_id(peer_id, "_rpc_cooldown_state", slot, 0.0)
 		print("[CooldownService] Cooldowns limpiados para peer: ", peer_id)

@@ -24,7 +24,8 @@ var _last_speed: Dictionary = {}
 
 
 func _process(delta: float) -> void:
-# ── COMPUERTA DE SEGURIDAD ──
+	if not multiplayer.is_server():
+		return
 	if multiplayer.multiplayer_peer == null:
 		return
 	if multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
@@ -153,7 +154,7 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			  " | duración: ", duration)
 
 		if effect_name in ["stun", "root"]:
-			var revive_svc = GameServiceLocator.get_service("ReviveService")
+			var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
 			if revive_svc:
 				revive_svc.cancel_revive(peer_id)
 
@@ -182,6 +183,8 @@ func has_stun_immunity(peer_id: int) -> bool:
 ## duration > 0.0 → concede inmunidad por esa duración
 ## duration = 0.0 → elimina la inmunidad inmediatamente
 func grant_stun_immunity(peer_id: int, duration: float) -> void:
+	if not multiplayer.is_server():
+		return
 	if duration > 0.0:
 		_stun_immunity[peer_id] = duration
 	else:
@@ -201,6 +204,8 @@ func get_post_stun_dr(peer_id: int) -> float:
 
 ## Registra un jugador al entrar a la partida.
 func register(player_node: Node) -> void:
+	if not multiplayer.is_server():
+		return
 	var peer_id := player_node.get_multiplayer_authority()
 	_ensure_registered(peer_id)
 	print("[StatusEffectService] ", peer_id, " registrado.")
@@ -208,6 +213,8 @@ func register(player_node: Node) -> void:
 
 ## Limpia todos los efectos de un jugador.
 func unregister(player_node: Node) -> void:
+	if not multiplayer.is_server():
+		return
 	var peer_id := player_node.get_multiplayer_authority()
 	_effects.erase(peer_id)
 	_last_speed.erase(peer_id)
@@ -270,7 +277,7 @@ func _recalculate_speed(peer_id: int) -> void:
 
 func _calculate_speed(peer_id: int, base_speed: float) -> float:
 	# 1. Verificar si el jugador está caído mediante el HealthService
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc and health_svc.is_downed(peer_id):
 		# 80% de reducción significa que se queda con el 20% de su base_speed
 		return base_speed * 0.2
@@ -302,7 +309,7 @@ func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool) ->
 
 
 func _get_player(peer_id: int) -> Node:
-	return get_tree().root.find_child(str(peer_id), true, false)
+	return PlayerRegistry.get_player(peer_id)
 
 func remove_modifier(modifier_id: String, player_node: Node = null) -> void:
 	if not multiplayer.is_server():

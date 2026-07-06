@@ -17,7 +17,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var target_peer_id: int = target_node.get_multiplayer_authority()
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if not health_svc:
 		push_error("[HealPrayer] HealthService no disponible.")
 		_release_lock_for(caster_id, slot_index)
@@ -28,14 +28,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		_release_lock_for(caster_id, slot_index)
 		return
 
-	var tp_svc = GameServiceLocator.get_service("TPService")
+	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
 			push_warning("[HealPrayer] consume_tp falló para peer ", caster_id)
 			_release_lock_for(caster_id, slot_index)
 			return
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, slot_index, player_node.facing_right)
@@ -61,7 +61,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			if player_node.multiplayer.is_server():
 				AudioManager.play_sfx_networked.rpc(SfxId.HEAL, target_node.global_position.x, target_node.global_position.y)
 
-			var cd_svc = GameServiceLocator.get_service("CooldownService")
+			var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 			if cd_svc:
 				if cd_svc.has_method("release_lock"):
 					cd_svc.release_lock(caster_id, slot_index)
@@ -81,14 +81,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 
 func _release_lock_for(peer_id: int, slot_index: int) -> void:
-	var cd_svc = GameServiceLocator.get_service("CooldownService")
+	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd_svc and cd_svc.has_method("release_lock"):
 		cd_svc.release_lock(peer_id, slot_index)
 
 
 func _resolve_target(player_node: Node, caster_id: int) -> Node:
 	if pending_target_peer > 0 and pending_target_peer != caster_id:
-		var target = player_node.get_tree().root.find_child(str(pending_target_peer), true, false)
+		var target = PlayerRegistry.get_player(pending_target_peer)
 		if is_instance_valid(target) and target.is_in_group("survivor"):
 			return target
 		return null

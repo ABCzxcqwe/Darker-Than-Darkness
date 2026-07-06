@@ -8,7 +8,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		push_warning("[AxeSlash] player_node inválido.")
 		return
 
-	var hs = GameServiceLocator.get_service("HitboxService")
+	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
 	if not hs:
 		push_error("[AxeSlash] HitboxService no disponible.")
 		return
@@ -20,16 +20,16 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var stun_dur: float  = data.stun_duration
 	var tp_reward: float = data.tp_reward
 
-	var tp_svc = GameServiceLocator.get_service("TPService")
+	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(attacker_id, data.tp_cost):
 			return
 
-	var cd_svc = GameServiceLocator.get_service("CooldownService")
+	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	var facing_right: bool = direction.x >= 0.0
 	var slash_dir: Vector2 = Vector2.RIGHT if facing_right else Vector2.LEFT
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if combat:
 		combat.apply_root(player_node, HITBOX_LIFETIME)
 
@@ -75,7 +75,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				cd_svc.start(attacker_id, slot_index, data.cooldown),
 
 		"on_end": func(_hit_count: int) -> void:
-			var c = GameServiceLocator.get_service("CombatMediator")
+			var c = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 			if c and is_instance_valid(player_node):
 				c.remove_root(player_node)
 

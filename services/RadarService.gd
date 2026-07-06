@@ -94,7 +94,7 @@ func _rpc_remove_arrow(arrow_id: int) -> void:
 
 
 func _is_survivor(peer_id: int) -> bool:
-	var player_data = NetworkManager.players.get(peer_id)
+	var player_data = LobbyManager.players.get(peer_id)
 	if not player_data:
 		return false
 	return player_data.get("assigned_role") == "survivor"

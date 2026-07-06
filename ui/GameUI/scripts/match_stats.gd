@@ -40,7 +40,7 @@ func _ready() -> void:
 		result_label.modulate = Color.YELLOW
 
 	# 3. Configuración asimétrica de la UI de cierre
-	if NetworkManager.is_host:
+	if LobbyManager.is_host:
 		host_status_label.text = "Eres el Host. Reconfigura la sala cuando estés listo."
 		reset_room_button.visible = true
 		reset_room_button.text = "Crear nueva sala (Volver al Lobby)"

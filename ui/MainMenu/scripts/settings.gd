@@ -7,17 +7,28 @@ extends Control
 @onready var vhs_check: CheckBox = $VBoxContainer/VHSRow/VHSCheckBox
 @onready var back_btn: Button = $VBoxContainer/BackButton
 
+var _has_steam: bool = false
 var _focus_items: Array[Control] = []
 var _focus_idx := 0
 
 func _ready() -> void:
+	_has_steam = NetworkManager.is_steam_ready()
+	_setup_network_options()
 	_load_from_settings()
 	_setup_signals()
 	_setup_focus()
 
+func _setup_network_options() -> void:
+	network_option.clear()
+	network_option.add_item("LAN", 0)
+	if _has_steam:
+		network_option.add_item("Steam", 1)
+
 func _load_from_settings() -> void:
 	music_slider.value = SettingsManager.music_volume
 	sfx_slider.value = SettingsManager.sfx_volume
+	var max_mode := 0 if not _has_steam else 1
+	SettingsManager.network_mode = clampi(SettingsManager.network_mode, 0, max_mode)
 	network_option.selected = SettingsManager.network_mode
 	display_option.selected = 0 if SettingsManager.display_mode == 0 else 1
 	vhs_check.button_pressed = SettingsManager.vhs_enabled
@@ -36,7 +47,7 @@ func _setup_signals() -> void:
 	vhs_check.toggled.connect(func(b): SettingsManager.vhs_enabled = b)
 
 func _sync_network_mode() -> void:
-	if SettingsManager.network_mode == 1:
+	if _has_steam and SettingsManager.network_mode == 1:
 		NetworkManager.initialize_steam()
 	else:
 		NetworkManager.set_lan_mode()

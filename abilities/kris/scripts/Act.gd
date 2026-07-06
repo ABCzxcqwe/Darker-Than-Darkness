@@ -19,20 +19,20 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 
 func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_peer_id: int, slot_index: int) -> void:
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if not combat:
 		push_error("[ACT] CombatMediator no disponible.")
 		return
 
-	var tp_svc  = GameServiceLocator.get_service("TPService")
-	var evo_svc = GameServiceLocator.get_service("EvolutionService")
-	var cd_svc  = GameServiceLocator.get_service("CooldownService")
+	var tp_svc  = GameServiceLocator.get_service(ServiceNames.TP)
+	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
+	var cd_svc  = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 
 	if target_peer_id == caster_id:
 		print("[ACT] Kris no puede potenciarse a sí mismo.")
 		return
 
-	var target_node := player_node.get_tree().root.find_child(str(target_peer_id), true, false)
+	var target_node := PlayerRegistry.get_player(target_peer_id)
 	if not is_instance_valid(target_node):
 		push_warning("[ACT] Nodo no encontrado para peer: ", target_peer_id)
 		return
@@ -44,7 +44,7 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 		print("[ACT] El objetivo no es un survivor.")
 		return
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc and not health_svc.is_alive(target_peer_id):
 		print("[ACT] El objetivo está caído o muerto.")
 		return
@@ -75,7 +75,7 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 				return
 
 			var evolved_count: int = 0
-			var t_node := player_node.get_tree().root.find_child(str(target_peer_id), true, false)
+			var t_node := PlayerRegistry.get_player(target_peer_id)
 			if is_instance_valid(t_node):
 				var target_data: CharacterData = t_node.character_data
 				if target_data and target_data.ability_slots:

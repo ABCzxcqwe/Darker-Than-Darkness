@@ -29,11 +29,14 @@ CharacterRegistry="*uid://i0qs00kcritb"
 NetworkManager="*uid://bk85boo6f7ln5"
 AbilityRouter="*uid://ryphqnurjury"
 GameServiceLocator="*uid://btt4agmfoo7rx"
+PlayerLifecycleManager="*res://core/PlayerLifecycleManager.gd"
 MapRegistry="*uid://dc7fwd2kgom44"
 AudioManager="*uid://cha1sw3egunlu"
 MatchCoordinator="*uid://b8e8e7uvc056"
 GlobalVHS="*res://core/global_vhs.gd"
 SettingsManager="*res://core/settings_manager.gd"
+PlayerRegistry="*res://core/PlayerRegistry.gd"
+LobbyManager="*res://core/LobbyManager.gd"
 
 [display]
 

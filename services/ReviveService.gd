@@ -18,7 +18,7 @@ func _ready() -> void:
 
 
 func _connect_to_services() -> void:
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc:
 		# Si tu HealthService no tiene esta señal, podemos interceptar vía el método take_damage o herencia.
 		# Por ahora, escucharemos si el estado del jugador cambia a downed/dead para cancelar.
@@ -114,7 +114,7 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 	var target_id = target_node.get_multiplayer_authority()
 	_sessions.erase(rescuer_id)
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc:
 		# Aquí puedes usar tu lógica de HealthService para revivir al jugador herido
 		if health_svc.has_method("revive"):
@@ -151,13 +151,13 @@ func _cancel(rescuer_id: int, notify: bool) -> void:
 ## Helper para comprobar si el jugador está incapacitado en otros servicios
 func _is_player_interrupted(peer_id: int) -> bool:
 	# 1. Verificar si fue derribado (Downed) o muerto según HealthService
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc:
 		if health_svc.is_downed(peer_id) or health_svc.is_dead(peer_id):
 			return true
 
 	# 2. Verificar si está bajo efectos de control (Stun o Root)
-	var status_svc = GameServiceLocator.get_service("StatusEffectService")
+	var status_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	if status_svc:
 		if status_svc.has_method("is_stunned") and status_svc.is_stunned(peer_id):
 			return true
@@ -168,7 +168,7 @@ func _is_player_interrupted(peer_id: int) -> bool:
 
 
 func _get_player(peer_id: int) -> Node:
-	return get_tree().root.find_child(str(peer_id), true, false)
+	return PlayerRegistry.get_player(peer_id)
 
 
 # ── RPCs DE SINCRONIZACIÓN VISUAL (EJECUTADOS EN CLIENTES) ─────────────

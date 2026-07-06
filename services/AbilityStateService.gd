@@ -80,6 +80,8 @@ func register_player(peer_id: int, char_data: Resource = null) -> void:
 
 ## Limpia al salir o desconectarse.
 func unregister_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if _states.has(peer_id):
 		_states.erase(peer_id)
 		print("[AbilityStateService] Datos eliminados para peer: ", peer_id)
@@ -115,6 +117,8 @@ func _build_initial_state(ability_data: Resource) -> Dictionary:
 ## Llama esto DESPUÉS de que la habilidad se ejecutó con éxito.
 ## Devuelve el nuevo use_count.
 func register_use(peer_id: int, slot_index: int, ability_data: Resource) -> int:
+	if not multiplayer.is_server():
+		return 0
 	if not _ensure_state(peer_id, slot_index):
 		return 0
 
@@ -186,6 +190,8 @@ func get_scaled_value(peer_id: int, slot_index: int, ability_data: Resource) -> 
 
 ## Suma un golpe al contador del slot y devuelve el total acumulado.
 func add_hit(peer_id: int, slot_index: int) -> int:
+	if not multiplayer.is_server():
+		return 0
 	if not _ensure_state(peer_id, slot_index):
 		return 0
 	_states[peer_id][slot_index]["hit_counter"] += 1
@@ -206,6 +212,8 @@ func get_hit_count(peer_id: int, slot_index: int) -> int:
 ## Llama esto cuando el umbral se cumplió (el stun se aplicó)
 ## o cuando la habilidad expiró sin completar los impactos.
 func reset_hit_counter(peer_id: int, slot_index: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _ensure_state(peer_id, slot_index):
 		return
 	_states[peer_id][slot_index]["hit_counter"] = 0
@@ -227,6 +235,8 @@ func reset_hit_counter(peer_id: int, slot_index: int) -> void:
 ##   Counter:        activate_mode(peer_id, 1, {})
 ##   Rage Mode:      activate_mode(peer_id, 3, { "stun_resistance": 0.5 })
 func activate_mode(peer_id: int, slot_index: int, data: Dictionary = {}) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _ensure_state(peer_id, slot_index):
 		return
 	_states[peer_id][slot_index]["mode_active"] = true
@@ -237,6 +247,8 @@ func activate_mode(peer_id: int, slot_index: int, data: Dictionary = {}) -> void
 
 ## Desactiva el modo y limpia mode_data.
 func deactivate_mode(peer_id: int, slot_index: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _ensure_state(peer_id, slot_index):
 		return
 	_states[peer_id][slot_index]["mode_active"] = false
@@ -264,6 +276,8 @@ func get_mode_data(peer_id: int, slot_index: int) -> Dictionary:
 ## Ejemplo: bajar la resistencia de Jevil tras recibir un stun.
 ##   update_mode_data(peer_id, slot, "stun_resistance", nueva_resistencia)
 func update_mode_data(peer_id: int, slot_index: int, key: String, value: Variant) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _ensure_state(peer_id, slot_index):
 		return
 	if not _states[peer_id][slot_index]["mode_active"]:
@@ -280,6 +294,8 @@ func update_mode_data(peer_id: int, slot_index: int, key: String, value: Variant
 ## Resetea el estado de un slot a sus valores iniciales.
 ## Útil si quieres reiniciar una habilidad individual sin tocar las demás.
 func reset_slot(peer_id: int, slot_index: int, ability_data: Resource = null) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _states.has(peer_id):
 		return
 	_states[peer_id][slot_index] = _build_initial_state(ability_data)
@@ -288,6 +304,8 @@ func reset_slot(peer_id: int, slot_index: int, ability_data: Resource = null) ->
 
 ## Resetea todos los slots de un jugador. Llámalo al terminar la partida.
 func reset_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if not _states.has(peer_id):
 		return
 	for slot in _states[peer_id].keys():

@@ -24,8 +24,8 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	_caster_id = player_node.get_multiplayer_authority()
 	_slot_index = slot_index
-	_tp_svc = GameServiceLocator.get_service("TPService")
-	_cd_svc = GameServiceLocator.get_service("CooldownService")
+	_tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	_cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	_data = data
 	_total_hits = 0
 
@@ -104,7 +104,7 @@ func _on_projectile_hit(target_node: Node) -> void:
 	if not _tp_svc:
 		return
 
-	var health_svc = GameServiceLocator.get_service("HealthService")
+	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	var target_id: int = target_node.get_multiplayer_authority()
 	print("[FluffyFilling] target_id: ", target_id, " | grupos: killer=", target_node.is_in_group("killer"), " survivor=", target_node.is_in_group("survivor"), " alive=", !health_svc or health_svc.is_alive(target_id))
 
@@ -154,7 +154,7 @@ func _finish_ability() -> void:
 
 
 func _release_lock_for(peer_id: int, slot_index: int) -> void:
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd and cd.has_method("release_lock"):
 		cd.release_lock(peer_id, slot_index)
 

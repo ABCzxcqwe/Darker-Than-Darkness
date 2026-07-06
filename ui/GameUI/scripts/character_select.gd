@@ -18,11 +18,11 @@ var _selection_locked := false
 func _ready() -> void:
 	add_to_group("character_select_screen")
 
-	NetworkManager.lobby_updated.connect(_on_lobby_updated)
+	LobbyManager.lobby_updated.connect(_on_lobby_updated)
 
 	var my_id := multiplayer.get_unique_id()
-	if NetworkManager.players.has(my_id):
-		local_role = NetworkManager.players[my_id]["assigned_role"]
+	if LobbyManager.players.has(my_id):
+		local_role = LobbyManager.players[my_id]["assigned_role"]
 
 	if local_role == "killer":
 		role_label.text = "ROL: KILLER (CAZADOR)"
@@ -180,7 +180,7 @@ func _confirm_selection(char_id: int) -> void:
 		return
 	_selection_locked = true
 	selected_char_id = char_id
-	NetworkManager.select_character_in_screen(char_id)
+	LobbyManager.select_character_in_screen(char_id)
 	for i in panels_container.get_child_count():
 		var _wrap = panels_container.get_child(i)
 		if _wrap.get_meta("char_id") == char_id:
@@ -192,14 +192,14 @@ func _confirm_selection(char_id: int) -> void:
 func _on_lobby_updated() -> void:
 	selections_list.clear()
 
-	for p in NetworkManager.get_player_list():
+	for p in LobbyManager.get_player_list():
 		var text = p.name
 		if p.id == multiplayer.get_unique_id():
 			text += " (Tú)"
 
 		var char_name = "Eligiendo..."
 		if p.character_id != -1:
-			var data := CharacterRegistry.get_character(p.character_id)
+			var data: CharacterData = CharacterRegistry.get_character(p.character_id)
 			char_name = data.display_name if data else "?"
 
 		var display_role = p.get("assigned_role", "survivor").to_upper()
@@ -229,7 +229,7 @@ func _on_timeout_expired() -> void:
 		var random_id = available_char_ids[randi() % available_char_ids.size()]
 		selected_char_id = random_id
 		_selection_locked = true
-		NetworkManager.select_character_in_screen(random_id)
+		LobbyManager.select_character_in_screen(random_id)
 		for i in panels_container.get_child_count():
 			var _wrap = panels_container.get_child(i)
 			if _wrap.get_meta("char_id") == random_id:
@@ -242,18 +242,18 @@ func _on_timeout_expired() -> void:
 	if not is_inside_tree():
 		return
 
-	if NetworkManager.is_host:
+	if LobbyManager.is_host:
 		_host_resolve_missing_selections()
 		MatchCoordinator.host_launch_game()
 
 
 func _host_resolve_missing_selections() -> void:
-	for pid in NetworkManager.players:
-		if NetworkManager.players[pid]["character_id"] == -1:
-			var role = NetworkManager.players[pid]["assigned_role"]
+	for pid in LobbyManager.players:
+		if LobbyManager.players[pid]["character_id"] == -1:
+			var role = LobbyManager.players[pid]["assigned_role"]
 			var fallback_id := 0
 			for data in CharacterRegistry.get_all():
 				if data.team == role:
 					fallback_id = data.id
 					break
-			NetworkManager.players[pid]["character_id"] = fallback_id
+			LobbyManager.players[pid]["character_id"] = fallback_id

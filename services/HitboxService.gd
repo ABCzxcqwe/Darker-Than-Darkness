@@ -32,7 +32,7 @@ func create(config: Dictionary) -> Node:
 		push_warning("[HitboxService] Solo el servidor puede crear hitboxes.")
 		return null
 
-	var state = GameServiceLocator.get_service("GameStateService")
+	var state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
 	if not state or not state.is_in_game():
 		push_warning("[HitboxService] No hay partida activa.")
 		return null
@@ -189,65 +189,6 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	# 	rpc("_spawn_client_hitbox", scene_path, hitbox.global_position, direction, speed, hitbox.lifetime)
 
 	return hitbox
-
-
-# @rpc("any_peer", "call_remote", "reliable")
-# func _spawn_client_hitbox(scene_path: String, pos: Vector2, dir: Vector2, _spd: float, lifetime: float) -> void:
-# 	var sender := multiplayer.get_remote_sender_id()
-# 	if sender != 0 and sender != 1:
-# 		return
-# 	print("[HitboxService] Cliente: creando copia visual en ", pos, " dir: ", dir)
-# 	var world = get_tree().root.find_child("World", true, false)
-# 	if not world:
-# 		push_warning("[HitboxService] Cliente: World no encontrado")
-# 		return
-# 	var container = world.get_node_or_null("Projectiles")
-# 	if not container:
-# 		push_warning("[HitboxService] Cliente: Projectiles no encontrado")
-# 		return
-# 	var scene: PackedScene = load(scene_path)
-# 	if not scene:
-# 		push_warning("[HitboxService] Cliente: no se pudo cargar: ", scene_path)
-# 		return
-# 
-# 	var visual: Node2D = Node2D.new()
-# 	visual.global_position = pos
-# 	visual.scale.x = 1.0 if dir.x >= 0.0 else -1.0
-# 	visual.rotation = dir.angle()
-# 
-# 	var sprite_node = scene.instantiate()
-# 	var sync_child = sprite_node.get_node_or_null("MultiplayerSynchronizer")
-# 	if sync_child:
-# 		sprite_node.remove_child(sync_child)
-# 		sync_child.queue_free()
-# 	if sprite_node is Area2D or sprite_node is CollisionObject2D:
-# 		sprite_node.collision_layer = 0
-# 		sprite_node.collision_mask = 0
-# 		var col = sprite_node.get_node_or_null("CollisionShape2D")
-# 		if col:
-# 			col.disabled = true
-# 
-# 	visual.add_child(sprite_node)
-# 	container.add_child(visual)
-# 
-# 	var anim_sprite: AnimatedSprite2D = sprite_node.get_node_or_null("AnimatedSprite2D")
-# 	if anim_sprite and anim_sprite.sprite_frames and anim_sprite.sprite_frames.has_animation("travel"):
-# 		anim_sprite.play("travel")
-# 
-# 	print("[HitboxService] Cliente: copia creada en ", visual.global_position)
-# 
-# 	var speed_to_use: float = _spd if _spd > 0.0 else 300.0
-# 	var elapsed: float = 0.0
-# 	while elapsed < lifetime and is_instance_valid(visual):
-# 		await get_tree().process_frame
-# 		if not is_instance_valid(visual):
-# 			break
-# 		var d: float = get_process_delta_time()
-# 		visual.global_position += dir * speed_to_use * d
-# 		elapsed += d
-# 
-# 	if is_instance_valid(visual):
-# 		visual.queue_free()
 
 
 # ── Resolver dirección ─────────────────────────────────────────────────

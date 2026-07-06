@@ -10,7 +10,7 @@ var _tp_ready_slots: Dictionary = {}
 
 func _ready() -> void:
 	if multiplayer.is_server():
-		var tp_svc = GameServiceLocator.get_service("TPService")
+		var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 		if tp_svc and tp_svc.has_signal("tp_changed"):
 			tp_svc.tp_changed.connect(_on_tp_changed)
 
@@ -76,7 +76,7 @@ func _clear_if_temporary(peer_id: int, slot_index: int) -> void:
 
 
 func _is_permanent_evolution(peer_id: int, slot_index: int) -> bool:
-	var player = get_tree().root.find_child(str(peer_id), true, false)
+	var player = PlayerRegistry.get_player(peer_id)
 	if not player or not player.character_data:
 		return false
 	var slots: Array = player.character_data.ability_slots
@@ -111,7 +111,7 @@ func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 
 
 func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
 
 
@@ -134,7 +134,7 @@ func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
 
 
 func resync_client_visuals(peer_id: int) -> void:
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		var evolved = _evolved_slots.get(peer_id)
 		if evolved == null:
 			return
@@ -149,7 +149,7 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 	if not _tp_ready_slots.has(peer_id):
 		return
 
-	var player = get_tree().root.find_child(str(peer_id), true, false)
+	var player = PlayerRegistry.get_player(peer_id)
 	if not player or not player.character_data:
 		return
 	var slots: Array = player.character_data.ability_slots
@@ -182,7 +182,7 @@ func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 		return
 
 	_tp_ready_slots[peer_id][slot_index] = is_ready
-	if NetworkManager.players.has(peer_id):
+	if LobbyManager.players.has(peer_id):
 		rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
 
 

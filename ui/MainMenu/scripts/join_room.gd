@@ -24,7 +24,7 @@ func _ready():
 	_setup_focus()
 
 func _update_ui_for_mode():
-	var is_steam = NetworkManager.network_mode == NetworkManager.NetworkMode.STEAM
+	var is_steam = NetworkManager.is_steam_ready()
 	ip_input.visible = not is_steam
 	lobby_list.visible = is_steam
 	refresh_btn.visible = is_steam
@@ -112,11 +112,14 @@ func _on_lobby_list_updated(lobbies: Array):
 	_steam_lobbies = lobbies
 	lobby_list.clear()
 	var _steam = Engine.get_singleton("Steam")
+	if not _steam:
+		status_label.text = "Steam no disponible"
+		return
 	for lobby_id in lobbies:
 		var name_text = _steam.getLobbyData(lobby_id, "name")
 		var map_text = _steam.getLobbyData(lobby_id, "map")
 		var members = _steam.getNumLobbyMembers(lobby_id)
-		var label = "%s | Mapa: %s | %d/%d" % [name_text, map_text, members, NetworkManager.MAX_PLAYERS]
+		var label = "%s | Mapa: %s | %d/%d" % [name_text, map_text, members, LobbyManager.MAX_PLAYERS]
 		lobby_list.add_item(label)
 	status_label.text = "Salas encontradas: %d" % lobbies.size()
 
@@ -126,7 +129,7 @@ func _on_join_pressed():
 	if _name.is_empty():
 		status_label.text = "Ingresá tu nombre."
 		return
-	if NetworkManager.network_mode == NetworkManager.NetworkMode.STEAM:
+	if NetworkManager.is_steam_ready():
 		if lobby_list.get_selected_items().size() > 0:
 			var idx = lobby_list.get_selected_items()[0]
 			_on_lobby_selected(idx)

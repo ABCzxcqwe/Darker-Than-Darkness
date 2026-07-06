@@ -18,12 +18,16 @@ func _ready() -> void:
 
 ## Registra a un jugador en el sistema de TP
 func register_player(peer_id: int, data: Resource) -> void:
+	if not multiplayer.is_server():
+		return
 	_tp[peer_id] = 0.0
 	_character_data[peer_id] = data
 	# print("[TPService] ", _get_log_name(peer_id), " Registrado (", data.resource_path.get_file(), ")")
 
 ## Elimina los datos de un jugador (Evita el crash al desconectarse)
 func unregister_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	if _tp.has(peer_id):
 		_tp.erase(peer_id)
 	if _character_data.has(peer_id):
@@ -31,7 +35,7 @@ func unregister_player(peer_id: int) -> void:
 	# print("[TPService] Datos eliminados para peer: ", peer_id)
 
 ## Sincroniza el TP desde el servidor hacia los clientes
-@rpc("any_peer", "reliable")
+@rpc("authority", "call_local", "reliable")
 func sync_tp_to_client(peer_id: int, current_tp: float, max_tp: float) -> void:
 	# Actualizamos el diccionario local en el cliente para que coincida con el servidor
 	_tp[peer_id] = current_tp
@@ -81,6 +85,8 @@ func _get_log_name(id: int) -> String:
 
 ## Limpia todo al volver al menú
 func reset() -> void:
+	if not multiplayer.is_server():
+		return
 	_tp.clear()
 	_character_data.clear()
 	if _passive_timer:

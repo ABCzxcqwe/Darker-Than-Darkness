@@ -10,22 +10,22 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		push_warning("[SwordSlash] player_node inválido.")
 		return
 
-	var combat = GameServiceLocator.get_service("CombatMediator")
+	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
 	if not combat:
 		push_error("[SwordSlash] CombatMediator no disponible.")
 		return
 
-	var hs = GameServiceLocator.get_service("HitboxService")
+	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
 	if not hs:
 		push_error("[SwordSlash] HitboxService no disponible.")
 		return
 
-	var cd = GameServiceLocator.get_service("CooldownService")
+	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if not cd:
 		push_error("[SwordSlash] CooldownService no disponible.")
 		return
 
-	var tp_svc = GameServiceLocator.get_service("TPService")
+	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
 
 	var attacker_id: int = player_node.get_multiplayer_authority()
 	var dmg: int         = int(data.base_damage * data.evo_damage_multiplier)

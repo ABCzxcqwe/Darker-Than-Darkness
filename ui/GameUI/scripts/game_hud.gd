@@ -58,7 +58,7 @@ signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
 
 func _ready() -> void:
-	add_to_group("game_hud")
+	add_to_group(GroupNames.GAME_HUD)
 	if context_menu:
 		context_menu.visible = false
 	if killer_hp_public:
@@ -107,27 +107,27 @@ func setup(player_node: Node) -> void:
 	_configure_killer_hp_visibility(player_node)
 
 	# 4. Conectar señales globales de servicios
-	var timer_svc: Node = GameServiceLocator.get_service("TimerService")
+	var timer_svc: Node = GameServiceLocator.get_service(ServiceNames.TIMER)
 	if timer_svc:
 		timer_svc.timer_changed.connect(_on_timer_changed)
 
 	if player_node.has_signal("ability_used"):
 		player_node.ability_used.connect(_on_ability_used)
 
-	var cooldown_svc: Node = GameServiceLocator.get_service("CooldownService")
+	var cooldown_svc: Node = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cooldown_svc and cooldown_svc.has_signal("cooldown_state_changed"):
 		cooldown_svc.cooldown_state_changed.connect(on_cooldown_state_changed)
 
-	var evolution_svc: Node = GameServiceLocator.get_service("EvolutionService")
+	var evolution_svc: Node = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
 	if evolution_svc:
 		evolution_svc.slot_evolved.connect(_on_slot_evolved)
 		evolution_svc.slot_devolved.connect(_on_slot_devolved)
 
-	var health_svc: Node = GameServiceLocator.get_service("HealthService")
+	var health_svc: Node = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if health_svc and health_svc.has_signal("player_state_changed"):
 		health_svc.player_state_changed.connect(_on_player_state_changed)
 
-	var revive_svc: Node = GameServiceLocator.get_service("ReviveService")
+	var revive_svc: Node = GameServiceLocator.get_service(ServiceNames.REVIVE)
 	if revive_svc:
 		if revive_svc.has_signal("revive_started"):
 			revive_svc.revive_started.connect(_on_revive_session_started)
@@ -152,7 +152,7 @@ func _configure_killer_hp_visibility(_node: Node) -> void:
 		_try_connect_killer_hp()
 
 func _try_connect_killer_hp() -> void:
-	var killers := get_tree().get_nodes_in_group("killer")
+	var killers := get_tree().get_nodes_in_group(GroupNames.KILLER)
 	if killers.is_empty(): return
 	var killer := killers[0]
 	if not killer.character_data: return
@@ -192,7 +192,7 @@ func visual_devolve_slot(slot_index: int) -> void:
 func resync_evolution_state() -> void:
 	if not is_instance_valid(_player_node):
 		return
-	var evo_svc = GameServiceLocator.get_service("EvolutionService")
+	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
 	if not evo_svc or not evo_svc.has_method("is_evolved"):
 		return
 	var peer_id = _player_node.get_multiplayer_authority()
@@ -259,10 +259,10 @@ func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = fals
 	_ctx_items.clear()
 	_ctx_selected_idx = 0
 
-	for player in get_tree().get_nodes_in_group("survivor"):
+	for player in get_tree().get_nodes_in_group(GroupNames.SURVIVOR):
 		if "health_state" in player and player.health_state != "alive":
 			continue
-		var coord = GameServiceLocator.get_service("MapEventCoordinator")
+		var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 		if coord and coord.has_player_escaped(player.get_multiplayer_authority()):
 			continue
 		var data: CharacterData = player.character_data if player.get("character_data") else null
@@ -277,7 +277,7 @@ func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = fals
 		context_grid.add_child(item)
 
 		var icon: Texture2D = data.icon if data.icon else null
-		var p_name = NetworkManager.players.get(p_id, {}).get("name", "")
+		var p_name = LobbyManager.players.get(p_id, {}).get("name", "")
 		item.setup(p_id, data.display_name, icon, p_name)
 		item.item_clicked.connect(_on_ctx_item_clicked)
 
@@ -367,7 +367,7 @@ func _on_player_state_changed(peer_id: int, state: String) -> void:
 
 
 func _find_player_by_peer_id(peer_id: int) -> Node:
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if p.get_multiplayer_authority() == peer_id:
 			return p
 	return null
@@ -567,7 +567,7 @@ func _enter_spectator_mode() -> void:
 
 	_build_spectator_panel()
 
-	var hs = GameServiceLocator.get_service("HealthService")
+	var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
 	if hs and hs.has_signal("health_changed"):
 		if not hs.health_changed.is_connected(_on_spectator_health_changed):
 			hs.health_changed.connect(_on_spectator_health_changed)
@@ -678,7 +678,7 @@ func _update_spectator_target() -> void:
 			_spectator_hp_bar.value = 0
 			_spectator_hp_bar.max_value = 1
 		else:
-			var name_str = NetworkManager.players.get(pid, {}).get("name", "Jugador %d" % pid)
+			var name_str = LobbyManager.players.get(pid, {}).get("name", "Jugador %d" % pid)
 			_spectator_name.text = name_str
 			var current_hp = target.health if "health" in target else 0
 			var max_hp = 100

@@ -20,7 +20,7 @@ func _ready() -> void:
 	await _load_map()
 
 	# Inicializar eventos del mapa (coordinador)
-	var coordinator = GameServiceLocator.get_service("MapEventCoordinator")
+	var coordinator = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
 	if coordinator and coordinator.has_method("setup") and current_map_node:
 		coordinator.setup(current_map_node)
 
@@ -43,7 +43,7 @@ func _ready() -> void:
 	_setup_hud()
 
 	if multiplayer.is_server():
-		var tp = GameServiceLocator.get_service("TPService")
+		var tp = GameServiceLocator.get_service(ServiceNames.TP)
 		if tp:
 			tp.start_passive_gain()
 		else:
@@ -51,7 +51,7 @@ func _ready() -> void:
 	
 	print("[World] Mapa cargado e inicializado correctamente.")
 
-	var game_state = GameServiceLocator.get_service("GameStateService")
+	var game_state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
 	if game_state:
 		game_state.transition_to_playing()
 
@@ -92,10 +92,8 @@ func _position_players_in_spawns() -> void:
 
 	# Buscamos a todos los nodos de jugador que el Spawner ya colgó en la escena
 	# Nota: Ajusta la ruta si tus jugadores se spawnean bajo un contenedor específico (ej. $Players)
-	for player_node in get_tree().get_nodes_in_group("players"):
-		# Esperamos a que la lógica diferida de 'set_character' termine para asegurar que 'character_data' exista
+	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if player_node.has_method("get_character_data") or "character_data" in player_node:
-			# Si el personaje aún no se asignó en este frame, esperamos al siguiente
 			if player_node.character_data == null:
 				await get_tree().process_frame
 			
@@ -103,7 +101,6 @@ func _position_players_in_spawns() -> void:
 			if data:
 				var target_position := Vector2.ZERO
 				
-				# Separación asimétrica en base al bando definido en el recurso data.tres del personaje
 				if data.team == "killer":
 					target_position = current_map_node.get_random_killer_spawn()
 					print("[World] Posicionando Killer (Peer: ", player_node.name, ") en: ", target_position)
@@ -125,7 +122,7 @@ func _setup_hud() -> void:
 	while not my_player and elapsed < timeout:
 		await get_tree().process_frame
 		elapsed += get_process_delta_time()
-		my_player = get_tree().root.find_child(str(my_peer_id), true, false)
+		my_player = PlayerRegistry.get_player(my_peer_id)
 
 	if not my_player:
 		push_warning("[World] No se encontró el nodo del jugador local tras esperar.")
