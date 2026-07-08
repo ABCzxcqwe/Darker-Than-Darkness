@@ -6,6 +6,11 @@ const LOCK_TIMEOUT_MS: int = 30000
 # lock = true  → cooldown indefinido (la habilidad está ejecutándose)
 # lock = false → expiry timestamp (0 = listo, >0 = esperando)
 var _cooldowns: Dictionary = {}
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 func _ensure(peer_id: int, slot_index: int) -> void:
@@ -26,7 +31,7 @@ func start_lock(peer_id: int, slot_index: int) -> void:
 	_cooldowns[peer_id][slot_index]["lock_time"] = Time.get_ticks_msec()
 	print("[CooldownService] Lock activado -> Peer: ", peer_id, " | Slot: ", slot_index)
 	if LobbyManager.players.has(peer_id):
-		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, -1.0)
+		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, -1.0)
 
 
 ## Libera el lock sin iniciar cooldown. El slot queda listo inmediatamente.
@@ -38,7 +43,7 @@ func release_lock(peer_id: int, slot_index: int) -> void:
 	_cooldowns[peer_id][slot_index]["expiry"] = 0
 	print("[CooldownService] Lock liberado -> Peer: ", peer_id, " | Slot: ", slot_index)
 	if LobbyManager.players.has(peer_id):
-		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 
 
 ## Inicia cooldown normal. Libera el lock si estaba activo.
@@ -50,7 +55,7 @@ func start(peer_id: int, slot_index: int, duration: float) -> void:
 	_cooldowns[peer_id][slot_index]["expiry"] = Time.get_ticks_msec() + int(duration * 1000)
 	print("[CooldownService] Cooldown iniciado -> Peer: ", peer_id, " | Slot: ", slot_index, " | Duración: ", duration, "s")
 	if LobbyManager.players.has(peer_id):
-		rpc_id(peer_id, "_rpc_cooldown_state", slot_index, duration)
+		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, duration)
 
 
 ## True si el slot está listo (sin lock y sin cooldown pendiente).
@@ -67,7 +72,7 @@ func is_ready(peer_id: int, slot_index: int) -> bool:
 			state["lock"] = false
 			state["expiry"] = 0
 			if LobbyManager.players.has(peer_id):
-				rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 			return true
 		return false
 	if state["expiry"] == 0:
@@ -88,7 +93,7 @@ func get_remaining(peer_id: int, slot_index: int) -> float:
 			state["lock"] = false
 			state["expiry"] = 0
 			if LobbyManager.players.has(peer_id):
-				rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
 			return 0.0
 		return -1.0
 	if state["expiry"] == 0:
@@ -105,7 +110,7 @@ func clear_player(peer_id: int) -> void:
 		_cooldowns.erase(peer_id)
 		if LobbyManager.players.has(peer_id):
 			for slot in range(5):
-				rpc_id(peer_id, "_rpc_cooldown_state", slot, 0.0)
+				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot, 0.0)
 		print("[CooldownService] Cooldowns limpiados para peer: ", peer_id)
 
 

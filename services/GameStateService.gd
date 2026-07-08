@@ -15,6 +15,11 @@ var _health_service: Node = null
 var _timer_service: Node = null
 var _lms_service: Node = null
 var _ending_sequence_started := false
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 func _ready() -> void:
@@ -83,7 +88,7 @@ func _rpc_setup_map_audio(map_id: String) -> void:
 func _setup_map_audio() -> void:
 	if not multiplayer.is_server():
 		return
-	rpc("_rpc_setup_map_audio", GameData.selected_map)
+	_client_relay.rpc("_rpc_setup_map_audio", GameData.selected_map)
 
 
 func _cleanup_match_audio() -> void:

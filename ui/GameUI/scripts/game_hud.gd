@@ -106,35 +106,22 @@ func setup(player_node: Node) -> void:
 
 	_configure_killer_hp_visibility(player_node)
 
-	# 4. Conectar señales globales de servicios
-	var timer_svc: Node = GameServiceLocator.get_service(ServiceNames.TIMER)
-	if timer_svc:
-		timer_svc.timer_changed.connect(_on_timer_changed)
+	# 4. Conectar señales del ClientRelay
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.has_signal("timer_changed"):
+			relay.timer_changed.connect(_on_timer_changed)
+		if relay.has_signal("player_state_changed"):
+			relay.player_state_changed.connect(_on_player_state_changed)
+		if relay.has_signal("revive_started"):
+			relay.revive_started.connect(_on_revive_session_started)
+		if relay.has_signal("revive_cancelled"):
+			relay.revive_cancelled.connect(_on_revive_session_cancelled)
+		if relay.has_signal("revive_completed"):
+			relay.revive_completed.connect(_on_revive_session_completed)
 
 	if player_node.has_signal("ability_used"):
 		player_node.ability_used.connect(_on_ability_used)
-
-	var cooldown_svc: Node = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
-	if cooldown_svc and cooldown_svc.has_signal("cooldown_state_changed"):
-		cooldown_svc.cooldown_state_changed.connect(on_cooldown_state_changed)
-
-	var evolution_svc: Node = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	if evolution_svc:
-		evolution_svc.slot_evolved.connect(_on_slot_evolved)
-		evolution_svc.slot_devolved.connect(_on_slot_devolved)
-
-	var health_svc: Node = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if health_svc and health_svc.has_signal("player_state_changed"):
-		health_svc.player_state_changed.connect(_on_player_state_changed)
-
-	var revive_svc: Node = GameServiceLocator.get_service(ServiceNames.REVIVE)
-	if revive_svc:
-		if revive_svc.has_signal("revive_started"):
-			revive_svc.revive_started.connect(_on_revive_session_started)
-		if revive_svc.has_signal("revive_cancelled"):
-			revive_svc.revive_cancelled.connect(_on_revive_session_cancelled)
-		if revive_svc.has_signal("revive_completed"):
-			revive_svc.revive_completed.connect(_on_revive_session_completed)
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -192,28 +179,22 @@ func visual_devolve_slot(slot_index: int) -> void:
 func resync_evolution_state() -> void:
 	if not is_instance_valid(_player_node):
 		return
-	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	if not evo_svc or not evo_svc.has_method("is_evolved"):
+	var relay = GameServiceLocator.get_client_relay()
+	if not relay or not relay.has_method("is_evolved"):
 		return
 	var peer_id = _player_node.get_multiplayer_authority()
 	var slots = _player_node.character_data.ability_slots if _player_node.character_data else []
 	for i in slots.size():
-		if evo_svc.is_evolved(peer_id, i):
+		if relay.is_evolved(peer_id, i):
 			if ability_bar and ability_bar.has_method("on_slot_evolved"):
 				ability_bar.on_slot_evolved(i)
 
 
-func _on_slot_evolved(peer_id: int, slot_index: int) -> void:
-	if not is_instance_valid(_player_node):
-		return
-	if peer_id != _player_node.get_multiplayer_authority(): return
+func _on_slot_evolved(slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
 		ability_bar.on_slot_evolved(slot_index)
 
-func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
-	if not is_instance_valid(_player_node):
-		return
-	if peer_id != _player_node.get_multiplayer_authority(): return
+func _on_slot_devolved(slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
 		ability_bar.on_slot_devolved(slot_index)
 
@@ -567,10 +548,10 @@ func _enter_spectator_mode() -> void:
 
 	_build_spectator_panel()
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if hs and hs.has_signal("health_changed"):
-		if not hs.health_changed.is_connected(_on_spectator_health_changed):
-			hs.health_changed.connect(_on_spectator_health_changed)
+	var relay = GameServiceLocator.get_client_relay()
+	if relay and relay.has_signal("health_changed"):
+		if not relay.health_changed.is_connected(_on_spectator_health_changed):
+			relay.health_changed.connect(_on_spectator_health_changed)
 
 	print("[GameHUD] Modo espectador activado para peer: ", _my_id)
 

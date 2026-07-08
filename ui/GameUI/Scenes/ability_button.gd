@@ -97,10 +97,10 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 	_apply_visual_state()
 	_setup_tp_tracking()
 
-	# Sincronizar estado de evolución existente (ej: evolución permanente previa, o LMS)
-	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	if evo_svc and evo_svc.has_method("is_evolved"):
-		var was_evolved = evo_svc.is_evolved(_peer_id, slot_index)
+	# Sincronizar estado de evolución existente via ClientRelay
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay and relay.has_method("is_evolved"):
+		var was_evolved = relay.is_evolved(_peer_id, slot_index)
 		if was_evolved != _is_evolved:
 			set_evolved(was_evolved)
 
@@ -191,10 +191,10 @@ func _setup_tp_tracking() -> void:
 	_ratio_base = 0.0
 	_ratio_evo  = 0.0
 
-	_tp_service = GameServiceLocator.get_service(ServiceNames.TP)
-	if _tp_service:
-		_tp_service.tp_changed.connect(_on_tp_changed)
-		_update_tp_fill(_tp_service.get_tp_for_peer(_peer_id))
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay and relay.has_signal("tp_changed"):
+		_tp_service = relay
+		relay.tp_changed.connect(_on_tp_changed)
 	else:
 		push_warning("[AbilityButton] TPService no disponible — slot " + str(slot_index))
 

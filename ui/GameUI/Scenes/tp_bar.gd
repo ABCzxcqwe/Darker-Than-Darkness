@@ -21,10 +21,9 @@ func setup(peer_id: int, max_tp: float) -> void:
 	_peer_id = peer_id
 	_max_tp  = max_tp
 
-	var tp_service: Node = GameServiceLocator.get_service(ServiceNames.TP)
-	if tp_service:
-		tp_service.tp_changed.connect(_on_tp_changed)
-		_update_ui(tp_service.get_tp_for_peer(peer_id))
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay and relay.has_signal("tp_changed"):
+		relay.tp_changed.connect(_on_tp_changed)
 
 
 func _on_tp_changed(peer_id: int, current_tp: float, max_tp: float) -> void:

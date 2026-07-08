@@ -6,6 +6,11 @@ signal player_state_changed(peer_id: int, state: String)
 
 var _states: Dictionary = {}
 var _permanently_dead: Dictionary = {}
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 func is_alive(peer_id: int) -> bool:
 	return _get_state(peer_id) == "alive"
@@ -214,6 +219,7 @@ func _kill(player_node: Node) -> void:
 
 	broadcast_health_update(peer_id, 0, max_hp, "dead")
 	survivor_died_permanently.emit(peer_id)
+	_client_relay.rpc("_sync_survivor_died", peer_id)
 
 	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
 	if cd and cd.has_method("clear_player"):
@@ -252,7 +258,7 @@ func _set_state(peer_id: int, state: String) -> void:
 func broadcast_health_update(peer_id: int, current_hp: int, max_hp: int, state: String) -> void:
 	health_changed.emit(peer_id, current_hp, max_hp)
 	player_state_changed.emit(peer_id, state)
-	rpc("_sync_global_health", peer_id, current_hp, max_hp, state)
+	_client_relay.rpc("_sync_global_health", peer_id, current_hp, max_hp, state)
 
 
 @rpc("authority", "reliable", "call_local")

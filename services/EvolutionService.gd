@@ -6,6 +6,11 @@ signal slot_devolved(peer_id: int, slot_index: int)
 var _evolved_slots: Dictionary = {}
 var _client_evolved_slots: Dictionary = {}
 var _tp_ready_slots: Dictionary = {}
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 func _ready() -> void:
@@ -112,11 +117,10 @@ func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 
 func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
 	if LobbyManager.players.has(peer_id):
-		rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
+		_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
 
 
-@rpc("authority", "call_local", "reliable")
-func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
+func _sync_evolve_local(slot_index: int, evolved: bool) -> void:
 	var peer_id = multiplayer.get_unique_id()
 	if not _client_evolved_slots.has(peer_id):
 		_client_evolved_slots[peer_id] = [false, false, false, false, false]
@@ -140,7 +144,7 @@ func resync_client_visuals(peer_id: int) -> void:
 			return
 		for i in evolved.size():
 			if evolved[i]:
-				rpc_id(peer_id, "_rpc_evolve_slot", i, true)
+				_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", i, true)
 
 
 func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
@@ -183,11 +187,10 @@ func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 
 	_tp_ready_slots[peer_id][slot_index] = is_ready
 	if LobbyManager.players.has(peer_id):
-		rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
+		_client_relay.rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
 
 
-@rpc("authority", "call_local", "reliable")
-func _rpc_tp_ready(slot_index: int, is_ready: bool) -> void:
+func _sync_tp_ready_local(slot_index: int, is_ready: bool) -> void:
 	var huds = get_tree().get_nodes_in_group("game_hud")
 	if huds.is_empty():
 		return

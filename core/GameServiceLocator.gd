@@ -3,7 +3,17 @@
 # El World llama a register_all() al iniciar y clear() al terminar.
 extends Node
 
+const CLIENT_RELAY_CLASS := preload("res://core/ClientRelay.gd")
+
 var _registry: Dictionary = {}
+var _client_relay: Node = null
+
+
+func _ready() -> void:
+	# ClientRelay existe siempre en todos los peers
+	_client_relay = CLIENT_RELAY_CLASS.new()
+	_client_relay.name = "ClientRelay"
+	add_child(_client_relay)
 
 
 # ── Llamado por el World al iniciar la partida ─────────────────────────
@@ -28,6 +38,9 @@ func _register(entry: ServiceEntry) -> void:
 
 	var node: Node = entry.service_script.new()
 	node.name = entry.service_name
+	# Inyectar referencia al ClientRelay
+	if node.has_method("set_client_relay"):
+		node.set_client_relay(_client_relay)
 	add_child(node)
 	_registry[entry.service_name] = node
 	print("[GameServiceLocator] ✓ ", entry.service_name, " registrado.")
@@ -39,6 +52,8 @@ func clear() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 	_registry.clear()
+	if is_instance_valid(_client_relay):
+		_client_relay.reset_state()
 	print("[GameServiceLocator] Todos los servicios eliminados.")
 
 
@@ -52,3 +67,7 @@ func get_service(service_name: String) -> Node:
 
 func has_service(service_name: String) -> bool:
 	return _registry.has(service_name)
+
+
+func get_client_relay() -> Node:
+	return _client_relay

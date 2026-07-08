@@ -21,6 +21,11 @@ var _lms_exit_threshold: float = 0.0
 var _lms_exits_opened: bool = false
 var _final_phase_triggered: bool = false
 var _exit_arrows: Dictionary = {}
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 # ── Lifecycle ─────────────────────────────────────────────
@@ -50,7 +55,7 @@ func _on_lms_activated(survivor_node: Node, _killer_node: Node, _duration: float
 	if not multiplayer.is_server():
 		return
 	var threshold = _get_lms_exit_threshold(survivor_node)
-	rpc("_sync_lms_state", threshold)
+	_client_relay.rpc("_sync_lms_state", threshold)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -65,7 +70,7 @@ func _sync_lms_state(threshold: float) -> void:
 func _on_lms_ended() -> void:
 	if not multiplayer.is_server():
 		return
-	rpc("_sync_lms_ended")
+	_client_relay.rpc("_sync_lms_ended")
 
 
 @rpc("authority", "call_local", "reliable")
