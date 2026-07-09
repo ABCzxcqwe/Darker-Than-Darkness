@@ -53,7 +53,7 @@ func prepare_spectator_mode() -> void:
 		vision.notify_spectator_mode()
 
 	if player.has_node("Synchronizer"):
-		player.get_node("Synchronizer").enabled = false
+		player.get_node("Synchronizer").queue_free()
 
 	player.set_process_input(true)
 	player.set_physics_process(true)
