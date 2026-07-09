@@ -147,8 +147,7 @@ func _try_revive() -> void:
 	if not closest_target: return
 
 	if multiplayer.is_server():
-		var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
-		if revive_svc: revive_svc.request_revive(self, closest_target)
+		GameServiceLocator.revive.request_revive(self, closest_target)
 	else:
 		rpc_id(1, "_request_revive", closest_target.get_multiplayer_authority())
 
@@ -162,17 +161,14 @@ func _request_revive(target_peer_id: int) -> void:
 	var target_node  := PlayerRegistry.get_player(target_peer_id)
 	if not rescuer_node or not target_node: return
 
-	var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
-	if revive_svc: revive_svc.request_revive(rescuer_node, target_node)
+	GameServiceLocator.revive.request_revive(rescuer_node, target_node)
 
 
 @rpc("any_peer", "reliable")
 func _request_cancel_revive() -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
 	if caller_id != get_multiplayer_authority(): return
-	var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
-	if revive_svc:
-		revive_svc.cancel_revive(get_multiplayer_authority())
+	GameServiceLocator.revive.cancel_revive(get_multiplayer_authority())
 
 
 func _exit_tree() -> void:
@@ -275,8 +271,7 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_released("interact"):
 		if multiplayer.is_server():
-			var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
-			if revive_svc: revive_svc.cancel_revive(get_multiplayer_authority())
+			GameServiceLocator.revive.cancel_revive(get_multiplayer_authority())
 		else:
 			rpc_id(1, "_request_cancel_revive")
 
@@ -339,9 +334,7 @@ func _play_ability_prepare(slot: int) -> void:
 		return
 
 	if ability_data.prepare_animation != "" and ability_data.prepare_animation != null:
-		var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
-		if combat:
-			combat.apply_root(self, 30.0)
+		GameServiceLocator.combat_mediator.apply_root(self, 30.0)
 		play_prepare_animation(ability_data.prepare_animation, slot, facing_right)
 
 
@@ -374,9 +367,7 @@ func _cancel_ability_selection(slot: int) -> void:
 		return
 
 	if state == AnimState.PREPARE and active_ability_slot == slot:
-		var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
-		if combat:
-			combat.remove_root(self)
+		GameServiceLocator.combat_mediator.remove_root(self)
 		rpc("_sync_cancel_ability")
 
 	print("[Ability] Selección cancelada: slot ", slot, " | peer: ", get_multiplayer_authority())
@@ -556,9 +547,8 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 
 	if health_state != should_be_state and should_be_state != "":
 		health_state = should_be_state
-		var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
-		if hs and hs.has_method("get_player_state"):
-			hs.player_state_changed.emit(get_multiplayer_authority(), health_state)
+		if multiplayer.is_server():
+			GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), health_state)
 	else:
 		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
 
@@ -655,9 +645,8 @@ func _sync_state(new_state: String, new_health: int) -> void:
 			if name_tag:
 				name_tag.visible = false
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if hs:
-		hs.player_state_changed.emit(get_multiplayer_authority(), new_state)
+	if multiplayer.is_server():
+		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), new_state)
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -665,18 +654,24 @@ func _sync_escape() -> void:
 	var caller = multiplayer.get_remote_sender_id()
 	if caller != 0 and caller != 1:
 		return
+	health_state = "escaped"
 	visible = false
 	if name_tag:
 		name_tag.visible = false
 	interaction.disable_corpse()
 	interaction.prepare_spectator_mode()
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
-	if coord and not coord.has_player_escaped(get_multiplayer_authority()):
-		if coord.has_method("_register_escaped"):
+	if multiplayer.is_server():
+		var coord = GameServiceLocator.map_event_coordinator
+		if not coord.has_player_escaped(get_multiplayer_authority()):
 			coord._register_escaped(get_multiplayer_authority())
-	var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if hs:
-		hs.player_state_changed.emit(get_multiplayer_authority(), "escaped")
+		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), "escaped")
+
+
+@rpc("any_peer", "reliable")
+func _request_sprint(sprinting: bool) -> void:
+	if not multiplayer.is_server():
+		return
+	GameServiceLocator.stamina.set_sprinting(get_multiplayer_authority(), sprinting)
 
 
 @rpc("authority", "call_local", "reliable")

@@ -18,7 +18,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var target_peer_id: int = target_node.get_multiplayer_authority()
 
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = GameServiceLocator.health
 	if not health_svc:
 		push_error("[UltimateHealth] HealthService no disponible.")
 		_release_lock_for(caster_id, slot_index)
@@ -29,8 +29,8 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		_release_lock_for(caster_id, slot_index)
 		return
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
-	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
+	var tp_svc = GameServiceLocator.tp
+	var abs_svc = GameServiceLocator.ability_state
 	var effective_cost: float = data.tp_cost
 	if data.is_scalable and abs_svc and abs_svc.has_method("get_dynamic_tp_cost"):
 		effective_cost = abs_svc.get_dynamic_tp_cost(caster_id, slot_index)
@@ -65,7 +65,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				heal_amount = int(data.scaling_base_value)
 			heal_amount = maxi(1, heal_amount)
 
-			var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+			var combat = GameServiceLocator.combat_mediator
 			if combat:
 				combat.apply_heal(player_node, target_node, heal_amount)
 				combat.remove_root(player_node)
@@ -76,7 +76,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			if player_node.multiplayer.is_server():
 				AudioManager.play_sfx_networked.rpc(SfxId.HEAL, target_node.global_position.x, target_node.global_position.y)
 
-			var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+			var cd_svc = GameServiceLocator.cooldown
 			if cd_svc:
 				if cd_svc.has_method("release_lock"):
 					cd_svc.release_lock(caster_id, slot_index)
@@ -94,13 +94,13 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				  " | HP: ", heal_amount)
 	)
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.apply_root(player_node, anim_dur + 0.1)
 
 
 func _release_lock_for(peer_id: int, slot_index: int) -> void:
-	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd_svc = GameServiceLocator.cooldown
 	if cd_svc and cd_svc.has_method("release_lock"):
 		cd_svc.release_lock(peer_id, slot_index)
 

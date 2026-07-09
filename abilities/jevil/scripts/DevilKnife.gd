@@ -7,12 +7,12 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	var caster_id: int = player_node.get_multiplayer_authority()
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
 			return
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.apply_root(player_node, 2.0)
 
@@ -24,7 +24,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if sprite and sprite.sprite_frames and data.action_animation != "" and sprite.sprite_frames.has_animation(data.action_animation):
 		anim_dur = sprite.sprite_frames.get_frame_count(data.action_animation) / sprite.sprite_frames.get_animation_speed(data.action_animation)
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd and cd.has_method("release_lock"):
 		cd.release_lock(caster_id, slot_index)
 
@@ -43,7 +43,7 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 	if not is_instance_valid(player_node):
 		return
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.remove_root(player_node)
 
@@ -51,7 +51,7 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 	if proj_dir == Vector2.ZERO:
 		proj_dir = Vector2.RIGHT if player_node.facing_right else Vector2.LEFT
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
+	var hs = GameServiceLocator.hitbox
 	if hs:
 		hs.create({
 			"attacker_id": caster_id,
@@ -74,16 +74,16 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 			"impact_lifetime": 0.3,
 			"on_hit": func(target_node: Node) -> void:
 				if is_instance_valid(target_node):
-					var cmbt = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+					var cmbt = GameServiceLocator.combat_mediator
 					if cmbt:
 						cmbt.apply_damage(player_node, target_node, data.base_damage, data.attack_type)
 					if target_node.is_in_group("killer") and data.stun_duration > 0.0:
-						var combat_stun = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+						var combat_stun = GameServiceLocator.combat_mediator
 						if combat_stun:
 							combat_stun.apply_stun(target_node, data.stun_duration)
 		})
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.start(caster_id, slot_index, data.cooldown)
 

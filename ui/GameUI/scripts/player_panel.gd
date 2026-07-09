@@ -64,6 +64,11 @@ func setup(player_node: Node) -> void:
 
 	if stamina_bar:
 		stamina_bar.max_value = data.stamina_max
+		# Leer valor cacheado del relay (pudo llegar antes que el HUD esté listo)
+		if relay and relay.has_method("get_stamina"):
+			var cached = relay.get_stamina(_peer_id)
+			if cached.current > 0.0:
+				stamina_bar.value = cached.current
 
 
 func _on_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:

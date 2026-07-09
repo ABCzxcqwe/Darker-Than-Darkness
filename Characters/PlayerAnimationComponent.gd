@@ -41,7 +41,8 @@ func should_use_hurt_sprite() -> bool:
 		return true
 	if player.character_data and player.health > 0:
 		return player.health <= player.character_data.max_health * Player.LOW_HP_THRESHOLD
-	return false
+	else:
+		return false
 
 
 # ── Animation state machine ────────────────────────────────────────────
@@ -58,7 +59,6 @@ func restore_idle() -> void:
 func end_stun() -> void:
 	player.state = Player.AnimState.IDLE
 	restore_idle()
-
 
 func on_anim_finished() -> void:
 	if player.state == Player.AnimState.STUNNED:

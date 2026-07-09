@@ -15,12 +15,12 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		push_warning("[MeleeAbilityBase] player_node inválido.")
 		return
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
+	var hs = GameServiceLocator.hitbox
 	if not hs:
 		push_error("[MeleeAbilityBase] HitboxService no disponible.")
 		return
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 
 	var attacker_id: int = player_node.get_multiplayer_authority()
 	var dmg_mult = cfg.get("damage_multiplier", 1.0)
@@ -31,12 +31,12 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var stun_dur: float = data.stun_duration + stun_bonus
 	var tp_reward: float = data.tp_reward
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(attacker_id, data.tp_cost):
 			return
 
-	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd_svc = GameServiceLocator.cooldown
 	var facing_right: bool = direction.x >= 0.0
 	var slash_dir: Vector2 = Vector2.RIGHT if facing_right else Vector2.LEFT
 
@@ -96,7 +96,7 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				cd_svc.start(attacker_id, slot_index, data.cooldown),
 
 		"on_end": func(hit_count: int) -> void:
-			var c = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+			var c = GameServiceLocator.combat_mediator
 			if c and is_instance_valid(player_node):
 				c.remove_root(player_node)
 

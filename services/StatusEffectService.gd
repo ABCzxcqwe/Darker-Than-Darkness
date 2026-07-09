@@ -22,6 +22,9 @@ var _post_stun_dr: Dictionary = {}
 # Última velocidad conocida para detectar cambios: { peer_id: float }
 var _last_speed: Dictionary = {}
 
+var _revive_service: Node = null
+var _health_service: Node = null
+
 
 func _process(delta: float) -> void:
 	if not multiplayer.is_server():
@@ -154,7 +157,7 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			  " | duración: ", duration)
 
 		if effect_name in ["stun", "root"]:
-			var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
+			var revive_svc = _revive_service
 			if revive_svc:
 				revive_svc.cancel_revive(peer_id)
 
@@ -277,7 +280,7 @@ func _recalculate_speed(peer_id: int) -> void:
 
 func _calculate_speed(peer_id: int, base_speed: float) -> float:
 	# 1. Verificar si el jugador está caído mediante el HealthService
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = _health_service
 	if health_svc and health_svc.is_downed(peer_id):
 		# 80% de reducción significa que se queda con el 20% de su base_speed
 		return base_speed * 0.2

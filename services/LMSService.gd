@@ -8,7 +8,7 @@ var active_survivor: Node = null
 var active_killer: Node = null
 
 var _health_service: Node = null
-var _status_service: Node = null
+var _status_effect_service: Node = null
 var _timer_service: Node = null
 var _audio_manager = null
 var _evolution_service: Node = null
@@ -21,14 +21,10 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	_health_service = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	_status_service = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
-	_timer_service = GameServiceLocator.get_service(ServiceNames.TIMER)
-	_evolution_service = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
+	var evo = GameServiceLocator.evolution
 	_audio_manager = AudioManager
-
-	if _evolution_service and _evolution_service.has_signal("slot_devolved"):
-		_evolution_service.slot_devolved.connect(_on_slot_devolved)
+	if evo and evo.has_signal("slot_devolved"):
+		evo.slot_devolved.connect(_on_slot_devolved)
 
 
 func start_lms(survivor_node: Node, killer_node: Node) -> void:

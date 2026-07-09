@@ -10,3 +10,7 @@ class_name ServiceEntry
 
 ## Script del servicio. Debe ser un Node (extends Node).
 @export var service_script: GDScript = null
+
+## Dependencias: otros servicios que este necesita.
+## GameServiceLocator las inyecta via _resolve_dependency() automáticamente.
+@export var dependencies: Array[ServiceEntry] = []

@@ -19,14 +19,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 
 func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_peer_id: int, slot_index: int) -> void:
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if not combat:
 		push_error("[ACT] CombatMediator no disponible.")
 		return
 
-	var tp_svc  = GameServiceLocator.get_service(ServiceNames.TP)
-	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	var cd_svc  = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var tp_svc  = GameServiceLocator.tp
+	var evo_svc = GameServiceLocator.evolution
+	var cd_svc  = GameServiceLocator.cooldown
 
 	if target_peer_id == caster_id:
 		print("[ACT] Kris no puede potenciarse a sí mismo.")
@@ -44,7 +44,7 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 		print("[ACT] El objetivo no es un survivor.")
 		return
 
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = GameServiceLocator.health
 	if health_svc and not health_svc.is_alive(target_peer_id):
 		print("[ACT] El objetivo está caído o muerto.")
 		return

@@ -17,7 +17,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var target_peer_id: int = target_node.get_multiplayer_authority()
 
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = GameServiceLocator.health
 	if not health_svc:
 		push_error("[HealPrayer] HealthService no disponible.")
 		_release_lock_for(caster_id, slot_index)
@@ -28,14 +28,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		_release_lock_for(caster_id, slot_index)
 		return
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
 			push_warning("[HealPrayer] consume_tp falló para peer ", caster_id)
 			_release_lock_for(caster_id, slot_index)
 			return
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, slot_index, player_node.facing_right)
@@ -61,7 +61,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			if player_node.multiplayer.is_server():
 				AudioManager.play_sfx_networked.rpc(SfxId.HEAL, target_node.global_position.x, target_node.global_position.y)
 
-			var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+			var cd_svc = GameServiceLocator.cooldown
 			if cd_svc:
 				if cd_svc.has_method("release_lock"):
 					cd_svc.release_lock(caster_id, slot_index)
@@ -81,7 +81,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 
 func _release_lock_for(peer_id: int, slot_index: int) -> void:
-	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd_svc = GameServiceLocator.cooldown
 	if cd_svc and cd_svc.has_method("release_lock"):
 		cd_svc.release_lock(peer_id, slot_index)
 

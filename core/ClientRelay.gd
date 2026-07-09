@@ -15,6 +15,7 @@ signal survivor_died_permanently(peer_id: int)
 signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
 signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
+signal dynamic_tp_cost_changed(slot_index: int, cost: float)
 
 signal slot_evolved(slot_index: int)
 signal slot_devolved(slot_index: int)
@@ -28,17 +29,21 @@ signal revive_completed(rescuer_id: int, target_id: int)
 
 signal lms_state_changed(threshold: float)
 signal lms_ended_state()
+signal escaped_players_changed(escaped: Array[int])
+signal game_state_changed(new_state: int, old_state: int)
 
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
 var time_left: float = 0.0
 var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
+var _escaped_players: Array[int] = []
+var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
 
 
 # ── RPCs ─────────────────────────────────────────────────────────────
 
 ## Timer
-@rpc("authority", "unreliable")
+@rpc("authority", "unreliable", "call_local")
 func _sync_time_client(server_time: float) -> void:
 	time_left = server_time
 	timer_changed.emit(server_time)
@@ -143,6 +148,17 @@ func _sync_lms_ended() -> void:
 
 
 ## Audio
+@rpc("authority", "call_local", "reliable")
+func _sync_game_state(new_state: int, old_state: int) -> void:
+	game_state_changed.emit(new_state, old_state)
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_escaped_players(escaped: Array[int]) -> void:
+	_escaped_players = escaped
+	escaped_players_changed.emit(_escaped_players)
+
+
 @rpc("authority", "reliable", "call_local")
 func _rpc_setup_map_audio(map_id: String) -> void:
 	AudioManager.setup_map_audio(map_id)
@@ -158,15 +174,22 @@ func _rpc_setup_map_audio(map_id: String) -> void:
 
 
 ## Stamina
-@rpc("authority", "unreliable")
+@rpc("authority", "call_local", "reliable")
 func sync_stamina_to_client(peer_id: int, current_stamina: float, max_stamina: float) -> void:
+	_stamina_cache[peer_id] = { "current": current_stamina, "max": max_stamina }
 	stamina_changed.emit(peer_id, current_stamina, max_stamina)
 
 
 ## TP
-@rpc("authority", "unreliable")
+@rpc("authority", "call_local", "reliable")
 func sync_tp_to_client(peer_id: int, current_tp: float, max_tp: float) -> void:
 	tp_changed.emit(peer_id, current_tp, max_tp)
+
+
+## Dynamic TP cost (for scalable abilities like Ultimate Heal)
+@rpc("authority", "call_local", "reliable")
+func _rpc_dynamic_tp_cost(slot_index: int, cost: float) -> void:
+	dynamic_tp_cost_changed.emit(slot_index, cost)
 
 
 # ── Internos ──────────────────────────────────────────────────────────
@@ -186,6 +209,10 @@ func _find_any_survivor_node() -> Node2D:
 
 # ── API Pública ──────────────────────────────────────────────────────
 
+func has_player_escaped(peer_id: int) -> bool:
+	return peer_id in _escaped_players
+
+
 func is_evolved(peer_id: int, slot_index: int) -> bool:
 	var slots = _evolved_slots.get(peer_id)
 	if slots == null:
@@ -195,6 +222,12 @@ func is_evolved(peer_id: int, slot_index: int) -> bool:
 	return slots[slot_index]
 
 
+func get_stamina(peer_id: int) -> Dictionary:
+	return _stamina_cache.get(peer_id, { "current": 0.0, "max": 0.0 })
+
+
 func reset_state() -> void:
 	time_left = 0.0
 	_evolved_slots.clear()
+	_escaped_players.clear()
+	_stamina_cache.clear()

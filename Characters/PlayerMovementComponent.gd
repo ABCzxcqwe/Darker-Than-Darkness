@@ -50,18 +50,18 @@ func _physics_process(_delta: float) -> void:
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
 		var can_sprint = false
-		var stam_svc = GameServiceLocator.get_service(ServiceNames.STAMINA)
-		if stam_svc:
+		if player.multiplayer.is_server():
+			var stam_svc = GameServiceLocator.stamina
 			can_sprint = want_sprint and stam_svc.has_stamina(player.get_multiplayer_authority())
 		else:
 			can_sprint = want_sprint
 
-		if stam_svc and can_sprint != _is_sprinting:
+		if can_sprint != _is_sprinting:
 			_is_sprinting = can_sprint
 			if player.multiplayer.is_server():
-				stam_svc.set_sprinting(player.get_multiplayer_authority(), can_sprint)
+				GameServiceLocator.stamina.set_sprinting(player.get_multiplayer_authority(), can_sprint)
 			else:
-				stam_svc.rpc_id(1, "set_sprinting", player.get_multiplayer_authority(), can_sprint)
+				player.rpc_id(1, "_request_sprint", can_sprint)
 
 		var sprint_mult = 1.5 if can_sprint else 1.0
 		player.velocity = input_dir * speed * sprint_mult

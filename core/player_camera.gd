@@ -24,7 +24,6 @@ func _process(delta: float) -> void:
 		return
 
 	if parent.interaction.is_spectator:
-		offset = Vector2.ZERO
 		return
 
 	var peek := _calc_mouse_peek(parent)

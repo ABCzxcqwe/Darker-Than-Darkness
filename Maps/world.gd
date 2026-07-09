@@ -21,7 +21,7 @@ func _ready() -> void:
 	await _load_map()
 
 	# Inicializar eventos del mapa (coordinador)
-	var coordinator = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	var coordinator = GameServiceLocator.map_event_coordinator
 	if coordinator and coordinator.has_method("setup") and current_map_node:
 		coordinator.setup(current_map_node)
 
@@ -44,7 +44,7 @@ func _ready() -> void:
 	_setup_hud()
 
 	if multiplayer.is_server():
-		var tp = GameServiceLocator.get_service(ServiceNames.TP)
+		var tp = GameServiceLocator.tp
 		if tp:
 			tp.start_passive_gain()
 		else:
@@ -52,7 +52,7 @@ func _ready() -> void:
 	
 	print("[World] Mapa cargado e inicializado correctamente.")
 
-	var game_state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
+	var game_state = GameServiceLocator.game_state
 	if game_state:
 		game_state.transition_to_playing()
 

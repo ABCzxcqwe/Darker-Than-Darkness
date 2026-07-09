@@ -8,6 +8,8 @@ var _client_evolved_slots: Dictionary = {}
 var _tp_ready_slots: Dictionary = {}
 var _client_relay: Node
 
+var _tp_service: Node = null
+
 
 func set_client_relay(relay: Node) -> void:
 	_client_relay = relay
@@ -15,7 +17,7 @@ func set_client_relay(relay: Node) -> void:
 
 func _ready() -> void:
 	if multiplayer.is_server():
-		var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+		var tp_svc = GameServiceLocator.tp
 		if tp_svc and tp_svc.has_signal("tp_changed"):
 			tp_svc.tp_changed.connect(_on_tp_changed)
 
@@ -165,7 +167,6 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 
 		var is_lms: bool = data.lms_auto_evolve
 		var tp_sufficient: bool = current_tp >= data.evolved_version.tp_cost
-		var _aaaasdssasis_permanent: bool = data.evolved_version.evolution_consume == 1
 
 		if not is_lms:
 			continue

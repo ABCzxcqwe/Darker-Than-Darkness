@@ -192,7 +192,7 @@ func _update_proximities(player: Node, delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	if "interaction" in player and player.interaction and player.interaction.is_spectator:
-		var target = player.interaction._follow_target
+		var target = player.interaction.get_follow_target()
 		if is_instance_valid(target):
 			player = target
 		else:
@@ -231,13 +231,13 @@ func _update_proximities(player: Node, delta: float) -> void:
 
 	var chase_range = chase_radius_expanded if _is_chasing else chase_radius_base
 
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	var relay = GameServiceLocator.get_client_relay()
 
 	if is_killer:
 		for s in survivors:
 			if not is_instance_valid(s): continue
 			if "health_state" in s and s.health_state != "alive": continue
-			if coord and coord.has_player_escaped(s.get_multiplayer_authority()): continue
+			if relay and relay.has_player_escaped(s.get_multiplayer_authority()): continue
 			var d: float = player.global_position.distance_to(s.global_position)
 			if d <= chase_range:
 				if not _is_chasing:
@@ -378,6 +378,7 @@ func change_audio_state(new_state: String) -> void:
 func activate_special_music() -> void:
 	_start_priority_stream(PriorityLevel.SPECIAL)
 
+@rpc("authority", "call_local", "reliable")
 func activar_fase_final_del_mapa() -> void:
 	_start_priority_stream(PriorityLevel.ESCAPE)
 

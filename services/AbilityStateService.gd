@@ -51,9 +51,14 @@ extends Node
 
 # { peer_id: { slot_index: { ...campos... } } }
 var _states: Dictionary = {}
+var _client_relay: Node
 
 # Número de slots por jugador (debe coincidir con ability_slots en CharacterData)
 const SLOT_COUNT: int = 5
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -135,6 +140,9 @@ func register_use(peer_id: int, slot_index: int, ability_data: Resource) -> int:
 		var tp_reduction: float = ability_data.tp_cost_reduction_per_use * uses
 		var new_tp: float = ability_data.tp_cost - tp_reduction
 		s["dynamic_tp_cost"] = maxf(new_tp, ability_data.tp_cost_floor)
+
+		if _client_relay and LobbyManager.players.has(peer_id):
+			_client_relay.rpc_id(peer_id, "_rpc_dynamic_tp_cost", slot_index, s["dynamic_tp_cost"])
 
 	print("[AbilityStateService] Uso registrado | peer: ", peer_id,
 		  " | slot: ", slot_index, " | usos totales: ", uses,
