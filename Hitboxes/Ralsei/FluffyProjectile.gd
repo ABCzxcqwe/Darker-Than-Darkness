@@ -10,6 +10,9 @@ var sine_amplitude: float = 40.0
 var sine_frequency: float = 3.0
 var lifetime_after_arrival: float = 2.0
 
+var slow_magnitude: float = 0.0
+var slow_duration: float = 0.0
+
 var on_hit_callback: Callable
 var on_end_callback: Callable
 
@@ -18,6 +21,11 @@ var _traveled: float = 0.0
 var _arrived: bool = false
 var _hit: bool = false
 var _expired: bool = false
+var _mine_mode: bool = false
+var _end_called: bool = false
+
+var _show_indicator: bool = false
+var _indicator_time: float = 0.0
 
 
 func _ready() -> void:
@@ -28,15 +36,10 @@ func _ready() -> void:
 		var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 		if anim and anim.sprite_frames and anim.sprite_frames.has_animation("travel"):
 			anim.play("travel")
-		print("[FluffyProj] _ready CLIENTE | pos: ", global_position)
 		return
 
 	_start_position = global_position
 	area_entered.connect(_on_area_entered)
-
-	var total_lifetime: float = (max_distance / speed) + lifetime_after_arrival + 0.5
-	print("[FluffyProj] _ready SERVER | pos: ", global_position, " | dir: ", direction, " | lifetime: ", total_lifetime, " | on_hit valido: ", on_hit_callback.is_valid(), " | on_end valido: ", on_end_callback.is_valid())
-	get_tree().create_timer(total_lifetime).timeout.connect(_expire)
 
 
 func _physics_process(delta: float) -> void:
@@ -50,10 +53,8 @@ func _physics_process(delta: float) -> void:
 		_traveled = max_distance
 		_arrived = true
 		set_physics_process(false)
-		var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
-		if anim and anim.sprite_frames and anim.sprite_frames.has_animation("idle"):
-			anim.play("idle")
-		get_tree().create_timer(lifetime_after_arrival).timeout.connect(_expire)
+		_on_shot_completed(false)
+		_enter_mine_mode()
 		return
 
 	var forward: Vector2 = _start_position + direction * _traveled
@@ -62,41 +63,90 @@ func _physics_process(delta: float) -> void:
 	global_position = forward + lateral_vec * lateral_offset
 
 
+func _process(delta: float) -> void:
+	if _show_indicator:
+		_indicator_time += delta
+		queue_redraw()
+
+
+func _draw() -> void:
+	if not _show_indicator:
+		return
+
+	var base_radius: float = 48.0
+	var pulse: float = 1.0 + sin(_indicator_time * 2.5) * 0.05
+	var alpha: float = 0.2 + sin(_indicator_time * 1.8) * 0.12
+
+	draw_circle(Vector2.ZERO, base_radius * pulse, Color(1.0, 0.15, 0.15, alpha))
+	draw_arc(Vector2.ZERO, base_radius * pulse, 0.0, TAU, 48, Color(1.0, 0.0, 0.0, 0.5), 2.0)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_indicator(show: bool) -> void:
+	_show_indicator = show
+	if show:
+		_indicator_time = 0.0
+	queue_redraw()
+
+
+func _on_shot_completed(hit_flag: bool) -> void:
+	if _end_called:
+		return
+	_end_called = true
+	if on_end_callback.is_valid():
+		on_end_callback.call(hit_flag)
+
+
+func _enter_mine_mode() -> void:
+	if _hit or _expired:
+		return
+	_mine_mode = true
+	add_to_group("fluffy_mines")
+
+	var col_shape: CollisionShape2D = $CollisionShape2D
+	if col_shape:
+		col_shape.scale = Vector2(1.5, 1.5)
+
+	var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
+	if anim_sprite:
+		anim_sprite.modulate = Color(0.3, 1.0, 0.3, 0.9)
+		anim_sprite.stop()
+
+	rpc("_sync_indicator", true)
+
+
 func _on_area_entered(area: Area2D) -> void:
-	print("[FluffyProj] _on_area_entered | _expired: ", _expired, " | _hit: ", _hit, " | area grupo hurtbox: ", area.is_in_group("hurtbox"))
 	if _expired or _hit:
 		return
 	if not area.is_in_group("hurtbox"):
 		return
 
 	var target: Node = area.get_parent()
-	print("[FluffyProj] target: ", target, " | grupo players: ", target.is_in_group("players") if target else "no target", " | target_id: ", target.get_multiplayer_authority() if target else -1, " | attacker_id: ", attacker_id)
 	if not target or not target.is_in_group("players"):
 		return
 	if target.get_multiplayer_authority() == attacker_id:
-		print("[FluffyProj] self-hit ignorado")
 		return
 
 	_hit = true
 	set_physics_process(false)
 
-	print("[FluffyProj] GOLPEÓ a: ", target.name, " | on_hit_callback valido: ", on_hit_callback.is_valid())
+	if _mine_mode:
+		remove_from_group("fluffy_mines")
+
 	if on_hit_callback.is_valid():
 		on_hit_callback.call(target)
-
-	var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
-	if anim and anim.sprite_frames and anim.sprite_frames.has_animation("hit"):
-		anim.play("hit")
 
 	_expire()
 
 
 func _expire() -> void:
-	print("[FluffyProj] _expire | _expired: ", _expired, " | _hit: ", _hit, " | on_end valido: ", on_end_callback.is_valid())
 	if _expired:
 		return
 	_expired = true
 	set_physics_process(false)
-	if on_end_callback.is_valid():
-		on_end_callback.call(_hit)
+	remove_from_group("fluffy_mines")
+	if not _end_called:
+		_end_called = true
+		if on_end_callback.is_valid():
+			on_end_callback.call(_hit)
 	queue_free()
