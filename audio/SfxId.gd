@@ -31,3 +31,5 @@ const JEVIL_METAMORPHOSIS := 28
 const JEVIL_OH := 29
 const IMPACT := 30
 const HEAL := 31
+const RALSEI_SING1 := 32
+const RALSEI_SING2 := 33

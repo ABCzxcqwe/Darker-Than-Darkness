@@ -83,6 +83,8 @@ func _update_player_visibility(player: Node2D, data: CharacterData, facing_dir: 
 	for other in get_tree().get_nodes_in_group("players"):
 		if other == player:
 			continue
+		if other.health_state != "alive":
+			continue
 		if not other.animated_sprite:
 			continue
 		var other_pos = other.global_position

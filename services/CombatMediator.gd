@@ -336,3 +336,5 @@ func _play_killer_hit_sound(target: Node) -> void:
 	else:
 		var ha_id := SfxId.JEVIL_HA0 if randi() % 2 == 0 else SfxId.JEVIL_HA1
 		AudioManager.play_sfx_networked.rpc(ha_id, target.global_position.x, target.global_position.y)
+
+	AudioManager.play_sfx_networked.rpc(SfxId.DAMAGE, target.global_position.x, target.global_position.y)

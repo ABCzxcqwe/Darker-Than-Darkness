@@ -1,0 +1,109 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://d3i0ea1o4eoj2"]
+
+[ext_resource type="Texture2D" uid="uid://bufsajgh2kb65" path="res://abilities/shared/spamton_angel.png" id="1_d87gu"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4lwkw"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(0, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0oqgy"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(144, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uioqq"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(288, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k0c6c"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(432, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_srt5v"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(576, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fmoqs"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(720, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q3j6v"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(864, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_liybj"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1008, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2bxkd"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1152, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e3i7n"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1296, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p85fl"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1440, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ada65"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1584, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ta5kl"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1728, 0, 144, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lbrk2"]
+atlas = ExtResource("1_d87gu")
+region = Rect2(1872, 0, 144, 144)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4lwkw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0oqgy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uioqq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k0c6c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_srt5v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fmoqs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q3j6v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_liybj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2bxkd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e3i7n")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p85fl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ada65")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ta5kl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lbrk2")
+}],
+"loop": true,
+"name": &"spamton_angel",
+"speed": 5.0
+}]

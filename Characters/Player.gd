@@ -35,6 +35,7 @@ var facing: Vector2 = Vector2.RIGHT
 var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
+var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
 var _last_slot_request_time: Dictionary = {}
@@ -265,6 +266,12 @@ func _input(event: InputEvent) -> void:
 				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
 			ability_used.emit(slot)
 			break
+
+	if event.is_action_pressed("secret_ability"):
+		if multiplayer.is_server():
+			_activate_secret_heal()
+		else:
+			rpc_id(1, "_request_secret_heal")
 
 	if event.is_action_pressed("interact"):
 		_try_revive()
@@ -523,6 +530,65 @@ func _sync_cancel_ability() -> void:
 	reset_ability_state()
 
 
+@rpc("any_peer", "call_remote", "reliable")
+func _request_secret_heal() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	_activate_secret_heal()
+
+
+func _activate_secret_heal() -> void:
+	if not multiplayer.is_server():
+		return
+	if _secret_heal_used:
+		return
+	if health_state != "alive" or health <= 0:
+		return
+	if character_data and health >= character_data.max_health:
+		return
+	if state != AnimState.IDLE:
+		return
+
+	_secret_heal_used = true
+
+	var data := preload("res://abilities/shared/SecretHeal.tres")
+	if not data:
+		return
+	var handler := preload("res://abilities/shared/secret_heal.gd").new()
+	handler.activate(self, data, Vector2.ZERO, -1)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_spawn_secret_visual(caster_peer_id: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var survivor := PlayerRegistry.get_player(caster_peer_id) as Node2D
+	if not survivor:
+		return
+
+	var frames := preload("res://abilities/shared/animations.tres")
+	if not frames:
+		return
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = frames
+	sprite.play("spamton_angel")
+	sprite.position = Vector2(0, -60.0)
+	sprite.z_index = 10
+	survivor.add_child(sprite)
+
+	get_tree().create_timer(SECRET_HEAL_DURATION).timeout.connect(
+		func():
+			if is_instance_valid(sprite):
+				sprite.queue_free()
+	)
+
+
 # ── Sincronización desde el servidor ──────────────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")
@@ -639,7 +705,7 @@ func _sync_state(new_state: String, new_health: int) -> void:
 				if synchronizer:
 					synchronizer.queue_free()
 				animated_sprite.reparent(interaction.get_corpse_container(), true)
-			animated_sprite.z_index = 1
+				animated_sprite.z_index = 2
 			interaction.disable_corpse()
 			interaction.prepare_spectator_mode()
 			if name_tag:
@@ -743,3 +809,6 @@ func _sync_hide_pacify_indicator() -> void:
 	var existing = world.find_child("PacifyAOE_local", true, false)
 	if existing:
 		existing.queue_free()
+
+
+const SECRET_HEAL_DURATION: float = 1.5
