@@ -378,6 +378,14 @@ func change_audio_state(new_state: String) -> void:
 func activate_special_music() -> void:
 	_start_priority_stream(PriorityLevel.SPECIAL)
 
+@rpc("authority", "reliable", "call_local")
+func _rpc_activate_special_music() -> void:
+	_current_priority = PriorityLevel.SPECIAL
+	if map_music_player: map_music_player.stop()
+	if terror_music_player: terror_music_player.stop()
+	if chase_music_player: chase_music_player.stop()
+	if lms_music_player: lms_music_player.stop()
+
 @rpc("authority", "call_local", "reliable")
 func activar_fase_final_del_mapa() -> void:
 	_start_priority_stream(PriorityLevel.ESCAPE)
@@ -402,6 +410,10 @@ func stop_priority_music() -> void:
 		lms_music_player.stop()
 	if not lms_bloqueo_activo:
 		_restore_base()
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_stop_priority_music() -> void:
+	stop_priority_music()
 
 func _start_priority_stream(priority: int) -> void:
 	if priority <= _current_priority and _current_priority != PriorityLevel.NONE:
