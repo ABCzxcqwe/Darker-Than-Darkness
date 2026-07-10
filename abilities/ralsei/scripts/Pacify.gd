@@ -1,6 +1,6 @@
 extends AbilityBase
 
-const CHARGE_DURATION: float = 1.0
+const CHARGE_DURATION: float = 3.0
 const STUN_POLL_INTERVAL: float = 0.1
 
 var _active: bool = false
@@ -28,6 +28,10 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			_fail_cleanup()
 			return
 
+	var immunity_ms := int((CHARGE_DURATION + 0.5) * 1000)
+	player_node.invincible_until = Time.get_ticks_msec() + immunity_ms
+	player_node.rpc("_sync_invincibility", immunity_ms)
+
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, _slot_index, player_node.facing_right)
 
@@ -39,6 +43,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		AudioManager.play_sfx_networked.rpc(SfxId.SPELLCAST, _player_node.global_position.x, _player_node.global_position.y)
 
 	_show_indicator()
+	_apply_effects(combat)
 
 	_player_node.get_tree().create_timer(CHARGE_DURATION).timeout.connect(
 		func():
@@ -86,6 +91,8 @@ func _cancel_charge() -> void:
 			cd.start(_caster_id, _slot_index, _data.cooldown_cancel)
 
 	if is_instance_valid(_player_node):
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
 		_player_node.rpc("_sync_cancel_ability")
 
 	print("[Pacify] Carga cancelada por stun | peer: ", _caster_id)
@@ -105,14 +112,14 @@ func _on_charge_complete() -> void:
 	if combat:
 		combat.remove_root(_player_node)
 
-	_apply_effects(combat)
-
 	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		cd.start(_caster_id, _slot_index, _data.cooldown if _data else 15.0)
 
 	if is_instance_valid(_player_node):
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
 		AudioManager.play_sfx_networked.rpc(SfxId.PACIFY, _player_node.global_position.x, _player_node.global_position.y)
 		_player_node.rpc("_sync_cancel_ability")
 

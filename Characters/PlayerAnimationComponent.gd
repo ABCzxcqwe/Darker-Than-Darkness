@@ -64,7 +64,14 @@ func on_anim_finished() -> void:
 	if player.state == Player.AnimState.STUNNED:
 		if player.animated_sprite.animation == "stun_end":
 			end_stun()
-	elif player.state == Player.AnimState.ABILITY or player.state == Player.AnimState.PREPARE:
+	elif player.state == Player.AnimState.ABILITY:
+		var anim_name = player.animated_sprite.animation
+		if player.animated_sprite.sprite_frames and player.animated_sprite.sprite_frames.has_animation(anim_name) and player.animated_sprite.sprite_frames.get_animation_loop(anim_name):
+			return
+		player.state = Player.AnimState.IDLE
+		player.active_ability_slot = -1
+		restore_idle()
+	elif player.state == Player.AnimState.PREPARE:
 		player.state = Player.AnimState.IDLE
 		player.active_ability_slot = -1
 		restore_idle()

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cngct822fla3e"
-path="res://.godot/imported/ralsei_magic2.png-7ed599fdc7b7a617169481be8a8618b2.ctex"
+uid="uid://c3iel3jy3bon4"
+path="res://.godot/imported/ralsei_heal.png-aed6b505c6ce88f21d78d40acc0635ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei_magic2.png"
-dest_files=["res://.godot/imported/ralsei_magic2.png-7ed599fdc7b7a617169481be8a8618b2.ctex"]
+source_file="res://Characters/Ralsei/assets/ralsei_heal.png"
+dest_files=["res://.godot/imported/ralsei_heal.png-aed6b505c6ce88f21d78d40acc0635ad.ctex"]
 
 [params]
 

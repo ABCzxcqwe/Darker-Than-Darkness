@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cago6p1sp7pyt"
-path="res://.godot/imported/ralsei_magic.png-95585bde934c0501fd1227b6dd1c7864.ctex"
+uid="uid://q3wm05dvjej0"
+path="res://.godot/imported/ralsei_item.png-23a568b95d9bb98cb7bdddc3cbfce467.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei_magic.png"
-dest_files=["res://.godot/imported/ralsei_magic.png-95585bde934c0501fd1227b6dd1c7864.ctex"]
+source_file="res://Characters/Ralsei/assets/ralsei_item.png"
+dest_files=["res://.godot/imported/ralsei_item.png-23a568b95d9bb98cb7bdddc3cbfce467.ctex"]
 
 [params]
 
