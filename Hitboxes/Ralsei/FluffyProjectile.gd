@@ -12,6 +12,7 @@ var lifetime_after_arrival: float = 2.0
 
 var slow_magnitude: float = 0.0
 var slow_duration: float = 0.0
+var mine_tp_amount: float = 15.0
 
 var on_hit_callback: Callable
 var on_end_callback: Callable
@@ -114,6 +115,21 @@ func _enter_mine_mode() -> void:
 	rpc("_sync_indicator", true)
 
 
+func _handle_mine_hit(target: Node) -> void:
+	var tp_svc = GameServiceLocator.tp
+	if not tp_svc:
+		return
+	var target_id = target.get_multiplayer_authority()
+	if target.is_in_group("killer"):
+		if tp_svc.consume_tp(target_id, mine_tp_amount):
+			tp_svc.add_tp_custom(attacker_id, mine_tp_amount)
+			var combat = GameServiceLocator.combat_mediator
+			if combat:
+				combat.apply_slow(target, slow_duration, slow_magnitude)
+	elif target.is_in_group("survivor"):
+		tp_svc.add_tp_custom(target_id, mine_tp_amount)
+
+
 func _on_area_entered(area: Area2D) -> void:
 	if _expired or _hit:
 		print("[FluffyProj] _on_area_entered ignorado: _expired=", _expired, " _hit=", _hit)
@@ -137,11 +153,12 @@ func _on_area_entered(area: Area2D) -> void:
 
 	if _mine_mode:
 		remove_from_group("fluffy_mines")
-
-	if on_hit_callback.is_valid():
-		on_hit_callback.call(target)
+		_handle_mine_hit(target)
 	else:
-		print("[FluffyProj] ERROR: on_hit_callback NO es válido!")
+		if on_hit_callback.is_valid():
+			on_hit_callback.call(target)
+		else:
+			print("[FluffyProj] ERROR: on_hit_callback NO es válido!")
 
 	_expire()
 

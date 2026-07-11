@@ -100,9 +100,7 @@ func _fire_shot() -> void:
 	if not _container or not _shape_scene:
 		return
 
-	var dir: Vector2 = _player_node.facing if is_instance_valid(_player_node) else _fire_dir
-	if dir == Vector2.ZERO:
-		dir = _fire_dir
+	var dir: Vector2 = _fire_dir
 
 	var projectile = _shape_scene.instantiate()
 	projectile.attacker_id = _caster_id
@@ -122,6 +120,7 @@ func _fire_shot() -> void:
 	projectile.on_end_callback = _on_projectile_end
 	projectile.slow_magnitude = SLOW_MAGNITUDE
 	projectile.slow_duration = SLOW_DURATION
+	projectile.mine_tp_amount = TP_PER_HIT
 
 	projectile.global_position = _player_node.global_position
 	_container.add_child(projectile, true)
