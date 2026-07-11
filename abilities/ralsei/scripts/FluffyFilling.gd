@@ -27,6 +27,7 @@ var _data: AbilityData
 var _player_node: Node
 var _container: Node
 var _shape_scene: PackedScene
+var _fire_dir: Vector2 = Vector2.RIGHT
 
 
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
@@ -58,6 +59,11 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var facing_right: bool = proj_dir.x >= 0.0
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, _slot_index, facing_right)
+
+	_fire_dir = proj_dir
+
+	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+		player_node.rpc("_sync_effect", "free_look", true)
 
 	var combat = GameServiceLocator.combat_mediator
 	var anim_dur := _get_anim_duration(player_node, data.action_animation)
@@ -94,7 +100,9 @@ func _fire_shot() -> void:
 	if not _container or not _shape_scene:
 		return
 
-	var dir: Vector2 = Vector2.RIGHT if _player_node.facing_right else Vector2.LEFT
+	var dir: Vector2 = _player_node.facing if is_instance_valid(_player_node) else _fire_dir
+	if dir == Vector2.ZERO:
+		dir = _fire_dir
 
 	var projectile = _shape_scene.instantiate()
 	projectile.attacker_id = _caster_id
@@ -132,6 +140,7 @@ func _end_cast() -> void:
 		combat.remove_root(_player_node)
 
 	if is_instance_valid(_player_node):
+		_player_node.rpc("_sync_effect", "free_look", false)
 		_player_node.rpc("_sync_cancel_ability")
 
 	print("[FluffyFilling] Cast finalizado")
@@ -191,8 +200,11 @@ func _count_active_mines() -> int:
 		return 0
 	var count := 0
 	for mine in tree.get_nodes_in_group("fluffy_mines"):
-		if is_instance_valid(mine) and mine.get("attacker_id") == _caster_id:
-			count += 1
+		if is_instance_valid(mine):
+			var attacker_id = mine.get("attacker_id") if "attacker_id" in mine else -1
+			if attacker_id == _caster_id:
+				count += 1
+
 	return count
 
 

@@ -109,7 +109,6 @@ func _enter_mine_mode() -> void:
 
 	var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
 	if anim_sprite:
-		anim_sprite.modulate = Color(0.3, 1.0, 0.3, 0.9)
 		anim_sprite.stop()
 
 	rpc("_sync_indicator", true)
@@ -117,16 +116,22 @@ func _enter_mine_mode() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if _expired or _hit:
+		print("[FluffyProj] _on_area_entered ignorado: _expired=", _expired, " _hit=", _hit)
 		return
 	if not area.is_in_group("hurtbox"):
+		print("[FluffyProj] area no es hurtbox: ", area.name, " groups: ", area.get_groups())
 		return
 
 	var target: Node = area.get_parent()
+	print("[FluffyProj] area_entered | target: ", target, " | grupos: ", target.get_groups() if target else "null", " | attacker_id: ", attacker_id)
 	if not target or not target.is_in_group("players"):
+		print("[FluffyProj] target no es players o es null")
 		return
 	if target.get_multiplayer_authority() == attacker_id:
+		print("[FluffyProj] self-hit ignorado")
 		return
 
+	print("[FluffyProj] GOLPE válido | mine_mode=", _mine_mode, " | on_hit_callback válido=", on_hit_callback.is_valid(), " | target: ", target.name)
 	_hit = true
 	set_physics_process(false)
 
@@ -135,6 +140,8 @@ func _on_area_entered(area: Area2D) -> void:
 
 	if on_hit_callback.is_valid():
 		on_hit_callback.call(target)
+	else:
+		print("[FluffyProj] ERROR: on_hit_callback NO es válido!")
 
 	_expire()
 

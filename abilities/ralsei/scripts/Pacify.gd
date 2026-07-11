@@ -44,7 +44,6 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		var sfx_id = SfxId.RALSEI_SING1 if not toggle else SfxId.RALSEI_SING2
 		AudioManager.play_sfx_networked.rpc(sfx_id, _player_node.global_position.x, _player_node.global_position.y)
 		_player_node.set_meta("ralsei_sing_toggle", not toggle)
-		AudioManager.rpc("_rpc_activate_special_music")
 
 	_show_indicator()
 	_apply_effects(combat)
@@ -98,7 +97,6 @@ func _cancel_charge() -> void:
 		_player_node.invincible_until = 0
 		_player_node.rpc("_sync_invincibility", 0)
 		_player_node.rpc("_sync_cancel_ability")
-		AudioManager.rpc("_rpc_stop_priority_music")
 
 	print("[Pacify] Carga cancelada por stun | peer: ", _caster_id)
 
@@ -125,9 +123,9 @@ func _on_charge_complete() -> void:
 	if is_instance_valid(_player_node):
 		_player_node.invincible_until = 0
 		_player_node.rpc("_sync_invincibility", 0)
-		AudioManager.play_sfx_networked.rpc(SfxId.PACIFY, _player_node.global_position.x, _player_node.global_position.y)
+		if _player_node.multiplayer.is_server():
+			AudioManager.play_sfx_networked.rpc(SfxId.PACIFY, _player_node.global_position.x, _player_node.global_position.y)
 		_player_node.rpc("_sync_cancel_ability")
-		AudioManager.rpc("_rpc_stop_priority_music")
 
 	print("[Pacify] Carga completada | peer: ", _caster_id)
 
