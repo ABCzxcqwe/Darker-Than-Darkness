@@ -237,8 +237,8 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 	_update_tp_fill(current_tp)
 
 
-func _on_dynamic_tp_cost_changed(slot_index: int, cost: float) -> void:
-	if slot_index != self.slot_index:
+func _on_dynamic_tp_cost_changed(changed_slot: int, cost: float) -> void:
+	if changed_slot != self.slot_index:
 		return
 	_dynamic_tp_cost = cost
 	_update_tp_fill(_last_known_tp)

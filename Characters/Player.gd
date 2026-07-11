@@ -117,6 +117,8 @@ func _setup_name_tag() -> void:
 func _process(_delta: float) -> void:
 	if not animated_sprite:
 		return
+	if health_state == "dead":
+		return
 
 	var now := Time.get_ticks_msec()
 	var target_modulate := _original_modulate
@@ -593,6 +595,9 @@ func _rpc_spawn_secret_visual(caster_peer_id: int) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
+	if health_state == "dead":
+		return
+
 	var old_health = health
 	var _old_state = health_state
 

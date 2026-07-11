@@ -2,7 +2,7 @@ extends Node
 
 signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
-const EXHAUST_DURATION: float = 2.0
+const EXHAUST_DURATION: float = 3.0
 
 var _stamina: Dictionary = {}
 var _character_data: Dictionary = {}
@@ -56,7 +56,12 @@ func get_stamina(peer_id: int) -> float:
 
 
 func has_stamina(peer_id: int) -> bool:
-	return _stamina.get(peer_id, 0.0) > 0.0
+	if _stamina.has(peer_id):
+		return _stamina[peer_id] > 0.0
+	if _client_relay:
+		var data = _client_relay.get_stamina(peer_id)
+		return data.get("current", 0.0) > 0.0
+	return true
 
 
 ## Llamado por el cliente vía RPC para informar si está corriendo.

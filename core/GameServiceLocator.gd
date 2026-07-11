@@ -108,15 +108,15 @@ func _auto_inject(service: Node) -> void:
 			print("[GameServiceLocator]  ", service.name, " ← ", svc_name)
 
 
-func _to_snake_case(name: String) -> String:
+func _to_snake_case(text: String) -> String:
 	var result := ""
-	for i in range(name.length()):
-		var c := name[i]
+	for i in range(text.length()):
+		var c := text[i]
 		if i > 0 and c >= 'A' and c <= 'Z':
-			var prev := name[i - 1]
+			var prev := text[i - 1]
 			if prev >= 'a' and prev <= 'z':
 				result += "_"
-			elif i + 1 < name.length() and name[i + 1] >= 'a' and name[i + 1] <= 'z':
+			elif i + 1 < text.length() and text[i + 1] >= 'a' and text[i + 1] <= 'z':
 				result += "_"
 		result += c.to_lower()
 	return result

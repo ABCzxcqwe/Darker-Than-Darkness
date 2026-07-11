@@ -110,8 +110,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 
 	if instances.size() > 0:
 		if effect_name == "stun":
-			instances[0]["timer"] += duration
-			instances[0]["timer_original"] = instances[0].get("timer_original", 0.0) + duration
+			var is_killer: bool = is_instance_valid(player_node) and player_node.character_data and player_node.character_data.team == "killer"
+			var max_stun := 5.0 if is_killer else INF
+			instances[0]["timer"] = minf(instances[0]["timer"] + duration, max_stun)
+			instances[0]["timer_original"] = minf(instances[0].get("timer_original", 0.0) + duration, max_stun)
 			if params.has("post_stun_dr"):
 				instances[0]["post_stun_dr"] = params.get("post_stun_dr")
 			print("[StatusEffectService] stun acumulado para peer ", peer_id,
@@ -147,7 +149,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 		if effect_name == "slow":
 			instance["magnitude"] = params.get("magnitude", 0.3)
 		if effect_name == "stun":
-			instance["timer_original"] = duration
+			var is_killer: bool = is_instance_valid(player_node) and player_node.character_data and player_node.character_data.team == "killer"
+			var max_stun := 5.0 if is_killer else INF
+			instance["timer_original"] = minf(duration, max_stun)
+			instance["timer"] = instance["timer_original"]
 			if params.has("post_stun_dr"):
 				instance["post_stun_dr"] = params.get("post_stun_dr")
 		instances.append(instance)

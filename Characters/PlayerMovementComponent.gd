@@ -49,12 +49,8 @@ func _physics_process(_delta: float) -> void:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
-		var can_sprint = false
-		if player.multiplayer.is_server():
-			var stam_svc = GameServiceLocator.stamina
-			can_sprint = want_sprint and stam_svc.has_stamina(player.get_multiplayer_authority())
-		else:
-			can_sprint = want_sprint
+		var stam_svc = GameServiceLocator.stamina
+		var can_sprint = want_sprint and stam_svc.has_stamina(player.get_multiplayer_authority())
 
 		if can_sprint != _is_sprinting:
 			_is_sprinting = can_sprint

@@ -46,6 +46,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
 		AudioManager.play_sfx_networked.rpc(SfxId.SPELLCAST, player_node.global_position.x, player_node.global_position.y)
 
+	var combat = GameServiceLocator.combat_mediator
 	var anim_dur := _get_anim_duration(player_node, data.action_animation)
 	player_node.get_tree().create_timer(anim_dur).timeout.connect(
 		func() -> void:
@@ -65,7 +66,6 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				heal_amount = int(data.scaling_base_value)
 			heal_amount = maxi(1, heal_amount)
 
-			var combat = GameServiceLocator.combat_mediator
 			if combat:
 				combat.apply_heal(player_node, target_node, heal_amount)
 				combat.remove_root(player_node)
@@ -94,7 +94,6 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 				  " | HP: ", heal_amount)
 	)
 
-	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.apply_root(player_node, anim_dur + 0.1)
 

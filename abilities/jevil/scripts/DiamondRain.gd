@@ -1,6 +1,6 @@
 extends AbilityBase
 
-const DIAMOND_COUNT: int = 30
+const DIAMOND_COUNT: int = 80
 const AOE_RADIUS: float = 1000.0
 const DIAMOND_SPEED: float = 600.0
 const DIAMOND_LIFETIME: float = 3.0

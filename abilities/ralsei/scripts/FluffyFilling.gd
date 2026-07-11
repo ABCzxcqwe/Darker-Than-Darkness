@@ -191,7 +191,7 @@ func _count_active_mines() -> int:
 		return 0
 	var count := 0
 	for mine in tree.get_nodes_in_group("fluffy_mines"):
-		if is_instance_valid(mine) and mine.get("attacker_id", -1) == _caster_id:
+		if is_instance_valid(mine) and mine.get("attacker_id") == _caster_id:
 			count += 1
 	return count
 

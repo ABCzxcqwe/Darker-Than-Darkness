@@ -8,7 +8,6 @@ var active_survivor: Node = null
 var active_killer: Node = null
 
 var _health_service: Node = null
-var _status_effect_service: Node = null
 var _timer_service: Node = null
 var _audio_manager = null
 var _evolution_service: Node = null

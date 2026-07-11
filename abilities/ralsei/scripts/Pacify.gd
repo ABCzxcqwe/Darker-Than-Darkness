@@ -28,7 +28,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			_fail_cleanup()
 			return
 
-	var immunity_ms := int((CHARGE_DURATION + 0.5) * 1000)
+	var immunity_ms := int((CHARGE_DURATION + 1.5) * 1000)
 	player_node.invincible_until = Time.get_ticks_msec() + immunity_ms
 	player_node.rpc("_sync_invincibility", immunity_ms)
 
@@ -134,11 +134,14 @@ func _on_charge_complete() -> void:
 
 func _apply_effects(combat: Node) -> void:
 	var center: Vector2 = _player_node.global_position
-	var status_svc = GameServiceLocator.status_effect
 	var slow_dur: float = _data.slow_duration if _data and _data.slow_duration > 0.0 else 3.0
 	var slow_mag: float = _data.slow_magnitude if _data and _data.slow_magnitude > 0.0 else 0.3
-	var silence_dur: float = _data.stun_duration if _data and _data.stun_duration > 0.0 else 3.0
-	var hit_count := 0
+
+	var lms_svc = GameServiceLocator.lms
+	if lms_svc and lms_svc.is_lms_active():
+		var lms_survivor = lms_svc.get_active_survivor()
+		if lms_survivor and lms_survivor.get_multiplayer_authority() == _caster_id:
+			slow_dur = 7.0
 
 	for killer in _player_node.get_tree().get_nodes_in_group("killer"):
 		if not is_instance_valid(killer):
@@ -150,11 +153,6 @@ func _apply_effects(combat: Node) -> void:
 		if dist <= _area_radius:
 			if combat and slow_mag > 0.0:
 				combat.apply_slow(killer, slow_dur, slow_mag)
-			if status_svc and silence_dur > 0.0:
-				status_svc.apply(killer, "silence", { "duration": silence_dur })
-			hit_count += 1
-
-	print("[Pacify] Efectos aplicados a ", hit_count, " killers")
 
 
 func _show_indicator() -> void:

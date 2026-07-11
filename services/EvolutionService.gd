@@ -8,8 +8,6 @@ var _client_evolved_slots: Dictionary = {}
 var _tp_ready_slots: Dictionary = {}
 var _client_relay: Node
 
-var _tp_service: Node = null
-
 
 func set_client_relay(relay: Node) -> void:
 	_client_relay = relay

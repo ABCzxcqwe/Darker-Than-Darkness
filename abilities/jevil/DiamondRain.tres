@@ -15,6 +15,5 @@ cooldown = 20.0
 cooldown_cancel = 3.0
 tp_cost = 35.0
 move_restriction = 1
-base_damage = 15
+base_damage = 20
 range_ = 700.0
-projectile_count = 25

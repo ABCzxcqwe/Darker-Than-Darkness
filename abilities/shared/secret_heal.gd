@@ -1,6 +1,6 @@
 extends AbilityBase
 
-func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
+func activate(player_node: Node, data: AbilityData, _direction: Vector2, _slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		return
 	if not player_node.multiplayer.is_server():

@@ -15,8 +15,7 @@ func _ready() -> void:
 		push_error("[World] No hay services_config asignado.")
 		return
 
-	if multiplayer.is_server():
-		GameServiceLocator.register_all(services_config)
+	GameServiceLocator.register_all(services_config)
 
 	await _load_map()
 
