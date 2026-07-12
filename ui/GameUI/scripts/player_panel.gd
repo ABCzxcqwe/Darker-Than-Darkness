@@ -96,6 +96,8 @@ func _on_state_changed(peer_id: int, state: String) -> void:
 			_apply_border_color(Color(1.0, 0.5, 0.0))  # naranja
 		"dead":
 			_apply_border_color(Color(0.3, 0.3, 0.3))  # gris
+		"escaped":
+			_apply_border_color(Color(0.0, 0.8, 0.8))  # cian
 		"alive":
 			_apply_border_color(_theme_color)
 

@@ -101,6 +101,8 @@ func _fire_shot() -> void:
 		return
 
 	var dir: Vector2 = _fire_dir
+	if is_instance_valid(_player_node) and _player_node._latest_aim_dir != Vector2.ZERO:
+		dir = _player_node._latest_aim_dir
 
 	var projectile = _shape_scene.instantiate()
 	projectile.attacker_id = _caster_id
@@ -181,6 +183,14 @@ func _finish_ability() -> void:
 	if not _data:
 		push_warning("[FluffyFilling] _data es null en _finish_ability")
 		return
+
+	var combat = GameServiceLocator.combat_mediator
+	if combat:
+		combat.remove_root(_player_node)
+
+	if is_instance_valid(_player_node):
+		_player_node.rpc("_sync_effect", "free_look", false)
+		_player_node.rpc("_sync_cancel_ability")
 
 	var active_mines := _count_active_mines()
 	var cd := COOLDOWN_BASE + COOLDOWN_PER_MINE * active_mines

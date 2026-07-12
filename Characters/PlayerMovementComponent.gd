@@ -4,6 +4,7 @@ extends Node
 var player: CharacterBody2D = null
 var speed: float = 200
 var _is_sprinting: bool = false
+var _last_aim_sync_time: int = 0
 
 const WALK_SPEED_THRESHOLD: float = 650.0
 const IDLE_MOVE_THRESHOLD: float = 0.1
@@ -44,6 +45,14 @@ func _physics_process(_delta: float) -> void:
 	if player.state == Player.AnimState.IDLE or player.active_effects.has("free_look"):
 		var mouse_dir = (player.get_global_mouse_position() - player.global_position).normalized()
 		update_facing_and_flip(mouse_dir)
+		if player.active_effects.has("free_look"):
+			var now = Time.get_ticks_msec()
+			if now - _last_aim_sync_time > 100:
+				_last_aim_sync_time = now
+				if player.multiplayer.is_server():
+					player._sync_aim_dir(mouse_dir)
+				else:
+					player.rpc_id(1, "_sync_aim_dir", mouse_dir)
 
 	if player.state == Player.AnimState.IDLE:
 		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")

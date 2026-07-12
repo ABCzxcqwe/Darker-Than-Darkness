@@ -31,6 +31,10 @@ func is_dead(peer_id: int) -> bool:
 func get_player_state(peer_id: int) -> String:
 	return _get_state(peer_id)
 
+func set_escaped(peer_id: int, current_hp: int, max_hp: int) -> void:
+	_set_state(peer_id, "escaped")
+	broadcast_health_update(peer_id, current_hp, max_hp, "escaped")
+
 func take_damage(player_node: Node, amount: int) -> void:
 	if not multiplayer.is_server():
 		return

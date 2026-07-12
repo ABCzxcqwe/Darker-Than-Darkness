@@ -35,6 +35,7 @@ var facing: Vector2 = Vector2.RIGHT
 var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
+var _latest_aim_dir: Vector2 = Vector2.RIGHT
 var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
@@ -532,6 +533,17 @@ func _sync_cancel_ability() -> void:
 	reset_ability_state()
 
 
+@rpc("any_peer", "unreliable")
+func _sync_aim_dir(dir: Vector2) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	if dir != Vector2.ZERO:
+		_latest_aim_dir = dir
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func _request_secret_heal() -> void:
 	if not multiplayer.is_server():
@@ -735,7 +747,9 @@ func _sync_escape() -> void:
 		var coord = GameServiceLocator.map_event_coordinator
 		if not coord.has_player_escaped(get_multiplayer_authority()):
 			coord._register_escaped(get_multiplayer_authority())
-		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), "escaped")
+		var hp_svc = GameServiceLocator.health
+		if hp_svc and hp_svc.has_method("set_escaped"):
+			hp_svc.set_escaped(get_multiplayer_authority(), health, character_data.max_health)
 
 
 @rpc("any_peer", "reliable")
