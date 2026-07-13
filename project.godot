@@ -37,6 +37,7 @@ GlobalVHS="*res://core/global_vhs.gd"
 SettingsManager="*res://core/settings_manager.gd"
 PlayerRegistry="*res://core/PlayerRegistry.gd"
 LobbyManager="*res://core/LobbyManager.gd"
+ChatService="*res://core/ChatService.gd"
 
 [display]
 

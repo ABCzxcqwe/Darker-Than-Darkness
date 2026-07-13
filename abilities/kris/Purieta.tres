@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_5svy"]
+[ext_resource type="Script" path="res://abilities/kris/scripts/Pirouette.gd" id="2_9mhe"]
+
+[resource]
+script = ExtResource("1_5svy")
+display_name = "Purieta"
+ability_script = ExtResource("2_9mhe")
+action_animation = "pirouette"
+cooldown = 8.0
+can_use_while_stunned = true
+move_restriction = 1
+defer_cooldown = true
+evolution_consume = 1

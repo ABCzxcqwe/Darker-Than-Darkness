@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://b7ryspn0ah1l5"]
+
+[ext_resource type="Script" path="res://ui/GameUI/scripts/chat_panel.gd" id="1_w5uvy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8g0xf"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0.25)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+corner_detail = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eg6f7"]
+bg_color = Color(0, 0, 0, 0.12)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+corner_detail = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8g0xg"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0.1, 0.1, 0.1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+corner_detail = 4
+
+[node name="ChatPanel" type="Control" unique_id=191919191]
+anchors_preset = -1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 106.0
+offset_top = 50.0
+offset_right = 524.0
+offset_bottom = 250.0
+mouse_filter = 1
+script = ExtResource("1_w5uvy")
+
+[node name="Background" type="Panel" parent="." unique_id=191919192]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8g0xf")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=191919193]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="HistoryLabel" type="RichTextLabel" parent="VBoxContainer" unique_id=191919194]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_eg6f7")
+scroll_active = true
+scroll_to_end = true
+bbcode_enabled = true
+
+[node name="Spacer" type="Control" parent="VBoxContainer" unique_id=191919198]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Separator" type="ColorRect" parent="VBoxContainer" unique_id=191919197]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="InputBox" type="LineEdit" parent="VBoxContainer" unique_id=191919195]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Escribe un mensaje..."
+caret_blink = true
+max_length = 200
+theme_override_styles/normal = SubResource("StyleBoxFlat_8g0xg")
