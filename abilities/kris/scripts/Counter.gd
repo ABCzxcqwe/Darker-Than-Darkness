@@ -11,23 +11,23 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var caster_id: int = player_node.get_multiplayer_authority()
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if not combat:
 		push_error("[Counter] CombatMediator no disponible.")
 		return
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
+	var hs = GameServiceLocator.hitbox
 	if not hs:
 		push_error("[Counter] HitboxService no disponible.")
 		return
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if not cd:
 		push_error("[Counter] CooldownService no disponible.")
 		return
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
-	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
+	var tp_svc = GameServiceLocator.tp
+	var abs_svc = GameServiceLocator.ability_state
 
 	if abs_svc and abs_svc.is_mode_active(caster_id, slot_index):
 		print("[Counter] Ventana ya activa, ignorado | peer: ", caster_id)
@@ -86,7 +86,7 @@ func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: 
 		return false
 
 	var caster_id: int = target.get_multiplayer_authority()
-	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
+	var abs_svc = GameServiceLocator.ability_state
 	if not abs_svc or not abs_svc.is_mode_active(caster_id, slot_index):
 		return false
 
@@ -96,9 +96,9 @@ func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: 
 	abs_svc.deactivate_mode(caster_id, slot_index)
 	target.rpc("_sync_effect", "free_look", false)
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
-	var cd_svc = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var combat = GameServiceLocator.combat_mediator
+	var cd_svc = GameServiceLocator.cooldown
+	var tp_svc = GameServiceLocator.tp
 
 	if combat:
 		combat.remove_root(target)

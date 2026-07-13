@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bil21rmef5gen" path="res://Characters/Kris/assets/Sprites/kris_idle.png" id="3_lvorv"]
 [ext_resource type="Texture2D" uid="uid://ccxpwee61orc8" path="res://Characters/Kris/assets/Sprites/kris_downed.png" id="3_vtquc"]
 [ext_resource type="Texture2D" uid="uid://8n28wot35fa5" path="res://Characters/Kris/assets/Sprites/kris_atack.png" id="4_lvorv"]
+[ext_resource type="Texture2D" uid="uid://bcr05vr8g3nbg" path="res://Characters/Kris/assets/Sprites/kris_pirouette.png" id="5_kvqvw"]
 [ext_resource type="Texture2D" uid="uid://cji8aeqh7wg42" path="res://Characters/Kris/assets/Sprites/kris_down.png" id="5_rfioo"]
 [ext_resource type="Texture2D" uid="uid://c7ygn7p512h87" path="res://Characters/Kris/assets/Sprites/kris_defend.png" id="6_0b5te"]
 [ext_resource type="Texture2D" uid="uid://bub6ldcbjc3w7" path="res://Characters/Kris/assets/Sprites/kris_run2.png" id="6_nnm51"]
@@ -73,6 +74,30 @@ region = Rect2(384, 0, 192, 192)
 [sub_resource type="AtlasTexture" id="AtlasTexture_umupi"]
 atlas = ExtResource("2_ogjsw")
 region = Rect2(576, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mt0r7"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(0, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5g64w"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(192, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_700n4"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(384, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_umvgk"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(576, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tx0nm"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(768, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r6vox"]
+atlas = ExtResource("5_kvqvw")
+region = Rect2(960, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ea5d5"]
 atlas = ExtResource("6_nnm51")
@@ -286,6 +311,47 @@ animations = [{
 "loop": true,
 "name": &"life_down",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mt0r7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5g64w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_700n4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_umvgk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tx0nm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r6vox")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mt0r7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5g64w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_700n4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_umvgk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tx0nm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r6vox")
+}],
+"loop": true,
+"name": &"pirouette",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,

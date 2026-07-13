@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvebmwpotdpud"
-path="res://.godot/imported/idle_susie.png-295f7033c288f7f479bbfbc328c0ca7f.ctex"
+uid="uid://bfeq3ex4mntwe"
+path="res://.godot/imported/Fluffy.png-f6bbdb6cb13db41b8a91898a526845fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/idle_susie.png"
-dest_files=["res://.godot/imported/idle_susie.png-295f7033c288f7f479bbfbc328c0ca7f.ctex"]
+source_file="res://Hitboxes/Ralsei/Fluffy.png"
+dest_files=["res://.godot/imported/Fluffy.png-f6bbdb6cb13db41b8a91898a526845fc.ctex"]
 
 [params]
 

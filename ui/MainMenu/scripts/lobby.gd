@@ -116,7 +116,4 @@ func _on_leave_pressed():
 		return
 	MatchCoordinator.reset_to_menu()
 
-func _return_to_menu():
-	if is_inside_tree():
-		# Limpiar NetworkManager antes de cambiar de escena
-		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
+

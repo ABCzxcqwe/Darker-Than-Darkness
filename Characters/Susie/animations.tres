@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://slyac0hpggml" path="res://Characters/Susie/assets/susie_prepare.png" id="3_5fybr"]
 [ext_resource type="Texture2D" uid="uid://j2ll0rv1ekvf" path="res://Characters/Susie/assets/susie_run.png" id="3_bs5v4"]
 [ext_resource type="Texture2D" uid="uid://bsty7kivb4s25" path="res://Characters/Susie/assets/susie_health.png" id="4_nise5"]
-[ext_resource type="Texture2D" uid="uid://dno0qkeb6ef8q" path="res://Characters/Susie/assets/susie_downed.png" id="4_rrjp6"]
+[ext_resource type="Texture2D" uid="uid://cb66epjr36sy" path="res://Characters/Susie/assets/susie_downed.png" id="4_rrjp6"]
 [ext_resource type="Texture2D" uid="uid://bt6dpju6yv3a7" path="res://Characters/Susie/assets/susie_down.png" id="5_xoerp"]
 [ext_resource type="Texture2D" uid="uid://c6x2a1tynccrv" path="res://Characters/Susie/assets/susie_walk.png" id="8_48uf1"]
 [ext_resource type="Texture2D" uid="uid://cunootty1jft6" path="res://Characters/Susie/assets/susie_rude_buster.png" id="9_5fybr"]
@@ -65,7 +65,7 @@ region = Rect2(100, 300, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_km34e"]
 atlas = ExtResource("4_rrjp6")
-region = Rect2(0, 0, 32, 32)
+region = Rect2(0, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n6sa1"]
 atlas = ExtResource("4_nise5")

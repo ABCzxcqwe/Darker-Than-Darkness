@@ -6,8 +6,12 @@ var player: CharacterBody2D = null
 var is_spectator: bool = false
 var _follow_target: Node = null
 var _spectator_mode: int = 0
-var _free_cam_speed: float = 400.0
+@export var free_cam_speed: float = 400.0
 var _spectator_camera: Camera2D = null
+
+
+func get_follow_target() -> Node:
+	return _follow_target
 
 
 func initialize(body: CharacterBody2D) -> void:
@@ -38,37 +42,44 @@ func get_self_on_server() -> Node:
 # ── Spectator ──────────────────────────────────────────────────────────
 
 func prepare_spectator_mode() -> void:
+	if is_spectator:
+		return
 	is_spectator = true
 	if not player.is_multiplayer_authority():
 		return
 
-	if player.has_node("Vision"):
-		player.get_node("Vision").notify_spectator_mode()
+	var vision := player.get_node_or_null("Vision")
+	if vision:
+		vision.notify_spectator_mode()
+
+	if player.has_node("Synchronizer"):
+		player.get_node("Synchronizer").queue_free()
 
 	player.set_process_input(true)
 	player.set_physics_process(true)
 	if _spectator_camera:
 		_spectator_camera.enabled = true
+		_spectator_camera.position_smoothing_speed = 10.0
 
 	_spectator_mode = 0
-	_cycle_target(1)
+	cycle_target(1)
 
 
 func handle_spectator_input(event: InputEvent) -> void:
 	if event.is_action_pressed("spec_next"):
-		_cycle_target(1)
+		cycle_target(1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("spec_prev"):
-		_cycle_target(-1)
+		cycle_target(-1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("spec_toggle"):
 		_spectator_mode = 1 - _spectator_mode
 		if _spectator_mode == 0:
-			_cycle_target(1)
+			cycle_target(1)
 		get_viewport().set_input_as_handled()
 
 
-func _cycle_target(direction: int) -> void:
+func cycle_target(direction: int) -> void:
 	var alive := []
 	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if p == player or not is_instance_valid(p):
@@ -91,15 +102,17 @@ func _cycle_target(direction: int) -> void:
 
 
 func update_spectator_camera(delta: float) -> void:
+	if not _spectator_camera:
+		return
 	if _spectator_mode == 0:
 		if _follow_target and is_instance_valid(_follow_target) and _follow_target.health_state == "alive":
-			player.global_position = _follow_target.global_position
+			_spectator_camera.offset = _follow_target.global_position - player.global_position
 		else:
-			_cycle_target(1)
+			cycle_target(1)
 	else:
 		var dir := Input.get_vector("spec_left", "spec_right", "spec_up", "spec_down")
 		if dir.length() > 0.1:
-			player.global_position += dir * _free_cam_speed * delta
+			_spectator_camera.offset += dir * free_cam_speed * delta
 
 
 # ── Corpse ─────────────────────────────────────────────────────────────

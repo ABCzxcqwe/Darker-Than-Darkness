@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c2miw4xqye6gd"
-path="res://.godot/imported/ralsei.png-f2b1bc5e4b58474d108fbbeaec0e367e.ctex"
+uid="uid://bcr05vr8g3nbg"
+path="res://.godot/imported/kris_pirouette.png-71a7d044b6f50249fbad8dba05f9cf00.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei.png"
-dest_files=["res://.godot/imported/ralsei.png-f2b1bc5e4b58474d108fbbeaec0e367e.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/kris_pirouette.png"
+dest_files=["res://.godot/imported/kris_pirouette.png-71a7d044b6f50249fbad8dba05f9cf00.ctex"]
 
 [params]
 

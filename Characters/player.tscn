@@ -4,9 +4,9 @@
 [ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
 [ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
 [ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
-[ext_resource type="Script" path="res://Characters/PlayerInteractionComponent.gd" id="5_interaction"]
-[ext_resource type="Script" path="res://Characters/PlayerAnimationComponent.gd" id="6_animation"]
-[ext_resource type="Script" path="res://Characters/PlayerMovementComponent.gd" id="7_movement"]
+[ext_resource type="Script" uid="uid://cdve0tt16kqmj" path="res://Characters/PlayerInteractionComponent.gd" id="5_interaction"]
+[ext_resource type="Script" uid="uid://dhto4ds8dqhya" path="res://Characters/PlayerAnimationComponent.gd" id="6_animation"]
+[ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://Characters/PlayerMovementComponent.gd" id="7_movement"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -91,13 +91,13 @@ vertical_alignment = 1
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
 replication_config = SubResource("SceneReplicationConfig_sweqy")
 
-[node name="PlayerInteractionComponent" type="Node" parent="."]
+[node name="PlayerInteractionComponent" type="Node" parent="." unique_id=1178568243]
 script = ExtResource("5_interaction")
 
-[node name="PlayerAnimationComponent" type="Node" parent="."]
+[node name="PlayerAnimationComponent" type="Node" parent="." unique_id=1123190987]
 script = ExtResource("6_animation")
 
-[node name="PlayerMovementComponent" type="Node" parent="."]
+[node name="PlayerMovementComponent" type="Node" parent="." unique_id=1114141328]
 script = ExtResource("7_movement")
 
 [node name="VisionCircle" type="PointLight2D" parent="." unique_id=433607292]

@@ -1,6 +1,6 @@
 extends AbilityBase
 
-const DIAMOND_COUNT: int = 30
+const DIAMOND_COUNT: int = 80
 const AOE_RADIUS: float = 1000.0
 const DIAMOND_SPEED: float = 600.0
 const DIAMOND_LIFETIME: float = 3.0
@@ -26,7 +26,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	_slot_index = slot_index
 	_active = true
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(_caster_id, data.tp_cost):
 			_fail_cleanup()
@@ -35,11 +35,11 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if data.action_animation != "":
 		player_node.play_ability_animation("idle_down", _slot_index, player_node.facing_right)
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.apply_root(_player_node, ABILITY_DURATION)
 
-	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status = GameServiceLocator.status_effect
 	if status:
 		status.grant_stun_immunity(_caster_id, ABILITY_DURATION)
 
@@ -48,7 +48,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	_spawn_ring(target_center)
 	_launch_diamonds(target_center)
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		if _data and _data.cooldown > 0.0:
@@ -66,8 +66,8 @@ func _spawn_ring(center: Vector2) -> void:
 	if not is_instance_valid(_player_node):
 		return
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
-	var cmbt = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var hs = GameServiceLocator.hitbox
+	var cmbt = GameServiceLocator.combat_mediator
 	var d = _data
 	var cid = _caster_id
 	var pn = _player_node
@@ -115,8 +115,8 @@ func _launch_diamonds(target_center: Vector2) -> void:
 	if not is_instance_valid(_player_node):
 		return
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
-	var cmbt = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var hs = GameServiceLocator.hitbox
+	var cmbt = GameServiceLocator.combat_mediator
 	var spawn_altitude = DIAMOND_SPEED * DIAMOND_LIFETIME * 0.5
 	var pn := _player_node
 	var cid := _caster_id
@@ -173,11 +173,11 @@ func _finish_ability() -> void:
 
 	_clear_ring()
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat and is_instance_valid(_player_node):
 		combat.remove_root(_player_node)
 
-	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status = GameServiceLocator.status_effect
 	if status:
 		status.grant_stun_immunity(_caster_id, 0.0)
 
@@ -190,7 +190,7 @@ func _finish_ability() -> void:
 func _fail_cleanup() -> void:
 	_active = false
 	_clear_ring()
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 	print("[DiamondRain] Fallo en activación | peer: ", _caster_id)

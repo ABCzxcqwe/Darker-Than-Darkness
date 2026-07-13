@@ -12,13 +12,13 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		push_warning("[RudeBuster] player_node inválido.")
 		return
 
-	var hs = GameServiceLocator.get_service(ServiceNames.HITBOX)
+	var hs = GameServiceLocator.hitbox
 	if not hs:
 		push_error("[RudeBuster] HitboxService no disponible.")
 		return
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var tp_svc = GameServiceLocator.tp
+	var cd = GameServiceLocator.cooldown
 
 	var attacker_id: int = player_node.get_multiplayer_authority()
 	var dmg: int         = int(data.base_damage * data.evo_damage_multiplier)
@@ -76,12 +76,12 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 							return
 
 						if dmg > 0:
-							var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+							var combat = GameServiceLocator.combat_mediator
 							if combat:
 								combat.apply_damage(player_node, target_node, dmg, atk_type)
 
 						if target_node.is_in_group("killer"):
-							var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+							var combat = GameServiceLocator.combat_mediator
 							if combat and stun_dur > 0.0:
 								combat.apply_stun(target_node, stun_dur)
 							if tp_reward > 0.0 and tp_svc:

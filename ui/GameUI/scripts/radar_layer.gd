@@ -26,12 +26,12 @@ var _my_team: String = "survivor"
 func setup(my_id: int, my_team: String) -> void:
 	_my_id = my_id
 	_my_team = my_team
-	var svc = GameServiceLocator.get_service(ServiceNames.RADAR)
-	if svc:
-		if svc.arrow_spawned.is_connected(_on_arrow_spawned):
+	var relay = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.arrow_spawned.is_connected(_on_arrow_spawned):
 			return
-		svc.arrow_spawned.connect(_on_arrow_spawned)
-		svc.arrow_despawned.connect(_on_arrow_despawned)
+		relay.arrow_spawned.connect(_on_arrow_spawned)
+		relay.arrow_despawned.connect(_on_arrow_despawned)
 
 
 func _on_arrow_spawned(arrow_id: int, type: int, target_pos: Vector2, track_peer: int, filter_peer: int, duration: float) -> void:

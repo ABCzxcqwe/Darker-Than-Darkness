@@ -11,6 +11,11 @@ var is_active: bool = false
 var is_paused: bool = false
 
 var _sync_accumulator: float = 0.0
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 func _process(delta: float) -> void:
 	if not is_active or is_paused:
@@ -29,7 +34,7 @@ func _process(delta: float) -> void:
 		_sync_accumulator += delta
 		if _sync_accumulator >= 1.0:
 			_sync_accumulator = 0.0
-			rpc_id(0, "_sync_time_client", time_left)
+			_client_relay.rpc("_sync_time_client", time_left)
 
 
 ## Inicializa y arranca el reloj con una duración específica

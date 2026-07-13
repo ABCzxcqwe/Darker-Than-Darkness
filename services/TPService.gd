@@ -5,6 +5,11 @@ signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
 var _tp: Dictionary = {} # {peer_id: current_tp}
 var _character_data: Dictionary = {} # {peer_id: CharacterData}
 var _passive_timer: Timer
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 func _ready() -> void:
 	# Configurar timer de ganancia pasiva (Solo corre en el Servidor)
@@ -66,8 +71,8 @@ func add_tp(peer_id: int, amount_type: String) -> void:
 	tp_changed.emit(peer_id, current_tp, max_tp)
 	
 	# 2. Sincronizar con todos los clientes vía RPC
-	sync_tp_to_client.rpc(peer_id, current_tp, max_tp)
-	
+	_client_relay.rpc("sync_tp_to_client", peer_id, current_tp, max_tp)
+
 	# Log para debug
 	# print("[TPService] ", _get_log_name(peer_id), " +", amount, " TP (", amount_type, ") | Total: ", current_tp)
 
@@ -123,7 +128,7 @@ func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
 	
 	# Sincronizamos con los clientes
 	tp_changed.emit(peer_id, _tp[peer_id], data.tp_max)
-	sync_tp_to_client.rpc(peer_id, _tp[peer_id], data.tp_max)
+	_client_relay.rpc("sync_tp_to_client", peer_id, _tp[peer_id], data.tp_max)
 	
 	# print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)
 
@@ -143,7 +148,7 @@ func consume_tp(peer_id: int, amount: float) -> bool:
 
 	# Sincronización local y remota compartiendo tu pipeline existente
 	tp_changed.emit(peer_id, new_tp, max_tp)
-	sync_tp_to_client.rpc(peer_id, new_tp, max_tp)
+	_client_relay.rpc("sync_tp_to_client", peer_id, new_tp, max_tp)
 	
 	print("[TPService] %s consumió %d TP | Restante: %d" % [_get_log_name(peer_id), amount, new_tp])
 	return true

@@ -2,13 +2,18 @@ extends Node
 
 signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
-const EXHAUST_DURATION: float = 2.0
+const EXHAUST_DURATION: float = 3.0
 
 var _stamina: Dictionary = {}
 var _character_data: Dictionary = {}
 var _sprinting: Dictionary = {}
 var _exhausted: Dictionary = {}
 var _tick_timer: Timer
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 func _ready() -> void:
@@ -28,7 +33,7 @@ func register_player(peer_id: int, data: Resource) -> void:
 	_sprinting[peer_id] = false
 	_exhausted[peer_id] = -1.0
 	stamina_changed.emit(peer_id, data.stamina_max, data.stamina_max)
-	sync_stamina_to_client.rpc(peer_id, data.stamina_max, data.stamina_max)
+	_client_relay.rpc("sync_stamina_to_client", peer_id, data.stamina_max, data.stamina_max)
 
 
 func unregister_player(peer_id: int) -> void:
@@ -51,7 +56,12 @@ func get_stamina(peer_id: int) -> float:
 
 
 func has_stamina(peer_id: int) -> bool:
-	return _stamina.get(peer_id, 0.0) > 0.0
+	if _stamina.has(peer_id):
+		return _stamina[peer_id] > 0.0
+	if _client_relay:
+		var data = _client_relay.get_stamina(peer_id)
+		return data.get("current", 0.0) > 0.0
+	return true
 
 
 ## Llamado por el cliente vía RPC para informar si está corriendo.
@@ -96,7 +106,7 @@ func _on_tick() -> void:
 		if not is_equal_approx(new_val, current):
 			_stamina[pid] = new_val
 			stamina_changed.emit(pid, new_val, data.stamina_max)
-			sync_stamina_to_client.rpc(pid, new_val, data.stamina_max)
+			_client_relay.rpc("sync_stamina_to_client", pid, new_val, data.stamina_max)
 
 
 func reset() -> void:

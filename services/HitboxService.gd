@@ -27,12 +27,15 @@ extends Node
 
 const HITBOX_SCRIPT := preload("uid://ct6ctabp7nijt")
 
+var _game_state_service: Node = null
+
+
 func create(config: Dictionary) -> Node:
 	if not multiplayer.is_server():
 		push_warning("[HitboxService] Solo el servidor puede crear hitboxes.")
 		return null
 
-	var state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
+	var state = _game_state_service
 	if not state or not state.is_in_game():
 		push_warning("[HitboxService] No hay partida activa.")
 		return null

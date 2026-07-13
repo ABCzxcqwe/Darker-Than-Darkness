@@ -22,6 +22,9 @@ var _post_stun_dr: Dictionary = {}
 # Última velocidad conocida para detectar cambios: { peer_id: float }
 var _last_speed: Dictionary = {}
 
+var _revive_service: Node = null
+var _health_service: Node = null
+
 
 func _process(delta: float) -> void:
 	if not multiplayer.is_server():
@@ -107,8 +110,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 
 	if instances.size() > 0:
 		if effect_name == "stun":
-			instances[0]["timer"] += duration
-			instances[0]["timer_original"] = instances[0].get("timer_original", 0.0) + duration
+			var is_killer: bool = is_instance_valid(player_node) and player_node.character_data and player_node.character_data.team == "killer"
+			var max_stun := 5.0 if is_killer else INF
+			instances[0]["timer"] = minf(instances[0]["timer"] + duration, max_stun)
+			instances[0]["timer_original"] = minf(instances[0].get("timer_original", 0.0) + duration, max_stun)
 			if params.has("post_stun_dr"):
 				instances[0]["post_stun_dr"] = params.get("post_stun_dr")
 			print("[StatusEffectService] stun acumulado para peer ", peer_id,
@@ -144,7 +149,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 		if effect_name == "slow":
 			instance["magnitude"] = params.get("magnitude", 0.3)
 		if effect_name == "stun":
-			instance["timer_original"] = duration
+			var is_killer: bool = is_instance_valid(player_node) and player_node.character_data and player_node.character_data.team == "killer"
+			var max_stun := 5.0 if is_killer else INF
+			instance["timer_original"] = minf(duration, max_stun)
+			instance["timer"] = instance["timer_original"]
 			if params.has("post_stun_dr"):
 				instance["post_stun_dr"] = params.get("post_stun_dr")
 		instances.append(instance)
@@ -154,7 +162,7 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			  " | duración: ", duration)
 
 		if effect_name in ["stun", "root"]:
-			var revive_svc = GameServiceLocator.get_service(ServiceNames.REVIVE)
+			var revive_svc = _revive_service
 			if revive_svc:
 				revive_svc.cancel_revive(peer_id)
 
@@ -277,7 +285,7 @@ func _recalculate_speed(peer_id: int) -> void:
 
 func _calculate_speed(peer_id: int, base_speed: float) -> float:
 	# 1. Verificar si el jugador está caído mediante el HealthService
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = _health_service
 	if health_svc and health_svc.is_downed(peer_id):
 		# 80% de reducción significa que se queda con el 20% de su base_speed
 		return base_speed * 0.2

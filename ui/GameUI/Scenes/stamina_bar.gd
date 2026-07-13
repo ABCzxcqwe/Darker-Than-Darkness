@@ -17,10 +17,9 @@ func setup(peer_id: int, max_stam: float) -> void:
 	_peer_id = peer_id
 	_max_stam = max_stam
 
-	var svc: Node = GameServiceLocator.get_service(ServiceNames.STAMINA)
-	if svc:
-		svc.stamina_changed.connect(_on_stamina_changed)
-		_update_ui(svc.get_stamina(peer_id))
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay and relay.has_signal("stamina_changed"):
+		relay.stamina_changed.connect(_on_stamina_changed)
 
 
 func _on_stamina_changed(peer_id: int, current: float, max_s: float) -> void:

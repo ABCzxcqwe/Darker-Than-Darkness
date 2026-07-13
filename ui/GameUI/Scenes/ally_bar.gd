@@ -43,16 +43,12 @@ func setup(player_node: Node) -> void:
 		_:
 			_apply_border_color(_theme_color)
 
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
-	if coord and coord.has_player_escaped(_peer_id):
-		if name_label: name_label.text = "★ ESCAPED ★"
-		_apply_bar_color("escaped")
-		_apply_border_color(Color(0.0, 0.8, 0.8))
-
-	var hs = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if hs:
-		hs.health_changed.connect(_on_health_changed)
-		hs.player_state_changed.connect(_on_state_changed)
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.has_signal("health_changed"):
+			relay.health_changed.connect(_on_health_changed)
+		if relay.has_signal("player_state_changed"):
+			relay.player_state_changed.connect(_on_state_changed)
 
 
 func _on_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:

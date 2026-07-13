@@ -1,6 +1,6 @@
 extends AbilityBase
 
-const CHARGE_DURATION: float = 1.0
+const CHARGE_DURATION: float = 3.0
 const STUN_POLL_INTERVAL: float = 0.1
 
 var _active: bool = false
@@ -22,23 +22,31 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	_active = true
 	_area_radius = data.range_ if data.range_ > 0.0 else 300.0
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(_caster_id, data.tp_cost):
 			_fail_cleanup()
 			return
 
+	var immunity_ms := int((CHARGE_DURATION + 1.5) * 1000)
+	player_node.invincible_until = Time.get_ticks_msec() + immunity_ms
+	player_node.rpc("_sync_invincibility", immunity_ms)
+
 	if data.action_animation != "":
 		player_node.play_ability_animation(data.action_animation, _slot_index, player_node.facing_right)
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.apply_root(_player_node, CHARGE_DURATION + 0.5)
 
 	if is_instance_valid(_player_node) and _player_node.multiplayer.is_server():
-		AudioManager.play_sfx_networked.rpc(SfxId.SPELLCAST, _player_node.global_position.x, _player_node.global_position.y)
+		var toggle = _player_node.get_meta("ralsei_sing_toggle", false)
+		var sfx_id = SfxId.RALSEI_SING1 if not toggle else SfxId.RALSEI_SING2
+		AudioManager.play_sfx_networked.rpc(sfx_id, _player_node.global_position.x, _player_node.global_position.y)
+		_player_node.set_meta("ralsei_sing_toggle", not toggle)
 
 	_show_indicator()
+	_apply_effects(combat)
 
 	_player_node.get_tree().create_timer(CHARGE_DURATION).timeout.connect(
 		func():
@@ -56,7 +64,7 @@ func _check_stun() -> void:
 	if not _active or not is_instance_valid(_player_node):
 		return
 
-	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status = GameServiceLocator.status_effect
 	if status and status.is_stunned(_caster_id):
 		_cancel_charge()
 		return
@@ -75,17 +83,19 @@ func _cancel_charge() -> void:
 
 	_hide_indicator()
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat and is_instance_valid(_player_node):
 		combat.remove_root(_player_node)
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		if _data and _data.cooldown_cancel > 0.0:
 			cd.start(_caster_id, _slot_index, _data.cooldown_cancel)
 
 	if is_instance_valid(_player_node):
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
 		_player_node.rpc("_sync_cancel_ability")
 
 	print("[Pacify] Carga cancelada por stun | peer: ", _caster_id)
@@ -98,22 +108,23 @@ func _on_charge_complete() -> void:
 
 	_hide_indicator()
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if not is_instance_valid(_player_node):
 		return
 
 	if combat:
 		combat.remove_root(_player_node)
 
-	_apply_effects(combat)
-
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 		cd.start(_caster_id, _slot_index, _data.cooldown if _data else 15.0)
 
 	if is_instance_valid(_player_node):
-		AudioManager.play_sfx_networked.rpc(SfxId.PACIFY, _player_node.global_position.x, _player_node.global_position.y)
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
+		if _player_node.multiplayer.is_server():
+			AudioManager.play_sfx_networked.rpc(SfxId.PACIFY, _player_node.global_position.x, _player_node.global_position.y)
 		_player_node.rpc("_sync_cancel_ability")
 
 	print("[Pacify] Carga completada | peer: ", _caster_id)
@@ -121,11 +132,14 @@ func _on_charge_complete() -> void:
 
 func _apply_effects(combat: Node) -> void:
 	var center: Vector2 = _player_node.global_position
-	var status_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
 	var slow_dur: float = _data.slow_duration if _data and _data.slow_duration > 0.0 else 3.0
 	var slow_mag: float = _data.slow_magnitude if _data and _data.slow_magnitude > 0.0 else 0.3
-	var silence_dur: float = _data.stun_duration if _data and _data.stun_duration > 0.0 else 3.0
-	var hit_count := 0
+
+	var lms_svc = GameServiceLocator.lms
+	if lms_svc and lms_svc.is_lms_active():
+		var lms_survivor = lms_svc.get_active_survivor()
+		if lms_survivor and lms_survivor.get_multiplayer_authority() == _caster_id:
+			slow_dur = 7.0
 
 	for killer in _player_node.get_tree().get_nodes_in_group("killer"):
 		if not is_instance_valid(killer):
@@ -137,11 +151,6 @@ func _apply_effects(combat: Node) -> void:
 		if dist <= _area_radius:
 			if combat and slow_mag > 0.0:
 				combat.apply_slow(killer, slow_dur, slow_mag)
-			if status_svc and silence_dur > 0.0:
-				status_svc.apply(killer, "silence", { "duration": silence_dur })
-			hit_count += 1
-
-	print("[Pacify] Efectos aplicados a ", hit_count, " killers")
 
 
 func _show_indicator() -> void:
@@ -156,7 +165,7 @@ func _hide_indicator() -> void:
 
 func _fail_cleanup() -> void:
 	_active = false
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
 	print("[Pacify] Fallo en activación | peer: ", _caster_id)

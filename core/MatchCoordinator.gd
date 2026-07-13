@@ -97,5 +97,6 @@ func reset_to_menu() -> void:
 
 
 func _do_change_to_menu() -> void:
+	_resetting = false
 	if is_inside_tree():
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")

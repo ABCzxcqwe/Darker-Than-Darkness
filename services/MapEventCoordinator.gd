@@ -15,12 +15,19 @@ var _phase_events: Array[MapPhaseEvent] = []
 var _escaped_players: Array[int] = []
 var _timer_service: Node = null
 var _health_service: Node = null
-var _game_state: Node = null
+var _game_state_service: Node = null
+var _lms_service: Node = null
+var _radar_service: Node = null
 var _lms_active: bool = false
 var _lms_exit_threshold: float = 0.0
 var _lms_exits_opened: bool = false
 var _final_phase_triggered: bool = false
 var _exit_arrows: Dictionary = {}
+var _client_relay: Node
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 # ── Lifecycle ─────────────────────────────────────────────
@@ -30,13 +37,11 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	_timer_service = GameServiceLocator.get_service(ServiceNames.TIMER)
-	_health_service = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	_game_state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
-	if _timer_service and _timer_service.has_signal("timer_changed"):
-		_timer_service.timer_changed.connect(_on_timer_changed)
+	var timer = GameServiceLocator.timer
+	if timer and timer.has_signal("timer_changed"):
+		timer.timer_changed.connect(_on_timer_changed)
 
-	var lms = GameServiceLocator.get_service(ServiceNames.LMS)
+	var lms = GameServiceLocator.lms
 	if lms:
 		if lms.has_signal("lms_activated"):
 			lms.lms_activated.connect(_on_lms_activated)
@@ -50,7 +55,7 @@ func _on_lms_activated(survivor_node: Node, _killer_node: Node, _duration: float
 	if not multiplayer.is_server():
 		return
 	var threshold = _get_lms_exit_threshold(survivor_node)
-	rpc("_sync_lms_state", threshold)
+	_client_relay.rpc("_sync_lms_state", threshold)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -65,7 +70,7 @@ func _sync_lms_state(threshold: float) -> void:
 func _on_lms_ended() -> void:
 	if not multiplayer.is_server():
 		return
-	rpc("_sync_lms_ended")
+	_client_relay.rpc("_sync_lms_ended")
 
 
 @rpc("authority", "call_local", "reliable")
@@ -194,7 +199,7 @@ func _check_condition(event: MapPhaseEvent) -> bool:
 			var alive = _count_alive_survivors()
 			return alive <= event.condition_value
 		MapPhaseEvent.ConditionType.LMS_ACTIVE:
-			var lms = GameServiceLocator.get_service(ServiceNames.LMS)
+			var lms = _lms_service
 			return lms != null and lms.is_lms_active()
 		MapPhaseEvent.ConditionType.ALWAYS:
 			return true
@@ -236,9 +241,9 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 	exit_activated.emit(exit_id)
 	if not _final_phase_triggered:
 		_final_phase_triggered = true
-		AudioManager.activar_fase_final_del_mapa()
+		AudioManager.rpc("activar_fase_final_del_mapa")
 	if multiplayer.is_server():
-		var radar = GameServiceLocator.get_service(ServiceNames.RADAR)
+		var radar = _radar_service
 		if radar and not _exit_arrows.has(exit_id):
 			var arrow_id = radar.show_map_indicator(exit.global_position)
 			if arrow_id >= 0:
@@ -254,7 +259,7 @@ func deactivate_exit(exit_id: String) -> void:
 	_exits[exit_id].deactivate()
 	exit_deactivated.emit(exit_id)
 	if multiplayer.is_server() and _exit_arrows.has(exit_id):
-		var radar = GameServiceLocator.get_service(ServiceNames.RADAR)
+		var radar = _radar_service
 		if radar:
 			radar.remove_map_indicator(_exit_arrows[exit_id])
 		_exit_arrows.erase(exit_id)
@@ -303,7 +308,7 @@ func _on_player_entered_exit(body: Node, exit_id: String) -> void:
 
 
 func _process_escape(peer_id: int, exit_id: String) -> void:
-	if _game_state and _game_state.current_state != _game_state.State.PLAYING:
+	if _game_state_service and _game_state_service.current_state != _game_state_service.State.PLAYING:
 		return
 	if peer_id in _escaped_players:
 		return
@@ -315,13 +320,14 @@ func _process_escape(peer_id: int, exit_id: String) -> void:
 		return
 
 	_escaped_players.append(peer_id)
+	_client_relay.rpc("_sync_escaped_players", _escaped_players)
 	player_escaped.emit(peer_id, exit_id)
 	print("[MapEventCoordinator] Jugador ", peer_id, " escapó por '", exit_id, "'.")
 
 	if player.has_method("_sync_escape"):
 		player.rpc("_sync_escape")
 
-	if _game_state:
+	if _game_state_service:
 		_check_match_end()
 
 
@@ -341,8 +347,8 @@ func _check_match_end() -> void:
 			return
 
 	print("[MapEventCoordinator] _check_match_end: COMPLETO -> escaped=", escaped_count, "/", total_survivors)
-	if _game_state:
-		_game_state.transition_to_ended("survivors_escaped", {
+	if _game_state_service:
+		_game_state_service.transition_to_ended("survivors_escaped", {
 			"escaped_count": escaped_count,
 			"total_survivors": total_survivors
 		})
@@ -426,6 +432,7 @@ func get_escaped_count() -> int:
 func _register_escaped(peer_id: int) -> void:
 	if not peer_id in _escaped_players:
 		_escaped_players.append(peer_id)
+		_client_relay.rpc("_sync_escaped_players", _escaped_players)
 
 
 func clear() -> void:
@@ -436,6 +443,7 @@ func clear() -> void:
 	_spawn_points.clear()
 	_phase_events.clear()
 	_escaped_players.clear()
+	_client_relay.rpc("_sync_escaped_players", [])
 	_exit_arrows.clear()
 	_lms_active = false
 	_lms_exits_opened = false

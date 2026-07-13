@@ -31,6 +31,7 @@ var _evolved_data:       AbilityData = null
 var _peer_id:            int         = -1
 var _tp_service:         Node        = null
 var _last_known_tp:      float       = 0.0
+var _dynamic_tp_cost:    float       = -1.0
 var _ratio_base:         float       = 0.0
 var _ratio_evo:          float       = 0.0
 var _fill_tween:         Tween       = null
@@ -97,10 +98,10 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 	_apply_visual_state()
 	_setup_tp_tracking()
 
-	# Sincronizar estado de evolución existente (ej: evolución permanente previa, o LMS)
-	var evo_svc = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	if evo_svc and evo_svc.has_method("is_evolved"):
-		var was_evolved = evo_svc.is_evolved(_peer_id, slot_index)
+	# Sincronizar estado de evolución existente via ClientRelay
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay and relay.has_method("is_evolved"):
+		var was_evolved = relay.is_evolved(_peer_id, slot_index)
 		if was_evolved != _is_evolved:
 			set_evolved(was_evolved)
 
@@ -190,11 +191,15 @@ func _setup_tp_tracking() -> void:
 
 	_ratio_base = 0.0
 	_ratio_evo  = 0.0
+	_dynamic_tp_cost = -1.0
 
-	_tp_service = GameServiceLocator.get_service(ServiceNames.TP)
-	if _tp_service:
-		_tp_service.tp_changed.connect(_on_tp_changed)
-		_update_tp_fill(_tp_service.get_tp_for_peer(_peer_id))
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.has_signal("tp_changed"):
+			_tp_service = relay
+			relay.tp_changed.connect(_on_tp_changed)
+		if relay.has_signal("dynamic_tp_cost_changed"):
+			relay.dynamic_tp_cost_changed.connect(_on_dynamic_tp_cost_changed)
 	else:
 		push_warning("[AbilityButton] TPService no disponible — slot " + str(slot_index))
 
@@ -218,8 +223,11 @@ func _build_fill_style(rect: Panel, color: Color) -> void:
 
 
 func _disconnect_tp_service() -> void:
-	if _tp_service and _tp_service.tp_changed.is_connected(_on_tp_changed):
-		_tp_service.tp_changed.disconnect(_on_tp_changed)
+	if _tp_service:
+		if _tp_service.tp_changed.is_connected(_on_tp_changed):
+			_tp_service.tp_changed.disconnect(_on_tp_changed)
+		if _tp_service.dynamic_tp_cost_changed.is_connected(_on_dynamic_tp_cost_changed):
+			_tp_service.dynamic_tp_cost_changed.disconnect(_on_dynamic_tp_cost_changed)
 	_tp_service = null
 
 
@@ -227,6 +235,13 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 	if peer_id != _peer_id:
 		return
 	_update_tp_fill(current_tp)
+
+
+func _on_dynamic_tp_cost_changed(changed_slot: int, cost: float) -> void:
+	if changed_slot != self.slot_index:
+		return
+	_dynamic_tp_cost = cost
+	_update_tp_fill(_last_known_tp)
 
 
 func _update_tp_fill(current_tp: float) -> void:
@@ -245,7 +260,7 @@ func _update_tp_fill(current_tp: float) -> void:
 
 	# --- Tramo 1: habilidad "activa" (base, o evolucionada si ya cambió para siempre) ---
 	var active_data: AbilityData = _evolved_data if permanent_swapped else _base_data
-	var base_cost: float = active_data.tp_cost
+	var base_cost: float = _dynamic_tp_cost if _dynamic_tp_cost > 0.0 else active_data.tp_cost
 	_ratio_base = clampf(current_tp / base_cost, 0.0, 1.0) if base_cost > 0.0 else 1.0
 
 	_apply_growing_border(base_fill_rect, _ratio_base)

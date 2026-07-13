@@ -35,14 +35,14 @@ func _dispatch_with_target(slot_index: int, target_peer_id: int, caster_id: int)
 	if not ability_data or not ability_data.ability_script:
 		return
 
-	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status = GameServiceLocator.status_effect
 	if status:
 		if status.is_silenced(caster_id):
 			return
 		if status.is_stunned(caster_id) and not ability_data.can_use_while_stunned:
 			return
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if cd and not cd.is_ready(caster_id, slot_index):
 		return
 
@@ -65,7 +65,9 @@ func _dispatch_with_target(slot_index: int, target_peer_id: int, caster_id: int)
 @rpc("any_peer", "reliable")
 func request_ability(slot_index: int, direction: Vector2) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	var peer_id: int   = sender_id if sender_id != 0 else 1
+
+	# Si el servidor se envía a sí mismo (call_local), sender_id es 0
+	var peer_id: int = sender_id if sender_id != 0 else multiplayer.get_unique_id()
 
 	if sender_id != 0 and sender_id != peer_id:
 		push_warning("[AbilityRouter] Rechazado: sender ", sender_id, " != peer ", peer_id)
@@ -93,22 +95,22 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	if not base_data:
 		return
 
-	var evolution_service: Node = GameServiceLocator.get_service(ServiceNames.EVOLUTION)
-	var lms_svc: Node = GameServiceLocator.get_service(ServiceNames.LMS)
+	var evolution_service: Node = GameServiceLocator.evolution
+	var lms_svc: Node = GameServiceLocator.lms
 	var resolve := _resolve_ability_version(peer_id, slot_index, base_data, evolution_service, lms_svc)
 	var ability_data: AbilityData = resolve["ability_data"]
 	var is_evolved: bool = resolve["is_evolved"]
 	var lms_wants_evolve: bool = resolve["lms_wants_evolve"]
 
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	if not _validate_cooldown(peer_id, slot_index, cd):
 		return
 
-	var status = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status = GameServiceLocator.status_effect
 	if not _validate_status_effects(peer_id, base_data, status):
 		return
 
-	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
+	var abs_svc = GameServiceLocator.ability_state
 	var tp_result := _validate_tp(peer_id, ability_data, slot_index, base_data, abs_svc, lms_svc, is_evolved, lms_wants_evolve)
 	if not tp_result["valid"]:
 		return
@@ -133,7 +135,7 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 
 func _validate_game_active() -> bool:
-	var state = GameServiceLocator.get_service(ServiceNames.GAME_STATE)
+	var state = GameServiceLocator.game_state
 	if not state or not state.is_in_game():
 		return false
 	return true
@@ -155,6 +157,8 @@ func _validate_character_data(player_node: Node, peer_id: int) -> CharacterData:
 
 func _validate_alive(player_node: Node) -> bool:
 	if player_node.health <= 0:
+		return false
+	if player_node.health_state != "alive":
 		return false
 	return true
 
@@ -217,7 +221,7 @@ func _validate_tp(peer_id: int, ability_data: AbilityData, slot_index: int,
 	if effective_tp_cost <= 0.0:
 		return {"valid": true, "ability_data": ability_data, "is_evolved": is_evolved, "lms_wants_evolve": lms_wants_evolve}
 
-	var tp_svc = GameServiceLocator.get_service(ServiceNames.TP)
+	var tp_svc = GameServiceLocator.tp
 	if tp_svc and tp_svc.get_tp_for_peer(peer_id) < effective_tp_cost:
 		var is_permanent: bool = base_data.evolved_version != null and base_data.evolved_version.evolution_consume == 1
 
@@ -301,7 +305,7 @@ func _consume_evolution(evolution_service: Node, peer_id: int, slot_index: int,
 func _cancel_ability(peer_id: int, player_node: Node, slot_index: int,
 		ability_data: AbilityData, cd: Node) -> void:
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.remove_root(player_node)
 
@@ -338,19 +342,19 @@ func cancel_aim(peer_id: int, slot_index: int) -> void:
 		return
 
 	var ability_data: AbilityData = char_data.ability_slots[slot_index]
-	var cd = GameServiceLocator.get_service(ServiceNames.COOLDOWN)
+	var cd = GameServiceLocator.cooldown
 	print("[AbilityRouter] cancel_aim() → datos válidos, procediendo limpieza")
 
 	player_node.rpc("_sync_aiming_mode", slot_index, false)
 	player_node.rpc("_sync_effect", "free_look", false)
 	print("[AbilityRouter] cancel_aim() → RPCs sync enviados")
 
-	var combat = GameServiceLocator.get_service(ServiceNames.COMBAT_MEDIATOR)
+	var combat = GameServiceLocator.combat_mediator
 	if combat:
 		combat.remove_root(player_node)
 		print("[AbilityRouter] cancel_aim() → combat root removido")
 
-	var abs_svc = GameServiceLocator.get_service(ServiceNames.ABILITY_STATE)
+	var abs_svc = GameServiceLocator.ability_state
 	if abs_svc and abs_svc.is_mode_active(peer_id, slot_index):
 		abs_svc.deactivate_mode(peer_id, slot_index)
 		print("[AbilityRouter] cancel_aim() → modo desactivado")

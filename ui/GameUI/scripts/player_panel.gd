@@ -52,19 +52,23 @@ func setup(player_node: Node) -> void:
 	_apply_border_color(_theme_color)
 	_apply_bar_color(player_node.health)
 
-	# Conectar señales de HealthService
-	var hs: Node = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	if hs:
-		hs.health_changed.connect(_on_health_changed)
-		hs.player_state_changed.connect(_on_state_changed)
+	# Conectar señales del ClientRelay
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.has_signal("health_changed"):
+			relay.health_changed.connect(_on_health_changed)
+		if relay.has_signal("player_state_changed"):
+			relay.player_state_changed.connect(_on_state_changed)
+		if relay.has_signal("stamina_changed"):
+			relay.stamina_changed.connect(_on_stamina_changed)
 
-	# Conectar señal de StaminaService
-	var ss: Node = GameServiceLocator.get_service(ServiceNames.STAMINA)
-	if ss:
-		ss.stamina_changed.connect(_on_stamina_changed)
-		if stamina_bar:
-			stamina_bar.max_value = data.stamina_max
-			stamina_bar.value = ss.get_stamina(_peer_id)
+	if stamina_bar:
+		stamina_bar.max_value = data.stamina_max
+		# Leer valor cacheado del relay (pudo llegar antes que el HUD esté listo)
+		if relay and relay.has_method("get_stamina"):
+			var cached = relay.get_stamina(_peer_id)
+			if cached.current > 0.0:
+				stamina_bar.value = cached.current
 
 
 func _on_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:
@@ -92,6 +96,8 @@ func _on_state_changed(peer_id: int, state: String) -> void:
 			_apply_border_color(Color(1.0, 0.5, 0.0))  # naranja
 		"dead":
 			_apply_border_color(Color(0.3, 0.3, 0.3))  # gris
+		"escaped":
+			_apply_border_color(Color(0.0, 0.8, 0.8))  # cian
 		"alive":
 			_apply_border_color(_theme_color)
 

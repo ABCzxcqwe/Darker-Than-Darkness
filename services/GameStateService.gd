@@ -15,6 +15,12 @@ var _health_service: Node = null
 var _timer_service: Node = null
 var _lms_service: Node = null
 var _ending_sequence_started := false
+var _client_relay: Node
+var _map_event_coordinator: Node = null
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 
 func _ready() -> void:
@@ -24,10 +30,6 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	_health_service = GameServiceLocator.get_service(ServiceNames.HEALTH)
-	_timer_service = GameServiceLocator.get_service(ServiceNames.TIMER)
-	_lms_service = GameServiceLocator.get_service(ServiceNames.LMS)
-
 	if _health_service:
 		_health_service.survivor_died_permanently.connect(_on_survivor_death)
 	if _timer_service:
@@ -38,6 +40,8 @@ func _set_state(new: State) -> void:
 	var old = current_state
 	current_state = new
 	state_changed.emit(new, old)
+	if multiplayer.is_server():
+		_client_relay.rpc("_sync_game_state", new, old)
 
 
 func is_in_game() -> bool:
@@ -83,7 +87,7 @@ func _rpc_setup_map_audio(map_id: String) -> void:
 func _setup_map_audio() -> void:
 	if not multiplayer.is_server():
 		return
-	rpc("_rpc_setup_map_audio", GameData.selected_map)
+	_client_relay.rpc("_rpc_setup_map_audio", GameData.selected_map)
 
 
 func _cleanup_match_audio() -> void:
@@ -108,7 +112,7 @@ func _on_timer_timeout() -> void:
 		return
 	if _lms_service and _lms_service.is_lms_active():
 		_lms_service.stop_lms()
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	var coord = _map_event_coordinator
 	var escaped = coord.get_escaped_count() if coord else 0
 	if escaped > 0:
 		var total_survivors := 0
@@ -187,7 +191,7 @@ func _evaluate_match() -> void:
 	var alive = _count_alive_survivors()
 	if alive == 0:
 		_timer_service.stop_timer()
-		var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+		var coord = _map_event_coordinator
 		if coord and coord.get_escaped_count() > 0:
 			var total_survivors := 0
 			for pid in LobbyManager.players:
@@ -208,7 +212,7 @@ func _evaluate_match() -> void:
 
 func _count_alive_survivors() -> int:
 	var count := 0
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	var coord = _map_event_coordinator
 	for pid in LobbyManager.players:
 		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
@@ -219,7 +223,7 @@ func _count_alive_survivors() -> int:
 
 
 func _find_last_survivor() -> Node:
-	var coord = GameServiceLocator.get_service(ServiceNames.MAP_EVENT_COORDINATOR)
+	var coord = _map_event_coordinator
 	for p in get_tree().get_nodes_in_group("players"):
 		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
 			var pid = p.get_multiplayer_authority()

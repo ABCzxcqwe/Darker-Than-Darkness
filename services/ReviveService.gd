@@ -5,6 +5,14 @@ extends Node
 
 # { rescuer_peer_id: { "target": Node, "timer": float, "duration": float } }
 var _sessions: Dictionary = {}
+var _client_relay: Node
+
+var _health_service: Node = null
+var _status_effect_service: Node = null
+
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
 
 signal revive_started(rescuer_id: int, target_id: int, duration: float)
 signal revive_cancelled(rescuer_id: int, target_id: int)
@@ -18,7 +26,7 @@ func _ready() -> void:
 
 
 func _connect_to_services() -> void:
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = _health_service
 	if health_svc:
 		# Si tu HealthService no tiene esta señal, podemos interceptar vía el método take_damage o herencia.
 		# Por ahora, escucharemos si el estado del jugador cambia a downed/dead para cancelar.
@@ -95,7 +103,7 @@ func start_revive(rescuer_id: int, target_node: Node) -> void:
 	print("[ReviveService] Rescate iniciado -> Rescatador: ", rescuer_id, " | Objetivo: ", target_id)
 	
 	# Notificar de forma fiable a los clientes para activar la UI
-	rpc("_notify_revive_started", rescuer_id, target_id, duration)
+	_client_relay.rpc("_notify_revive_started", rescuer_id, target_id, duration)
 
 
 ## Fuerza la cancelación externa (por ejemplo, llamada desde un hit de habilidad directo)
@@ -114,7 +122,7 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 	var target_id = target_node.get_multiplayer_authority()
 	_sessions.erase(rescuer_id)
 
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = _health_service
 	if health_svc:
 		# Aquí puedes usar tu lógica de HealthService para revivir al jugador herido
 		if health_svc.has_method("revive"):
@@ -127,7 +135,7 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 					target_node.rpc("_sync_state", "alive", rev_hp)
 
 	print("[ReviveService] ¡Rescate completado! ", rescuer_id, " levantó a ", target_id)
-	rpc("_notify_revive_completed", rescuer_id, target_id)
+	_client_relay.rpc("_notify_revive_completed", rescuer_id, target_id)
 
 
 func _cancel(rescuer_id: int, notify: bool) -> void:
@@ -145,19 +153,19 @@ func _cancel(rescuer_id: int, notify: bool) -> void:
 	print("[ReviveService] Rescate cancelado para el peer: ", rescuer_id, " -> target: ", target_id)
 
 	if notify:
-		rpc("_notify_revive_cancelled", rescuer_id, target_id)
+		_client_relay.rpc("_notify_revive_cancelled", rescuer_id, target_id)
 
 
 ## Helper para comprobar si el jugador está incapacitado en otros servicios
 func _is_player_interrupted(peer_id: int) -> bool:
 	# 1. Verificar si fue derribado (Downed) o muerto según HealthService
-	var health_svc = GameServiceLocator.get_service(ServiceNames.HEALTH)
+	var health_svc = _health_service
 	if health_svc:
 		if health_svc.is_downed(peer_id) or health_svc.is_dead(peer_id):
 			return true
 
 	# 2. Verificar si está bajo efectos de control (Stun o Root)
-	var status_svc = GameServiceLocator.get_service(ServiceNames.STATUS_EFFECT)
+	var status_svc = _status_effect_service
 	if status_svc:
 		if status_svc.has_method("is_stunned") and status_svc.is_stunned(peer_id):
 			return true

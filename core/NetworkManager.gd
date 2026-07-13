@@ -158,11 +158,11 @@ func disconnect_from_server():
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
+	emit_signal("server_disconnected")
 	LobbyManager.reset_lobby_state()
 	LobbyManager.is_host = false
 	LobbyManager.local_player_name = ""
 	LobbyManager.selected_map = ""
-	emit_signal("server_disconnected")
 
 
 # ── SEÑALES DE CONEXIÓN ──

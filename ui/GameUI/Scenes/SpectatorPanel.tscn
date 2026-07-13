@@ -1,0 +1,177 @@
+[gd_scene format=3 uid="uid://cd0mergb3r8er"]
+
+[ext_resource type="Script" uid="uid://csxsyfnoq86k8" path="res://ui/GameUI/Scenes/spectator_panel.gd" id="1_xtrgt"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_u4xsv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0, 0, 0, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.5)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+expand_margin_left = 10.0
+expand_margin_top = 5.0
+expand_margin_right = 10.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_sc0xa"]
+color = Color(1, 1, 1, 1)
+grow_begin = 7.0
+grow_end = 7.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+bg_color = Color(0.15, 0.15, 0.2, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.5, 0.6, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.25, 0.25, 0.35, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.7, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1wu4l"]
+bg_color = Color(0.38039216, 0.050980393, 0, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lkt5h"]
+bg_color = Color(0, 0.24616188, 0.6205239, 1)
+corner_detail = 1
+
+[node name="SpectatorPanel" type="PanelContainer" unique_id=159202756]
+custom_minimum_size = Vector2(320, 160)
+anchors_preset = -1
+anchor_left = 0.34
+anchor_top = 0.79
+anchor_right = 0.66
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+script = ExtResource("1_xtrgt")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=433285312]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer" unique_id=693426174]
+modulate = Color(1, 1, 0.5, 1)
+custom_minimum_size = Vector2(300, 24)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 20
+text = "— MODO ESPECTADOR —"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer" unique_id=1485192746]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+theme_override_constants/separation = 8
+theme_override_styles/separator = SubResource("StyleBoxLine_sc0xa")
+
+[node name="TargetRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1655728370]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="VBoxContainer/TargetRow" unique_id=113952676]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "◀"
+
+[node name="TargetInfo" type="HBoxContainer" parent="VBoxContainer/TargetRow" unique_id=1229508831]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="IconRect" type="TextureRect" parent="VBoxContainer/TargetRow/TargetInfo" unique_id=734325077]
+custom_minimum_size = Vector2(86, 86)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/TargetRow/TargetInfo" unique_id=1711087988]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TargetRow/TargetInfo/VBoxContainer" unique_id=36376318]
+custom_minimum_size = Vector2(160, 20)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 20
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HpRow" type="HBoxContainer" parent="VBoxContainer/TargetRow/TargetInfo/VBoxContainer" unique_id=626123610]
+layout_direction = 2
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="HpTag" type="Label" parent="VBoxContainer/TargetRow/TargetInfo/VBoxContainer/HpRow" unique_id=1666639991]
+modulate = Color(0.7, 0.7, 1, 1)
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 18
+text = "HP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HpBar" type="ProgressBar" parent="VBoxContainer/TargetRow/TargetInfo/VBoxContainer/HpRow" unique_id=997122784]
+custom_minimum_size = Vector2(140, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_1wu4l")
+theme_override_styles/fill = SubResource("StyleBoxFlat_lkt5h")
+value = 100.0
+show_percentage = false
+
+[node name="NextButton" type="Button" parent="VBoxContainer/TargetRow" unique_id=909954540]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "▶"
+
+[node name="HintLabel" type="Label" parent="VBoxContainer" unique_id=2132669852]
+modulate = Color(1, 1, 1, 0.7)
+custom_minimum_size = Vector2(300, 16)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_u4xsv")
+theme_override_font_sizes/font_size = 11
+text = "[Espacio] Alternar modo"
+horizontal_alignment = 1

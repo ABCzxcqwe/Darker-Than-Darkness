@@ -68,7 +68,7 @@ func _on_peer_disconnected(peer_id: int):
 		players.erase(peer_id)
 		emit_signal("player_left", peer_id)
 
-		var game_state = GameServiceLocator.get_service(ServiceNames.GAME_STATE) if GameServiceLocator.has_service(ServiceNames.GAME_STATE) else null
+		var game_state = GameServiceLocator.game_state if GameServiceLocator.has_service(ServiceNames.GAME_STATE) else null
 		if game_state and game_state.is_in_game():
 			game_state.handle_player_disconnect(peer_id, abandoned_role)
 
