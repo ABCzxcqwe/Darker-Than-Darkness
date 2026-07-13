@@ -23,6 +23,7 @@
 [ext_resource type="AudioStream" uid="uid://bxiifrhb1kysq" path="res://audio/SFX/snd_joker_byebye.wav" id="20_jevil_byebye"]
 [ext_resource type="AudioStream" uid="uid://dpnksxvdqe0ml" path="res://audio/SFX/snd_equip.wav" id="20_txm0n"]
 [ext_resource type="AudioStream" uid="uid://dbqhgqki4o174" path="res://audio/SFX/snd_joker_chaos.wav" id="21_jevil_chaos"]
+[ext_resource type="AudioStream" uid="uid://cvu5d3t63gdyu" path="res://audio/SFX/snd_pirouette.mp3" id="21_pppsl"]
 [ext_resource type="AudioStream" uid="uid://bgjs5kouoj0u1" path="res://audio/SFX/snd_joker_neochaos.wav" id="22_jevil_neochaos"]
 [ext_resource type="AudioStream" uid="uid://b50mh88nebllf" path="res://audio/SFX/snd_joker_ha0.wav" id="23_jevil_ha0"]
 [ext_resource type="AudioStream" uid="uid://bet6l5kk461ac" path="res://audio/SFX/snd_joker_ha1.wav" id="24_jevil_ha1"]
@@ -32,8 +33,8 @@
 [ext_resource type="AudioStream" uid="uid://cx5je04mb3nbe" path="res://audio/SFX/snd_joker_oh.wav" id="28_jevil_oh"]
 [ext_resource type="AudioStream" uid="uid://dlto5febw033n" path="res://audio/SFX/snd_impact.wav" id="29_impact"]
 [ext_resource type="AudioStream" uid="uid://badssowa13fdn" path="res://audio/SFX/snd_heal.wav" id="30_heal"]
-[ext_resource type="AudioStream" uid="uid://d2i03tcc3tv6t" path="res://audio/SFX/ralsei_sing1.MP3" id="31_sing1"]
-[ext_resource type="AudioStream" uid="uid://pm0tdcs7rm1o" path="res://audio/SFX/ralsei_sing2.MP3" id="32_sing2"]
+[ext_resource type="AudioStream" uid="uid://58j6vrfxsylk" path="res://audio/SFX/ralsei_sing1.MP3" id="31_sing1"]
+[ext_resource type="AudioStream" uid="uid://c8g3e6xuoub0p" path="res://audio/SFX/ralsei_sing2.MP3" id="32_sing2"]
 
 [sub_resource type="Resource" id="Sfx1"]
 script = ExtResource("2_b81f2")
@@ -161,6 +162,13 @@ name = "equip"
 stream = ExtResource("20_txm0n")
 metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
+[sub_resource type="Resource" id="Resource_77axo"]
+script = ExtResource("2_b81f2")
+id = 19
+name = "píruette"
+stream = ExtResource("21_pppsl")
+metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
+
 [sub_resource type="Resource" id="Sfx20"]
 script = ExtResource("2_b81f2")
 id = 20
@@ -261,4 +269,4 @@ metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
 [resource]
 script = ExtResource("1_a53g7")
-sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Resource_7u4fr"), SubResource("Resource_1btyq"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29"), SubResource("Sfx30"), SubResource("Sfx31"), SubResource("Sfx32"), SubResource("Sfx33")])
+sounds = Array[ExtResource("2_b81f2")]([SubResource("Sfx1"), SubResource("Sfx2"), SubResource("Sfx3"), SubResource("Sfx4"), SubResource("Sfx5"), SubResource("Sfx6"), SubResource("Sfx7"), SubResource("Sfx8"), SubResource("Sfx9"), SubResource("Sfx10"), SubResource("Sfx11"), SubResource("Sfx12"), SubResource("Sfx13"), SubResource("Sfx14"), SubResource("Sfx15"), SubResource("Sfx16"), SubResource("Resource_7u4fr"), SubResource("Resource_1btyq"), SubResource("Resource_77axo"), SubResource("Sfx20"), SubResource("Sfx21"), SubResource("Sfx22"), SubResource("Sfx23"), SubResource("Sfx24"), SubResource("Sfx25"), SubResource("Sfx26"), SubResource("Sfx27"), SubResource("Sfx28"), SubResource("Sfx29"), SubResource("Sfx30"), SubResource("Sfx31"), SubResource("Sfx32"), SubResource("Sfx33")])

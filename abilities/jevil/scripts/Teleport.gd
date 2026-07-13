@@ -174,6 +174,9 @@ func _spawn_pikes() -> void:
 	if not _hs or not is_instance_valid(_player_node) or not is_instance_valid(_current_target):
 		return
 
+	if _player_node.multiplayer.is_server():
+		AudioManager.play_sfx_networked.rpc(SfxId.JEVIL_OH, _player_node.global_position.x, _player_node.global_position.y)
+
 	var dir_to_target: Vector2 = (_current_target.global_position - _player_node.global_position).normalized()
 	if dir_to_target == Vector2.ZERO:
 		dir_to_target = Vector2.RIGHT

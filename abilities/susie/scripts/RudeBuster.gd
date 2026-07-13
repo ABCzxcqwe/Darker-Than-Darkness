@@ -55,6 +55,8 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 				if not is_instance_valid(player_node) or not is_instance_valid(hs):
 					return
 
+				AudioManager.play_sfx_networked.rpc(SfxId.RUDEBUSTER_SWING, player_node.global_position.x, player_node.global_position.y)
+
 				hs.create({
 					"attacker_id"   : attacker_id,
 					"attacker_node" : player_node,
@@ -74,6 +76,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 					"on_hit": func(target_node: Node) -> void:
 						if not is_instance_valid(target_node):
 							return
+
+						if player_node.multiplayer.is_server():
+							AudioManager.play_sfx_networked.rpc(SfxId.RUDEBUSTER_HIT, target_node.global_position.x, target_node.global_position.y)
 
 						if dmg > 0:
 							var combat = GameServiceLocator.combat_mediator

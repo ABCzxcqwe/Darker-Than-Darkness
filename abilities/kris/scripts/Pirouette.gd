@@ -10,6 +10,9 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		push_warning("[Purieta] player_node inválido.")
 		return
 
+	if player_node.multiplayer.is_server():
+		AudioManager.play_sfx_networked.rpc(SfxId.PIROUETTE, player_node.global_position.x, player_node.global_position.y)
+
 	var caster_id: int = player_node.get_multiplayer_authority()
 	var combat = GameServiceLocator.combat_mediator
 	var cd = GameServiceLocator.cooldown

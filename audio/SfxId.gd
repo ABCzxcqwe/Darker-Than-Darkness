@@ -19,6 +19,7 @@ const ICESHOCK := 15
 const EXPLOSION := 16
 const HIT := 17
 const EQUIP := 18
+const PIROUETTE := 19
 const JEVIL_ANYTHING := 20
 const JEVIL_BYE_BYE := 21
 const JEVIL_CHAOS := 22
