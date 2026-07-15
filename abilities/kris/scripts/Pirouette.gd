@@ -51,7 +51,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 func _apply_random_effect(player_node: Node, caster_id: int, data: AbilityData) -> void:
 	var combat = GameServiceLocator.combat_mediator
 
-	var effect := randi() % 6
+	var effect := randi() % (6 if player_node.health > 40 else 5)
 	match effect:
 		0:
 			if combat:
