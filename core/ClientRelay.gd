@@ -35,6 +35,8 @@ signal game_state_changed(new_state: int, old_state: int)
 signal effect_applied(peer_id: int, effect_name: String, duration: float)
 signal effect_removed(peer_id: int, effect_name: String)
 
+signal custom_effect_applied(peer_id: int, effect_name: String, duration: float)
+
 signal dialog_notification(message: String, type: int)
 
 
@@ -173,6 +175,12 @@ func _rpc_effect_applied(peer_id: int, effect_name: String, duration: float) -> 
 @rpc("authority", "call_local", "reliable")
 func _rpc_effect_removed(peer_id: int, effect_name: String) -> void:
 	effect_removed.emit(peer_id, effect_name)
+
+
+## Pirouette / custom ability notifications (no asociadas a StatusEffectService)
+@rpc("authority", "call_local", "reliable")
+func _rpc_custom_effect_applied(peer_id: int, effect_name: String, duration: float) -> void:
+	custom_effect_applied.emit(peer_id, effect_name, duration)
 
 
 @rpc("authority", "reliable", "call_local")

@@ -3,6 +3,7 @@ extends AbilityBase
 const ANIM_FALLBACK: float = 1.2
 const PROTECT_REDUCTION: float = 0.6
 const STAMINA_MULT: float = 0.7
+const NOTIFY_DURATION_SHORT: float = 2.5
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -61,6 +62,7 @@ func _apply_random_effect(player_node: Node, caster_id: int, data: AbilityData) 
 			if health_svc:
 				health_svc.heal(player_node, 30)
 				print("[Purieta] Efecto: +30 HP")
+			_show_effect_notification(player_node, "TE HAS CURADO", NOTIFY_DURATION_SHORT)
 		1:
 			if status_svc:
 				status_svc.apply(player_node, "speed_boost", {
@@ -71,15 +73,26 @@ func _apply_random_effect(player_node: Node, caster_id: int, data: AbilityData) 
 		2:
 			_apply_stamina_reduction(player_node, data.cooldown)
 			print("[Purieta] Efecto: Stamina -30%")
+			_show_effect_notification(player_node, "LA STAMINA BAJA MAS LENTO", data.cooldown)
 		3:
 			_apply_protection(player_node, caster_id, data.cooldown)
 			print("[Purieta] Efecto: Proteccion (40% daño + death shield)")
+			_show_effect_notification(player_node, "LA DEFENSA HA AUMENTADO", data.cooldown)
 		4:
 			print("[Purieta] Efecto: Nada")
+			_show_effect_notification(player_node, "NO HACE NADA", NOTIFY_DURATION_SHORT)
 		5:
 			if health_svc:
 				health_svc.take_damage(player_node, 30)
 				print("[Purieta] Efecto: -30 HP")
+			_show_effect_notification(player_node, "TE HAS DAÑADO", NOTIFY_DURATION_SHORT)
+
+
+func _show_effect_notification(player_node: Node, text: String, duration: float) -> void:
+	var relay = GameServiceLocator.get_client_relay()
+	if is_instance_valid(relay):
+		var peer_id := player_node.get_multiplayer_authority()
+		relay.rpc("_rpc_custom_effect_applied", peer_id, text, duration)
 
 
 func _apply_stamina_reduction(player_node: Node, duration: float) -> void:

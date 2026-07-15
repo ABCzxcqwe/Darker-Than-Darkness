@@ -147,6 +147,8 @@ func setup(player_node: Node) -> void:
 			relay.effect_applied.connect(_on_effect_applied)
 		if relay.has_signal("effect_removed"):
 			relay.effect_removed.connect(_on_effect_removed)
+		if relay.has_signal("custom_effect_applied"):
+			relay.custom_effect_applied.connect(_on_custom_effect_applied)
 
 
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
@@ -225,6 +227,27 @@ func _on_effect_removed(peer_id: int, effect_name: String) -> void:
 	if is_instance_valid(notification):
 		notification.queue_free()
 	_effect_notifications.erase(effect_name)
+
+
+## Notificaciones personalizadas (Pirouette, etc.)
+func _on_custom_effect_applied(peer_id: int, effect_name: String, duration: float) -> void:
+	if peer_id != _my_id:
+		return
+	if not effect_stack:
+		return
+
+	if _effect_notifications.has(effect_name):
+		var existing = _effect_notifications[effect_name]
+		if is_instance_valid(existing):
+			existing.setup(peer_id, effect_name, duration)
+			return
+		_effect_notifications.erase(effect_name)
+
+	var notification := EFFECT_NOTIFICATION_SCENE.instantiate()
+	notification.setup(peer_id, effect_name, duration)
+	effect_stack.add_child(notification)
+	_effect_notifications[effect_name] = notification
+
 
 ## Llamado por EvolutionService._rpc_sync_slot_state() desde el servidor
 ## para actualizar el visual de evolución en clientes remotos.
