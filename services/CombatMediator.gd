@@ -10,6 +10,7 @@ enum ProtectionType {
 }
 
 var _protections: Dictionary = {}
+var _protection_timers: Dictionary = {}  # { key_string: Timer }
 
 var _health_service: Node = null
 var _status_effect_service: Node = null
@@ -207,6 +208,35 @@ func apply_root(target: Node, duration: float) -> void:
 		status.apply(target, "root", { "duration": duration })
 
 
+func apply_speed_boost(player_node: Node, duration: float, multiplier: float = 1.3) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var status = _status_effect_service
+	if status:
+		status.apply(player_node, "speed_boost", {
+			"duration": duration, "multiplier": multiplier
+		})
+
+
+func apply_self_heal(player_node: Node, amount: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var health = _health_service
+	if health:
+		health.heal(player_node, amount)
+
+
+func apply_self_damage(player_node: Node, amount: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var health = _health_service
+	if health:
+		health.take_damage(player_node, amount)
+
+
 func remove_root(target: Node) -> void:
 	remove_effect(target, "root")
 
@@ -226,6 +256,54 @@ func remove_effect(target: Node, effect_name: String) -> void:
 	var status = _status_effect_service
 	if status:
 		status.remove_effect(target, effect_name)
+
+
+## Fachada para que habilidades apliquen reducción de stamina
+## sin conocer StatusEffectService directamente.
+func apply_stamina_reduction(player_node: Node, duration: float, magnitude: float = 0.7) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var status = _status_effect_service
+	if status:
+		status.apply(player_node, "stamina_reduction", {
+			"duration": duration, "magnitude": magnitude
+		})
+
+
+## Registra un efecto sintético en StatusEffectService solo para notificación visual.
+## Útil para efectos que no tienen lógica mecánica en StatusEffectService
+## pero deben aparecer en el HUD (e.g. protección, buffs de habilidades).
+func notify_duration_effect(player_node: Node, effect_name: String, duration: float) -> void:
+	if not multiplayer.is_server():
+		return
+	var status = _status_effect_service
+	if status:
+		status.apply(player_node, effect_name, { "duration": duration })
+
+
+## Registra una protección con expiración automática.
+## Internamente llama register_protection() y crea un Timer.
+## Si ya existe un timer para la misma combinación (protected, protector, type),
+## lo reinicia con la nueva duración.
+func register_timed_protection(protected_id: int, protector_id: int, type: int, params: Dictionary, duration: float) -> void:
+	if not multiplayer.is_server():
+		return
+
+	register_protection(protected_id, protector_id, type, params)
+
+	var key := "%d_%d_%d" % [protected_id, protector_id, type]
+	if _protection_timers.has(key) and is_instance_valid(_protection_timers[key]):
+		_protection_timers[key].stop()
+
+	var timer := Timer.new()
+	timer.one_shot = true
+	timer.timeout.connect(func():
+		unregister_protection(protected_id, protector_id, type)
+	, CONNECT_ONE_SHOT)
+	add_child(timer)
+	timer.start(duration)
+	_protection_timers[key] = timer
 
 
 func register_protection(protected_id: int, protector_id: int, type: int, params: Dictionary = {}) -> void:
@@ -261,6 +339,12 @@ func unregister_all_for_protector(protector_id: int) -> void:
 		)
 		if _protections[protected_id].is_empty():
 			_protections.erase(protected_id)
+	# Limpiar timers asociados
+	for key in _protection_timers.keys().duplicate():
+		if key.ends_with("_%d" % protector_id):
+			if is_instance_valid(_protection_timers[key]):
+				_protection_timers[key].stop()
+			_protection_timers.erase(key)
 
 
 func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:

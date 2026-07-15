@@ -8,7 +8,7 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
-const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost"]
+const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection"]
 
 # { peer_id: { effect_name: [...instancias...] } }
 var _effects: Dictionary = {}
@@ -21,6 +21,8 @@ var _post_stun_dr: Dictionary = {}
 
 # Última velocidad conocida para detectar cambios: { peer_id: float }
 var _last_speed: Dictionary = {}
+
+var _stamina_drain_originals: Dictionary = {}  # { peer_id: float }
 
 var _revive_service: Node = null
 var _health_service: Node = null
@@ -55,6 +57,9 @@ func _process(delta: float) -> void:
 
 					if effect_name == "stun":
 						_on_stun_expired(peer_id, expired_instance)
+
+					if effect_name == "stamina_reduction":
+						_on_stamina_reduction_expired(peer_id)
 
 					# Solo notificar a clientes cuando TODAS las instancias expiraron.
 					# Ej: slow puede tener múltiples fuentes — si una expira pero otra
@@ -143,6 +148,20 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 				print("[StatusEffectService] slow acumulado para peer ", peer_id,
 					  " | magnitude: ", incoming_magnitude)
 
+		if effect_name == "stamina_reduction":
+			var incoming_magnitude: float = params.get("magnitude", 0.7)
+			var found := false
+			for instance in instances:
+				if is_equal_approx(instance["magnitude"], incoming_magnitude):
+					instance["timer"] = maxf(instance["timer"], duration)
+					found = true
+					break
+			if not found:
+				instances.append({ "timer": duration, "magnitude": incoming_magnitude })
+				print("[StatusEffectService] stamina_reduction acumulado para peer ", peer_id,
+					  " | magnitude: ", incoming_magnitude)
+			_recalculate_stamina_drain(peer_id, player_node)
+
 		print("[StatusEffectService] ", effect_name, " refrescado para peer ", peer_id,
 			  " | duración: ", instances[0]["timer"])
 	else:
@@ -159,6 +178,11 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 		instances.append(instance)
 		if effect_name == "speed_boost":
 			instance["multiplier"] = params.get("multiplier", 1.3)
+		if effect_name == "stamina_reduction":
+			instance["magnitude"] = params.get("magnitude", 0.7)
+			if not _stamina_drain_originals.has(peer_id):
+				_stamina_drain_originals[peer_id] = player_node.character_data.stamina_sprint_drain
+			_recalculate_stamina_drain(peer_id, player_node)
 		print("[StatusEffectService] ", effect_name, " aplicado a peer ", peer_id,
 			  " | duración: ", duration)
 
@@ -184,6 +208,7 @@ func is_rooted(peer_id: int)   -> bool: return has_effect(peer_id, "root")
 func is_silenced(peer_id: int) -> bool: return has_effect(peer_id, "silence")
 func is_blinded(peer_id: int)  -> bool: return has_effect(peer_id, "blind")
 func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost")
+func is_stamina_reduced(peer_id: int) -> bool: return has_effect(peer_id, "stamina_reduction")
 
 ## Devuelve true si el killer tiene inmunidad post-stun activa
 func has_stun_immunity(peer_id: int) -> bool:
@@ -230,6 +255,7 @@ func unregister(player_node: Node) -> void:
 	_last_speed.erase(peer_id)
 	_stun_immunity.erase(peer_id)
 	_post_stun_dr.erase(peer_id)
+	_stamina_drain_originals.erase(peer_id)
 	print("[StatusEffectService] ", peer_id, " desregistrado.")
 
 
@@ -258,6 +284,29 @@ func _on_stun_expired(peer_id: int, instance: Dictionary) -> void:
 			}
 			print("[StatusEffectService] Survivor ", peer_id,
 				  " tiene DR post-stun ", dr * 100, "% por ", immunity_duration, "s")
+
+
+# ── Stamina Reduction ──────────────────────────────────────────────────
+
+func _recalculate_stamina_drain(peer_id: int, player_node: Node) -> void:
+	if not _effects.has(peer_id) or _effects[peer_id]["stamina_reduction"].is_empty():
+		if _stamina_drain_originals.has(peer_id):
+			if is_instance_valid(player_node):
+				player_node.character_data.stamina_sprint_drain = _stamina_drain_originals[peer_id]
+			_stamina_drain_originals.erase(peer_id)
+		return
+
+	var original = _stamina_drain_originals.get(peer_id, player_node.character_data.stamina_sprint_drain)
+	var min_magnitude := 1.0
+	for instance in _effects[peer_id]["stamina_reduction"]:
+		min_magnitude = minf(min_magnitude, instance["magnitude"])
+	player_node.character_data.stamina_sprint_drain = original * min_magnitude
+
+
+func _on_stamina_reduction_expired(peer_id: int) -> void:
+	var player_node := _get_player(peer_id)
+	if is_instance_valid(player_node):
+		_recalculate_stamina_drain(peer_id, player_node)
 
 
 # ── Internos ───────────────────────────────────────────────────────────
@@ -359,8 +408,12 @@ func remove_effect(player_node: Node, effect_name: String) -> void:
  
 	_effects[peer_id][effect_name].clear()
 	_recalculate_speed(peer_id)
+	if effect_name == "stamina_reduction" and _stamina_drain_originals.has(peer_id):
+		if is_instance_valid(player_node):
+			player_node.character_data.stamina_sprint_drain = _stamina_drain_originals[peer_id]
+		_stamina_drain_originals.erase(peer_id)
 	_sync_effect_to_clients(peer_id, effect_name, false)
- 
+
 	print("[StatusEffectService] ", effect_name, " eliminado manualmente para peer ", peer_id)
  
 
@@ -369,4 +422,5 @@ func _exit_tree() -> void:
 	_last_speed.clear()
 	_stun_immunity.clear()
 	_post_stun_dr.clear()
+	_stamina_drain_originals.clear()
 	print("[StatusEffectService] Limpiado.")

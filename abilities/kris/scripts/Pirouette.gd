@@ -1,9 +1,6 @@
 extends AbilityBase
 
 const ANIM_FALLBACK: float = 1.2
-const PROTECT_REDUCTION: float = 0.6
-const STAMINA_MULT: float = 0.7
-const NOTIFY_DURATION_SHORT: float = 2.5
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -52,81 +49,36 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 
 func _apply_random_effect(player_node: Node, caster_id: int, data: AbilityData) -> void:
-	var health_svc = GameServiceLocator.health
-	var status_svc = GameServiceLocator.status_effect
 	var combat = GameServiceLocator.combat_mediator
 
 	var effect := randi() % 6
 	match effect:
 		0:
-			if health_svc:
-				health_svc.heal(player_node, 30)
+			if combat:
+				combat.apply_self_heal(player_node, 30)
 				print("[Purieta] Efecto: +30 HP")
-			_show_effect_notification(player_node, "TE HAS CURADO", NOTIFY_DURATION_SHORT)
 		1:
-			if status_svc:
-				status_svc.apply(player_node, "speed_boost", {
-					"duration": data.cooldown,
-					"multiplier": 1.3,
-				})
+			if combat:
+				combat.apply_speed_boost(player_node, data.cooldown, 1.3)
 				print("[Purieta] Efecto: Velocidad x1.3")
 		2:
-			_apply_stamina_reduction(player_node, data.cooldown)
+			if combat:
+				combat.apply_stamina_reduction(player_node, data.cooldown, 0.7)
 			print("[Purieta] Efecto: Stamina -30%")
-			_show_effect_notification(player_node, "LA STAMINA BAJA MAS LENTO", data.cooldown)
 		3:
-			_apply_protection(player_node, caster_id, data.cooldown)
+			if combat:
+				combat.register_timed_protection(caster_id, caster_id,
+					combat.ProtectionType.DAMAGE_REDUCE, { "reduction_pct": 0.6 }, data.cooldown)
+				combat.register_timed_protection(caster_id, caster_id,
+					combat.ProtectionType.DEATH_SHIELD, {}, data.cooldown)
+				combat.notify_duration_effect(player_node, "protection", data.cooldown)
 			print("[Purieta] Efecto: Proteccion (40% daño + death shield)")
-			_show_effect_notification(player_node, "LA DEFENSA HA AUMENTADO", data.cooldown)
 		4:
 			print("[Purieta] Efecto: Nada")
-			_show_effect_notification(player_node, "NO HACE NADA", NOTIFY_DURATION_SHORT)
 		5:
-			if health_svc:
-				health_svc.take_damage(player_node, 30)
-				print("[Purieta] Efecto: -30 HP")
-			_show_effect_notification(player_node, "TE HAS DAÑADO", NOTIFY_DURATION_SHORT)
-
-
-func _show_effect_notification(player_node: Node, text: String, duration: float) -> void:
-	var relay = GameServiceLocator.get_client_relay()
-	if is_instance_valid(relay):
-		var peer_id := player_node.get_multiplayer_authority()
-		relay.rpc("_rpc_custom_effect_applied", peer_id, text, duration)
-
-
-func _apply_stamina_reduction(player_node: Node, duration: float) -> void:
-	var original = player_node.character_data.stamina_sprint_drain
-	player_node.character_data.stamina_sprint_drain = original * STAMINA_MULT
-
-	player_node.get_tree().create_timer(duration).timeout.connect(
-		func() -> void:
-			if not is_instance_valid(player_node):
-				return
-			player_node.character_data.stamina_sprint_drain = original
-	)
-
-
-func _apply_protection(player_node: Node, caster_id: int, duration: float) -> void:
-	var combat = GameServiceLocator.combat_mediator
-	if not combat:
-		return
-
-	combat.register_protection(caster_id, caster_id,
-		combat.ProtectionType.DAMAGE_REDUCE, { "reduction_pct": PROTECT_REDUCTION })
-	combat.register_protection(caster_id, caster_id,
-		combat.ProtectionType.DEATH_SHIELD, {})
-
-	player_node.get_tree().create_timer(duration).timeout.connect(
-		func() -> void:
-			if not is_instance_valid(player_node):
-				return
 			if combat:
-				combat.unregister_protection(caster_id, caster_id,
-					combat.ProtectionType.DAMAGE_REDUCE)
-				combat.unregister_protection(caster_id, caster_id,
-					combat.ProtectionType.DEATH_SHIELD)
-	)
+				combat.apply_self_damage(player_node, 30)
+				print("[Purieta] Efecto: -30 HP")
 
 
 func _get_anim_duration(player_node: Node, anim_name: String) -> float:

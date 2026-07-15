@@ -41,5 +41,7 @@ func _get_display_name(effect: String) -> String:
 		"root":        return "ENRAIZADO"
 		"silence":     return "SILENCIADO"
 		"blind":       return "CEGADO"
-		"speed_boost": return "VELOCIDAD"
-		_:             return effect.to_upper()
+		"speed_boost":       return "VELOCIDAD"
+		"stamina_reduction": return "RESISTENCIA"
+		"protection":        return "PROTECCION"
+		_:                   return effect.to_upper()
