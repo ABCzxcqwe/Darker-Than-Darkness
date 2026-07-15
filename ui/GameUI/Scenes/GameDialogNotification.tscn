@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://d2orqwjd7kvj7"]
+
+[ext_resource type="Script" uid="uid://vmk3vc0voxv7" path="res://ui/GameUI/scripts/game_dialog_notification.gd" id="1_w5uvy"]
+[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_h22ld"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8g0xf"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+corner_detail = 2
+
+[node name="GameDialogNotification" type="PanelContainer" unique_id=2121232790]
+theme_override_styles/panel = SubResource("StyleBoxFlat_8g0xf")
+script = ExtResource("1_w5uvy")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=457983196]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1788508924]
+layout_mode = 2
+alignment = 1
+
+[node name="TextLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1467885675]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_h22ld")
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 1

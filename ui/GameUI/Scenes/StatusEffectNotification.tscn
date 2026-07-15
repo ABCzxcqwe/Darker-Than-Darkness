@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://dg8c7pvvio3bx"]
+
+[ext_resource type="Script" uid="uid://dahxt4b647ugh" path="res://ui/GameUI/scripts/status_effect_notification.gd" id="1_x6p4k"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_h22ld"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nv2hb"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+corner_detail = 1
+
+[node name="StatusEffectNotification" type="PanelContainer" unique_id=1824253761]
+custom_minimum_size = Vector2(180, 38)
+theme_override_styles/panel = SubResource("StyleBoxFlat_nv2hb")
+script = ExtResource("1_x6p4k")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1321924331]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=865135349]
+layout_mode = 2
+
+[node name="EffectLabel" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=288597881]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_h22ld")
+theme_override_font_sizes/font_size = 14
+text = "ATURDIDO"
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=1198031438]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_h22ld")
+theme_override_font_sizes/font_size = 12
+text = "2.5s"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="VBoxContainer" unique_id=1332192620]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+max_value = 10.0
+value = 10.0
+show_percentage = false

@@ -17,8 +17,8 @@ func _play_sfx(stream: AudioStream) -> void:
 
 func activate() -> void:
 	is_active = true
-	monitoring = true
-	monitorable = true
+	set_deferred("monitoring", true)
+	set_deferred("monitorable", true)
 	collision_layer = 1
 	collision_mask = 2 | 4
 	if _anim and _anim.sprite_frames:

@@ -32,6 +32,11 @@ signal lms_ended_state()
 signal escaped_players_changed(escaped: Array[int])
 signal game_state_changed(new_state: int, old_state: int)
 
+signal effect_applied(peer_id: int, effect_name: String, duration: float)
+signal effect_removed(peer_id: int, effect_name: String)
+
+signal dialog_notification(message: String, type: int)
+
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
 var time_left: float = 0.0
@@ -159,6 +164,17 @@ func _sync_escaped_players(escaped: Array[int]) -> void:
 	escaped_players_changed.emit(_escaped_players)
 
 
+## Status Effect Notifications
+@rpc("authority", "call_local", "reliable")
+func _rpc_effect_applied(peer_id: int, effect_name: String, duration: float) -> void:
+	effect_applied.emit(peer_id, effect_name, duration)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_effect_removed(peer_id: int, effect_name: String) -> void:
+	effect_removed.emit(peer_id, effect_name)
+
+
 @rpc("authority", "reliable", "call_local")
 func _rpc_setup_map_audio(map_id: String) -> void:
 	AudioManager.setup_map_audio(map_id)
@@ -190,6 +206,12 @@ func sync_tp_to_client(peer_id: int, current_tp: float, max_tp: float) -> void:
 @rpc("authority", "call_local", "reliable")
 func _rpc_dynamic_tp_cost(slot_index: int, cost: float) -> void:
 	dynamic_tp_cost_changed.emit(slot_index, cost)
+
+
+## Dialog Notifications
+@rpc("authority", "call_local", "reliable")
+func _rpc_push_dialog(message: String, type: int = 0) -> void:
+	dialog_notification.emit(message, type)
 
 
 # ── Internos ──────────────────────────────────────────────────────────

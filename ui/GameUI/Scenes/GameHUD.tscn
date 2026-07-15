@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
 [ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
-[ext_resource type="PackedScene" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
+[ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -96,9 +96,9 @@ horizontal_alignment = 1
 [node name="TpBar" type="Control" parent="." unique_id=1504409030]
 layout_mode = 3
 anchor_left = 0.04
-anchor_top = 0.2
+anchor_top = 0.25
 anchor_right = 0.09
-anchor_bottom = 0.7
+anchor_bottom = 0.75
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
@@ -211,10 +211,10 @@ size_flags_vertical = 4
 stretch_mode = 5
 
 [node name="NameLabel" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=555215661]
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 24
 text = "KRIS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -244,7 +244,7 @@ theme_override_font_sizes/font_size = 15
 text = "HP"
 
 [node name="HpBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/HpRow" unique_id=459864694]
-custom_minimum_size = Vector2(100, 16)
+custom_minimum_size = Vector2(90, 16)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -265,7 +265,7 @@ text = "ST"
 horizontal_alignment = 2
 
 [node name="StaminaBar" type="ProgressBar" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=566906426]
-custom_minimum_size = Vector2(150, 12)
+custom_minimum_size = Vector2(130, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -320,6 +320,16 @@ grow_horizontal = 0
 theme_override_constants/separation = 4
 script = ExtResource("4_su3ou")
 
+[node name="EffectStack" type="VBoxContainer" parent="." unique_id=1095291736]
+anchors_preset = -1
+anchor_left = 0.75
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.83
+grow_vertical = 0
+theme_override_constants/separation = 4
+alignment = 2
+
 [node name="AbilityPanel" type="PanelContainer" parent="." unique_id=547767753]
 anchors_preset = -1
 anchor_left = 0.7
@@ -343,5 +353,22 @@ script = ExtResource("6_8ord7")
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ChatPanel" parent="." unique_id=191919196 instance=ExtResource("8_abcd")]
+[node name="DialogContainer" type="Control" parent="." unique_id=2025071401]
+layout_mode = 3
+anchor_left = 0.37
+anchor_top = 0.82
+anchor_right = 0.68
+anchor_bottom = 0.95
+mouse_filter = 2
 
+[node name="ChatPanel" parent="." unique_id=191919196 instance=ExtResource("8_abcd")]
+anchor_left = 0.05
+anchor_top = 0.08
+anchor_right = 0.4
+anchor_bottom = 0.3
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2

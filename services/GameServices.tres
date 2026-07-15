@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://emelqkum7dt2" path="res://services/StaminaService.gd" id="13_stamina"]
 [ext_resource type="Script" uid="uid://dxomoel1toefs" path="res://services/RadarService.gd" id="14_radar"]
 [ext_resource type="Script" uid="uid://qpfpyvc250vi" path="res://services/MapEventCoordinator.gd" id="15_mec"]
+[ext_resource type="Script" uid="uid://cc38883in7cvo" path="res://services/GameDialogService.gd" id="16_dialog"]
 
 [sub_resource type="Resource" id="Resource_h33ef"]
 script = ExtResource("1_lfoov")
@@ -108,6 +109,12 @@ service_name = "MapEventCoordinator"
 service_script = ExtResource("15_mec")
 metadata/_custom_type_script = "uid://d2k546jgdjt66"
 
+[sub_resource type="Resource" id="Resource_dialog"]
+script = ExtResource("1_lfoov")
+service_name = "GameDialogService"
+service_script = ExtResource("16_dialog")
+metadata/_custom_type_script = "uid://d2k546jgdjt66"
+
 [resource]
 script = ExtResource("3_47pdd")
-entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_0nqno"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty"), SubResource("Resource_combat"), SubResource("Resource_stamina"), SubResource("Resource_radar"), SubResource("Resource_mec")])
+entries = Array[ExtResource("1_lfoov")]([SubResource("Resource_h33ef"), SubResource("Resource_4olxx"), SubResource("Resource_47pdd"), SubResource("Resource_jl308"), SubResource("Resource_ox8nq"), SubResource("Resource_0nqno"), SubResource("Resource_ymc8w"), SubResource("Resource_ju6ul"), SubResource("Resource_scjup"), SubResource("Resource_uirkg"), SubResource("Resource_de3ty"), SubResource("Resource_combat"), SubResource("Resource_stamina"), SubResource("Resource_radar"), SubResource("Resource_mec"), SubResource("Resource_dialog")])

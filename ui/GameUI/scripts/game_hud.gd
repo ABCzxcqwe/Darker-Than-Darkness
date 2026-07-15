@@ -19,20 +19,25 @@ extends CanvasLayer
 @onready var player_panel:      PanelContainer = $PlayerPanelWrap/PlayerPanel
 @onready var ability_panel:     PanelContainer = $AbilityPanel
 @onready var ability_bar:       HBoxContainer  = $AbilityPanel/AbilityBar
+@onready var effect_stack:      VBoxContainer  = $EffectStack
 
 @onready var context_menu:     PanelContainer  = $ContextMenu
 @onready var context_title:    Label           = $ContextMenu/VBoxContainer/ContextTitle
 @onready var context_grid:     GridContainer   = $ContextMenu/VBoxContainer/ContextGrid
 @onready var context_hint:     Label           = $ContextMenu/VBoxContainer/ContextHint
 
-@onready var allies_panel:     VBoxContainer   = $AlliesPanel
+@onready var allies_panel:      VBoxContainer   = $AlliesPanel
+
+@onready var dialog_container:  Control         = $DialogContainer
 
 # ── Constantes ─────────────────────────────────────────────────────────
 const CONTEXT_ITEM_SCENE := preload("uid://b8p1jgthpblec")
 const TIMER_URGENT_SECS  := 15.0
 const COLOR_SURVIVOR:    Color = Color(0.27, 0.78, 0.95)  # cian
 const COLOR_KILLER:      Color = Color(1.0,  0.27, 0.27)  # rojo
-const FONT_DELTARUNE    := preload("res://Fonts/deltarune font.ttf")
+const FONT_DELTARUNE           := preload("res://Fonts/deltarune font.ttf")
+const EFFECT_NOTIFICATION_SCENE := preload("res://ui/GameUI/Scenes/StatusEffectNotification.tscn")
+const DIALOG_SCENE := preload("res://ui/GameUI/Scenes/GameDialogNotification.tscn")
 
 # ── Estado ─────────────────────────────────────────────────────────────
 var _player_node:      Node     = null
@@ -46,6 +51,9 @@ var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
 var _radar_layer:      Control    = null
+var _effect_notifications: Dictionary = {}
+var _dialog_queue: Array[Dictionary] = []
+var _current_dialog: PanelContainer = null
 
 # ── Espectador ──────────────────────────────────────────────────────────
 const SPECTATOR_PANEL_SCENE := preload("res://ui/GameUI/Scenes/SpectatorPanel.tscn")
@@ -63,6 +71,13 @@ func _ready() -> void:
 		context_menu.visible = false
 	if killer_hp_public:
 		killer_hp_public.visible = false
+	_connect_dialog_relay()
+
+func _connect_dialog_relay() -> void:
+	var relay = GameServiceLocator.get_client_relay()
+	if relay and relay.has_signal("dialog_notification"):
+		if not relay.dialog_notification.is_connected(_on_dialog_notification):
+			relay.dialog_notification.connect(_on_dialog_notification)
 
 func setup(player_node: Node) -> void:
 	_player_node = player_node
@@ -127,6 +142,13 @@ func setup(player_node: Node) -> void:
 	if player_node.has_signal("ability_used"):
 		player_node.ability_used.connect(_on_ability_used)
 
+	if relay:
+		if relay.has_signal("effect_applied"):
+			relay.effect_applied.connect(_on_effect_applied)
+		if relay.has_signal("effect_removed"):
+			relay.effect_removed.connect(_on_effect_removed)
+
+
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
 # ── Configuración de HP del Killer ─────────────────────────────────────
@@ -169,6 +191,40 @@ func on_cooldown_state_changed(slot_index: int, duration: float) -> void:
 
 func _on_ability_used(_slot_index: int) -> void:
 	pass
+
+
+# ── Notificaciones de efectos de estado ──────────────────────────────
+
+func _on_effect_applied(peer_id: int, effect_name: String, duration: float) -> void:
+	if peer_id != _my_id:
+		return
+	if effect_name == "root":
+		return
+	if not effect_stack:
+		return
+
+	if _effect_notifications.has(effect_name):
+		var existing = _effect_notifications[effect_name]
+		if is_instance_valid(existing):
+			existing.setup(peer_id, effect_name, duration)
+			return
+		_effect_notifications.erase(effect_name)
+
+	var notification := EFFECT_NOTIFICATION_SCENE.instantiate()
+	notification.setup(peer_id, effect_name, duration)
+	effect_stack.add_child(notification)
+	_effect_notifications[effect_name] = notification
+
+
+func _on_effect_removed(peer_id: int, effect_name: String) -> void:
+	if peer_id != _my_id:
+		return
+	if not _effect_notifications.has(effect_name):
+		return
+	var notification = _effect_notifications[effect_name]
+	if is_instance_valid(notification):
+		notification.queue_free()
+	_effect_notifications.erase(effect_name)
 
 ## Llamado por EvolutionService._rpc_sync_slot_state() desde el servidor
 ## para actualizar el visual de evolución en clientes remotos.
@@ -520,6 +576,29 @@ func _process(_delta: float) -> void:
 			panel.visible = dist <= 200.0
 		else:
 			panel.visible = true
+
+
+# ── Diálogos de notificación ──────────────────────────────────────────
+
+func _on_dialog_notification(message: String, type: int) -> void:
+	_dialog_queue.append({"text": message, "type": type})
+	if not _current_dialog:
+		_show_next_dialog()
+
+func _show_next_dialog() -> void:
+	if _dialog_queue.is_empty():
+		return
+	var entry = _dialog_queue.pop_front()
+	_current_dialog = DIALOG_SCENE.instantiate()
+	_current_dialog.finished.connect(_on_dialog_finished)
+	dialog_container.add_child(_current_dialog)
+	_current_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if _current_dialog.has_method("show_message"):
+		_current_dialog.show_message(entry.text, entry.type)
+
+func _on_dialog_finished() -> void:
+	_current_dialog = null
+	_show_next_dialog()
 
 
 # ── Utilidades ─────────────────────────────────────────────────────────

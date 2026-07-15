@@ -46,9 +46,9 @@ func take_damage(player_node: Node, amount: int) -> void:
 	if player_node.character_data and player_node.character_data.team == "killer":
 		return
 
-	player_node.health -= amount
+	var new_health = player_node.health - amount
 
-	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", player_node.health)
+	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", new_health)
 
 	var revive_svc = _revive_service
 	if revive_svc:
@@ -65,7 +65,7 @@ func take_damage(player_node: Node, amount: int) -> void:
 
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
-	if player_node.health <= 0:
+	if new_health <= 0:
 		player_node.health = 0
 		broadcast_health_update(peer_id, 0, max_hp, "downed")
 		_down(player_node)
@@ -73,10 +73,10 @@ func take_damage(player_node: Node, amount: int) -> void:
 		var radar_svc = _radar_service
 		if radar_svc:
 			radar_svc.show_hit_indicator(player_node, player_node.global_position)
-		broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
+		broadcast_health_update(peer_id, new_health, max_hp, "alive")
 		if is_instance_valid(player_node):
 			var remaining := maxi(0, player_node.invincible_until - Time.get_ticks_msec())
-			player_node.rpc("_sync_health", player_node.health, remaining)
+			player_node.rpc("_sync_health", new_health, remaining)
 
 
 func heal(player_node: Node, amount: int) -> void:
@@ -88,14 +88,14 @@ func heal(player_node: Node, amount: int) -> void:
 		return
 
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
-	player_node.health = mini(player_node.health + amount, max_hp)
+	var new_health = mini(player_node.health + amount, max_hp)
 
-	print("[HealthService] ", peer_id, " curado | vida: ", player_node.health)
+	print("[HealthService] ", peer_id, " curado | vida: ", new_health)
 
-	broadcast_health_update(peer_id, player_node.health, max_hp, "alive")
+	broadcast_health_update(peer_id, new_health, max_hp, "alive")
 	if is_instance_valid(player_node):
 		var remaining := maxi(0, player_node.invincible_until - Time.get_ticks_msec())
-		player_node.rpc("_sync_health", player_node.health, remaining)
+		player_node.rpc("_sync_health", new_health, remaining)
 
 
 func revive(player_node: Node) -> void:

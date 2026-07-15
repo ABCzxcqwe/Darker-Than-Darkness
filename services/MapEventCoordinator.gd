@@ -24,6 +24,7 @@ var _lms_exits_opened: bool = false
 var _final_phase_triggered: bool = false
 var _exit_arrows: Dictionary = {}
 var _client_relay: Node
+var _services_connected: bool = false
 
 
 func set_client_relay(relay: Node) -> void:
@@ -37,6 +38,9 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
+	if _services_connected:
+		return
+	_services_connected = true
 	var timer = GameServiceLocator.timer
 	if timer and timer.has_signal("timer_changed"):
 		timer.timer_changed.connect(_on_timer_changed)
@@ -55,6 +59,7 @@ func _on_lms_activated(survivor_node: Node, _killer_node: Node, _duration: float
 	if not multiplayer.is_server():
 		return
 	var threshold = _get_lms_exit_threshold(survivor_node)
+	_sync_lms_state(threshold)
 	_client_relay.rpc("_sync_lms_state", threshold)
 
 
@@ -70,6 +75,7 @@ func _sync_lms_state(threshold: float) -> void:
 func _on_lms_ended() -> void:
 	if not multiplayer.is_server():
 		return
+	_sync_lms_ended()
 	_client_relay.rpc("_sync_lms_ended")
 
 
@@ -133,6 +139,7 @@ func _get_inactive_exits() -> Array[String]:
 
 func setup(map_node: BaseMap) -> void:
 	_map_node = map_node
+	_connect_services()
 	_scan_map_events()
 
 
@@ -324,6 +331,12 @@ func _process_escape(peer_id: int, exit_id: String) -> void:
 	player_escaped.emit(peer_id, exit_id)
 	print("[MapEventCoordinator] Jugador ", peer_id, " escapó por '", exit_id, "'.")
 
+	var hp_svc = GameServiceLocator.health
+	if hp_svc and hp_svc.has_method("set_escaped"):
+		var hp = player.health if "health" in player else 0
+		var max_hp = player.character_data.max_health if player.character_data else 100
+		hp_svc.set_escaped(peer_id, hp, max_hp)
+
 	if player.has_method("_sync_escape"):
 		player.rpc("_sync_escape")
 
@@ -444,6 +457,9 @@ func clear() -> void:
 	_phase_events.clear()
 	_escaped_players.clear()
 	_client_relay.rpc("_sync_escaped_players", [])
+	if _radar_service:
+		for arrow_id in _exit_arrows.values():
+			_radar_service.remove_map_indicator(arrow_id)
 	_exit_arrows.clear()
 	_lms_active = false
 	_lms_exits_opened = false

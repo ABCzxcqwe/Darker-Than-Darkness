@@ -56,10 +56,11 @@ func _process(delta: float) -> void:
 					if effect_name == "stun":
 						_on_stun_expired(peer_id, expired_instance)
 
-					# BUG 2 FIX: notificar a clientes que el efecto terminó.
-					# Sin esto la UI y lógica del cliente quedan desincronizadas
-					# (ej: animación de stun sigue mostrándose después de expirar)
-					_sync_effect_to_clients(peer_id, effect_name, false)
+					# Solo notificar a clientes cuando TODAS las instancias expiraron.
+					# Ej: slow puede tener múltiples fuentes — si una expira pero otra
+					# sigue activa, el cliente no debe eliminar la notificación aún.
+					if instances.is_empty():
+						_sync_effect_to_clients(peer_id, effect_name, false)
 				i -= 1
 
 		if changed:
@@ -167,7 +168,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 				revive_svc.cancel_revive(peer_id)
 
 	_recalculate_speed(peer_id)
-	_sync_effect_to_clients(peer_id, effect_name, true)
+	var notify_duration: float = instances[0]["timer"] if instances.size() > 0 else duration
+	_sync_effect_to_clients(peer_id, effect_name, true, notify_duration)
 
 
 ## Verifica si un jugador tiene un efecto activo.
@@ -310,10 +312,17 @@ func _calculate_speed(peer_id: int, base_speed: float) -> float:
 		
 	return base_speed
 
-func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool) -> void:
+func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool, duration: float = 0.0) -> void:
 	var player_node := _get_player(peer_id)
 	if is_instance_valid(player_node):
 		player_node.rpc("_sync_effect", effect_name, active)
+
+	var relay = GameServiceLocator.get_client_relay()
+	if is_instance_valid(relay):
+		if active:
+			relay.rpc("_rpc_effect_applied", peer_id, effect_name, duration)
+		else:
+			relay.rpc("_rpc_effect_removed", peer_id, effect_name)
 
 
 func _get_player(peer_id: int) -> Node:

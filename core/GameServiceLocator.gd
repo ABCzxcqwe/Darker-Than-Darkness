@@ -19,6 +19,7 @@ const _CombatMediator := preload("res://services/CombatMediator.gd")
 const _StaminaService := preload("res://services/StaminaService.gd")
 const _RadarService := preload("res://services/RadarService.gd")
 const _MapEventCoordinator := preload("res://services/MapEventCoordinator.gd")
+const _GameDialogService := preload("res://services/GameDialogService.gd")
 
 var _registry: Dictionary = {}
 var _client_relay: Node = null
@@ -53,6 +54,8 @@ var radar: _RadarService:
 	get: return _registry.get(ServiceNames.RADAR) as _RadarService
 var map_event_coordinator: _MapEventCoordinator:
 	get: return _registry.get(ServiceNames.MAP_EVENT_COORDINATOR) as _MapEventCoordinator
+var game_dialog: _GameDialogService:
+	get: return _registry.get(ServiceNames.GAME_DIALOG) as _GameDialogService
 
 
 func _ready() -> void:

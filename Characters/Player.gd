@@ -695,8 +695,12 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_state(new_state: String, new_health: int) -> void:
+	var old_health = health
 	health_state = new_state
 	health = new_health
+
+	if new_health > old_health:
+		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
 
 	match new_state:
 		"alive":
@@ -732,24 +736,14 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), new_state)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_escape() -> void:
-	var caller = multiplayer.get_remote_sender_id()
-	if caller != 0 and caller != 1:
-		return
 	health_state = "escaped"
 	visible = false
 	if name_tag:
 		name_tag.visible = false
 	interaction.disable_corpse()
 	interaction.prepare_spectator_mode()
-	if multiplayer.is_server():
-		var coord = GameServiceLocator.map_event_coordinator
-		if not coord.has_player_escaped(get_multiplayer_authority()):
-			coord._register_escaped(get_multiplayer_authority())
-		var hp_svc = GameServiceLocator.health
-		if hp_svc and hp_svc.has_method("set_escaped"):
-			hp_svc.set_escaped(get_multiplayer_authority(), health, character_data.max_health)
 
 
 @rpc("any_peer", "reliable")
