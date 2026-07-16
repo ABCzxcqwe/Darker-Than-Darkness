@@ -77,8 +77,8 @@ func _apply_random_effect(player_node: Node, caster_id: int, data: AbilityData) 
 			print("[Purieta] Efecto: Nada")
 		5:
 			if combat:
-				combat.apply_self_damage(player_node, 30)
-				print("[Purieta] Efecto: -30 HP")
+				combat.apply_self_damage(player_node, 15)
+				print("[Purieta] Efecto: -15 HP")
 
 
 func _get_anim_duration(player_node: Node, anim_name: String) -> float:
