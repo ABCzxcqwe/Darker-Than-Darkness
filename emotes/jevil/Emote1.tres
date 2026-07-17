@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EmoteData" format=3]
+
+[ext_resource type="Script" path="res://Characters/scripts/EmoteData.gd" id="1_emote"]
+[ext_resource type="Texture2D" uid="uid://xywdkk44oc52" path="res://emotes/jevil/icons/jevil_emote1.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_emote")
+display_name = "Emote 1"
+icon = ExtResource("2_icon")
+animation_name = "emote_1"
+is_looping = true

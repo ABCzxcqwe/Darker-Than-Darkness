@@ -28,6 +28,8 @@ extends CanvasLayer
 
 @onready var allies_panel:      VBoxContainer   = $AlliesPanel
 
+@onready var emote_bar:         HBoxContainer   = $EmoteBar
+
 @onready var dialog_container:  Control         = $DialogContainer
 
 # ── Constantes ─────────────────────────────────────────────────────────
@@ -98,6 +100,8 @@ func setup(player_node: Node) -> void:
 		ability_panel.setup(player_node)
 	if ability_bar and ability_bar.has_method("setup"):
 		ability_bar.setup(player_node)
+	if emote_bar and emote_bar.has_method("setup"):
+		emote_bar.setup(player_node)
 
 	# 2. TpBar
 	if tp_bar and tp_bar.has_method("setup"):
@@ -189,6 +193,11 @@ func on_cooldown_state_changed(slot_index: int, duration: float) -> void:
 
 func _on_ability_used(_slot_index: int) -> void:
 	pass
+
+
+func set_emote_bar_visible(open: bool) -> void:
+	if emote_bar:
+		emote_bar.visible = open
 
 
 # ── Notificaciones de efectos de estado ──────────────────────────────

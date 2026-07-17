@@ -75,6 +75,13 @@ func on_anim_finished() -> void:
 		player.state = Player.AnimState.IDLE
 		player.active_ability_slot = -1
 		restore_idle()
+	elif player.state == Player.AnimState.EMOTE:
+		var anim_name = player.animated_sprite.animation
+		if player.animated_sprite.sprite_frames and player.animated_sprite.sprite_frames.has_animation(anim_name) and player.animated_sprite.sprite_frames.get_animation_loop(anim_name):
+			return
+		player.state = Player.AnimState.IDLE
+		player._active_emote_slot = -1
+		restore_idle()
 
 
 # ── Ability animation helpers ──────────────────────────────────────────
@@ -87,7 +94,8 @@ func apply_ability_anim_state(anim_name: String, facing_right_override: bool, sl
 	player.animated_sprite.flip_h = not player.facing_right
 	player.animated_sprite.play(anim_name)
 	player.state = anim_state
-	player.active_ability_slot = slot_index
+	if anim_state in [Player.AnimState.ABILITY, Player.AnimState.PREPARE]:
+		player.active_ability_slot = slot_index
 
 
 func reset_ability_state() -> void:

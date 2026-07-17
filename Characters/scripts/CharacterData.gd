@@ -96,6 +96,9 @@ const KILLER_ONLY := [
 @export var vision_cone_angle: float = 120.0
 @export var vision_cone_range: float = 1200.0
 
+@export_group("Emotes")
+@export var emote_slots: Array[EmoteData] = [null, null, null, null]
+
 @export_group("Visuales")
 @export var icon: Texture2D
 @export var panel_texture: Texture2D

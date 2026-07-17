@@ -299,7 +299,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_kdjr5")
 }],
 "loop": true,
-"name": &"idle_down",
+"name": &"emote_1",
 "speed": 10.0
 }, {
 "frames": [{

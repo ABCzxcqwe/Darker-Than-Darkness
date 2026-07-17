@@ -4,7 +4,7 @@ extends CharacterBody2D
 
 signal ability_used(ability_index: int)
 
-enum AnimState { IDLE, PREPARE, ABILITY, STUNNED }
+enum AnimState { IDLE, PREPARE, ABILITY, STUNNED, EMOTE }
 
 const HURT_FLASH_DURATION_MS: int = 300
 const HEAL_FLASH_DURATION_MS: int = 300
@@ -40,6 +40,9 @@ var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
 var _last_slot_request_time: Dictionary = {}
+
+var _emote_bar_open: bool = false
+var _active_emote_slot: int = -1
 
 
 func _ready() -> void:
@@ -202,6 +205,42 @@ func _input(event: InputEvent) -> void:
 		"ability_0": 0,
 	}
 	var mouse_dir: Vector2
+
+	# ── Emote toggle ──
+	if event.is_action_pressed("emote_toggle"):
+		_emote_bar_open = not _emote_bar_open
+		_toggle_emote_bar(_emote_bar_open)
+		return
+
+	# ── Emote selection (solo si barra abierta) ──
+	if _emote_bar_open and event is InputEventKey and event.pressed and not event.echo:
+		var emote_slot = -1
+		match event.keycode:
+			KEY_1: emote_slot = 0
+			KEY_2: emote_slot = 1
+			KEY_3: emote_slot = 2
+			KEY_4: emote_slot = 3
+			KEY_ESCAPE:
+				_emote_bar_open = false
+				_toggle_emote_bar(false)
+				return
+		if emote_slot >= 0:
+			_emote_bar_open = false
+			_toggle_emote_bar(false)
+			if multiplayer.is_server():
+				_request_emote(emote_slot)
+			else:
+				rpc_id(1, "_request_emote", emote_slot)
+			return
+
+	# ── Bloquear habilidades si está emotando ──
+	if state == AnimState.EMOTE:
+		for action in action_map:
+			if event.is_action_pressed(action):
+				return
+		if event.is_action_pressed("secret_ability"):
+			return
+		return
 
 	if event.is_action_pressed("confirm") and aiming_slot >= 0:
 		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
@@ -531,6 +570,140 @@ func _sync_cancel_ability() -> void:
 	if sender != 0 and sender != 1:
 		return
 	reset_ability_state()
+
+
+# ── Emotes ────────────────────────────────────────────────────────────
+
+func _toggle_emote_bar(open: bool) -> void:
+	var huds := get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
+	if huds.is_empty():
+		return
+	if huds[0].has_method("set_emote_bar_visible"):
+		huds[0].set_emote_bar_visible(open)
+
+
+@rpc("any_peer", "reliable")
+func _request_emote(slot: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	if not character_data:
+		return
+	if slot < 0 or slot >= character_data.emote_slots.size():
+		return
+	var emote_data: EmoteData = character_data.emote_slots[slot]
+	if not emote_data:
+		return
+	if health_state != "alive":
+		return
+	if state == AnimState.STUNNED:
+		return
+	# Si ya está emotando, lo dejamos cambiar a otro emote
+	_activate_emote(slot, emote_data)
+
+
+func _activate_emote(slot: int, emote_data: EmoteData) -> void:
+	if emote_data.animation_name != "":
+		play_emote_animation(emote_data.animation_name, slot, facing_right)
+	if emote_data.sfx:
+		rpc("_rpc_play_emote_audio", slot)
+
+
+func play_emote_animation(anim_name: String, slot_index: int, facing_right_override: bool = true) -> void:
+	if not multiplayer.is_server():
+		return
+	if anim_name == "":
+		return
+
+	animation_component.apply_ability_anim_state(anim_name, facing_right_override, slot_index, AnimState.EMOTE)
+	_active_emote_slot = slot_index
+
+	for peer_id in multiplayer.get_peers():
+		rpc_id(peer_id, "_sync_emote_anim", anim_name, facing_right_override, slot_index)
+
+
+@rpc("any_peer", "reliable")
+func _sync_emote_anim(anim_name: String, facing_right_override: bool, slot_index: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 1:
+		return
+
+	animation_component.apply_ability_anim_state(anim_name, facing_right_override, slot_index, AnimState.EMOTE)
+	_active_emote_slot = slot_index
+
+
+func cancel_emote() -> void:
+	if state != AnimState.EMOTE:
+		return
+	state = AnimState.IDLE
+	_active_emote_slot = -1
+	$AnimatedSprite2D.stop()
+	animation_component.restore_idle()
+	if multiplayer.is_server():
+		for peer_id in multiplayer.get_peers():
+			rpc_id(peer_id, "_sync_cancel_emote")
+	else:
+		rpc_id(1, "_server_cancel_emote")
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_cancel_emote() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if state != AnimState.EMOTE:
+		return
+	state = AnimState.IDLE
+	_active_emote_slot = -1
+	$AnimatedSprite2D.stop()
+	animation_component.restore_idle()
+	var audio := find_child("EmoteAudio", true, false)
+	if audio:
+		audio.queue_free()
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _server_cancel_emote() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != get_multiplayer_authority():
+		return
+	cancel_emote()
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_play_emote_audio(slot: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if not character_data:
+		return
+	if slot < 0 or slot >= character_data.emote_slots.size():
+		return
+	var emote_data: EmoteData = character_data.emote_slots[slot]
+	if not emote_data or not emote_data.sfx:
+		return
+
+	# Limpiar audio de emote anterior si existe
+	var old := find_child("EmoteAudio", true, false)
+	if old:
+		old.queue_free()
+
+	var player_2d := AudioStreamPlayer2D.new()
+	player_2d.name = "EmoteAudio"
+	player_2d.stream = emote_data.sfx
+	player_2d.max_distance = emote_data.audio_range
+	player_2d.attenuation = 1.0
+	player_2d.bus = "SFX"
+	add_child(player_2d)
+	player_2d.play()
+
+	if emote_data.audio_loops:
+		return
+	player_2d.finished.connect(player_2d.queue_free)
 
 
 @rpc("any_peer", "unreliable")

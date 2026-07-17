@@ -42,6 +42,14 @@ func _physics_process(_delta: float) -> void:
 
 	if player.health_state == "dead": return
 
+	# ── Si está emotando y se mueve, cancelar emote ──
+	if player.state == Player.AnimState.EMOTE:
+		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		if input_dir.length() > IDLE_MOVE_THRESHOLD:
+			player.cancel_emote()
+			# Permitir que este frame procese el movimiento
+			player.state = Player.AnimState.IDLE
+
 	if player.state == Player.AnimState.IDLE or player.active_effects.has("free_look"):
 		var mouse_dir = (player.get_global_mouse_position() - player.global_position).normalized()
 		update_facing_and_flip(mouse_dir)
