@@ -35,7 +35,8 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 	print("Comenzando partida con el mapa: ", map_id)
 	GameData.selected_map = map_id
 
-	if LobbyManager.is_spectator(multiplayer.get_unique_id()):
+	if LobbyManager.is_spectator(multiplayer.get_unique_id()) \
+			and LobbyManager.current_phase == LobbyManager.GamePhase.PLAYING:
 		print("[MatchCoordinator] Espectador ignorando _begin_game (ya en World)")
 		return
 
@@ -52,6 +53,7 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 @rpc("authority", "reliable")
 func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 	print("[MatchCoordinator] Late-join como espectador, fase: ", phase)
+	LobbyManager.current_phase = phase
 
 	for lobby in get_tree().get_nodes_in_group("lobby"):
 		lobby.queue_free()
@@ -68,8 +70,16 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 			add_child(current_game_manager)
 			var char_map: Dictionary = data.get("char_map", {})
 			current_game_manager.start_game(char_map, data.get("map_id", ""))
+			call_deferred("_sync_spectator_audio", data.get("map_id", ""))
 		LobbyManager.GamePhase.ENDED:
 			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
+
+
+func _sync_spectator_audio(map_id: String) -> void:
+	var game_state = GameServiceLocator.game_state
+	if game_state and game_state.current_state != 1:
+		game_state.current_state = 1
+	AudioManager.setup_map_audio(map_id)
 
 
 func cleanup_game_manager() -> void:

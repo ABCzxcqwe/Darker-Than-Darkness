@@ -2,7 +2,7 @@
 extends Node2D
 
 const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
-const SPECTATOR_PANEL_SCENE := preload("uid://t2j32htjrq7r")
+const SPECTATOR_PANEL_SCENE := preload("uid://cd0mergb3r8er")
 
 @export var services_config: GameServicesConfig = null
 
@@ -248,9 +248,9 @@ func _on_spectator_next() -> void:
 func _update_spectator_panel() -> void:
 	if not _spectator_panel or not _spec_follow_target or not is_instance_valid(_spec_follow_target):
 		return
-	var pid := _spec_follow_target.get_multiplayer_authority()
-	var pdata := LobbyManager.players.get(pid, {})
-	var char_id := pdata.get("character_id", -1)
+	var pid:= _spec_follow_target.get_multiplayer_authority()
+	var pdata: Dictionary = LobbyManager.players.get(pid, {})
+	var char_id: int = pdata.get("character_id", -1)
 
 	var display_name := "?"
 	var icon: Texture2D = null
@@ -260,7 +260,7 @@ func _update_spectator_panel() -> void:
 			display_name = cdata.display_name
 			icon = cdata.icon
 
-	var player_name := pdata.get("name", "")
+	var player_name: String = pdata.get("name", "")
 	_spectator_panel.set_target(pid, display_name, player_name, icon)
 
 	var hp := 0
