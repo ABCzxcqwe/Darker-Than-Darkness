@@ -167,6 +167,8 @@ func _down(player_node: Node) -> void:
 
 	var alive_survivor_count := 0
 	for pid in LobbyManager.players.keys():
+		if LobbyManager.is_spectator(pid):
+			continue
 		if LobbyManager.players[pid].get("assigned_role") == "survivor" and is_alive(pid):
 			alive_survivor_count += 1
 
@@ -254,6 +256,8 @@ func _get_state(peer_id: int) -> String:
 	if _permanently_dead.has(peer_id):
 		return "dead"
 	if not _states.has(peer_id):
+		if LobbyManager.is_spectator(peer_id):
+			return "spectator"
 		return "alive"
 	return _states[peer_id]["state"]
 
@@ -284,6 +288,8 @@ func check_all_survivors_incapacitated() -> bool:
 	var total_survivors := 0
 	var incapacitated_survivors := 0
 	for peer_id in LobbyManager.players.keys():
+		if LobbyManager.is_spectator(peer_id):
+			continue
 		var player_data = LobbyManager.players[peer_id]
 		if player_data.get("assigned_role") == "survivor":
 			total_survivors += 1

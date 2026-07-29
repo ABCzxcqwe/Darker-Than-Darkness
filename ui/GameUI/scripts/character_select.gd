@@ -21,6 +21,13 @@ func _ready() -> void:
 	LobbyManager.lobby_updated.connect(_on_lobby_updated)
 
 	var my_id := multiplayer.get_unique_id()
+	if LobbyManager.is_spectator(my_id):
+		role_label.text = "ROL: ESPECTADOR"
+		role_label.modulate = Color.GRAY
+		timer_label.text = "Esperando inicio de partida..."
+		timer_active = false
+		return
+
 	if LobbyManager.players.has(my_id):
 		local_role = LobbyManager.players[my_id]["assigned_role"]
 

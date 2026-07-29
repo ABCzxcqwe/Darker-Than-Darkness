@@ -116,4 +116,14 @@ func _on_leave_pressed():
 		return
 	MatchCoordinator.reset_to_menu()
 
+func _exit_tree():
+	if LobbyManager.lobby_updated.is_connected(_update_player_list):
+		LobbyManager.lobby_updated.disconnect(_update_player_list)
+	if LobbyManager.player_joined.is_connected(_on_player_joined):
+		LobbyManager.player_joined.disconnect(_on_player_joined)
+	if LobbyManager.player_left.is_connected(_on_player_left):
+		LobbyManager.player_left.disconnect(_on_player_left)
+	if NetworkManager.server_disconnected.is_connected(_on_server_disconnected):
+		NetworkManager.server_disconnected.disconnect(_on_server_disconnected)
+
 

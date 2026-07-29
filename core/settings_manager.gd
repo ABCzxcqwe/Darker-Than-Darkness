@@ -24,11 +24,15 @@ var network_mode: int = 0:
 var display_mode: int = 3:
 	set(v):
 		display_mode = v
-		if v == 0:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		elif v == 3:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		call_deferred("_apply_display_mode", v)
 		setting_changed.emit("display_mode", v)
+
+
+func _apply_display_mode(v: int) -> void:
+	if v == 0:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	elif v == 3:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 var vhs_enabled: bool = true:
 	set(v):
@@ -43,6 +47,9 @@ var fog_enabled: bool = true:
 
 func _ready() -> void:
 	load_settings()
+	var actual_mode := DisplayServer.window_get_mode()
+	if actual_mode != display_mode:
+		display_mode = actual_mode
 
 
 func load_settings() -> void:
@@ -57,6 +64,7 @@ func load_settings() -> void:
 	network_mode = cfg.get_value("network", "network_mode", 0)
 	vhs_enabled = cfg.get_value("video", "vhs_enabled", true)
 	fog_enabled = cfg.get_value("video", "fog_enabled", true)
+	display_mode = cfg.get_value("video", "display_mode", 3)
 
 
 func save_settings() -> void:
@@ -66,5 +74,6 @@ func save_settings() -> void:
 	cfg.set_value("network", "network_mode", network_mode)
 	cfg.set_value("video", "vhs_enabled", vhs_enabled)
 	cfg.set_value("video", "fog_enabled", fog_enabled)
+	cfg.set_value("video", "display_mode", display_mode)
 	cfg.save(SETTINGS_PATH)
 	print("[SettingsManager] Configuración guardada")

@@ -428,6 +428,8 @@ func _find_player(peer_id: int) -> Node:
 func _count_alive_survivors() -> int:
 	var count := 0
 	for pid in LobbyManager.players:
+		if LobbyManager.is_spectator(pid):
+			continue
 		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
 				count += 1

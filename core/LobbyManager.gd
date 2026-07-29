@@ -8,10 +8,13 @@ signal lobby_updated()
 
 const MAX_PLAYERS := 5
 
+enum GamePhase { LOBBY, CHARACTER_SELECT, PLAYING, ENDED }
+
 var players: Dictionary = {}
 var local_player_name: String = ""
 var selected_map: String = ""
 var is_host: bool = false
+var current_phase: int = GamePhase.LOBBY
 
 
 func _ready() -> void:
@@ -19,10 +22,17 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
 
+func is_spectator(peer_id: int) -> bool:
+	return players.has(peer_id) and players[peer_id].get("is_spectator", false)
+
+
 # ── Peer management ──
 
 func _on_peer_connected(peer_id: int):
 	if not multiplayer.is_server():
+		return
+	if current_phase != GamePhase.LOBBY:
+		rpc_id(peer_id, "_request_player_info")
 		return
 	rpc_id(peer_id, "_request_player_info")
 
@@ -37,19 +47,27 @@ func _request_player_info():
 func _send_player_info(player_name: String):
 	var sender = multiplayer.get_remote_sender_id()
 	if multiplayer.is_server():
+		var is_late_join := current_phase != GamePhase.LOBBY
 		players[sender] = {
 			"name": player_name,
 			"is_host": false,
 			"character_id": -1,
 			"killer_points": 0,
-			"assigned_role": "survivor"
+			"assigned_role": "survivor",
+			"is_spectator": is_late_join
 		}
 		emit_signal("player_joined", sender, players[sender])
 
 		var self_id = multiplayer.get_unique_id()
-		for pid in players:
-			if pid != self_id:
-				rpc_id(pid, "_sync_lobby_state", players, selected_map)
+		if not is_late_join:
+			for pid in players:
+				if pid != self_id:
+					rpc_id(pid, "_sync_lobby_state", players, selected_map)
+		else:
+			for pid in players:
+				if pid != self_id and pid != sender:
+					rpc_id(pid, "_sync_lobby_state", players, selected_map)
+			_send_spectator_join(sender)
 
 
 @rpc("authority", "reliable")
@@ -59,18 +77,35 @@ func _sync_lobby_state(all_players: Dictionary, map_id: String):
 	emit_signal("lobby_updated")
 
 
+func _send_spectator_join(peer_id: int) -> void:
+	var char_map = {}
+	for pid in players:
+		if not is_spectator(pid):
+			char_map[pid] = players[pid].character_id
+
+	var data = {
+		"char_map": char_map,
+		"map_id": selected_map,
+	}
+
+	MatchCoordinator.rpc_id(peer_id, "_join_late_as_spectator", current_phase, data)
+
+
 func _on_peer_disconnected(peer_id: int):
 	if multiplayer.is_server():
 		var abandoned_role: String = ""
+		var was_spectator := false
 		if players.has(peer_id):
 			abandoned_role = players[peer_id]["assigned_role"]
+			was_spectator = players[peer_id].get("is_spectator", false)
 
 		players.erase(peer_id)
 		emit_signal("player_left", peer_id)
 
-		var game_state = GameServiceLocator.game_state if GameServiceLocator.has_service(ServiceNames.GAME_STATE) else null
-		if game_state and game_state.is_in_game():
-			game_state.handle_player_disconnect(peer_id, abandoned_role)
+		if not was_spectator:
+			var game_state = GameServiceLocator.game_state if GameServiceLocator.has_service(ServiceNames.GAME_STATE) else null
+			if game_state and game_state.is_in_game():
+				game_state.handle_player_disconnect(peer_id, abandoned_role)
 
 		var self_id = multiplayer.get_unique_id()
 		for pid in players:
@@ -134,12 +169,16 @@ func host_start_character_selection():
 		print("[LobbyManager] Se necesitan al menos 2 jugadores.")
 		return
 
+	current_phase = GamePhase.CHARACTER_SELECT
+
 	randomize()
 
 	var highest_points: int = -1
 	var candidates: Array[int] = []
 
 	for pid in players:
+		if is_spectator(pid):
+			continue
 		var p_data = players[pid]
 		if p_data.killer_points > highest_points:
 			highest_points = p_data.killer_points
@@ -150,6 +189,8 @@ func host_start_character_selection():
 	var killer_peer_id: int = candidates[randi() % candidates.size()]
 
 	for pid in players:
+		if is_spectator(pid):
+			continue
 		players[pid]["character_id"] = -1
 		if pid == killer_peer_id:
 			players[pid]["assigned_role"] = "killer"
@@ -221,3 +262,4 @@ func register_local_player(peer_id: int, player_name: String) -> void:
 
 func reset_lobby_state() -> void:
 	players.clear()
+	current_phase = GamePhase.LOBBY

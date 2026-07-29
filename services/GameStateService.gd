@@ -101,6 +101,8 @@ func _start_timer() -> void:
 		return
 	var survivor_count := 0
 	for pid in LobbyManager.players:
+		if LobbyManager.is_spectator(pid):
+			continue
 		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			survivor_count += 1
 	var initial_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
@@ -117,6 +119,8 @@ func _on_timer_timeout() -> void:
 	if escaped > 0:
 		var total_survivors := 0
 		for pid in LobbyManager.players:
+			if LobbyManager.is_spectator(pid):
+				continue
 			if LobbyManager.players[pid]["assigned_role"] == "survivor":
 				total_survivors += 1
 		transition_to_ended("survivors_escaped", {
@@ -195,6 +199,8 @@ func _evaluate_match() -> void:
 		if coord and coord.get_escaped_count() > 0:
 			var total_survivors := 0
 			for pid in LobbyManager.players:
+				if LobbyManager.is_spectator(pid):
+					continue
 				if LobbyManager.players[pid]["assigned_role"] == "survivor":
 					total_survivors += 1
 			transition_to_ended("survivors_escaped", {
@@ -214,6 +220,8 @@ func _count_alive_survivors() -> int:
 	var count := 0
 	var coord = _map_event_coordinator
 	for pid in LobbyManager.players:
+		if LobbyManager.is_spectator(pid):
+			continue
 		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			if _health_service and not _health_service.is_dead(pid):
 				if coord and coord.has_player_escaped(pid):
@@ -269,6 +277,8 @@ func _add_start_of_match_points() -> void:
 	if not multiplayer.is_server():
 		return
 	for pid in LobbyManager.players:
+		if LobbyManager.is_spectator(pid):
+			continue
 		var role = LobbyManager.players[pid]["assigned_role"]
 		if role == "killer":
 			LobbyManager.players[pid]["killer_points"] = 0
@@ -281,6 +291,8 @@ func _add_start_of_match_points() -> void:
 func _calculate_killer_points(reason: String) -> void:
 	for pid in LobbyManager.players:
 		if not LobbyManager.players.has(pid):
+			continue
+		if LobbyManager.is_spectator(pid):
 			continue
 		var role = LobbyManager.players[pid]["assigned_role"]
 		if role == "killer":

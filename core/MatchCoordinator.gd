@@ -23,6 +23,8 @@ func host_launch_game() -> void:
 
 	var char_map = {}
 	for id in LobbyManager.players:
+		if LobbyManager.is_spectator(id):
+			continue
 		char_map[id] = LobbyManager.players[id].character_id
 
 	rpc("_begin_game", char_map, LobbyManager.selected_map)
@@ -33,12 +35,41 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 	print("Comenzando partida con el mapa: ", map_id)
 	GameData.selected_map = map_id
 
+	if LobbyManager.is_spectator(multiplayer.get_unique_id()):
+		print("[MatchCoordinator] Espectador ignorando _begin_game (ya en World)")
+		return
+
 	for node in get_tree().get_nodes_in_group(GroupNames.CHARACTER_SELECT_SCREEN):
 		node.queue_free()
 
 	current_game_manager = MAIN_SCENE.instantiate()
 	add_child(current_game_manager)
 	current_game_manager.start_game(char_map, map_id)
+
+	LobbyManager.current_phase = LobbyManager.GamePhase.PLAYING
+
+
+@rpc("authority", "reliable")
+func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
+	print("[MatchCoordinator] Late-join como espectador, fase: ", phase)
+
+	for lobby in get_tree().get_nodes_in_group("lobby"):
+		lobby.queue_free()
+
+	for node in get_tree().get_nodes_in_group(GroupNames.CHARACTER_SELECT_SCREEN):
+		node.queue_free()
+
+	match phase:
+		LobbyManager.GamePhase.CHARACTER_SELECT:
+			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
+		LobbyManager.GamePhase.PLAYING:
+			GameData.selected_map = data.get("map_id", "")
+			current_game_manager = MAIN_SCENE.instantiate()
+			add_child(current_game_manager)
+			var char_map: Dictionary = data.get("char_map", {})
+			current_game_manager.start_game(char_map, data.get("map_id", ""))
+		LobbyManager.GamePhase.ENDED:
+			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
 
 
 func cleanup_game_manager() -> void:
@@ -59,6 +90,8 @@ func _go_to_stats_screen(stats_data: Dictionary) -> void:
 
 	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
 
+	LobbyManager.current_phase = LobbyManager.GamePhase.ENDED
+
 
 @rpc("any_peer", "call_local", "reliable")
 func host_return_to_lobby_reconfigured() -> void:
@@ -68,12 +101,18 @@ func host_return_to_lobby_reconfigured() -> void:
 	for pid in LobbyManager.players:
 		LobbyManager.players[pid]["character_id"] = -1
 
-	rpc("_back_to_lobby_scene", LobbyManager.players)
+	var filtered_players = LobbyManager.players.duplicate(true)
+	for pid in filtered_players.keys():
+		if filtered_players[pid].get("is_spectator", false):
+			filtered_players.erase(pid)
+
+	rpc("_back_to_lobby_scene", filtered_players)
 
 
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.players = reseted_players
+	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 
@@ -89,6 +128,7 @@ func reset_to_menu() -> void:
 	LobbyManager.local_player_name = ""
 	LobbyManager.selected_map = ""
 	LobbyManager.is_host = false
+	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 
 	for match_coordinator in get_tree().get_nodes_in_group(GroupNames.MATCH_COORDINATOR):
 		match_coordinator.queue_free()
