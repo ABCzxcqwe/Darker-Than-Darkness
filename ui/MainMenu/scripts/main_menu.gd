@@ -9,6 +9,8 @@ var _focus_idx := 0
 
 func _ready():
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	_setup_focus()
 
 func _setup_focus() -> void:
@@ -66,18 +68,28 @@ func _full_network_reset():
 	LobbyManager.selected_map = ""
 	LobbyManager.is_host = false
 	# Esperar múltiples frames para purgar caché
+	if not is_inside_tree():
+		return
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	await get_tree().process_frame
 	
 func _on_create_room_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)
 	await _full_network_reset()
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/CreateRoom.tscn")
 
 func _on_join_room_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)
 	await _full_network_reset()
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/JoinRoom.tscn")
 
 

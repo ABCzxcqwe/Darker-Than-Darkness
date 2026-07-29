@@ -112,10 +112,14 @@ func _on_create_pressed() -> void:
 
 func _on_server_created() -> void:
 	print("[CreateRoom] Servidor creado, cambiando a lobby...")
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_back_pressed() -> void:
 	AudioManager.play_sfx_ui(SfxId.SELECT)
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree() -> void:

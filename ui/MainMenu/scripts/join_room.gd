@@ -145,6 +145,8 @@ func _on_join_pressed():
 
 func _on_connection_succeeded():
 	print("Conexión exitosa, cambiando a lobby...")
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_connection_failed():
@@ -160,6 +162,8 @@ func _on_server_disconnected():
 func _on_back_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)
 	NetworkManager.disconnect_from_server()
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree():

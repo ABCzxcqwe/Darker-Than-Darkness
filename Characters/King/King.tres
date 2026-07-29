@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ad"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_cd"]
+[ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/King/Assets/animations.tres" id="3_anim"]
+[ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/Assets/icon.png" id="4_icon"]
+[ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/Assets/king_panel.png" id="5_panel"]
+
+[resource]
+script = ExtResource("2_cd")
+id = 5
+display_name = "King"
+team = "killer"
+speed = 450.0
+max_health = 1000
+size_x = 70
+size_y = 50
+position_y = 50
+h_size_x = 50
+h_size_y = 150
+can_take_damage = false
+terror_radius = 1000.0
+chase_radius = 500.0
+hit_sfx = Array[AudioStream]([])
+ability_slots = Array[ExtResource("1_ad")]([null, null, null, null, null])
+tp_gain_time = 1.5
+stamina_max = 240.0
+stamina_regen_rate = 25.0
+stamina_sprint_drain = 35.0
+vision_circle_radius = 450.0
+vision_cone_angle = 110.0
+vision_cone_range = 1100.0
+icon = ExtResource("4_icon")
+panel_texture = ExtResource("5_panel")
+animation_frames = ExtResource("3_anim")
+theme_color = Color(0.8, 0.2, 0.2, 1)
