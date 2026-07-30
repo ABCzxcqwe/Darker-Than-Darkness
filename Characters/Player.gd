@@ -86,6 +86,17 @@ func _ready() -> void:
 
 	_setup_name_tag()
 
+	var relay = GameServiceLocator.get_client_relay()
+	if relay:
+		relay.camera_shake.connect(_on_camera_shake)
+
+
+func _on_camera_shake(intensity: float, duration: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	if has_node("Camera2D"):
+		$Camera2D.shake(intensity, duration)
+
 
 func _setup_name_tag() -> void:
 	var peer_id := get_multiplayer_authority()
@@ -549,15 +560,6 @@ func play_prepare_animation(anim_name: String, slot_index: int, facing_right_ove
 
 	for peer_id in multiplayer.get_peers():
 		rpc_id(peer_id, "_sync_prepare_anim", anim_name, facing_right_override, slot_index)
-
-
-@rpc("authority", "call_local", "reliable")
-func _play_attack_shake() -> void:
-	if not is_multiplayer_authority():
-		return
-	if not has_node("Camera2D"):
-		return
-	$Camera2D.shake(20.0, 1.5)
 
 
 @rpc("any_peer", "reliable")

@@ -37,6 +37,8 @@ signal effect_removed(peer_id: int, effect_name: String)
 
 signal dialog_notification(message: String, type: int)
 
+signal camera_shake(intensity: float, duration: float)
+
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
 var time_left: float = 0.0
@@ -212,6 +214,11 @@ func _rpc_dynamic_tp_cost(slot_index: int, cost: float) -> void:
 @rpc("authority", "call_local", "reliable")
 func _rpc_push_dialog(message: String, type: int = 0) -> void:
 	dialog_notification.emit(message, type)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_camera_shake(intensity: float, duration: float) -> void:
+	camera_shake.emit(intensity, duration)
 
 
 # ── Internos ──────────────────────────────────────────────────────────

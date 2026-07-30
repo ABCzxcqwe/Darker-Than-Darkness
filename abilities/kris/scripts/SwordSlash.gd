@@ -15,5 +15,7 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		player_node.get_tree().create_timer(0.5).timeout.connect(
 			func():
 				if is_instance_valid(player_node):
-					player_node.rpc("_play_attack_shake")
+					var relay = GameServiceLocator.get_client_relay()
+					if is_instance_valid(relay):
+						relay.rpc("_rpc_camera_shake", 20.0, 1.5)
 		)
