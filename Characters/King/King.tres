@@ -5,7 +5,19 @@
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/King/Assets/animations.tres" id="3_anim"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_cg5l8"]
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/Assets/icon.png" id="4_icon"]
+[ext_resource type="PackedScene" path="res://Hitboxes/King/KingHitbox.tscn" id="4_hitbox"]
 [ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/Assets/king_panel.png" id="5_panel"]
+[ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="6_sword"]
+
+[sub_resource type="Resource" id="Resource_m1"]
+script = ExtResource("1_ad")
+display_name = "golpe"
+ability_script = ExtResource("6_sword")
+ability_scene = ExtResource("4_hitbox")
+action_animation = "attack"
+cooldown = 1.5
+tp_reward = 5.0
+base_damage = 50
 
 [resource]
 script = ExtResource("2_cd")
@@ -22,6 +34,8 @@ h_size_y = 150
 can_take_damage = false
 terror_radius = 1000.0
 chase_radius = 500.0
+hit_sfx = Array[AudioStream]([])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), null, null, null, null])
 tp_gain_time = 1.5
 stamina_max = 240.0
 stamina_regen_rate = 25.0

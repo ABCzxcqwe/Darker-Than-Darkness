@@ -8,3 +8,12 @@ func _get_config(data: AbilityData) -> Dictionary:
 		"stun_duration_bonus": data.evo_status_duration_bonus,
 		"sfx": SfxId.HIT,
 	}
+
+func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int, cfg: Dictionary) -> void:
+	super._execute(player_node, data, direction, slot_index, cfg)
+	if player_node.character_data and player_node.character_data.id == 5 and player_node.multiplayer.is_server():
+		player_node.get_tree().create_timer(0.5).timeout.connect(
+			func():
+				if is_instance_valid(player_node):
+					player_node.rpc("_play_attack_shake")
+		)

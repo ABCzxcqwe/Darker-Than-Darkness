@@ -231,7 +231,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_6g2kw")
 }],
 "loop": false,
-"name": &"axe_atack",
+"name": &"attack",
 "speed": 10.0
 }, {
 "frames": [{

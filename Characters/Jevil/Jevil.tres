@@ -7,7 +7,7 @@
 [ext_resource type="Resource" uid="uid://cs0v01bpeipn5" path="res://abilities/jevil/DevilKnife.tres" id="4_ixf75"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Sonic. Exe Chase .ogg" id="5_r2u3k"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
-[ext_resource type="Texture2D" uid="uid://bocyfrfdi2owq" path="res://Characters/Jevil/assets/icon.png" id="6_fnfn6"]
+[ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/icon.png" id="6_fnfn6"]
 [ext_resource type="SpriteFrames" uid="uid://cf8j6vv6rebpw" path="res://Characters/Jevil/animations.tres" id="7_8bkff"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 [ext_resource type="Texture2D" uid="uid://cekacln1fbfw1" path="res://Characters/Jevil/assets/jevil_panel.png" id="8_bkbox"]
@@ -22,7 +22,7 @@ script = ExtResource("1_hjm08")
 display_name = "golpe"
 ability_script = ExtResource("3_r2u3k")
 ability_scene = ExtResource("2_8ecap")
-action_animation = "jevil_attack"
+action_animation = "attack"
 cooldown = 1.5
 tp_reward = 5.0
 base_damage = 30

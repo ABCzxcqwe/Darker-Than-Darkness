@@ -1,11 +1,40 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://6vxtusofmwbg"]
 
+[ext_resource type="Texture2D" uid="uid://dq7i6c2jjvs1u" path="res://Characters/King/Assets/king_attack.png" id="1_6wceg"]
 [ext_resource type="Texture2D" uid="uid://dtys5vhepuxy7" path="res://Characters/King/Assets/king_idle.png" id="1_q5svj"]
 [ext_resource type="Texture2D" uid="uid://bgdvu7ko26slk" path="res://Characters/Jevil/assets/jevil_tp.png" id="2_6wceg"]
 [ext_resource type="Texture2D" uid="uid://38j55i1d8758" path="res://Characters/King/Assets/king_run.png" id="3_sk5l5"]
 [ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/jevil_stun.png" id="4_i264h"]
 [ext_resource type="Texture2D" uid="uid://i7pskgkmrnme" path="res://Characters/Jevil/assets/jevil_dance.png" id="5_f5jn6"]
 [ext_resource type="Texture2D" uid="uid://bdilvbh5jkgml" path="res://Characters/King/Assets/king_walk.png" id="6_q5svj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ey6ot"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(0, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f8r4g"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(432, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pgfky"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(864, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sqoyu"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(1296, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m5j13"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(1728, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w48e0"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(2160, 0, 432, 336)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3eeq4"]
+atlas = ExtResource("1_6wceg")
+region = Rect2(2592, 0, 432, 336)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6wceg"]
 atlas = ExtResource("1_q5svj")
@@ -293,10 +322,31 @@ region = Rect2(1920, 0, 240, 240)
 
 [resource]
 animations = [{
-"frames": [],
-"loop": true,
-"name": &"emote_1",
-"speed": 10.0
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ey6ot")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f8r4g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pgfky")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sqoyu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m5j13")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w48e0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3eeq4")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 6.0
 }, {
 "frames": [{
 "duration": 1.0,

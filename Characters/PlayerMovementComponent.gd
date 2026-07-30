@@ -89,9 +89,16 @@ func _physics_process(_delta: float) -> void:
 			if player.last_animation != anim_name:
 				player.animated_sprite.play(anim_name)
 				player.last_animation = anim_name
-			player.animated_sprite.speed_scale = clamp(vel_len / speed, 0.5, 2.0) if is_moving and speed > 0 else 1.0
 	else:
 		player.velocity = Vector2.ZERO
+
+	if player.health_state == "alive":
+		if player.state == Player.AnimState.ABILITY:
+			player.animated_sprite.speed_scale = 1.0
+		else:
+			var vel_len = player.velocity.length()
+			var is_moving = vel_len > IDLE_MOVE_THRESHOLD
+			player.animated_sprite.speed_scale = clamp(vel_len / speed, 0.5, 2.0) if is_moving and speed > 0 else 1.0
 
 
 func update_facing_and_flip(dir: Vector2) -> void:

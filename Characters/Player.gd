@@ -551,6 +551,15 @@ func play_prepare_animation(anim_name: String, slot_index: int, facing_right_ove
 		rpc_id(peer_id, "_sync_prepare_anim", anim_name, facing_right_override, slot_index)
 
 
+@rpc("authority", "call_local", "reliable")
+func _play_attack_shake() -> void:
+	if not is_multiplayer_authority():
+		return
+	if not has_node("Camera2D"):
+		return
+	$Camera2D.shake(20.0, 1.5)
+
+
 @rpc("any_peer", "reliable")
 func _sync_prepare_anim(anim_name: String, facing_right_override: bool, slot_index: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
@@ -791,7 +800,7 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 	if new_health < old_health:
 		hurt_flash_until = Time.get_ticks_msec() + HURT_FLASH_DURATION_MS
 		if is_multiplayer_authority():
-			$Camera2D.shake(5.0, 0.2)
+			$Camera2D.shake(3.0, 0.15)
 	elif new_health > old_health:
 		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
 

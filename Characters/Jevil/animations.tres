@@ -7,38 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/jevil_stun.png" id="5_tnbwv"]
 [ext_resource type="Texture2D" uid="uid://cmcs184nxk67p" path="res://Characters/Jevil/assets/jevil_sprint.png" id="6_y2x8j"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_5pes3"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(0, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_4x2lg"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(160, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1l7jp"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(320, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_hv41d"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(480, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_0mbdn"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(640, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_iq6ou"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(800, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_h03rr"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(960, 0, 160, 180)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_kdjr5"]
-atlas = ExtResource("1_lj7ca")
-region = Rect2(1120, 0, 160, 180)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_nejuk"]
 atlas = ExtResource("3_kkrpl")
 region = Rect2(2800, 0, 400, 180)
@@ -70,6 +38,38 @@ region = Rect2(400, 0, 400, 180)
 [sub_resource type="AtlasTexture" id="AtlasTexture_n10w5"]
 atlas = ExtResource("3_kkrpl")
 region = Rect2(0, 0, 400, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5pes3"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(0, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4x2lg"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(160, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1l7jp"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(320, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hv41d"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(480, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0mbdn"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(640, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iq6ou"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(800, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h03rr"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(960, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kdjr5"]
+atlas = ExtResource("1_lj7ca")
+region = Rect2(1120, 0, 160, 180)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lfj08"]
 atlas = ExtResource("4_ut8qp")
@@ -275,6 +275,35 @@ region = Rect2(3520, 0, 320, 280)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_nejuk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c8o41")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_da0uq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ytfmi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o25b1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_14uyh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xa6hu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n10w5")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_5pes3")
 }, {
 "duration": 1.0,
@@ -314,35 +343,6 @@ animations = [{
 "loop": true,
 "name": &"idle_up",
 "speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_nejuk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_c8o41")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_da0uq")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ytfmi")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_o25b1")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_14uyh")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_xa6hu")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_n10w5")
-}],
-"loop": false,
-"name": &"jevil_attack",
-"speed": 16.0
 }, {
 "frames": [{
 "duration": 1.0,
