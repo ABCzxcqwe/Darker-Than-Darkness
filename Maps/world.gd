@@ -175,6 +175,7 @@ func _setup_spectator_mode() -> void:
 	_spectator_panel.next_requested.connect(_on_spectator_next)
 	add_child(_spectator_panel)
 
+	await get_tree().create_timer(1.0).timeout
 	_cycle_spectator_target(1)
 
 	set_process(true)

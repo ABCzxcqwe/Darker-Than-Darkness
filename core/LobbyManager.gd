@@ -53,7 +53,7 @@ func _send_player_info(player_name: String):
 			"is_host": false,
 			"character_id": -1,
 			"killer_points": 0,
-			"assigned_role": "survivor",
+			"assigned_role": "spectator" if is_late_join else "survivor",
 			"is_spectator": is_late_join
 		}
 		emit_signal("player_joined", sender, players[sender])
@@ -67,6 +67,7 @@ func _send_player_info(player_name: String):
 			for pid in players:
 				if pid != self_id and pid != sender:
 					rpc_id(pid, "_sync_lobby_state", players, selected_map)
+			rpc_id(sender, "_sync_lobby_state", players, selected_map)
 			_send_spectator_join(sender)
 
 
