@@ -909,7 +909,7 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), new_state)
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_escape() -> void:
 	health_state = "escaped"
 	visible = false

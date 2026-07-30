@@ -5,6 +5,7 @@
 [ext_resource type="Resource" uid="uid://iwoc87j2eewu" path="res://abilities/kris/Act.tres" id="3_kpcxu"]
 [ext_resource type="Resource" uid="uid://c2v0fkl6qgg03" path="res://abilities/kris/Soul.tres" id="4_0bunb"]
 [ext_resource type="SpriteFrames" uid="uid://bejkxi1trim46" path="res://Characters/Kris/animations.tres" id="5_uf4gy"]
+[ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_1fol0"]
 [ext_resource type="Texture2D" uid="uid://bughct40pnk50" path="res://Characters/Kris/assets/Sprites/icon.png" id="6_kpcxu"]
 [ext_resource type="AudioStream" uid="uid://c5mr22ta46gpj" path="res://Characters/Kris/assets/Music/Penumbra Phantasm [Vs. ASRIEL].mp3" id="7_hywcm"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]

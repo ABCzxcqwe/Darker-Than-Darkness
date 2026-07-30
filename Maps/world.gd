@@ -220,20 +220,26 @@ func _update_spectator_camera(delta: float) -> void:
 
 
 func _cycle_spectator_target(direction: int) -> void:
-	var players_in_group := get_tree().get_nodes_in_group(GroupNames.PLAYERS)
-	if players_in_group.is_empty():
+	var all_players := get_tree().get_nodes_in_group(GroupNames.PLAYERS)
+	var alive_players: Array[Node] = []
+	for p in all_players:
+		if is_instance_valid(p) and "health_state" in p and p.health_state == "alive":
+			alive_players.append(p)
+	if alive_players.is_empty():
+		_spec_follow_target = null
+		_update_spectator_panel()
 		return
 
 	var current_idx := -1
 	if _spec_follow_target and is_instance_valid(_spec_follow_target):
-		current_idx = players_in_group.find(_spec_follow_target)
+		current_idx = alive_players.find(_spec_follow_target)
 
 	var new_idx := current_idx + direction
 	while new_idx < 0:
-		new_idx += players_in_group.size()
-	new_idx = new_idx % players_in_group.size()
+		new_idx += alive_players.size()
+	new_idx = new_idx % alive_players.size()
 
-	_spec_follow_target = players_in_group[new_idx]
+	_spec_follow_target = alive_players[new_idx]
 	_update_spectator_panel()
 
 
@@ -246,8 +252,21 @@ func _on_spectator_next() -> void:
 
 
 func _update_spectator_panel() -> void:
-	if not _spectator_panel or not _spec_follow_target or not is_instance_valid(_spec_follow_target):
+	if not _spectator_panel:
 		return
+	var health_svc = GameServiceLocator.health
+	if _spec_follow_target and is_instance_valid(_spec_follow_target):
+		var pid := _spec_follow_target.get_multiplayer_authority()
+		if health_svc and health_svc.get_player_state(pid) != "alive":
+			_cycle_spectator_target(1)
+			return
+	elif _spec_follow_target == null:
+		_spectator_panel.set_target(-1, "?", "", null)
+		_spectator_panel.set_hp(0, 100)
+		return
+	else:
+		return
+
 	var pid:= _spec_follow_target.get_multiplayer_authority()
 	var pdata: Dictionary = LobbyManager.players.get(pid, {})
 	var char_id: int = pdata.get("character_id", -1)
@@ -265,10 +284,11 @@ func _update_spectator_panel() -> void:
 
 	var hp := 0
 	var max_hp := 100
-	var health_svc = GameServiceLocator.health
 	if health_svc:
 		var pstate := health_svc.get_player_state(pid)
 		if pstate == "dead":
+			_spectator_panel.set_hp(0, 100)
+		elif pstate == "escaped":
 			_spectator_panel.set_hp(0, 100)
 		else:
 			var player_node = PlayerRegistry.get_player(pid)
