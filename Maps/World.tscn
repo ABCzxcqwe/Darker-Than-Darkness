@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
 [ext_resource type="Script" uid="uid://c7gifijfjtay" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
+[ext_resource type="Script" path="res://core/SpectatorController.gd" id="7_spectator"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_eu7l1"]
 
@@ -26,6 +27,9 @@ script = ExtResource("6_pbmw8")
 [node name="Projectiles" type="Node2D" parent="." unique_id=1428571429]
 
 [node name="MapContainer" type="Node2D" parent="." unique_id=1029625853]
+
+[node name="SpectatorController" type="Node" parent="."]
+script = ExtResource("7_spectator")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1055310495]
 replication_config = SubResource("SceneReplicationConfig_eu7l1")

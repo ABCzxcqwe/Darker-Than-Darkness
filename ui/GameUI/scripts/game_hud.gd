@@ -57,13 +57,6 @@ var _effect_notifications: Dictionary = {}
 var _dialog_queue: Array[Dictionary] = []
 var _current_dialog: PanelContainer = null
 
-# ── Espectador ──────────────────────────────────────────────────────────
-const SPECTATOR_PANEL_SCENE := preload("res://ui/GameUI/Scenes/SpectatorPanel.tscn")
-
-var _is_spectator:        bool           = false
-var _spectator_panel:     PanelContainer = null
-var _spectating_peer_id:  int            = -1
-
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
 
@@ -403,7 +396,7 @@ func _input(event: InputEvent) -> void:
 # ── Revive prompts (marcador sobre el caído con barra de progreso) ───
 func _on_player_state_changed(peer_id: int, state: String) -> void:
 	if peer_id == _my_id and state in ["dead", "escaped"]:
-		_enter_spectator_mode()
+		set_spectator_ui_active(true)
 
 	if _my_team == "killer":
 		return
@@ -546,9 +539,6 @@ func _on_revive_session_completed(rescuer_id: int, target_id: int) -> void:
 
 
 func _process(_delta: float) -> void:
-	if _is_spectator:
-		_update_spectator_target()
-
 	for pid in _revive_prompts.keys():
 		var entry = _revive_prompts[pid]
 		if not entry:
@@ -621,78 +611,20 @@ func _apply_panel_border_color(panel: PanelContainer, color: Color) -> void:
 
 # ── Modo espectador ─────────────────────────────────────────────────────
 
-func _enter_spectator_mode() -> void:
-	if _is_spectator:
-		return
-	_is_spectator = true
-
+func set_spectator_ui_active(active: bool) -> void:
 	if player_panel_wrap:
-		player_panel_wrap.visible = false
+		player_panel_wrap.visible = not active
 	if allies_panel:
-		allies_panel.visible = false
+		allies_panel.visible = not active
 	if tp_bar:
-		tp_bar.visible = false
+		tp_bar.visible = not active
 	if context_menu:
-		context_menu.visible = false
+		context_menu.visible = not active
 	if killer_hp_public:
-		killer_hp_public.visible = false
+		killer_hp_public.visible = not active
 	if timer_panel:
-		timer_panel.visible = false
+		timer_panel.visible = not active
 	if ability_panel:
-		ability_panel.visible = false
+		ability_panel.visible = not active
 	if _radar_layer:
-		_radar_layer.visible = false
-
-	_spectator_panel = SPECTATOR_PANEL_SCENE.instantiate()
-	_spectator_panel.prev_requested.connect(_on_spectator_prev)
-	_spectator_panel.next_requested.connect(_on_spectator_next)
-	add_child(_spectator_panel)
-
-	var relay = GameServiceLocator.get_client_relay()
-	if relay and relay.has_signal("health_changed"):
-		if not relay.health_changed.is_connected(_on_spectator_health_changed):
-			relay.health_changed.connect(_on_spectator_health_changed)
-
-	print("[GameHUD] Modo espectador activado para peer: ", _my_id)
-
-
-func _on_spectator_prev() -> void:
-	_player_node.interaction.cycle_target(-1)
-
-
-func _on_spectator_next() -> void:
-	_player_node.interaction.cycle_target(1)
-
-
-func _update_spectator_target() -> void:
-	if not _spectator_panel or not is_instance_valid(_spectator_panel):
-		return
-	if not _player_node or not is_instance_valid(_player_node):
-		return
-	var target = _player_node.interaction.get_follow_target()
-	var pid := -1
-	if target and is_instance_valid(target):
-		pid = target.get_multiplayer_authority()
-	if pid != _spectating_peer_id:
-		_spectating_peer_id = pid
-		if pid == -1:
-			_spectator_panel.clear()
-		else:
-			var name_str = LobbyManager.players.get(pid, {}).get("name", "Jugador %d" % pid)
-			var icon: Texture2D = null
-			var display_name := ""
-			if "character_data" in target and target.character_data:
-				icon = target.character_data.icon
-				display_name = target.character_data.display_name
-			_spectator_panel.set_target(pid, display_name, name_str, icon)
-	var current_hp = target.health if target and "health" in target else 0
-	var max_hp = target.character_data.max_health if target and "character_data" in target and target.character_data else 100
-	_spectator_panel.set_hp(current_hp, max_hp)
-
-
-func _on_spectator_health_changed(peer_id: int, current_hp: int, max_hp: int) -> void:
-	if peer_id != _spectating_peer_id:
-		return
-	if not _spectator_panel:
-		return
-	_spectator_panel.set_hp(current_hp, max_hp)
+		_radar_layer.visible = not active

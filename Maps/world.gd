@@ -2,7 +2,7 @@
 extends Node2D
 
 const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
-const SPECTATOR_PANEL_SCENE := preload("uid://cd0mergb3r8er")
+const PLAYER_SCENE := preload("uid://csh822kwn5s2e")
 
 @export var services_config: GameServicesConfig = null
 
@@ -10,16 +10,6 @@ const SPECTATOR_PANEL_SCENE := preload("uid://cd0mergb3r8er")
 
 var _hud: CanvasLayer = null
 var current_map_node: BaseMap = null
-
-var _is_spectator := false
-var _spectator_camera: Camera2D = null
-var _spectator_panel: PanelContainer = null
-var _spec_follow_target: Node = null
-var _spec_freecam_offset: Vector2 = Vector2.ZERO
-var _spec_freecam_speed: float = 400.0
-var _spec_is_freecam := false
-
-const SPECTATOR_ZOOM := 0.7
 
 func _ready() -> void:
 	if not services_config:
@@ -126,8 +116,15 @@ func _position_players_in_spawns() -> void:
 func _setup_hud() -> void:
 	var my_peer_id := multiplayer.get_unique_id()
 
-	if LobbyManager.is_spectator(my_peer_id):
-		_setup_spectator_mode()
+	var player_characters: Dictionary = get_meta("player_characters", {})
+	var is_spectator := LobbyManager.is_spectator(my_peer_id) \
+			or not player_characters.has(my_peer_id)
+
+	if is_spectator:
+		var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
+		if ctrl and ctrl.has_method("activate"):
+			ctrl.activate()
+		_start_spectator_snapshot_poll()
 		return
 
 	var my_player: Node = null
@@ -158,147 +155,105 @@ func _setup_hud() -> void:
 	_hud.setup(my_player)
 
 
-func _setup_spectator_mode() -> void:
-	print("[World] Modo espectador activado para peer local")
-	_is_spectator = true
-
-	_spectator_camera = Camera2D.new()
-	_spectator_camera.name = "SpectatorCamera"
-	_spectator_camera.enabled = true
-	_spectator_camera.zoom = Vector2(SPECTATOR_ZOOM, SPECTATOR_ZOOM)
-	_spectator_camera.position_smoothing_enabled = true
-	_spectator_camera.position_smoothing_speed = 10.0
-	add_child(_spectator_camera)
-
-	_spectator_panel = SPECTATOR_PANEL_SCENE.instantiate()
-	_spectator_panel.prev_requested.connect(_on_spectator_prev)
-	_spectator_panel.next_requested.connect(_on_spectator_next)
-	add_child(_spectator_panel)
-
-	await get_tree().create_timer(1.0).timeout
-	_cycle_spectator_target(1)
-
-	set_process(true)
-
-
-func _process(delta: float) -> void:
-	if not _is_spectator:
+func _start_spectator_snapshot_poll() -> void:
+	if multiplayer.is_server() or not is_inside_tree():
 		return
-
-	_update_spectator_input(delta)
-	_update_spectator_camera(delta)
-
-
-func _update_spectator_input(delta: float) -> void:
-	if Input.is_action_just_pressed("spec_toggle"):
-		_spec_is_freecam = not _spec_is_freecam
-		if _spec_is_freecam:
-			_spectator_camera.position_smoothing_enabled = false
-		else:
-			_spectator_camera.position_smoothing_enabled = true
-
-	var next_dir := 0
-	if Input.is_action_just_pressed("spec_next"):
-		next_dir = 1
-	elif Input.is_action_just_pressed("spec_prev"):
-		next_dir = -1
-	if next_dir != 0:
-		_cycle_spectator_target(next_dir)
-
-	if _spec_is_freecam:
-		var move := Input.get_vector("spec_left", "spec_right", "spec_up", "spec_down")
-		_spec_freecam_offset += move * _spec_freecam_speed * delta
+	var timer := Timer.new()
+	timer.name = "SpectatorSnapshotPoll"
+	timer.wait_time = 0.1
+	timer.autostart = true
+	timer.timeout.connect(_do_request_spectator_snapshot)
+	add_child(timer)
 
 
-func _update_spectator_camera(delta: float) -> void:
-	if not _spectator_camera:
+func _do_request_spectator_snapshot() -> void:
+	if multiplayer.is_server() or not is_inside_tree():
 		return
-
-	if _spec_is_freecam:
-		_spectator_camera.position = _spec_freecam_offset
-	elif _spec_follow_target and is_instance_valid(_spec_follow_target):
-		_spectator_camera.global_position = _spec_follow_target.global_position
+	rpc_id(1, "_request_spectator_snapshot")
 
 
-func _cycle_spectator_target(direction: int) -> void:
-	var all_players := get_tree().get_nodes_in_group(GroupNames.PLAYERS)
-	var alive_players: Array[Node] = []
-	for p in all_players:
-		if is_instance_valid(p) and "health_state" in p and p.health_state == "alive":
-			alive_players.append(p)
-	if alive_players.is_empty():
-		_spec_follow_target = null
-		_update_spectator_panel()
+## El servidor responde con un snapshot de los jugadores vivos no-espectadores.
+## Necesario porque el MultiplayerSynchronizer no replica a peers que se unen tarde
+## (no recibieron el nodo vía el MultiplayerSpawner en el momento del spawn).
+@rpc("any_peer", "reliable")
+func _request_spectator_snapshot() -> void:
+	if not multiplayer.is_server():
 		return
+	var sender := multiplayer.get_remote_sender_id()
+	var snap := {}
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(p):
+			continue
+		var pid := p.get_multiplayer_authority()
+		if LobbyManager.is_spectator(pid):
+			continue
+		if "health_state" in p and p.health_state != "alive":
+			continue
+		var char_id: int = LobbyManager.players.get(pid, {}).get("character_id", -1)
+		if char_id == -1 and "character_data" in p and p.character_data:
+			char_id = p.character_data.id
+		var entry := {
+			"char_id": char_id,
+			"pos": p.global_position,
+			"health": p.health,
+			"health_state": p.health_state,
+		}
+		if "animated_sprite" in p and p.animated_sprite:
+			entry["flip_h"] = p.animated_sprite.flip_h
+			entry["animation"] = String(p.animated_sprite.animation)
+			entry["frame"] = p.animated_sprite.frame
+		snap[pid] = entry
+	rpc_id(sender, "_apply_spectator_snapshot", snap)
 
-	var current_idx := -1
-	if _spec_follow_target and is_instance_valid(_spec_follow_target):
-		current_idx = alive_players.find(_spec_follow_target)
 
-	var new_idx := current_idx + direction
-	while new_idx < 0:
-		new_idx += alive_players.size()
-	new_idx = new_idx % alive_players.size()
-
-	_spec_follow_target = alive_players[new_idx]
-	_update_spectator_panel()
-
-
-func _on_spectator_prev() -> void:
-	_cycle_spectator_target(-1)
-
-
-func _on_spectator_next() -> void:
-	_cycle_spectator_target(1)
-
-
-func _update_spectator_panel() -> void:
-	if not _spectator_panel:
+@rpc("authority", "reliable")
+func _apply_spectator_snapshot(snap: Dictionary) -> void:
+	if multiplayer.is_server() or not is_inside_tree():
 		return
-	var health_svc = GameServiceLocator.health
-	if _spec_follow_target and is_instance_valid(_spec_follow_target):
-		var pid := _spec_follow_target.get_multiplayer_authority()
-		if health_svc and health_svc.get_player_state(pid) != "alive":
-			_cycle_spectator_target(1)
-			return
-	elif _spec_follow_target == null:
-		_spectator_panel.set_target(-1, "?", "", null)
-		_spectator_panel.set_hp(0, 100)
-		return
-	else:
-		return
+	var alive_pids := {}
+	for pid in snap:
+		alive_pids[int(pid)] = true
+		var entry: Dictionary = snap[pid]
+		var player := _ensure_spectator_player(int(pid), int(entry.get("char_id", -1)))
+		if not player:
+			continue
+		if not player.get_meta("_spectator_manual_spawn", false):
+			continue
+		player.global_position = entry.get("pos", Vector2.ZERO)
+		if "health" in entry:
+			player.health = int(entry.health)
+		if "health_state" in entry:
+			player.health_state = entry.health_state
+		if "animated_sprite" in player and player.animated_sprite:
+			var sprite = player.animated_sprite
+			if "flip_h" in entry:
+				sprite.flip_h = bool(entry.flip_h)
+			if "animation" in entry:
+				var frames = sprite.sprite_frames
+				if frames and frames.has_animation(entry.animation):
+					sprite.animation = entry.animation
+					var frame := int(entry.get("frame", 0))
+					sprite.frame = mini(frame, maxi(0, frames.get_frame_count(entry.animation) - 1))
 
-	var pid:= _spec_follow_target.get_multiplayer_authority()
-	var pdata: Dictionary = LobbyManager.players.get(pid, {})
-	var char_id: int = pdata.get("character_id", -1)
+	for node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if node.get_meta("_spectator_manual_spawn", false) \
+				and not alive_pids.has(node.get_multiplayer_authority()):
+			node.queue_free()
 
-	var display_name := "?"
-	var icon: Texture2D = null
-	if char_id != -1:
-		var cdata: CharacterData = CharacterRegistry.get_character(char_id)
-		if cdata:
-			display_name = cdata.display_name
-			icon = cdata.icon
 
-	var player_name: String = pdata.get("name", "")
-	_spectator_panel.set_target(pid, display_name, player_name, icon)
-
-	var hp := 0
-	var max_hp := 100
-	if health_svc:
-		var pstate := health_svc.get_player_state(pid)
-		if pstate == "dead":
-			_spectator_panel.set_hp(0, 100)
-		elif pstate == "escaped":
-			_spectator_panel.set_hp(0, 100)
-		else:
-			var player_node = PlayerRegistry.get_player(pid)
-			if player_node and "health" in player_node and "character_data" in player_node and player_node.character_data:
-				hp = player_node.health
-				max_hp = player_node.character_data.max_health
-			_spectator_panel.set_hp(hp, max_hp)
-	else:
-		_spectator_panel.set_hp(0, 100)
+func _ensure_spectator_player(pid: int, char_id: int) -> Node:
+	var peer_str := str(pid)
+	if has_node(peer_str):
+		return get_node(peer_str)
+	if char_id == -1:
+		return null
+	var player := PLAYER_SCENE.instantiate()
+	player.name = peer_str
+	player.set_multiplayer_authority(pid)
+	player.set_character(char_id)
+	player.set_meta("_spectator_manual_spawn", true)
+	add_child(player)
+	return player
 
 
 func _exit_tree() -> void:

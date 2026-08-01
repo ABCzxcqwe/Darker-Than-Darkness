@@ -192,7 +192,8 @@ func _update_proximities(player: Node, delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	if "interaction" in player and player.interaction and player.interaction.is_spectator:
-		var target = player.interaction.get_follow_target()
+		var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
+		var target = ctrl.get_follow_target() if ctrl and ctrl.has_method("get_follow_target") else null
 		if is_instance_valid(target):
 			player = target
 		else:

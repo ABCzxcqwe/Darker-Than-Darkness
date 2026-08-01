@@ -203,7 +203,6 @@ func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 
 	if interaction.is_spectator:
-		interaction.handle_spectator_input(event)
 		return
 
 	if health_state != "alive": return
@@ -485,14 +484,6 @@ func _setup_collision_layers(data: CharacterData) -> void:
 
 # ── Movimiento delegado a PlayerMovementComponent ────────────────────
 
-
-# ── Física (solo espectador) ─────────────────────────────────────────
-
-func _physics_process(_delta: float) -> void:
-	if interaction.is_spectator:
-		interaction.update_spectator_camera(_delta)
-
-
 # ── Animación de habilidades ──────────────────────────────────────────
 
 func _on_anim_finished() -> void:
@@ -513,16 +504,10 @@ func _disable_corpse() -> void:
 	interaction.disable_corpse()
 
 
-func _prepare_spectator_mode() -> void:
-	interaction.prepare_spectator_mode()
-
-
-func _handle_spectator_input(event: InputEvent) -> void:
-	interaction.handle_spectator_input(event)
-
-
-func _update_spectator_camera(_delta: float) -> void:
-	interaction.update_spectator_camera(_delta)
+func _activate_spectator_controller() -> void:
+	var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
+	if ctrl and ctrl.has_method("activate"):
+		ctrl.activate()
 
 
 func _get_corpse_container() -> Node:
@@ -791,11 +776,7 @@ func _rpc_spawn_secret_visual(caster_peer_id: int) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
-	if health_state == "dead":
-		return
-
 	var old_health = health
-	var _old_state = health_state
 
 	health = new_health
 	invincible_until = Time.get_ticks_msec() + invincibility_duration_ms
@@ -805,42 +786,6 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 			$Camera2D.shake(3.0, 0.15)
 	elif new_health > old_health:
 		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
-
-	var should_be_state = ""
-	if health <= 0:
-		should_be_state = "downed"
-	else:
-		should_be_state = "alive"
-
-	if health_state != should_be_state and should_be_state != "":
-		health_state = should_be_state
-		if multiplayer.is_server():
-			GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), health_state)
-	else:
-		print("[Client] Sync health: %d -> %d (state: %s, peer: %s)" % [old_health, health, health_state, name])
-
-	if health_state == "downed":
-		movement_component.speed = 0
-		if animated_sprite and last_animation != "life_down":
-			var anim := "life_down"
-			if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
-				anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
-			animated_sprite.play(anim)
-			last_animation = anim
-	elif health_state == "dead":
-		movement_component.speed = 0
-		if animated_sprite and is_instance_valid(animated_sprite):
-			var anim := "player_dead"
-			if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
-				anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
-			animated_sprite.play(anim)
-			last_animation = anim
-		interaction.disable_corpse()
-		interaction.prepare_spectator_mode()
-	elif character_data and health_state == "alive":
-		movement_component.speed = character_data.speed
-		if animated_sprite and last_animation in ["player_dead", "life_down"]:
-			animation_component.restore_idle()
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -912,7 +857,9 @@ func _sync_state(new_state: String, new_health: int) -> void:
 				animated_sprite.reparent(interaction.get_corpse_container(), true)
 				animated_sprite.z_index = 2
 			interaction.disable_corpse()
-			interaction.prepare_spectator_mode()
+			interaction.is_spectator = true
+			if is_multiplayer_authority():
+				_activate_spectator_controller()
 			if name_tag:
 				name_tag.visible = false
 
@@ -927,7 +874,9 @@ func _sync_escape() -> void:
 	if name_tag:
 		name_tag.visible = false
 	interaction.disable_corpse()
-	interaction.prepare_spectator_mode()
+	interaction.is_spectator = true
+	if is_multiplayer_authority():
+		_activate_spectator_controller()
 
 
 @rpc("any_peer", "reliable")

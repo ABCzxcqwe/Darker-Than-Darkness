@@ -29,28 +29,6 @@ func _setup_vision_lights(player: Node2D) -> void:
 	$"../VisionCircle".blend_mode = Light2D.BLEND_MODE_MIX
 	$"../VisionCone".blend_mode = Light2D.BLEND_MODE_MIX
 
-func notify_spectator_mode() -> void:
-	var player = get_parent()
-	for other in get_tree().get_nodes_in_group("players"):
-		if other == player:
-			continue
-		if other.animated_sprite:
-			other.animated_sprite.self_modulate.a = 1.0
-			other.animated_sprite.visible = true
-		if other.has_node("NameTag"):
-			other.name_tag.visible = true
-
-	for cm in _get_all_nodes_of_type(get_tree().root, "CanvasModulate"):
-		cm.visible = false
-
-func _get_all_nodes_of_type(from: Node, type_name: String) -> Array[Node]:
-	var result: Array[Node] = []
-	if from.get_class() == type_name:
-		result.append(from)
-	for child in from.get_children():
-		result.append_array(_get_all_nodes_of_type(child, type_name))
-	return result
-
 func _process(_delta: float) -> void:
 	var player = get_parent()
 	if not player or not player.is_multiplayer_authority():

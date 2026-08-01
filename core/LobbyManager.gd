@@ -203,6 +203,7 @@ func host_start_character_selection():
 
 @rpc("authority", "call_local", "reliable")
 func _go_to_character_selection(assigned_players: Dictionary):
+	current_phase = GamePhase.CHARACTER_SELECT
 	players = assigned_players
 	for lobby in get_tree().get_nodes_in_group("lobby"):
 		lobby.queue_free()

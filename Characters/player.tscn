@@ -36,6 +36,12 @@ properties/2/replication_mode = 2
 properties/3/path = NodePath("AnimatedSprite2D:frame")
 properties/3/spawn = true
 properties/3/replication_mode = 2
+properties/4/path = NodePath(".:health")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:health_state")
+properties/5/spawn = true
+properties/5/replication_mode = 2
 
 [node name="CharacterBody2D" type="CharacterBody2D" unique_id=156327789]
 collision_layer = 2

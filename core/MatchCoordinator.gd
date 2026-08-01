@@ -63,7 +63,12 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 
 	match phase:
 		LobbyManager.GamePhase.CHARACTER_SELECT:
-			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
+			# Si el host ya lanzó (_begin_game llegó en el mismo frame), el World ya
+			# existe y cambiar a CharacterSelect lo superpondría encima, dejando al
+			# espectador clavado. Esperamos un frame y solo cambiamos si sigue sin World.
+			await get_tree().process_frame
+			if current_game_manager == null:
+				get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
 		LobbyManager.GamePhase.PLAYING:
 			GameData.selected_map = data.get("map_id", "")
 			current_game_manager = MAIN_SCENE.instantiate()
@@ -110,13 +115,11 @@ func host_return_to_lobby_reconfigured() -> void:
 
 	for pid in LobbyManager.players:
 		LobbyManager.players[pid]["character_id"] = -1
+		if LobbyManager.players[pid].get("is_spectator", false):
+			LobbyManager.players[pid]["assigned_role"] = "survivor"
+			LobbyManager.players[pid]["is_spectator"] = false
 
-	var filtered_players = LobbyManager.players.duplicate(true)
-	for pid in filtered_players.keys():
-		if filtered_players[pid].get("is_spectator", false):
-			filtered_players.erase(pid)
-
-	rpc("_back_to_lobby_scene", filtered_players)
+	rpc("_back_to_lobby_scene", LobbyManager.players)
 
 
 @rpc("authority", "call_local", "reliable")
