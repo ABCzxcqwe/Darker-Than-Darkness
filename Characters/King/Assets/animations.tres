@@ -314,7 +314,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"stun",
-"speed": 7.2
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
