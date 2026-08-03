@@ -2,7 +2,7 @@
 extends Node2D
 
 const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
-const PLAYER_SCENE := preload("uid://csh822kwn5s2e")
+const PLAYER_SCENE := preload("uid://djw510qiudh6e")
 
 @export var services_config: GameServicesConfig = null
 

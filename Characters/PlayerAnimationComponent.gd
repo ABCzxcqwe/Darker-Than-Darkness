@@ -109,3 +109,4 @@ func reset_ability_state() -> void:
 	player.state = Player.AnimState.IDLE
 	player.active_ability_slot = -1
 	restore_idle()
+	

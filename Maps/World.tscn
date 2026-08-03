@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
 [ext_resource type="Script" uid="uid://c7gifijfjtay" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
-[ext_resource type="Script" path="res://core/SpectatorController.gd" id="7_spectator"]
+[ext_resource type="Script" uid="uid://c0l6j73n13123" path="res://core/SpectatorController.gd" id="7_spectator"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_eu7l1"]
 
@@ -13,7 +13,6 @@ script = ExtResource("1_eu7l1")
 services_config = ExtResource("5_eu7l1")
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=905528505]
-_spawnable_scenes = PackedStringArray("uid://csh822kwn5s2e")
 spawn_path = NodePath("..")
 spawn_limit = 7
 script = ExtResource("2_2dftf")
@@ -28,7 +27,7 @@ script = ExtResource("6_pbmw8")
 
 [node name="MapContainer" type="Node2D" parent="." unique_id=1029625853]
 
-[node name="SpectatorController" type="Node" parent="."]
+[node name="SpectatorController" type="Node" parent="." unique_id=1302615764]
 script = ExtResource("7_spectator")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1055310495]

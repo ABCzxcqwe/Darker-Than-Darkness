@@ -77,6 +77,12 @@ func _ready() -> void:
 		PlayerRegistry.register(get_multiplayer_authority(), self)
 		if multiplayer.is_server():
 			PlayerLifecycleManager.register_player(self, get_multiplayer_authority(), character_data)
+		elif is_multiplayer_authority():
+			# Le avisamos al servidor que nuestra copia local de este nodo ya existe y
+			# está lista para recibir el RPC que activa la visibilidad de su Synchronizer.
+			# Evita la race condition de pedirle a un cliente que modifique un nodo que
+			# todavía no terminó de instanciar (llega por red, no es instantáneo).
+			PlayerLifecycleManager.rpc_id(1, "_notify_player_node_ready", get_multiplayer_authority())
 
 	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
 		animated_sprite.animation_finished.connect(_on_anim_finished)
@@ -958,3 +964,19 @@ func _sync_hide_pacify_indicator() -> void:
 
 
 const SECRET_HEAL_DURATION: float = 1.5
+
+
+## Despachado por el servidor hacia el peer dueño de este nodo (o ejecutado localmente
+## si el dueño es el propio servidor). set_visibility_for solo surte efecto si corre en
+## la máquina que es la autoridad de multijugador de este nodo — por eso no se puede
+## llamar directo desde el servidor cuando el dueño es un cliente remoto.
+@rpc("any_peer", "reliable")
+func _rpc_set_synchronizer_visibility(viewer_peer_id: int, is_visible: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if synchronizer:
+		synchronizer.set_visibility_for(viewer_peer_id, is_visible)
+		if is_visible:
+			synchronizer.update_visibility(viewer_peer_id)
+		print("[Player] (", name, ") visibilidad de Synchronizer hacia peer ", viewer_peer_id, " = ", is_visible)

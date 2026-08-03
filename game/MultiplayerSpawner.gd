@@ -1,7 +1,7 @@
 # res://game/MultiplayerSpawner.gd
 extends MultiplayerSpawner
 
-const PLAYER_SCENE := preload("uid://csh822kwn5s2e")
+const PLAYER_SCENE := preload("uid://djw510qiudh6e")
 
 func _ready() -> void:
 	spawn_function = _custom_spawn

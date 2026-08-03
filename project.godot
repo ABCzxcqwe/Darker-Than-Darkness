@@ -45,6 +45,10 @@ ChatService="*res://core/ChatService.gd"
 window/size/viewport_width=1440
 window/size/viewport_height=1080
 window/stretch/mode="viewport"
+window/max_fps=0
+window/windows_native_icon=""
+window/macos_native_icon=""
+window/screen_space_roughness_limiter/enabled=true
 
 [dotnet]
 
