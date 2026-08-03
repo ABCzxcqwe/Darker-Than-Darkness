@@ -96,6 +96,7 @@ vertical_alignment = 1
 
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
 replication_config = SubResource("SceneReplicationConfig_sweqy")
+public_visibility = false
 
 [node name="PlayerInteractionComponent" type="Node" parent="." unique_id=1178568243]
 script = ExtResource("5_interaction")

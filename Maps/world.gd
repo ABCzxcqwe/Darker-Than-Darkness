@@ -11,6 +11,14 @@ const PLAYER_SCENE := preload("uid://djw510qiudh6e")
 var _hud: CanvasLayer = null
 var current_map_node: BaseMap = null
 
+# Peers espectadores que se unieron tarde. Solo se usa server-side.
+# El host (dueño=servidor) no logra que el Synchronizer nativo le llegue el
+# delta continuo a estos peers (la llamada local a set_visibility_for nunca
+# "cruza la red", así que el motor nunca registra a ese peer como receptor
+# válido de este nodo específico). Se le empuja la posición a mano, explícito.
+var _late_spectator_peers: Array[int] = []
+var _host_push_timer: Timer = null
+
 func _ready() -> void:
 	if not services_config:
 		push_error("[World] No hay services_config asignado.")
@@ -19,7 +27,13 @@ func _ready() -> void:
 	GameServiceLocator.register_all(services_config)
 
 	if multiplayer.is_server():
-		LobbyManager.player_joined.connect(_on_spectator_joined)
+		multiplayer.peer_disconnected.connect(_on_peer_disconnected_cleanup_spectator)
+		_host_push_timer = Timer.new()
+		_host_push_timer.name = "HostStatePushToSpectatorsTimer"
+		_host_push_timer.wait_time = 0.1
+		_host_push_timer.autostart = true
+		_host_push_timer.timeout.connect(_push_host_state_to_late_spectators)
+		add_child(_host_push_timer)
 
 	await _load_map()
 
@@ -127,7 +141,9 @@ func _setup_hud() -> void:
 		var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
 		if ctrl and ctrl.has_method("activate"):
 			ctrl.activate()
-		_start_spectator_snapshot_poll()
+		if not multiplayer.is_server():
+			print("[World] Espectador local listo, solicitando catch-up al servidor.")
+			rpc_id(1, "_request_late_join_catchup")
 		return
 
 	var my_player: Node = null
@@ -158,124 +174,145 @@ func _setup_hud() -> void:
 	_hud.setup(my_player)
 
 
-func _on_spectator_joined(peer_id: int, player_info: Dictionary) -> void:
-	if not multiplayer.is_server():
-		return
-	if not player_info.get("is_spectator", false):
-		return
-	_exclude_peer_from_synchronizers(peer_id)
+## ── Catch-up para espectadores que se unen con la partida en curso ─────────
+##
+## El handshake interno de confirmación entre MultiplayerSpawner y su Synchronizer
+## solo se establece con los peers conectados AL MOMENTO del spawn() original.
+## Un peer que se conecta después nunca queda "confirmado" para el motor, así que
+## togglear set_visibility_for/update_visibility después no alcanza para el delta
+## continuo. Por eso el fantasma se recrea a mano para este peer específico:
+##
+##   1) El espectador, ya con su World listo, pide catch-up: _request_late_join_catchup
+##   2) El servidor le manda la lista de jugadores activos: _apply_late_join_catchup_spawn
+##   3) El cliente los recrea localmente (mismo nombre que usa el spawner real)
+##      y confirma: _confirm_late_join_catchup_ready
+##   4) El servidor otorga visibilidad de cada jugador hacia este peer — el empujón
+##      inicial (update_visibility) llega bien; el delta continuo del host es lo
+##      que sigue sin resolverse (ver PlayerMovementComponent para el próximo fix).
 
-
-## El espectador que entra tarde no recibe los nodos spawneados vía MultiplayerSpawner,
-## así que los deltas de los MultiplayerSynchronizer le llegan con rutas irresolubles
-## y generan el error "Ignoring delta for non-authority or invalid synchronizer".
-## Los ocultamos de ese peer en el servidor; su vista se alimenta del snapshot manual.
-func _exclude_peer_from_synchronizers(peer_id: int) -> void:
-	for sync in get_tree().root.find_children("*", "MultiplayerSynchronizer", true, false):
-		if sync.has_method("set_visibility_for"):
-			sync.set_visibility_for(peer_id, false)
-
-
-func _start_spectator_snapshot_poll() -> void:
-	if multiplayer.is_server() or not is_inside_tree():
-		return
-	var timer := Timer.new()
-	timer.name = "SpectatorSnapshotPoll"
-	timer.wait_time = 0.15
-	timer.autostart = true
-	timer.timeout.connect(_do_request_spectator_snapshot)
-	add_child(timer)
-
-
-func _do_request_spectator_snapshot() -> void:
-	if multiplayer.is_server() or not is_inside_tree():
-		return
-	rpc_id(1, "_request_spectator_snapshot")
-
-
-## El servidor responde con un snapshot de los jugadores vivos no-espectadores.
-## Necesario porque el MultiplayerSynchronizer no replica a peers que se unen tarde
-## (no recibieron el nodo vía el MultiplayerSpawner en el momento del spawn).
 @rpc("any_peer", "reliable")
-func _request_spectator_snapshot() -> void:
+func _request_late_join_catchup() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	_exclude_peer_from_synchronizers(sender)
-	var snap := {}
-	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if not is_instance_valid(p):
+	if sender == 0:
+		return
+
+	var players_data: Array = []
+	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(player_node):
 			continue
-		var pid := p.get_multiplayer_authority()
-		if LobbyManager.is_spectator(pid):
+		var owner_peer_id: int = player_node.get_multiplayer_authority()
+		if owner_peer_id == sender:
 			continue
-		if "health_state" in p and p.health_state != "alive":
+		var char_id: int = -1
+		if "character_data" in player_node and player_node.character_data:
+			char_id = player_node.character_data.id
+		if char_id == -1:
+			char_id = LobbyManager.players.get(owner_peer_id, {}).get("character_id", -1)
+		if char_id == -1:
 			continue
-		var char_id: int = LobbyManager.players.get(pid, {}).get("character_id", -1)
-		if char_id == -1 and "character_data" in p and p.character_data:
-			char_id = p.character_data.id
-		var entry := {
-			"char_id": char_id,
-			"pos": p.global_position,
-			"health": p.health,
-			"health_state": p.health_state,
-		}
-		if "animated_sprite" in p and p.animated_sprite:
-			entry["flip_h"] = p.animated_sprite.flip_h
-			entry["animation"] = String(p.animated_sprite.animation)
-			entry["frame"] = p.animated_sprite.frame
-		snap[pid] = entry
-	rpc_id(sender, "_apply_spectator_snapshot", snap)
+		players_data.append({"peer_id": owner_peer_id, "char_id": char_id})
+
+	print("[World] Catch-up solicitado por peer tardío ", sender, " | jugadores a recrear: ", players_data)
+	rpc_id(sender, "_apply_late_join_catchup_spawn", players_data)
 
 
 @rpc("authority", "reliable")
-func _apply_spectator_snapshot(snap: Dictionary) -> void:
-	if multiplayer.is_server() or not is_inside_tree():
+func _apply_late_join_catchup_spawn(players_data: Array) -> void:
+	for entry in players_data:
+		var peer_id: int = entry.get("peer_id", -1)
+		var char_id: int = entry.get("char_id", -1)
+		if peer_id == -1 or char_id == -1:
+			continue
+		var node_name := str(peer_id)
+		if has_node(node_name):
+			continue
+		var player := PLAYER_SCENE.instantiate()
+		player.name = node_name
+		player.set_multiplayer_authority(peer_id)
+		player.set_character(char_id)
+		add_child(player)
+		print("[World] Catch-up: recreado localmente el jugador ", peer_id, " (char: ", char_id, ")")
+
+	rpc_id(1, "_confirm_late_join_catchup_ready")
+
+
+@rpc("any_peer", "reliable")
+func _confirm_late_join_catchup_ready() -> void:
+	if not multiplayer.is_server():
 		return
-	var alive_pids := {}
-	for pid in snap:
-		alive_pids[int(pid)] = true
-		var entry: Dictionary = snap[pid]
-		var player := _ensure_spectator_player(int(pid), int(entry.get("char_id", -1)))
-		if not player:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		return
+
+	var granted := 0
+	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(player_node):
 			continue
-		if not player.get_meta("_spectator_manual_spawn", false):
+		if player_node.get_multiplayer_authority() == sender:
 			continue
-		player.global_position = entry.get("pos", Vector2.ZERO)
-		if "health" in entry:
-			player.health = int(entry.health)
-		if "health_state" in entry:
-			player.health_state = entry.health_state
-		if "animated_sprite" in player and player.animated_sprite:
-			var sprite = player.animated_sprite
-			if "flip_h" in entry:
-				sprite.flip_h = bool(entry.flip_h)
-			if "animation" in entry:
-				var frames = sprite.sprite_frames
-				if frames and frames.has_animation(entry.animation):
-					sprite.animation = entry.animation
-					var frame := int(entry.get("frame", 0))
-					sprite.frame = mini(frame, maxi(0, frames.get_frame_count(entry.animation) - 1))
+		PlayerLifecycleManager.grant_player_visibility_to_peer(player_node, sender)
+		granted += 1
 
-	for node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if node.get_meta("_spectator_manual_spawn", false) \
-				and not alive_pids.has(node.get_multiplayer_authority()):
-			node.queue_free()
+	if sender not in _late_spectator_peers:
+		_late_spectator_peers.append(sender)
+
+	print("[World] Catch-up confirmado por peer ", sender, " — visibilidad otorgada para ", granted,
+		  " jugador(es). Push explícito de host activado para este peer.")
 
 
-func _ensure_spectator_player(pid: int, char_id: int) -> Node:
-	var peer_str := str(pid)
-	if has_node(peer_str):
-		return get_node(peer_str)
-	if char_id == -1:
-		return null
-	var player := PLAYER_SCENE.instantiate()
-	player.name = peer_str
-	player.set_multiplayer_authority(pid)
-	player.set_character(char_id)
-	player.set_meta("_spectator_manual_spawn", true)
-	add_child(player)
-	return player
+## Empuja explícitamente, vía RPC dirigido, la posición/animación de cada nodo
+## cuyo dueño es el propio servidor (el host) hacia los espectadores tardíos.
+## Se hace por fuera del Synchronizer nativo porque la llamada local a
+## set_visibility_for jamás cruza la red, y el motor nunca "confirma" a estos
+## peers como receptores válidos de ESTE nodo en particular (sí funciona bien
+## para los nodos de clientes, porque ahí el otorgamiento SÍ viaja por RPC).
+func _push_host_state_to_late_spectators() -> void:
+	if _late_spectator_peers.is_empty():
+		return
+
+	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(player_node):
+			continue
+		if player_node.get_multiplayer_authority() != multiplayer.get_unique_id():
+			continue  # solo nos interesan los nodos dueños del servidor (host)
+
+		var anim := ""
+		var flip_h := false
+		if "animated_sprite" in player_node and player_node.animated_sprite:
+			anim = String(player_node.animated_sprite.animation)
+			flip_h = player_node.animated_sprite.flip_h
+
+		for spectator_peer_id in _late_spectator_peers:
+			rpc_id(spectator_peer_id, "_rpc_apply_host_state_for_spectator",
+				player_node.get_multiplayer_authority(), player_node.global_position, anim, flip_h)
+
+
+## Recibido por el cliente espectador. Aplica el estado directo sobre el
+## fantasma correspondiente (sin pasar por MultiplayerSynchronizer).
+@rpc("authority", "unreliable")
+func _rpc_apply_host_state_for_spectator(host_peer_id: int, pos: Vector2, anim: String, flip_h: bool) -> void:
+	var ghost := get_node_or_null(str(host_peer_id))
+	if not ghost:
+		return
+		
+	ghost.global_position = pos
+	
+	# Usamos 'as AnimatedSprite2D' para convertir la propiedad de forma segura.
+	# Si 'animated_sprite' no existe o es null, la variable 'sprite' será null.
+	var sprite := ghost.get("animated_sprite") as AnimatedSprite2D
+	
+	if is_instance_valid(sprite):
+		if anim != "" and sprite.sprite_frames and sprite.sprite_frames.has_animation(anim):
+			if sprite.animation != anim:
+				sprite.play(anim)
+				
+		sprite.flip_h = flip_h
+
+
+func _on_peer_disconnected_cleanup_spectator(peer_id: int) -> void:
+	_late_spectator_peers.erase(peer_id)
 
 
 func _exit_tree() -> void:
