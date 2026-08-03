@@ -13,6 +13,7 @@ config_version=5
 config/name="Darker Than Darkness"
 run/main_scene="res://ui/MainMenu/scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
+run/max_fps=30
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/stretch_mode=0
 boot_splash/image="uid://cnqwcelsop1a7"
@@ -43,7 +44,6 @@ ChatService="*res://core/ChatService.gd"
 
 window/size/viewport_width=1440
 window/size/viewport_height=1080
-window/size/mode=3
 window/stretch/mode="viewport"
 
 [dotnet]
@@ -187,6 +187,7 @@ textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/screen_space_roughness_limiter/enabled=false
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 
 [steam]

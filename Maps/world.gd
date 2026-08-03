@@ -18,6 +18,9 @@ func _ready() -> void:
 
 	GameServiceLocator.register_all(services_config)
 
+	if multiplayer.is_server():
+		LobbyManager.player_joined.connect(_on_spectator_joined)
+
 	await _load_map()
 
 	# Inicializar eventos del mapa (coordinador)
@@ -155,12 +158,30 @@ func _setup_hud() -> void:
 	_hud.setup(my_player)
 
 
+func _on_spectator_joined(peer_id: int, player_info: Dictionary) -> void:
+	if not multiplayer.is_server():
+		return
+	if not player_info.get("is_spectator", false):
+		return
+	_exclude_peer_from_synchronizers(peer_id)
+
+
+## El espectador que entra tarde no recibe los nodos spawneados vía MultiplayerSpawner,
+## así que los deltas de los MultiplayerSynchronizer le llegan con rutas irresolubles
+## y generan el error "Ignoring delta for non-authority or invalid synchronizer".
+## Los ocultamos de ese peer en el servidor; su vista se alimenta del snapshot manual.
+func _exclude_peer_from_synchronizers(peer_id: int) -> void:
+	for sync in get_tree().root.find_children("*", "MultiplayerSynchronizer", true, false):
+		if sync.has_method("set_visibility_for"):
+			sync.set_visibility_for(peer_id, false)
+
+
 func _start_spectator_snapshot_poll() -> void:
 	if multiplayer.is_server() or not is_inside_tree():
 		return
 	var timer := Timer.new()
 	timer.name = "SpectatorSnapshotPoll"
-	timer.wait_time = 0.1
+	timer.wait_time = 0.15
 	timer.autostart = true
 	timer.timeout.connect(_do_request_spectator_snapshot)
 	add_child(timer)
@@ -180,6 +201,7 @@ func _request_spectator_snapshot() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
+	_exclude_peer_from_synchronizers(sender)
 	var snap := {}
 	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if not is_instance_valid(p):
