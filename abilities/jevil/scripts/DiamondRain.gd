@@ -33,7 +33,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			return
 
 	if data.action_animation != "":
-		player_node.play_ability_animation("idle_down", _slot_index, player_node.facing_right)
+		player_node.play_ability_animation(data.action_animation, _slot_index, player_node.facing_right)
 
 	var combat = GameServiceLocator.combat_mediator
 	if combat:

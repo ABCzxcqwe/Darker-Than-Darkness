@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bgdvu7ko26slk" path="res://Characters/Jevil/assets/jevil_tp.png" id="4_ut8qp"]
 [ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/jevil_stun.png" id="5_tnbwv"]
 [ext_resource type="Texture2D" uid="uid://cmcs184nxk67p" path="res://Characters/Jevil/assets/jevil_sprint.png" id="6_y2x8j"]
+[ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/icon.png" id="7_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nejuk"]
 atlas = ExtResource("3_kkrpl")
@@ -330,6 +331,14 @@ animations = [{
 "loop": true,
 "name": &"emote_1",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,

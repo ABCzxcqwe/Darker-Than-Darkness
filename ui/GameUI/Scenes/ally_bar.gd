@@ -1,7 +1,7 @@
 # ally_bar.gd
 extends Control
 
-@onready var icon_rect:  TextureRect = $HBoxContainer/IconRect
+@onready var icon_rect:  AnimatedIcon = $HBoxContainer/IconRect
 @onready var name_label: Label       = $HBoxContainer/NameLabel
 @onready var hp_bar:     ProgressBar = $HBoxContainer/InfoColumn/HPRow/HPBar
 @onready var hp_label:   Label       = $HBoxContainer/InfoColumn/NameRow/HPLabel
@@ -21,7 +21,7 @@ func setup(player_node: Node) -> void:
 	_theme_color = data.theme_color
 
 	if icon_rect:
-		icon_rect.texture = data.icon if data.icon else null
+		icon_rect.setup(data.animation_frames, "icon", data.icon)
 	if name_label:
 		name_label.text = data.display_name.to_upper()
 	if hp_bar:

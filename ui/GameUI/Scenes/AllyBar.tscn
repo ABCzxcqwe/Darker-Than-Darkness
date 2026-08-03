@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bxaet6syxo1r4" path="res://ui/GameUI/Scenes/ally_bar.gd" id="1_l5k6c"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_f5yb8"]
+[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.05, 0.05, 0.08, 0.88)
@@ -58,6 +59,7 @@ layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
+script = ExtResource("3_icon")
 
 [node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1297903543]
 custom_minimum_size = Vector2(80, 0)

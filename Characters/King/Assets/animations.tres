@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cdfmal5dhio7" path="res://Characters/King/Assets/king_stun-Sheet.png" id="5_6wceg"]
 [ext_resource type="Texture2D" uid="uid://i7pskgkmrnme" path="res://Characters/Jevil/assets/jevil_dance.png" id="5_f5jn6"]
 [ext_resource type="Texture2D" uid="uid://bdilvbh5jkgml" path="res://Characters/King/Assets/king_walk.png" id="6_q5svj"]
+[ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/Assets/icon.png" id="7_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ey6ot"]
 atlas = ExtResource("1_6wceg")
@@ -381,4 +382,12 @@ animations = [{
 "loop": true,
 "name": &"walk_up",
 "speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
 }]

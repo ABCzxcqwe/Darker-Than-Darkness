@@ -89,6 +89,13 @@ func on_anim_finished() -> void:
 func apply_ability_anim_state(anim_name: String, facing_right_override: bool, slot_index: int, anim_state: int) -> void:
 	if anim_name == "":
 		return
+	var frames = player.animated_sprite.sprite_frames
+	if frames and not frames.has_animation(anim_name):
+		push_warning("[PlayerAnimation] Animación '%s' no existe, se cancela la habilidad." % anim_name)
+		player.state = Player.AnimState.IDLE
+		player.active_ability_slot = -1
+		restore_idle()
+		return
 	player.facing_right = facing_right_override
 	player.facing = Vector2.RIGHT if player.facing_right else Vector2.LEFT
 	player.animated_sprite.flip_h = not player.facing_right

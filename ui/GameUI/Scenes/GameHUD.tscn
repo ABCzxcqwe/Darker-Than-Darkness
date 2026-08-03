@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
 [ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
 [ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="9_emote"]
+[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -210,6 +211,7 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_vertical = 4
 stretch_mode = 5
+script = ExtResource("10_icon")
 
 [node name="NameLabel" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=555215661]
 custom_minimum_size = Vector2(130, 0)

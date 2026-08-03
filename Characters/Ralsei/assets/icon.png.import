@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dewc4pci4l1c2"
-path="res://.godot/imported/icon.png-62a6bbf355faa90c57f237a4b27f3ff6.ctex"
+uid="uid://bghctodrxgplp"
+path="res://.godot/imported/icon.png-7a6cbd41b37d29655aedb2c183cc45f2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/assets/icon.png"
-dest_files=["res://.godot/imported/icon.png-62a6bbf355faa90c57f237a4b27f3ff6.ctex"]
+source_file="res://Characters/Ralsei/assets/icon.png"
+dest_files=["res://.godot/imported/icon.png-7a6cbd41b37d29655aedb2c183cc45f2.ctex"]
 
 [params]
 

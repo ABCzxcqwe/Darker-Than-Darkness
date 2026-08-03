@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://duo0hmyhki6mw" path="res://ui/GameUI/Scenes/context_item.gd" id="1_ol6vr"]
 [ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_lfuxb"]
+[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuxb"]
 bg_color = Color(0.06469653, 0.06469653, 0.06469653, 0.80784315)
@@ -38,6 +39,7 @@ alignment = 1
 
 [node name="IconRect" type="TextureRect" parent="HBoxContainer" unique_id=738875295]
 layout_mode = 2
+script = ExtResource("3_icon")
 
 [node name="NameLabel" type="Label" parent="HBoxContainer" unique_id=1515262764]
 layout_mode = 2

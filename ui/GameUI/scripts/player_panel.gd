@@ -16,7 +16,7 @@
 # desde el inspector (border_width_bottom = 0).
 extends PanelContainer
 
-@onready var icon_rect:    TextureRect = $HBoxContainer/IconRect
+@onready var icon_rect:    AnimatedIcon = $HBoxContainer/IconRect
 @onready var name_label:   Label       = $HBoxContainer/NameLabel
 @onready var hp_bar:       ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
 @onready var hp_numbers:   Label       = $HBoxContainer/InfoColumn/HpNumbers
@@ -42,7 +42,7 @@ func setup(player_node: Node) -> void:
 	if name_label:
 		name_label.text = data.display_name.to_upper()
 	if icon_rect:
-		icon_rect.texture = data.icon if data.icon else null
+		icon_rect.setup(data.animation_frames, "icon", data.icon)
 	if hp_bar:
 		hp_bar.max_value = _max_hp
 		hp_bar.value     = player_node.health

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://csxsyfnoq86k8" path="res://ui/GameUI/Scenes/spectator_panel.gd" id="1_xtrgt"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_u4xsv"]
+[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0, 0, 0, 0.8)
@@ -114,6 +115,7 @@ layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
+script = ExtResource("3_icon")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/TargetRow/TargetInfo" unique_id=1711087988]
 layout_mode = 2

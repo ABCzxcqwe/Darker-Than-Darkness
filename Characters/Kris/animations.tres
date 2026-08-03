@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://c7ygn7p512h87" path="res://Characters/Kris/assets/Sprites/kris_defend.png" id="6_0b5te"]
 [ext_resource type="Texture2D" uid="uid://bub6ldcbjc3w7" path="res://Characters/Kris/assets/Sprites/kris_run2.png" id="6_nnm51"]
 [ext_resource type="Texture2D" uid="uid://bjgdxig30u53w" path="res://Characters/Kris/assets/Sprites/kris_run.png" id="8_nrm4i"]
+[ext_resource type="Texture2D" uid="uid://bughct40pnk50" path="res://Characters/Kris/assets/Sprites/icon.png" id="9_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_p8iij"]
 atlas = ExtResource("2_wsuml")
@@ -527,4 +528,12 @@ animations = [{
 "loop": true,
 "name": &"walk_horizontal",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
 }]

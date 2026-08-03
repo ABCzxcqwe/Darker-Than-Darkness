@@ -3,7 +3,7 @@ extends PanelContainer
 signal prev_requested()
 signal next_requested()
 
-@onready var icon_rect:  TextureRect = $VBoxContainer/TargetRow/TargetInfo/IconRect
+@onready var icon_rect:  AnimatedIcon = $VBoxContainer/TargetRow/TargetInfo/IconRect
 @onready var name_label: Label       = $VBoxContainer/TargetRow/TargetInfo/VBoxContainer/NameLabel
 @onready var hp_bar:     ProgressBar = $VBoxContainer/TargetRow/TargetInfo/VBoxContainer/HpRow/HpBar
 @onready var prev_btn:   Button      = $VBoxContainer/TargetRow/PrevButton
@@ -17,10 +17,10 @@ func _ready() -> void:
 	next_btn.pressed.connect(func(): next_requested.emit())
 
 
-func set_target(peer_id: int, display_name: String, player_name: String, icon: Texture2D) -> void:
+func set_target(peer_id: int, display_name: String, player_name: String, frames: SpriteFrames = null, fallback_tex: Texture2D = null) -> void:
 	_spectating_peer_id = peer_id
 	if icon_rect:
-		icon_rect.texture = icon
+		icon_rect.setup(frames, "icon", fallback_tex)
 	if name_label:
 		name_label.text = player_name if player_name != "" else display_name
 
@@ -45,7 +45,7 @@ func clear() -> void:
 	if name_label:
 		name_label.text = "—"
 	if icon_rect:
-		icon_rect.texture = null
+		icon_rect.setup(null, "icon", null)
 	if hp_bar:
 		hp_bar.value = 0
 		hp_bar.modulate = Color.WHITE

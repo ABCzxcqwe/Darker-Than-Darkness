@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bw7wrhdeedolv" path="res://Characters/Ralsei/assets/ralsei_walk.png" id="4_c6mrk"]
 [ext_resource type="Texture2D" uid="uid://e4ebxl7asitq" path="res://Characters/Ralsei/assets/ralsei_sing.png" id="6_tgn3b"]
 [ext_resource type="Texture2D" uid="uid://h2tt6av4i2kf" path="res://Characters/Ralsei/assets/ralsei_dust.png" id="6_v2l0g"]
+[ext_resource type="Texture2D" uid="uid://bghctodrxgplp" path="res://Characters/Ralsei/assets/icon.png" id="7_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tgn3b"]
 atlas = ExtResource("1_sldpi")
@@ -188,6 +189,14 @@ region = Rect2(576, 0, 192, 192)
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tgn3b")

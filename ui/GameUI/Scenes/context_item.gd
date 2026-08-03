@@ -9,7 +9,7 @@
 #       └── NameLabel (Label)       ← nombre del personaje en mayúsculas
 extends PanelContainer
 
-@onready var icon_rect:  TextureRect = $HBoxContainer/IconRect
+@onready var icon_rect:  AnimatedIcon = $HBoxContainer/IconRect
 @onready var name_label: Label       = $HBoxContainer/NameLabel
 
 
@@ -23,7 +23,7 @@ var _style: StyleBoxFlat = null
 signal item_clicked(peer_id: int)
 
 
-func setup(peer_id: int, display_name: String, icon: Texture2D, player_name: String = "") -> void:
+func setup(peer_id: int, display_name: String, frames: SpriteFrames, fallback_tex: Texture2D = null, player_name: String = "") -> void:
 	_peer_id = peer_id
 	if name_label:
 		var txt = display_name.to_upper()
@@ -31,11 +31,8 @@ func setup(peer_id: int, display_name: String, icon: Texture2D, player_name: Str
 			txt += "  (%s)" % player_name
 		name_label.text = txt
 	if icon_rect:
-		if icon:
-			icon_rect.texture = icon
-			icon_rect.visible = true
-		else:
-			icon_rect.visible = false
+		icon_rect.setup(frames, "icon", fallback_tex)
+		icon_rect.visible = true
 	set_selected(false)
 
 func set_selected(selected: bool) -> void:

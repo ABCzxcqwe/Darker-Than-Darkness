@@ -162,15 +162,17 @@ func _update_panel() -> void:
 		char_id = _follow_target.character_data.id
 
 	var display_name := "?"
-	var icon: Texture2D = null
+	var icon_frames: SpriteFrames = null
+	var fallback_tex: Texture2D = null
 	if char_id != -1:
 		var cdata: CharacterData = CharacterRegistry.get_character(char_id)
 		if cdata:
 			display_name = cdata.display_name
-			icon = cdata.icon
+			icon_frames = cdata.animation_frames
+			fallback_tex = cdata.icon
 
 	var player_name: String = pdata.get("name", "")
-	_spectator_panel.set_target(pid, display_name, player_name, icon)
+	_spectator_panel.set_target(pid, display_name, player_name, icon_frames, fallback_tex)
 
 	var hp := 0
 	var max_hp := 100

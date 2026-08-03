@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dewc4pci4l1c2"
-path="res://.godot/imported/icon.png-62a6bbf355faa90c57f237a4b27f3ff6.ctex"
+uid="uid://c8sfkup1qrspx"
+path="res://.godot/imported/king_rugido.png-9c1993b7a7a57c6493ed1e91bf1b58d1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Susie/assets/icon.png"
-dest_files=["res://.godot/imported/icon.png-62a6bbf355faa90c57f237a4b27f3ff6.ctex"]
+source_file="res://Characters/King/Assets/king_rugido.png"
+dest_files=["res://.godot/imported/king_rugido.png-9c1993b7a7a57c6493ed1e91bf1b58d1.ctex"]
 
 [params]
 

@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://bt6dpju6yv3a7" path="res://Characters/Susie/assets/susie_down.png" id="5_xoerp"]
 [ext_resource type="Texture2D" uid="uid://c6x2a1tynccrv" path="res://Characters/Susie/assets/susie_walk.png" id="8_48uf1"]
 [ext_resource type="Texture2D" uid="uid://cunootty1jft6" path="res://Characters/Susie/assets/susie_rude_buster.png" id="9_5fybr"]
+[ext_resource type="Texture2D" uid="uid://dewc4pci4l1c2" path="res://Characters/Susie/assets/icon.png" id="10_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mek44"]
 atlas = ExtResource("1_5fybr")
@@ -419,4 +420,12 @@ animations = [{
 "loop": true,
 "name": &"walk_horizontal",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
 }]

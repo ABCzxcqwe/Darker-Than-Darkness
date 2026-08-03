@@ -320,7 +320,7 @@ func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = fals
 
 		var icon: Texture2D = data.icon if data.icon else null
 		var p_name = LobbyManager.players.get(p_id, {}).get("name", "")
-		item.setup(p_id, data.display_name, icon, p_name)
+		item.setup(p_id, data.display_name, data.animation_frames, icon, p_name)
 		item.item_clicked.connect(_on_ctx_item_clicked)
 
 		_ctx_items.append(item)
