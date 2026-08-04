@@ -44,6 +44,25 @@ var fog_enabled: bool = true:
 		fog_enabled = v
 		setting_changed.emit("fog_enabled", v)
 
+var first_launch_done: bool = false:
+	set(v):
+		first_launch_done = v
+		setting_changed.emit("first_launch_done", v)
+
+var player_name: String = "":
+	set(v):
+		player_name = v
+		setting_changed.emit("player_name", v)
+
+var vessel_data: Dictionary = {}:
+	set(v):
+		vessel_data = v
+		setting_changed.emit("vessel_data", v)
+
+
+func is_first_launch() -> bool:
+	return not first_launch_done
+
 
 func _ready() -> void:
 	load_settings()
@@ -65,6 +84,9 @@ func load_settings() -> void:
 	vhs_enabled = cfg.get_value("video", "vhs_enabled", true)
 	fog_enabled = cfg.get_value("video", "fog_enabled", true)
 	display_mode = cfg.get_value("video", "display_mode", 3)
+	first_launch_done = cfg.get_value("profile", "first_launch_done", false)
+	player_name = cfg.get_value("profile", "player_name", "")
+	vessel_data = cfg.get_value("profile", "vessel_data", {})
 
 
 func save_settings() -> void:
@@ -75,5 +97,8 @@ func save_settings() -> void:
 	cfg.set_value("video", "vhs_enabled", vhs_enabled)
 	cfg.set_value("video", "fog_enabled", fog_enabled)
 	cfg.set_value("video", "display_mode", display_mode)
+	cfg.set_value("profile", "first_launch_done", first_launch_done)
+	cfg.set_value("profile", "player_name", player_name)
+	cfg.set_value("profile", "vessel_data", vessel_data)
 	cfg.save(SETTINGS_PATH)
 	print("[SettingsManager] Configuración guardada")

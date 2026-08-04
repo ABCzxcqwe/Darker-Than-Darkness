@@ -19,6 +19,7 @@ func _ready():
 	NetworkManager.steam_lobby_list_updated.connect(_on_lobby_list_updated)
 	
 	ip_input.text = "127.0.0.1"
+	player_name_input.text = SettingsManager.player_name
 	status_label.text = ""
 	_update_ui_for_mode()
 	_setup_focus()

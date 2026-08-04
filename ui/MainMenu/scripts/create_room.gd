@@ -20,6 +20,7 @@ func _ready() -> void:
 	_populate_map_list()
 	NetworkManager.connection_succeeded.connect(_on_server_created)
 	status_label.text = ""
+	player_name_input.text = SettingsManager.player_name
 	_setup_focus()
 
 func _setup_focus() -> void:
