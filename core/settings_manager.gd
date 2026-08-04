@@ -59,6 +59,11 @@ var vessel_data: Dictionary = {}:
 		vessel_data = v
 		setting_changed.emit("vessel_data", v)
 
+var favorite_color: String = "":
+	set(v):
+		favorite_color = v
+		setting_changed.emit("favorite_color", v)
+
 
 func is_first_launch() -> bool:
 	return not first_launch_done
@@ -87,6 +92,7 @@ func load_settings() -> void:
 	first_launch_done = cfg.get_value("profile", "first_launch_done", false)
 	player_name = cfg.get_value("profile", "player_name", "")
 	vessel_data = cfg.get_value("profile", "vessel_data", {})
+	favorite_color = cfg.get_value("profile", "favorite_color", "")
 
 
 func save_settings() -> void:
@@ -100,5 +106,6 @@ func save_settings() -> void:
 	cfg.set_value("profile", "first_launch_done", first_launch_done)
 	cfg.set_value("profile", "player_name", player_name)
 	cfg.set_value("profile", "vessel_data", vessel_data)
+	cfg.set_value("profile", "favorite_color", favorite_color)
 	cfg.save(SETTINGS_PATH)
 	print("[SettingsManager] Configuración guardada")

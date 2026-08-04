@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://v30fcufugg06d"]
+[gd_scene format=3 uid="uid://crx2ektlmgnej"]
 
 [ext_resource type="Script" uid="uid://hhn3o6ryys4oj" path="res://ui/Boot/scripts/intro.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
@@ -21,16 +21,31 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
+[node name="ImageLayer" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 3
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0)
+
 [node name="CenterLabel" type="Label" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
+anchor_top = 0.7
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 40
 text = "..."
 horizontal_alignment = 1
 vertical_alignment = 1
