@@ -50,6 +50,12 @@ func should_use_hurt_sprite() -> bool:
 func restore_idle() -> void:
 	if player.health_state != "alive":
 		return
+	if player.active_effects.has("stun"):
+		player.state = Player.AnimState.STUNNED
+		if player.animated_sprite.sprite_frames.has_animation("stun"):
+			player.animated_sprite.play("stun")
+			player.last_animation = "stun"
+		return
 	player.animated_sprite.flip_h = not player.facing_right
 	var anim_name = select_movement_anim(false, false, should_use_hurt_sprite())
 	player.animated_sprite.play(anim_name)
@@ -67,6 +73,8 @@ func on_anim_finished() -> void:
 	elif player.state == Player.AnimState.ABILITY:
 		var anim_name = player.animated_sprite.animation
 		if player.animated_sprite.sprite_frames and player.animated_sprite.sprite_frames.has_animation(anim_name) and player.animated_sprite.sprite_frames.get_animation_loop(anim_name):
+			return
+		if player.hold_ability_anim:
 			return
 		player.state = Player.AnimState.IDLE
 		player.active_ability_slot = -1
@@ -89,6 +97,7 @@ func on_anim_finished() -> void:
 func apply_ability_anim_state(anim_name: String, facing_right_override: bool, slot_index: int, anim_state: int) -> void:
 	if anim_name == "":
 		return
+	player.hold_ability_anim = false
 	var frames = player.animated_sprite.sprite_frames
 	if frames and not frames.has_animation(anim_name):
 		push_warning("[PlayerAnimation] Animación '%s' no existe, se cancela la habilidad." % anim_name)
@@ -106,6 +115,11 @@ func apply_ability_anim_state(anim_name: String, facing_right_override: bool, sl
 
 
 func reset_ability_state() -> void:
+	player.hold_ability_anim = false
+	if player.active_effects.has("stun"):
+		player.state = Player.AnimState.STUNNED
+		restore_idle()
+		return
 	player.state = Player.AnimState.IDLE
 	player.active_ability_slot = -1
 	restore_idle()

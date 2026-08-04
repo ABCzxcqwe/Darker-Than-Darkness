@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/Assets/icon.png" id="4_icon"]
 [ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/Assets/king_panel.png" id="5_panel"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="6_sword"]
+[ext_resource type="Resource" uid="uid://cqh3sljtgj5t4" path="res://abilities/king/Lanza.tres" id="7_lanza"]
 
 [sub_resource type="Resource" id="Resource_m1"]
 script = ExtResource("1_ad")
@@ -34,7 +35,7 @@ h_size_y = 150
 can_take_damage = false
 terror_radius = 1000.0
 chase_radius = 500.0
-ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), null, null, null, null])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), null, null, null])
 tp_gain_time = 1.5
 stamina_max = 240.0
 stamina_regen_rate = 25.0

@@ -35,6 +35,7 @@ var facing: Vector2 = Vector2.RIGHT
 var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
+var hold_ability_anim: bool = false
 var _latest_aim_dir: Vector2 = Vector2.RIGHT
 var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
