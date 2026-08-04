@@ -575,6 +575,14 @@ func _sync_cancel_ability() -> void:
 	reset_ability_state()
 
 
+@rpc("any_peer", "call_local", "reliable")
+func _sync_ability_hold(hold: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	hold_ability_anim = hold
+
+
 # ── Emotes ────────────────────────────────────────────────────────────
 
 func _toggle_emote_bar(open: bool) -> void:

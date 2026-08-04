@@ -5,7 +5,6 @@ class_name LanzaAbility
 const LANZA_SPEED: float      = 900.0   # avance de la cabeza (px/s)
 const RETRACT_SPEED: float    = 700.0   # retracción del asta tras agarrar (px/s)
 const PULL_SPEED: float       = 500.0   # velocidad de jalado del objetivo / del Rey
-const MAX_RANGE: float        = 1200.0  # distancia máxima de lanzamiento
 const ARRIVE_DIST: float      = 60.0    # distancia para considerar "recogido"
 const ROOT_DURATION: float    = 30.0    # root durante toda la habilidad (se libera al resolver)
 
@@ -46,6 +45,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	# King se queda en el último frame de la animación hasta resolver.
 	player_node.play_ability_animation(data.action_animation, _slot_index, facing_right)
 	player_node.hold_ability_anim = true
+	player_node.rpc("_sync_ability_hold", true)
 
 	if _combat:
 		_combat.apply_root(_player_node, ROOT_DURATION)
@@ -89,7 +89,7 @@ func _spawn_lance(lance_dir: Vector2) -> void:
 		"team_filter": "enemy",
 		"lifetime": ROOT_DURATION,
 		"speed": LANZA_SPEED,
-		"hitbox_max_range": MAX_RANGE,
+		"hitbox_max_range": 0.0,
 		"offset": 0.0,
 		"custom_hitbox": true,
 		"detect_walls": true,

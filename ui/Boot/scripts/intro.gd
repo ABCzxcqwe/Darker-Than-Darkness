@@ -44,14 +44,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _done:
 		return
 	if event.is_action_pressed("confirm") or event.is_action_pressed("ui_cancel"):
+		_layer_input_handled()
 		_skip()
-		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed:
+		_layer_input_handled()
 		_skip()
-		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept") and _waiting_for_input():
+		_layer_input_handled()
 		_advance_manual()
-		get_viewport().set_input_as_handled()
+
+
+func _layer_input_handled() -> void:
+	var vp := get_viewport()
+	if vp:
+		vp.set_input_as_handled()
 
 
 func _waiting_for_input() -> bool:

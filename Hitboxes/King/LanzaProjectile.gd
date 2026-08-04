@@ -17,12 +17,13 @@ var hitbox_max_range: float = 1200.0
 # ── Mecánica de la lanza ─────────────────────────────────────────────
 var origin: Vector2 = Vector2.ZERO          # estómago del Rey (replicado)
 const RETRACT_SPEED: float = 700.0          # retracción del asta (px/s)
-const PULL_SPEED: float    = 520.0          # jalado del objetivo / del Rey (px/s)
+const PULL_SPEED: float    = 700.0          # jalado del objetivo / del Rey (px/s)
+const HOOK_PULL_SPEED: float = 1000.0       # Rei jalado hacia la pared enganchada (px/s)
 const ARRIVE_DIST: float   = 40.0           # dist. para considerar "recogido"
 const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
 
-const LANZA_TEX := preload("uid://dhkvuv75ruxm0")       # lanza.png
-const LANZA_CABEZA_TEX := preload("uid://bi2ixde4pqo5f") # lanza_cabeza.png
+const LANZA_TEX := preload("uid://ksj6jcxhc5yk")       # lanza.png
+const LANZA_CABEZA_TEX := preload("uid://c0s1t2np4oujg") # lanza_cabeza.png
 
 enum Phase { EXTEND, GRAB, HOOK, DONE }
 
@@ -154,12 +155,10 @@ func _grab_phase(delta: float) -> void:
 	# La cabeza retrae hacia el Rey.
 	global_position = global_position.move_toward(king_pos, RETRACT_SPEED * delta)
 
-	# El superviviente es jalado siguiendo a la cabeza.
+	# El superviviente viaja pegado a la punta de la lanza (llegarán juntos al Rey).
 	if is_instance_valid(_grabbed):
-		var tpos: Vector2 = _grabbed.global_position
-		var np := tpos.move_toward(global_position, PULL_SPEED * delta)
-		_grabbed.global_position = np
-		_grabbed.rpc("_sync_server_position", np)
+		_grabbed.global_position = global_position
+		_grabbed.rpc("_sync_server_position", global_position)
 
 	if global_position.distance_to(king_pos) < ARRIVE_DIST:
 		_resolve(true)
@@ -175,8 +174,9 @@ func _hook_phase(delta: float) -> void:
 		return
 
 	var king := _caster
-	var np: Vector2 = king.global_position.move_toward(global_position, PULL_SPEED * delta)
+	var np: Vector2 = king.global_position.move_toward(global_position, HOOK_PULL_SPEED * delta)
 	king.global_position = np
+	origin = np
 	king.rpc("_sync_server_position", np)
 
 	if np.distance_to(global_position) < ARRIVE_DIST:
@@ -245,20 +245,28 @@ func _get_attacker_team() -> String:
 func _draw() -> void:
 	var o := origin - global_position            # posición local del estómago
 	var dist := o.length()
-	if dist < TILE_SIZE * 0.5:
+	if dist < 8.0:
 		return
-	var dir := -o.normalized()                   # de estómago → cabeza
+	var dir := -o.normalized()                   # de estómago → cabeza (dir del mouse)
 
-	# Segmentos repetidos de lanza.png.
-	var step := TILE_SIZE * 0.7                   # solape para tramos diagonales
-	var t: float = TILE_SIZE * 0.5
-	while t < dist:
-		var pos := o + dir * t
-		var rect := Rect2(pos.x - TILE_SIZE * 0.5, pos.y - TILE_SIZE * 0.5, TILE_SIZE, TILE_SIZE)
-		draw_texture_rect(LANZA_TEX, rect, true)
-		t += step
+	var seg_w: float = LANZA_TEX.get_width()
+	var seg_h: float = LANZA_TEX.get_height()
+	var head_size: Vector2 = LANZA_CABEZA_TEX.get_size()
 
-	# Cabeza al frente, orientada hacia la dirección del asta.
+	# Rotar el contexto para que el eje +X apunte hacia la punta (mouse).
 	draw_set_transform(Vector2.ZERO, dir.angle(), Vector2.ONE)
+
+	# Asta: rectángulos repetidos en línea recta hacia la cabeza.
+	# Un pequeño solape garantiza tramos largos sin huecos.
+	var step: float = seg_w * 0.9
+	var x: float = dist - seg_w * 0.5
+	while x > 0.0:
+		draw_texture_rect(LANZA_TEX,
+			Rect2(-x - seg_w * 0.5, -seg_h * 0.5, seg_w, seg_h), false)
+		x -= step
+
+	# Cabeza centrada en la punta, orientada con la misma dirección.
 	draw_texture_rect(LANZA_CABEZA_TEX,
-		Rect2(-TILE_SIZE * 0.5, -TILE_SIZE * 0.5, TILE_SIZE, TILE_SIZE), true)
+		Rect2(-head_size.x * 0.5, -head_size.y * 0.5, head_size.x, head_size.y), false)
+
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
