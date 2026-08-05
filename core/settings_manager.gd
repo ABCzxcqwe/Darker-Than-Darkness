@@ -109,3 +109,11 @@ func save_settings() -> void:
 	cfg.set_value("profile", "favorite_color", favorite_color)
 	cfg.save(SETTINGS_PATH)
 	print("[SettingsManager] Configuración guardada")
+	
+# Agrega esta función al final de tu SettingsManager.gd
+func complete_goner_creation(p_name: String, v_data: Dictionary, fav_color: String) -> void:
+	player_name = p_name
+	vessel_data = v_data
+	favorite_color = fav_color
+	first_launch_done = true
+	save_settings()

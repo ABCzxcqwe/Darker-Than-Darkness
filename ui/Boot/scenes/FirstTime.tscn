@@ -2,12 +2,11 @@
 
 [ext_resource type="Script" uid="uid://4oxklui2appg" path="res://ui/Boot/scripts/first_time.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://dbqvrncxvxvi6" path="res://sprites/Background.png" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://scbauqfonj4t" path="res://sprites/Vessel-Heads.png" id="3_head"]
-[ext_resource type="Texture2D" uid="uid://t112isoo5ewh" path="res://sprites/Vessel-Body.png" id="4_body"]
-[ext_resource type="Texture2D" uid="uid://7s54f71e6gyx" path="res://sprites/Vessel-Legs.png" id="5_legs"]
-[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="6_font"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="3_8tjn0"]
+[ext_resource type="AudioStream" uid="uid://k0u888ksgyo3" path="res://ui/Boot/scenes/AUDIO_DRONE.wav" id="4_41kep"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="5_8tjn0"]
 
-[node name="FirstTime" type="Control" unique_id=873549452]
+[node name="VesselCreation" type="Control" unique_id=1752598415]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,48 +14,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
+metadata/_edit_horizontal_guides_ = [0.0]
 
-[node name="Background" type="TextureRect" parent="." unique_id=1944087373]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("2_bg")
-expand_mode = 1
-stretch_mode = 6
-
-[node name="Vessel" type="Control" parent="." unique_id=29616475]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="HeadSprite" type="Sprite2D" parent="Vessel" unique_id=1881264706]
-position = Vector2(0, -88)
-scale = Vector2(6, 6)
-texture = ExtResource("3_head")
-hframes = 8
-
-[node name="BodySprite" type="Sprite2D" parent="Vessel" unique_id=1134885012]
-position = Vector2(0, -44)
-scale = Vector2(6, 6)
-texture = ExtResource("4_body")
-hframes = 6
-
-[node name="LegsSprite" type="Sprite2D" parent="Vessel" unique_id=433484644]
-scale = Vector2(6, 6)
-texture = ExtResource("5_legs")
-hframes = 2
-
-[node name="ColorPanel" type="Control" parent="." unique_id=1793819744]
+[node name="Background" type="ColorRect" parent="." unique_id=668293255]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -64,369 +24,116 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-
-[node name="ColorTitle" type="Label" parent="ColorPanel" unique_id=1221423720]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.28
-anchor_right = 1.0
-anchor_bottom = 0.4
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 38
-text = "¿CUAL ES TU COLOR FAVORITO?"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-uppercase = true
-
-[node name="ColorNameLabel" type="Label" parent="ColorPanel" unique_id=1127403683]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.46
-anchor_right = 1.0
-anchor_bottom = 0.6
-grow_horizontal = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 52
-text = "ROJO"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="ColorHint" type="Label" parent="ColorPanel" unique_id=971569499]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.8
-anchor_right = 1.0
-anchor_bottom = 0.88
-offset_top = -23.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.85)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 24
-text = "A/D para cambiar  ·  Espacio para continuar"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="HudPanel" type="Control" parent="." unique_id=917361264]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="PartLabel" type="Label" parent="HudPanel" unique_id=916992107]
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-anchor_bottom = 0.2
-offset_bottom = 23.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 44
-text = "Elige la cabeza"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="HintLabel" type="Label" parent="HudPanel" unique_id=1037382982]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.8
-anchor_right = 1.0
-anchor_bottom = 0.88
-offset_top = -23.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.85)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 24
-text = "A/D para cambiar  ·  Espacio para continuar"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="ContinueBtn" type="Button" parent="HudPanel" unique_id=255238616]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -320.0
-offset_top = -100.0
-offset_right = -80.0
-offset_bottom = -40.0
-grow_horizontal = 0
-grow_vertical = 0
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 26
-text = "Continuar"
-
-[node name="ConfirmPanel" type="Control" parent="." unique_id=1881273192]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="ConfirmLabel" type="Label" parent="ConfirmPanel" unique_id=903549316]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.35
-anchor_right = 1.0
-anchor_bottom = 0.5
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 44
-text = "¿ESTA ES TU VASIJA?"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="ConfirmHint" type="Label" parent="ConfirmPanel" unique_id=1752672223]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.62
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.85)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 24
-text = "SÍ · Continuar      NO · Volver"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="YesBtn" type="Button" parent="ConfirmPanel" unique_id=1279224262]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.62
-anchor_right = 0.5
-anchor_bottom = 0.62
-offset_left = -210.0
-offset_top = 20.0
-offset_right = -10.0
-offset_bottom = 90.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 26
-text = "SÍ"
-
-[node name="NoBtn" type="Button" parent="ConfirmPanel" unique_id=880856230]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.62
-anchor_right = 0.5
-anchor_bottom = 0.62
-offset_left = 10.0
-offset_top = 20.0
-offset_right = 210.0
-offset_bottom = 90.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 26
-text = "NO"
-
-[node name="NamePanel" type="Control" parent="." unique_id=1750673409]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="NamePrompt" type="Label" parent="NamePanel" unique_id=791931097]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.3
-anchor_right = 1.0
-anchor_bottom = 0.42
-offset_bottom = 23.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 30
-text = "Introduce tu nombre de usuario"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="NameEdit" type="LineEdit" parent="NamePanel" unique_id=1576848686]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -30.0
-offset_right = 250.0
-offset_bottom = 30.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 24
-placeholder_text = "Nombre de usuario"
-alignment = 1
-max_length = 16
-
-[node name="ReadyPanel" type="Control" parent="." unique_id=1945349479]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="ReadyLabel" type="Label" parent="ReadyPanel" unique_id=1919248299]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.3
-anchor_right = 1.0
-anchor_bottom = 0.45
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 44
-text = "¿ESTÁS LISTO?"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="NameLabel" type="Label" parent="ReadyPanel" unique_id=1158226663]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.45
-anchor_right = 1.0
-anchor_bottom = 0.6
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 30
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="ReadyHint" type="Label" parent="ReadyPanel" unique_id=122000890]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.6
-anchor_right = 1.0
-anchor_bottom = 0.7
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.85)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 24
-text = "SÍ · Continuar      NO · Volver"
-horizontal_alignment = 1
-vertical_alignment = 1
-uppercase = true
-
-[node name="YesBtn" type="Button" parent="ReadyPanel" unique_id=87850419]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.62
-anchor_right = 0.5
-anchor_bottom = 0.62
-offset_left = -210.0
-offset_top = 20.0
-offset_right = -10.0
-offset_bottom = 90.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 26
-text = "SÍ"
-
-[node name="NoBtn" type="Button" parent="ReadyPanel" unique_id=1218022173]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.62
-anchor_right = 0.5
-anchor_bottom = 0.62
-offset_left = 10.0
-offset_top = 20.0
-offset_right = 210.0
-offset_bottom = 90.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 26
-text = "NO"
-
-[node name="CinematicOverlay" type="ColorRect" parent="." unique_id=1621376723]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="CinematicLabel" type="Label" parent="CinematicOverlay" unique_id=317310485]
+[node name="WaterBG" type="TextureRect" parent="." unique_id=1818263370]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 120.0
-offset_top = 120.0
-offset_right = -120.0
-offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 32
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-uppercase = true
+texture = ExtResource("2_bg")
+expand_mode = 2
+stretch_mode = 4
 
-[node name="CinematicHint" type="Label" parent="CinematicOverlay" unique_id=60212481]
+[node name="RedLine" type="ColorRect" parent="." unique_id=123579410]
+visible = false
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.89827543, 2.5990605e-06, 1.2513996e-06, 1)
+
+[node name="MainLabel" type="Label" parent="." unique_id=1245864057]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.8
-anchor_right = 1.0
-anchor_bottom = 0.88
-offset_top = -23.0
+anchor_left = 0.35
+anchor_top = 0.2
+anchor_right = 0.65
+anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 20
-text = "Pulsa Espacio para continuar"
+theme_override_fonts/font = ExtResource("3_8tjn0")
+theme_override_font_sizes/font_size = 40
+text = "ARE YOU THERE?"
 horizontal_alignment = 1
 vertical_alignment = 1
-uppercase = true
 
-[connection signal="pressed" from="HudPanel/ContinueBtn" to="." method="_on_continue_pressed"]
-[connection signal="pressed" from="ConfirmPanel/YesBtn" to="." method="_on_confirm_yes_pressed"]
-[connection signal="pressed" from="ConfirmPanel/NoBtn" to="." method="_on_confirm_no_pressed"]
-[connection signal="text_submitted" from="NamePanel/NameEdit" to="." method="_on_name_edit_text_submitted"]
-[connection signal="pressed" from="ReadyPanel/YesBtn" to="." method="_on_ready_yes_pressed"]
-[connection signal="pressed" from="ReadyPanel/NoBtn" to="." method="_on_ready_no_pressed"]
+[node name="VesselPreview" type="Node2D" parent="." unique_id=1653589532]
+
+[node name="HeadSprite" type="Sprite2D" parent="VesselPreview" unique_id=203553425]
+
+[node name="TorsoSprite" type="Sprite2D" parent="VesselPreview" unique_id=1820491612]
+
+[node name="LegsSprite" type="Sprite2D" parent="VesselPreview" unique_id=45416951]
+
+[node name="OptionsRow" type="HBoxContainer" parent="." unique_id=1912076062]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="ChoiceHeart" type="TextureRect" parent="." unique_id=2108983421]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MenuList" type="VBoxContainer" parent="." unique_id=1472472284]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NameEdit" type="LineEdit" parent="." unique_id=326202693]
+visible = false
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.4
+anchor_top = 0.45
+anchor_right = 0.6
+anchor_bottom = 0.55
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FadeRect" type="ColorRect" parent="." unique_id=1445184]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0)
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1534071633]
+stream = ExtResource("4_41kep")
+bus = &"Music"
+
+[node name="Heart" type="TextureRect" parent="." unique_id=1427587718]
+layout_direction = 3
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.558
+anchor_right = 0.5
+anchor_bottom = 0.558
+offset_left = -43.0
+offset_top = -42.640015
+offset_right = 43.0
+offset_bottom = 43.359985
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_8tjn0")
+stretch_mode = 5

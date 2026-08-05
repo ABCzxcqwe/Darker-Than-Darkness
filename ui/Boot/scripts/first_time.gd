@@ -1,335 +1,513 @@
 extends Control
+## VesselCreation.gd
+## Escena introductoria de creación de "Vessel" (estilo Deltarune - creación de FRISK/goner).
+## Se muestra solo la primera vez que se abre el juego, o si settings_manager.vessel_data
+## está vacío / first_launch_done == false.
+##
+## ---------------------------------------------------------------------
+## SETUP DE ESCENA REQUERIDO (Control como raíz, anclado a pantalla completa):
+##
+## VesselCreation (Control)  <- este script
+## ├── Background (ColorRect)               # fondo negro / agua
+## ├── WaterBG (TextureRect)                 # textura de agua en loop (oculta al inicio)
+## ├── RedLine (ColorRect)                   # línea roja vertical central (oculta al inicio)
+## ├── Heart (TextureRect)                   # sprite del corazón (oculto al inicio)
+## ├── MainLabel (Label)                     # texto central tipo "ARE YOU THERE?"
+## ├── VesselPreview (Node2D)
+## │   ├── HeadSprite (Sprite2D)
+## │   ├── TorsoSprite (Sprite2D)
+## │   └── LegsSprite (Sprite2D)
+## ├── OptionsRow (HBoxContainer)             # fila de 5 opciones (partes) con TextureRect hijos
+## ├── ChoiceHeart (TextureRect)              # corazón que se mueve sobre OptionsRow
+## ├── MenuList (VBoxContainer)               # para YES/NO y lista de comida/color
+## ├── NameEdit (LineEdit)                    # input de texto para el nombre (oculto hasta usarse)
+## └── FadeRect (ColorRect)                   # negro fullscreen para fundidos, alpha 0 al inicio
+##
+## Ajusta los @onready paths de abajo si tu jerarquía difiere.
+## ---------------------------------------------------------------------
+ 
+@onready var background: ColorRect = $Background
+@onready var water_bg: TextureRect = $WaterBG
+@onready var red_line: ColorRect = $RedLine
+@onready var heart: TextureRect = $Heart
+@onready var main_label: Label = $MainLabel
+@onready var vessel_preview: Node2D = $VesselPreview
+@onready var head_sprite: Sprite2D = $VesselPreview/HeadSprite
+@onready var torso_sprite: Sprite2D = $VesselPreview/TorsoSprite
+@onready var legs_sprite: Sprite2D = $VesselPreview/LegsSprite
+@onready var options_row: HBoxContainer = $OptionsRow
+@onready var choice_heart: TextureRect = $ChoiceHeart
+@onready var menu_list: VBoxContainer = $MenuList
+@onready var name_edit: LineEdit = $NameEdit
+@onready var fade_rect: ColorRect = $FadeRect
+@onready var music_player: AudioStreamPlayer = $MusicPlayer  # AudioStreamPlayer en bus "Music", crea este nodo en la escena
+ 
+const DRONE_PATH := "res://ui/Boot/scenes/AUDIO_DRONE.wav"
+const ANOTHER_HIM_PATH := "res://ui/Boot/scenes/ANOTHER HIM.mp3"
+const MUSIC_CROSSFADE_TIME := 1.2
 
-enum Part { HEAD, BODY, LEGS }
-enum Phase { CINEMATIC, COLOR, HEAD, BODY, LEGS, CONFIRM, NAME, READY }
-
-const CINEMATIC_LINES: Array[String] = [
-	"¿ESTAS AHI?",
-	"¿ESTAMOS CONECTADOS?",
-	"EXCELENTE.",
-	"VERDADERAMENTE EXCELENTE.",
-	"AHORA.",
-	"COMENCEMOS.",
+# ---------------------------------------------------------------------
+# TEXTURAS DE LAS PARTES — reemplaza estas rutas por las tuyas
+# ---------------------------------------------------------------------
+const HEAD_TEXTURES := [
+	"res://sprites/vessel/head_0.png",
+	"res://sprites/vessel/head_1.png",
+	"res://sprites/vessel/head_2.png",
+	"res://sprites/vessel/head_3.png",
+	"res://sprites/vessel/head_4.png",
+]
+const TORSO_TEXTURES := [
+	"res://sprites/vessel/torso_0.png",
+	"res://sprites/vessel/torso_1.png",
+	"res://sprites/vessel/torso_2.png",
+	"res://sprites/vessel/torso_3.png",
+	"res://sprites/vessel/torso_4.png",
+]
+const LEGS_TEXTURES := [
+	"res://sprites/vessel/legs_0.png",
+	"res://sprites/vessel/legs_1.png",
 ]
 
-const PART_TITLES: Array[String] = ["ELIGE LA CABEZA DE TU PREFERENCIA", "ELIGE EL TORSO DE TU PREFERENCIA", "ELIGE LAS PIERNAS DE TU PREFERENCIA"]
-
-const COLOR_NAMES: Array[String] = ["ROJO", "NARANJA", "AMARILLO", "VERDE", "CYAN", "AZUL", "PURPURA", "ROSA"]
-const COLOR_VALUES: Array[Color] = [
-	Color(1, 0.15, 0.15),
-	Color(1, 0.55, 0.1),
-	Color(1, 0.9, 0.1),
-	Color(0.2, 0.9, 0.2),
-	Color(0.2, 0.9, 0.9),
-	Color(0.25, 0.5, 1),
-	Color(0.7, 0.3, 1),
-	Color(1, 0.45, 0.75),
-]
-
-@onready var head_sprite: Sprite2D = $Vessel/HeadSprite
-@onready var body_sprite: Sprite2D = $Vessel/BodySprite
-@onready var legs_sprite: Sprite2D = $Vessel/LegsSprite
-
-@onready var cinematic_overlay: ColorRect = $CinematicOverlay
-@onready var cinematic_label: Label = $CinematicOverlay/CinematicLabel
-
-@onready var color_panel: Control = $ColorPanel
-@onready var color_name_label: Label = $ColorPanel/ColorNameLabel
-
-@onready var hud_panel: Control = $HudPanel
-@onready var part_label: Label = $HudPanel/PartLabel
-@onready var hint_label: Label = $HudPanel/HintLabel
-@onready var continue_btn: Button = $HudPanel/ContinueBtn
-
-@onready var confirm_panel: Control = $ConfirmPanel
-@onready var confirm_yes_btn: Button = $ConfirmPanel/YesBtn
-@onready var confirm_no_btn: Button = $ConfirmPanel/NoBtn
-
-@onready var name_panel: Control = $NamePanel
-@onready var name_prompt: Label = $NamePanel/NamePrompt
-@onready var name_edit: LineEdit = $NamePanel/NameEdit
-
-@onready var ready_panel: Control = $ReadyPanel
-@onready var ready_name_label: Label = $ReadyPanel/NameLabel
-@onready var ready_yes_btn: Button = $ReadyPanel/YesBtn
-@onready var ready_no_btn: Button = $ReadyPanel/NoBtn
-
-var _phase: int = Phase.CINEMATIC
-var _part: int = Part.HEAD
-var _color_idx: int = 0
-var _frames: Array[int] = [0, 0, 0]
-var _targets: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
-var _cinematic_skip := false
-var _finished := false
-
-
+const FOOD_OPTIONS := ["SWEET", "SOFT", "SOUR", "SALTY", "PAIN", "COLD"]
+const COLOR_OPTIONS := ["RED", "ORANGE", "YELLOW", "GREEN", "BLUE", "PURPLE", "WHITE"]
+ 
+# ---------------------------------------------------------------------
+# ESTADO
+# ---------------------------------------------------------------------
+var _selected_head := 2   # el del medio, como en las imágenes de referencia (5 opciones, índice 2)
+var _selected_torso := 2
+var _selected_legs := 2
+var _selected_food := 0
+var _selected_color := 0
+var _player_name := ""
+ 
+var _typing := false
+var _skip_typing := false
+var _busy := false  # bloquea input mientras se reproduce una secuencia no interactiva
+ 
+const TYPE_SPEED := 0.2
+const PART_COUNT := 5
+ 
+ 
 func _ready() -> void:
-	for sprite: Sprite2D in _sprites():
-		sprite.frame = 0
-	for i in Part.size():
-		_targets[i] = _sprites()[i].position
-		_sprites()[i].position = Vector2.ZERO
-	_sprites()[Part.HEAD].visible = false
-	_sprites()[Part.BODY].visible = false
-	_sprites()[Part.LEGS].visible = false
-	name_edit.text = SettingsManager.player_name
-	_start_cinematic()
+	# El Boot ya se encarga de decidir si cargar esta escena (FirstTime.tscn)
+	# o Intro.tscn directamente, así que aquí no hace falta comprobar nada más.
+	_hide_everything()
+	_play_music_looped(DRONE_PATH)
+ 
+	await _run_intro_sequence()
+	await _run_creation_sequence()
+	_finish_creation()
+ 
+ 
+func _hide_everything() -> void:
+	main_label.text = ""
+	main_label.visible = false
+	red_line.visible = false
+	heart.visible = false
+	water_bg.visible = false
+	vessel_preview.visible = false
+	options_row.visible = false
+	choice_heart.visible = false
+	menu_list.visible = false
+	name_edit.visible = false
+	fade_rect.color = Color(0, 0, 0, 0)
+	background.color = Color.BLACK
+ 
+ 
+# =======================================================================
+# INTRO — "ARE YOU THERE?" hasta "WE MAY BEGIN."
+# =======================================================================
+func _run_intro_sequence() -> void:
+	main_label.visible = true
+ 
+	await _show_text("ARE YOU\nTHERE?")
+	await get_tree().create_timer(1.0).timeout
+	await _hide_text()
+ 
+	await _show_text("ARE WE\nCONNECTED?")
+	await get_tree().create_timer(1.0).timeout
+	await _hide_text()
+ 
+	# la línea roja crece desde el centro hacia los lados hasta el ancho del alma
+	await _line_grow_to_heart_width()
+	# el alma aparece en el centro
+	await _show_heart()
+	# la línea se contrae de los lados al centro hasta desaparecer
+	await _line_shrink_to_zero()
+ 
+	await _show_text("EXCELLENT.")
+	await get_tree().create_timer(0.9).timeout
+	await _hide_text()
+ 
+	await _show_text("TRULY\nEXCELLENT.")
+	await get_tree().create_timer(0.9).timeout
+	await _hide_text()
+ 
+	await _show_text("NOW.")
+	await get_tree().create_timer(0.8).timeout
+	await _hide_text()
+ 
+	await _show_text("WE MAY\nBEGIN.")
+	await get_tree().create_timer(1.2).timeout
+	await _hide_text()
+ 
+	# se repite el mismo efecto: la línea vuelve a aparecer y crecer
+	await _line_grow_to_heart_width()
+	# el alma desaparece
+	await _hide_heart()
+	# la línea se contrae y desaparece de la misma forma que antes
+	await _line_shrink_to_zero()
+ 
+	# corte a negro para pasar a la siguiente parte
+	background.color = Color.BLACK
+	await get_tree().create_timer(0.3).timeout
+ 
+ 
+func _line_grow_to_heart_width() -> void:
+	var target_width: float = max(heart.size.x, 40.0)
+	var screen_center_x := size.x / 2.0
+	
+	# Restablece anclajes a FULL_RECT para poder controlar posiciones/tamaños sin interferencias de layouts
+	red_line.set_anchors_preset(Control.PRESET_FULL_RECT)
+	red_line.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	red_line.grow_vertical = Control.GROW_DIRECTION_BOTH
 
+	red_line.visible = true
+	red_line.color = Color(1, 0.15, 0.1)
+	
+	# Asegura que ocupe todo el alto vertical (0 a size.y)
+	# e inicia con ancho 0 centrado horizontalmente
+	red_line.position = Vector2(screen_center_x, 0.0)
+	red_line.size = Vector2(0.0, size.y)
 
-func _unhandled_input(event: InputEvent) -> void:
-	match _phase:
-		Phase.CINEMATIC:
-			if _is_skip(event):
-				_skip_cinematic()
-				get_viewport().set_input_as_handled()
-		Phase.COLOR:
-			if event.is_action_pressed("move_left"):
-				_cycle_color(-1)
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("move_right"):
-				_cycle_color(1)
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("confirm"):
-				_confirm_color()
-				get_viewport().set_input_as_handled()
-		Phase.HEAD, Phase.BODY, Phase.LEGS:
-			if event.is_action_pressed("move_left"):
-				_cycle(-1)
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("move_right"):
-				_cycle(1)
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("confirm"):
-				_advance()
-				get_viewport().set_input_as_handled()
-		Phase.CONFIRM:
-			if event.is_action_pressed("confirm"):
-				_enter_name()
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("ui_cancel"):
-				_back_to_legs()
-				get_viewport().set_input_as_handled()
-		Phase.NAME:
-			pass
-		Phase.READY:
-			if event.is_action_pressed("confirm"):
-				_finish()
-				get_viewport().set_input_as_handled()
-			elif event.is_action_pressed("ui_cancel"):
-				_back_to_confirm()
-				get_viewport().set_input_as_handled()
-
-
-func _sprites() -> Array:
-	return [head_sprite, body_sprite, legs_sprite]
-
-
-func _is_skip(event: InputEvent) -> bool:
-	return event.is_action_pressed("confirm") \
-		or event.is_action_pressed("ui_cancel") \
-		or (event is InputEventMouseButton and event.pressed)
-
-
-func _start_cinematic() -> void:
-	_phase = Phase.CINEMATIC
-	cinematic_overlay.modulate.a = 1.0
-	cinematic_overlay.visible = true
-	hud_panel.visible = false
-	_play_cinematic()
-
-
-func _play_cinematic() -> void:
-	for line: String in CINEMATIC_LINES:
-		if _cinematic_skip:
-			return
-		cinematic_label.text = ""
-		for i in range(line.length() + 1):
-			if _cinematic_skip:
-				return
-			cinematic_label.text = line.substr(0, i)
-			await get_tree().create_timer(0.045).timeout
-		if _cinematic_skip:
-			return
-		await get_tree().create_timer(0.7).timeout
-	if _cinematic_skip:
-		return
-	_end_cinematic()
-
-
-func _skip_cinematic() -> void:
-	_cinematic_skip = true
-	_end_cinematic()
-
-
-func _end_cinematic() -> void:
-	if _phase != Phase.CINEMATIC:
-		return
-	_cinematic_skip = true
 	var tw := create_tween()
-	tw.tween_property(cinematic_overlay, "modulate:a", 0.0, 1.0)
-	tw.finished.connect(func() -> void:
-		cinematic_overlay.visible = false
-	)
-	_enter_color()
-
-
-func _enter_color() -> void:
-	_phase = Phase.COLOR
-	_color_idx = 0
-	color_panel.visible = true
-	_update_color_label()
-
-
-func _update_color_label() -> void:
-	color_name_label.text = COLOR_NAMES[_color_idx]
-	color_name_label.modulate = COLOR_VALUES[_color_idx]
-
-
-func _cycle_color(dir: int) -> void:
-	_color_idx = posmod(_color_idx + dir, COLOR_NAMES.size())
-	_update_color_label()
-	AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-
-
-func _confirm_color() -> void:
-	SettingsManager.favorite_color = COLOR_NAMES[_color_idx]
-	color_panel.visible = false
-	AudioManager.play_sfx_ui(SfxId.SELECT)
-	_enter_parts(Phase.HEAD)
-
-
-func _enter_parts(phase: int) -> void:
-	_phase = phase
-	_part = phase - Phase.HEAD
-	if phase == Phase.HEAD:
-		_show_part(Part.HEAD)
-	part_label.text = PART_TITLES[_part]
-	hud_panel.visible = true
-	_update_hint()
-
-
-func _update_hint() -> void:
-	hint_label.text = "A/D para cambiar  ·  Espacio para continuar"
-
-
-func _cycle(dir: int) -> void:
-	var sprite: Sprite2D = _sprites()[_part]
-	if sprite.hframes < 2:
-		return
-	_frames[_part] = posmod(_frames[_part] + dir, sprite.hframes)
-	sprite.frame = _frames[_part]
-	AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-
-
-func _advance() -> void:
-	if _part < Part.LEGS:
-		_slide_to_final(_part)
-		_part += 1
-		_phase = Phase.HEAD + _part
-		part_label.text = PART_TITLES[_part]
-		_show_part(_part)
-		_update_hint()
-	else:
-		_slide_to_final(_part)
-		_enter_confirm()
-
-
-func _slide_to_final(p: int) -> void:
-	var sprite: Sprite2D = _sprites()[p]
+	tw.set_parallel(true)
+	tw.tween_property(red_line, "position:x", screen_center_x - target_width / 2.0, 0.5)
+	tw.tween_property(red_line, "size:x", target_width, 0.5)
+	await tw.finished
+ 
+ 
+func _line_shrink_to_zero() -> void:
 	var tw := create_tween()
-	tw.tween_property(sprite, "position", _targets[p], 0.7) \
-		.set_trans(Tween.TRANS_CUBIC) \
-		.set_ease(Tween.EASE_OUT)
-
-
-func _show_part(p: int) -> void:
-	var sprite: Sprite2D = _sprites()[p]
-	sprite.visible = true
-	sprite.position = Vector2.ZERO
-	sprite.frame = _frames[p]
-
-
-func _enter_confirm() -> void:
-	_phase = Phase.CONFIRM
-	hud_panel.visible = false
-	confirm_panel.visible = true
-	confirm_yes_btn.grab_focus()
-	AudioManager.play_sfx_ui(SfxId.SELECT)
-
-
-func _back_to_legs() -> void:
-	confirm_panel.visible = false
-	_enter_parts(Phase.LEGS)
-
-
-func _enter_name() -> void:
-	_phase = Phase.NAME
-	confirm_panel.visible = false
-	name_panel.visible = true
+	tw.set_parallel(true)
+	tw.tween_property(red_line, "position:x", size.x / 2.0, 0.5)
+	tw.tween_property(red_line, "size:x", 0.0, 0.5)
+	await tw.finished
+	red_line.visible = false
+ 
+ 
+func _show_heart() -> void:
+	heart.visible = true
+	heart.modulate.a = 0.0
+	AudioManager.play_sfx_ui(SfxId.AUDIO_APPEARANCE)
+	var tw := create_tween()
+	tw.tween_property(heart, "modulate:a", 1.0, 0.4)
+	await tw.finished
+	await get_tree().create_timer(0.4).timeout
+ 
+ 
+func _hide_heart() -> void:
+	AudioManager.play_sfx_ui(SfxId.AUDIO_APPEARANCE)
+	var tw := create_tween()
+	tw.tween_property(heart, "modulate:a", 0.0, 0.4)
+	await tw.finished
+	heart.visible = false
+ 
+ 
+# =======================================================================
+# CREACIÓN DEL VESSEL
+# =======================================================================
+func _run_creation_sequence() -> void:
+	water_bg.visible = true
+	main_label.visible = true
+	_play_music_looped(ANOTHER_HIM_PATH)  # reemplaza al DRONE una vez aparece el fondo
+ 
+	await _show_text("FIRST.")
+	await get_tree().create_timer(0.9).timeout
+	await _hide_text()
+ 
+	await _show_text("YOU MUST\nCREATE A VESSEL.")
+	await get_tree().create_timer(1.2).timeout
+	await _hide_text()
+ 
+	vessel_preview.visible = true
+	options_row.visible = true
+	choice_heart.visible = true
+ 
+	_selected_head = await _select_part("SELECT THE HEAD\nTHAT YOU PREFER.", HEAD_TEXTURES, head_sprite)
+	_selected_torso = await _select_part("SELECT THE TORSO\nTHAT YOU PREFER.", TORSO_TEXTURES, torso_sprite)
+	_selected_legs = await _select_part("SELECT THE LEGS\nTHAT YOU PREFER.", LEGS_TEXTURES, legs_sprite)
+ 
+	options_row.visible = false
+	choice_heart.visible = false
+ 
+	var accepted := await _confirm_accept()
+	if not accepted:
+		# como en Deltarune: si dice NO, vuelve a pedir que elija de nuevo
+		await _run_creation_sequence()
+		return
+ 
+	_player_name = await _ask_name()
+	_selected_food = await _select_from_list("WHAT IS ITS\nFAVORITE FOOD?", FOOD_OPTIONS)
+	_selected_color = await _select_from_list("WHAT IS ITS\nFAVORITE COLOR?", COLOR_OPTIONS)
+ 
+ 
+func _select_part(prompt: String, textures: Array, target_sprite: Sprite2D) -> int:
+	main_label.text = prompt
+	_ensure_options_row_size(textures.size())
+	_populate_options_row(textures)
+	var index := textures.size() / 2  # empieza centrado, como en las capturas de referencia
+	_update_part_selection(target_sprite, textures, index)
+	_position_choice_heart(index)
+ 
+	while true:
+		var input := await _wait_for_menu_input()
+		match input:
+			"left":
+				if index > 0:
+					index -= 1
+					_update_part_selection(target_sprite, textures, index)
+					_position_choice_heart(index)
+				else:
+					pass
+			"right":
+				if index < textures.size() - 1:
+					index += 1
+					_update_part_selection(target_sprite, textures, index)
+					_position_choice_heart(index)
+				else:
+					pass
+			"confirm":
+				return index
+	return index  # inalcanzable, satisface al analizador estático
+ 
+ 
+func _ensure_options_row_size(count: int) -> void:
+	# Ajusta la cantidad de TextureRect hijos de OptionsRow a la cantidad real de opciones
+	var current := options_row.get_child_count()
+	if current < count:
+		for i in (count - current):
+			var tr := TextureRect.new()
+			tr.custom_minimum_size = Vector2(48, 48)
+			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			options_row.add_child(tr)
+	elif current > count:
+		for i in (current - count):
+			var child := options_row.get_child(options_row.get_child_count() - 1)
+			child.queue_free()
+			options_row.remove_child(child)
+ 
+ 
+func _populate_options_row(textures: Array) -> void:
+	for i in options_row.get_child_count():
+		var child := options_row.get_child(i)
+		if child is TextureRect and i < textures.size():
+			child.texture = load(textures[i]) as Texture2D
+ 
+ 
+func _update_part_selection(target_sprite: Sprite2D, textures: Array, index: int) -> void:
+	target_sprite.texture = load(textures[index]) as Texture2D
+	for i in options_row.get_child_count():
+		var child := options_row.get_child(i)
+		if child is Control:
+			child.modulate = Color(1, 1, 1, 1) if i == index else Color(0.5, 0.5, 0.5, 0.7)
+ 
+ 
+func _position_choice_heart(index: int) -> void:
+	if index >= options_row.get_child_count():
+		return
+	var target: Control = options_row.get_child(index)
+	var target_pos := target.global_position + Vector2(target.size.x / 2.0 - choice_heart.size.x / 2.0, -choice_heart.size.y - 6)
+	var tw := create_tween()
+	tw.tween_property(choice_heart, "global_position", target_pos, 0.12)
+ 
+ 
+func _confirm_accept() -> bool:
+	main_label.text = "DO YOU\nACCEPT IT?"
+	menu_list.visible = true
+	_build_menu_list(["YES", "NO"])
+	var idx := await _run_vertical_menu(2)
+	menu_list.visible = false
+	return idx == 0
+ 
+ 
+func _select_from_list(prompt: String, options: Array) -> int:
+	main_label.text = prompt
+	menu_list.visible = true
+	_build_menu_list(options)
+	var idx := await _run_vertical_menu(options.size())
+	menu_list.visible = false
+	return idx
+ 
+ 
+func _ask_name() -> String:
+	main_label.text = "WHAT IS\nITS NAME?"
+	name_edit.visible = true
+	name_edit.text = ""
 	name_edit.grab_focus()
-	AudioManager.play_sfx_ui(SfxId.SELECT)
-
-
-func _confirm_name() -> void:
-	var name_text := name_edit.text.strip_edges()
-	if name_text.is_empty():
-		AudioManager.play_sfx_ui(SfxId.CANT_SELECT)
-		name_prompt.modulate = Color(0.95, 0.845, 0.0, 1.0)
-		var tw := create_tween()
-		tw.tween_property(name_prompt, "modulate", Color(1, 1, 1, 1), 0.6)
-		name_edit.grab_focus()
+ 
+	while true:
+		var typed: String = await name_edit.text_submitted
+		var final_name := typed.strip_edges()
+		if final_name == "":
+			name_edit.text = ""
+			continue
+		name_edit.visible = false
+		return final_name
+	return "VESSEL"  # inalcanzable, satisface al analizador estático
+ 
+ 
+# =======================================================================
+# HELPERS DE MENÚ VERTICAL (YES/NO, comida, color)
+# =======================================================================
+func _build_menu_list(options: Array) -> void:
+	for c in menu_list.get_children():
+		c.queue_free()
+	for opt in options:
+		var lbl := Label.new()
+		lbl.text = str(opt)
+		lbl.add_theme_color_override("font_color", Color.WHITE)
+		menu_list.add_child(lbl)
+ 
+ 
+func _run_vertical_menu(count: int) -> int:
+	var index := 0
+	_highlight_menu_index(index)
+	while true:
+		var input := await _wait_for_menu_input()
+		match input:
+			"up":
+				if index > 0:
+					index -= 1
+					_highlight_menu_index(index)
+				else:
+					pass
+			"down":
+				if index < count - 1:
+					index += 1
+					_highlight_menu_index(index)
+				else:
+					pass
+			"confirm":
+				return index
+	return index  # inalcanzable, satisface al analizador estático
+ 
+ 
+func _highlight_menu_index(index: int) -> void:
+	for i in menu_list.get_child_count():
+		var lbl := menu_list.get_child(i) as Label
+		if not lbl:
+			continue
+		if i == index:
+			lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+			lbl.text = "♥ " + lbl.text.trim_prefix("♥ ")
+		else:
+			lbl.add_theme_color_override("font_color", Color.WHITE)
+			lbl.text = lbl.text.trim_prefix("♥ ")
+ 
+ 
+# =======================================================================
+# INPUT GENÉRICO (reemplaza esto por tu sistema de Input Actions si ya tienes uno)
+# =======================================================================
+func _wait_for_menu_input() -> String:
+	while true:
+		await get_tree().process_frame
+		if Input.is_action_just_pressed("ui_left"):
+			return "left"
+		if Input.is_action_just_pressed("ui_right"):
+			return "right"
+		if Input.is_action_just_pressed("ui_up"):
+			return "up"
+		if Input.is_action_just_pressed("ui_down"):
+			return "down"
+		if Input.is_action_just_pressed("ui_accept"):
+			return "confirm"
+	return ""  # inalcanzable, satisface al analizador estático
+ 
+ 
+# =======================================================================
+# TEXTO ESTILO TYPEWRITER (con corazón parpadeante, como en las capturas)
+# =======================================================================
+func _show_text(full_text: String) -> void:
+	_typing = true
+	_skip_typing = false
+	main_label.text = ""
+ 
+	for i in full_text.length():
+		if _skip_typing:
+			main_label.text = full_text
+			break
+		main_label.text += full_text[i]
+		await get_tree().create_timer(TYPE_SPEED).timeout
+ 
+	_typing = false
+ 
+ 
+func _hide_text() -> void:
+	var tw := create_tween()
+	tw.tween_property(main_label, "modulate:a", 0.0, 0.3)
+	await tw.finished
+	main_label.text = ""
+	main_label.modulate.a = 1.0
+ 
+ 
+func _unhandled_input(event: InputEvent) -> void:
+	if _typing and event.is_action_pressed("ui_accept"):
+		_skip_typing = true
+ 
+ 
+# =======================================================================
+# MÚSICA (DRONE al inicio, ANOTHER HIM cuando aparece el fondo — ambos en loop,
+# uno reemplaza al otro con crossfade, no suenan mezclados)
+# =======================================================================
+var _current_music_path := ""
+ 
+func _play_music_looped(path: String) -> void:
+	if _current_music_path == path:
 		return
-	SettingsManager.player_name = name_text
-	name_panel.visible = false
-	ready_panel.visible = true
-	ready_name_label.text = name_text
-	_phase = Phase.READY
-	ready_yes_btn.grab_focus()
-	AudioManager.play_sfx_ui(SfxId.SELECT)
-
-
-func _back_to_confirm() -> void:
-	ready_panel.visible = false
-	confirm_panel.visible = true
-	_phase = Phase.CONFIRM
-	confirm_yes_btn.grab_focus()
-
-
-func _finish() -> void:
-	if _finished:
+	if not ResourceLoader.exists(path):
+		push_warning("[VesselCreation] No se encontró música: " + path)
 		return
-	_finished = true
-	SettingsManager.vessel_data = {
-		"head": _frames[Part.HEAD],
-		"body": _frames[Part.BODY],
-		"legs": _frames[Part.LEGS],
+	_current_music_path = path
+ 
+	var stream := load(path) as AudioStream
+	if stream and "loop" in stream:
+		stream.loop = true
+ 
+	if music_player.playing:
+		var fade_out := create_tween()
+		fade_out.tween_property(music_player, "volume_db", -80.0, MUSIC_CROSSFADE_TIME)
+		await fade_out.finished
+		music_player.stop()
+ 
+	music_player.stream = stream
+	music_player.volume_db = -80.0
+	music_player.play()
+	var fade_in := create_tween()
+	fade_in.tween_property(music_player, "volume_db", 0.0, MUSIC_CROSSFADE_TIME)
+ 
+ 
+# =======================================================================
+# GUARDADO FINAL
+# =======================================================================
+func _finish_creation() -> void:
+	var vessel_data := {
+		"head": _selected_head,
+		"torso": _selected_torso,
+		"legs": _selected_legs,
+		"food": FOOD_OPTIONS[_selected_food],
+		"color": COLOR_OPTIONS[_selected_color],
 	}
-	SettingsManager.first_launch_done = true
-	SettingsManager.save_settings()
-	LobbyManager.local_player_name = SettingsManager.player_name
-	AudioManager.play_sfx_ui(SfxId.SELECT)
-	get_tree().change_scene_to_file("res://ui/Boot/scenes/Intro.tscn")
-
-
-func _on_continue_pressed() -> void:
-	_advance()
-
-
-func _on_name_edit_text_submitted(_new_text: String) -> void:
-	_confirm_name()
-
-
-func _on_confirm_yes_pressed() -> void:
-	_enter_name()
-
-
-func _on_confirm_no_pressed() -> void:
-	_back_to_legs()
-
-
-func _on_ready_yes_pressed() -> void:
-	_finish()
-
-
-func _on_ready_no_pressed() -> void:
-	_back_to_confirm()
+ 
+	SettingsManager.complete_goner_creation(_player_name, vessel_data, COLOR_OPTIONS[_selected_color])
+ 
+	# fundido a negro y cierre de la escena
+	var tw := create_tween()
+	tw.tween_property(fade_rect, "color:a", 1.0, 1.0)
+	tw.parallel().tween_property(music_player, "volume_db", -80.0, 1.0)
+	await tw.finished
+ 
+	get_tree().change_scene_to_file.call_deferred("res://ui/Boot/scenes/Intro.tscn")
+ 
