@@ -44,11 +44,6 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	_keep_alive.append(self)
 
-	if player_node.multiplayer.is_server():
-		var relay = GameServiceLocator.get_client_relay()
-		if is_instance_valid(relay):
-			relay.rpc("_rpc_camera_shake", 20.0, 1.5)
-
 	var spawn_delay: float = data.spawn_delay if data.spawn_delay > 0.0 else 0.0
 	if player_node.get_tree():
 		player_node.get_tree().create_timer(spawn_delay).timeout.connect(
