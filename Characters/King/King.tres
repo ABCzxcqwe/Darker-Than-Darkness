@@ -8,7 +8,9 @@
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/Assets/icon.png" id="4_icon"]
 [ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/Assets/king_panel.png" id="5_panel"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/scripts/SwordSlash.gd" id="6_sword"]
+[ext_resource type="AudioStream" uid="uid://c800d46l0g5c3" path="res://audio/SFX/snd_dadblast.wav" id="7_3e8eq"]
 [ext_resource type="Resource" uid="uid://cqh3sljtgj5t4" path="res://abilities/king/Lanza.tres" id="7_lanza"]
+[ext_resource type="Resource" path="res://abilities/king/Rugido.tres" id="8_rugido"]
 
 [sub_resource type="Resource" id="Resource_m1"]
 script = ExtResource("1_ad")
@@ -26,7 +28,7 @@ id = 5
 display_name = "King"
 team = "killer"
 speed = 450.0
-max_health = 1000
+max_health = 750
 size_x = 70
 size_y = 50
 position_y = 50
@@ -35,7 +37,8 @@ h_size_y = 150
 can_take_damage = false
 terror_radius = 1000.0
 chase_radius = 500.0
-ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), null, null, null])
+hit_sfx = Array[AudioStream]([ExtResource("7_3e8eq")])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), ExtResource("8_rugido"), null, null])
 tp_gain_time = 1.5
 stamina_max = 240.0
 stamina_regen_rate = 25.0

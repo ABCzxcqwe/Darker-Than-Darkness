@@ -16,9 +16,8 @@ var hitbox_max_range: float = 1200.0
 
 # ── Mecánica de la lanza ─────────────────────────────────────────────
 var origin: Vector2 = Vector2.ZERO          # estómago del Rey (replicado)
-const RETRACT_SPEED: float = 700.0          # retracción del asta (px/s)
-const PULL_SPEED: float    = 700.0          # jalado del objetivo / del Rey (px/s)
-const HOOK_PULL_SPEED: float = 1000.0       # Rei jalado hacia la pared enganchada (px/s)
+const RETRACT_SPEED: float = 1800.0         # retracción del asta (px/s)
+const HOOK_PULL_SPEED: float = 1800.0       # Rei jalado hacia la pared enganchada (px/s)
 const ARRIVE_DIST: float   = 40.0           # dist. para considerar "recogido"
 const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
 
@@ -138,6 +137,8 @@ func _on_area_entered(area: Area2D) -> void:
 	_grabbed = target
 	_grabbed_peer = target_id
 	_phase = Phase.GRAB
+
+	AudioManager.play_sfx_networked.rpc(SfxId.GRAB, global_position.x, global_position.y)
 
 	var combat = GameServiceLocator.combat_mediator
 	if combat and is_instance_valid(target):

@@ -1,6 +1,6 @@
 extends Node
 
-enum ArrowType { HIT, DOWN, MAP }
+enum ArrowType { HIT, DOWN, MAP, REVEAL }
 
 const HIT_DURATION := 2.5
 
@@ -83,6 +83,36 @@ func remove_map_indicator(arrow_id: int) -> void:
 	if _server_arrows.has(arrow_id):
 		_server_arrows.erase(arrow_id)
 		_client_relay.rpc("_rpc_remove_arrow", arrow_id)
+
+
+func reveal_enemies(caster_peer: int, duration: float = 10.0) -> void:
+	if not multiplayer.is_server():
+		return
+	for survivor in get_tree().get_nodes_in_group("survivor"):
+		if not is_instance_valid(survivor):
+			continue
+		if survivor.get("health_state") != "alive":
+			continue
+		var peer_id: int = survivor.get_multiplayer_authority()
+		if peer_id == caster_peer:
+			continue
+		var arrow_id := _next_id
+		_next_id += 1
+		_server_arrows[arrow_id] = {
+			"type": ArrowType.REVEAL,
+			"duration": duration
+		}
+		_client_relay.rpc("_rpc_add_arrow", arrow_id, ArrowType.REVEAL, survivor.global_position.x, survivor.global_position.y, peer_id, caster_peer, duration)
+		_auto_remove_arrow(arrow_id, duration)
+
+
+func _auto_remove_arrow(arrow_id: int, duration: float) -> void:
+	if duration <= 0.0:
+		return
+	await get_tree().create_timer(duration).timeout
+	if _server_arrows.has(arrow_id):
+		_server_arrows.erase(arrow_id)
+
 
 func _is_survivor(peer_id: int) -> bool:
 	var player_data = LobbyManager.players.get(peer_id)

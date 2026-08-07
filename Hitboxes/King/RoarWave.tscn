@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Hitboxes/King/RoarWave.gd" id="1_wave"]
+[ext_resource type="Shader" path="res://eco.gdshader" id="2_eco"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_wave"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wave"]
+shader = ExtResource("2_eco")
+shader_parameter/center = Vector2(0.5, 0.5)
+shader_parameter/force = 0.08
+shader_parameter/size = 0.0
+shader_parameter/thickness = 0.06
+
+[node name="RoarWave" type="Node2D"]
+z_index = 6
+script = ExtResource("1_wave")
+
+[node name="WaveQuad" type="Polygon2D" parent="."]
+z_index = 6
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-700, -700, 700, -700, 700, 700, -700, 700)
+material = SubResource("ShaderMaterial_wave")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_wave")

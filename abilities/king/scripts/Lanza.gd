@@ -2,11 +2,8 @@ extends AbilityBase
 class_name LanzaAbility
 
 # ── Constantes de la mecánica de la lanza ────────────────────────────
-const LANZA_SPEED: float      = 900.0   # avance de la cabeza (px/s)
-const RETRACT_SPEED: float    = 700.0   # retracción del asta tras agarrar (px/s)
-const PULL_SPEED: float       = 500.0   # velocidad de jalado del objetivo / del Rey
-const ARRIVE_DIST: float      = 60.0    # distancia para considerar "recogido"
-const ROOT_DURATION: float    = 30.0    # root durante toda la habilidad (se libera al resolver)
+const LANZA_SPEED: float      = 1800.0   # avance de la cabeza (px/s)
+const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se libera al resolver)
 
 # Evita que el RefCounted sea recolectado mientras la habilidad está activa.
 static var _keep_alive: Array = []
@@ -89,7 +86,7 @@ func _spawn_lance(lance_dir: Vector2) -> void:
 		"team_filter": "enemy",
 		"lifetime": ROOT_DURATION,
 		"speed": LANZA_SPEED,
-		"hitbox_max_range": 0.0,
+		"hitbox_max_range": _data.range_ if _data else 0.0,
 		"offset": 0.0,
 		"custom_hitbox": true,
 		"detect_walls": true,

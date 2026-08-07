@@ -40,6 +40,8 @@ var _latest_aim_dir: Vector2 = Vector2.RIGHT
 var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
+var _vision_scale: float = 1.0
+var _vision_scale_until: int = 0
 var _last_slot_request_time: Dictionary = {}
 
 var _emote_bar_open: bool = false
@@ -835,6 +837,14 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 				animated_sprite.play("stun_end")
 			else:
 				animation_component.end_stun()
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_vision_reduction(factor: float, duration: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	_vision_scale = factor
+	_vision_scale_until = Time.get_ticks_msec() + int(duration * 1000.0)
 
 
 @rpc("any_peer", "call_local", "reliable")

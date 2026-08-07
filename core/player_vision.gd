@@ -44,6 +44,8 @@ func _process(_delta: float) -> void:
 	if not data:
 		return
 
+	_apply_vision_scale(player, data)
+
 	var mouse_pos = player.get_global_mouse_position()
 	var facing = (mouse_pos - player.global_position).normalized()
 	if facing.length() < 0.001:
@@ -52,6 +54,14 @@ func _process(_delta: float) -> void:
 	$"../VisionCone".rotation = facing.angle()
 
 	_update_player_visibility(player, data, facing)
+
+
+func _apply_vision_scale(player: Node2D, data: CharacterData) -> void:
+	if Time.get_ticks_msec() >= player._vision_scale_until:
+		player._vision_scale = 1.0
+	var scale = player._vision_scale
+	$"../VisionCircle".texture_scale = (data.vision_circle_radius / BASE_CIRCLE_RADIUS) * scale
+	$"../VisionCone".texture_scale = (data.vision_cone_range / BASE_CONE_RADIUS) * scale
 
 func _update_player_visibility(player: Node2D, data: CharacterData, facing_dir: Vector2) -> void:
 	var circle_radius = data.vision_circle_radius

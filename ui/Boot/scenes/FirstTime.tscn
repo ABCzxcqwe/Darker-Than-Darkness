@@ -1,10 +1,25 @@
 [gd_scene format=3 uid="uid://cdv2ka4ompuma"]
 
 [ext_resource type="Script" uid="uid://4oxklui2appg" path="res://ui/Boot/scripts/first_time.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dr5n7h35gfmlg" path="res://ui/Boot/scenes/backgrpund.gdshader" id="2_1im1y"]
 [ext_resource type="Texture2D" uid="uid://dbqvrncxvxvi6" path="res://sprites/Background.png" id="2_bg"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="3_8tjn0"]
+[ext_resource type="Shader" uid="uid://da3aqfr31hmy4" path="res://ui/Boot/scenes/Pulse.gdshader" id="3_q7y7p"]
 [ext_resource type="AudioStream" uid="uid://k0u888ksgyo3" path="res://ui/Boot/scenes/AUDIO_DRONE.wav" id="4_41kep"]
 [ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="5_8tjn0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8si7t"]
+shader = ExtResource("2_1im1y")
+shader_parameter/velocidad_base = 0.03000000107574
+shader_parameter/color_tinta = Color(0.28118676, 0.2811869, 0.2811868, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1im1y"]
+shader = ExtResource("3_q7y7p")
+shader_parameter/radius_base = 2.50000011875
+shader_parameter/glow_base = 1.50000007125
+shader_parameter/amplitud_pulso = 0.6000000285
+shader_parameter/velocidad_pulso = 3.0000001392401203
+shader_parameter/color_aura = Color(1, 1, 1, 0.64705884)
 
 [node name="VesselCreation" type="Control" unique_id=1752598415]
 layout_mode = 3
@@ -27,7 +42,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="WaterBG" type="TextureRect" parent="." unique_id=1818263370]
-visible = false
+material = SubResource("ShaderMaterial_8si7t")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,7 +55,6 @@ stretch_mode = 4
 
 [node name="RedLine" type="ColorRect" parent="." unique_id=123579410]
 visible = false
-custom_minimum_size = Vector2(30, 0)
 layout_mode = 1
 anchors_preset = 13
 anchor_left = 0.5
@@ -51,6 +65,7 @@ grow_vertical = 2
 color = Color(0.89827543, 2.5990605e-06, 1.2513996e-06, 1)
 
 [node name="MainLabel" type="Label" parent="." unique_id=1245864057]
+material = SubResource("ShaderMaterial_1im1y")
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.35
@@ -64,14 +79,18 @@ theme_override_font_sizes/font_size = 40
 text = "ARE YOU THERE?"
 horizontal_alignment = 1
 vertical_alignment = 1
+uppercase = true
 
 [node name="VesselPreview" type="Node2D" parent="." unique_id=1653589532]
 
 [node name="HeadSprite" type="Sprite2D" parent="VesselPreview" unique_id=203553425]
+scale = Vector2(4, 4)
 
 [node name="TorsoSprite" type="Sprite2D" parent="VesselPreview" unique_id=1820491612]
+scale = Vector2(4, 4)
 
 [node name="LegsSprite" type="Sprite2D" parent="VesselPreview" unique_id=45416951]
+scale = Vector2(4, 4)
 
 [node name="OptionsRow" type="HBoxContainer" parent="." unique_id=1912076062]
 layout_mode = 1
@@ -122,6 +141,7 @@ stream = ExtResource("4_41kep")
 bus = &"Music"
 
 [node name="Heart" type="TextureRect" parent="." unique_id=1427587718]
+visible = false
 layout_direction = 3
 layout_mode = 1
 anchors_preset = -1

@@ -1,11 +1,12 @@
 extends Control
 
-enum ArrowType { HIT, DOWN, MAP }
+enum ArrowType { HIT, DOWN, MAP, REVEAL }
 
 const COLORS := {
 	ArrowType.HIT: Color(1.0, 0.65, 0.0),
 	ArrowType.DOWN: Color(1.0, 0.0, 0.0),
 	ArrowType.MAP: Color(1.0, 1.0, 1.0),
+	ArrowType.REVEAL: Color(1.0, 0.2, 0.2),
 }
 
 # Aumenta/reduce estos valores para cambiar el tamaño de la flecha de borde
@@ -39,7 +40,12 @@ func _on_arrow_spawned(arrow_id: int, type: int, target_pos: Vector2, track_peer
 		return
 	if type == ArrowType.DOWN and _my_team != "survivor":
 		return
-	if _my_id > 0 and filter_peer == _my_id:
+	if type == ArrowType.REVEAL:
+		if _my_team != "killer":
+			return
+		if _my_id > 0 and filter_peer != _my_id:
+			return
+	elif _my_id > 0 and filter_peer == _my_id:
 		return
 	_arrows[arrow_id] = {
 		"type": type,
