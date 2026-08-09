@@ -18,13 +18,14 @@ var hitbox_max_range: float = 1200.0
 var origin: Vector2 = Vector2.ZERO          # estómago del Rey (replicado)
 const RETRACT_SPEED: float = 1800.0         # retracción del asta (px/s)
 const HOOK_PULL_SPEED: float = 1800.0       # Rei jalado hacia la pared enganchada (px/s)
+const RETURN_SPEED: float = 2500.0          # retorno al Rey al alcanzar el límite de rango (px/s)
 const ARRIVE_DIST: float   = 40.0           # dist. para considerar "recogido"
 const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
 
 const LANZA_TEX := preload("uid://ksj6jcxhc5yk")       # lanza.png
 const LANZA_CABEZA_TEX := preload("uid://c0s1t2np4oujg") # lanza_cabeza.png
 
-enum Phase { EXTEND, GRAB, HOOK, DONE }
+enum Phase { EXTEND, GRAB, HOOK, RETURN, DONE }
 
 var _phase: int = Phase.EXTEND
 var _direction: Vector2 = Vector2.RIGHT
@@ -84,6 +85,8 @@ func _physics_process(delta: float) -> void:
 			_grab_phase(delta)
 		Phase.HOOK:
 			_hook_phase(delta)
+		Phase.RETURN:
+			_return_phase(delta)
 
 
 func _extend_phase(delta: float) -> void:
@@ -97,7 +100,7 @@ func _extend_phase(delta: float) -> void:
 	# Limitar por rango máximo.
 	_travel += step
 	if hitbox_max_range > 0.0 and _travel >= hitbox_max_range:
-		_resolve(false)
+		_to_return()
 		return
 
 	if detect_walls:
@@ -115,6 +118,22 @@ func _to_hook() -> void:
 	_phase = Phase.HOOK
 	if is_instance_valid(_caster):
 		_pause_sync(_caster)
+
+
+# ── Fase RETURN: la cabeza regresa al Rey al agotar el rango ─────────
+func _to_return() -> void:
+	_phase = Phase.RETURN
+
+
+func _return_phase(delta: float) -> void:
+	if _resolved:
+		return
+
+	var king_pos: Vector2 = _caster.global_position if is_instance_valid(_caster) else origin
+	global_position = global_position.move_toward(king_pos, RETURN_SPEED * delta)
+
+	if global_position.distance_to(king_pos) < ARRIVE_DIST:
+		_resolve(false)
 
 
 # ── Detección de superviviente ───────────────────────────────────────
