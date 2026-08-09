@@ -86,7 +86,7 @@ func _spawn_lance(lance_dir: Vector2) -> void:
 		"team_filter": "enemy",
 		"lifetime": ROOT_DURATION,
 		"speed": LANZA_SPEED,
-		"hitbox_max_range": _data.range_ if _data else 0.0,
+		"hitbox_max_range": 0.0,
 		"offset": 0.0,
 		"custom_hitbox": true,
 		"detect_walls": true,
