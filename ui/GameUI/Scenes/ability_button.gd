@@ -182,7 +182,7 @@ func _setup_tp_tracking() -> void:
 	if border_fill_mask:
 		border_fill_mask.visible = true
 	if icon_rect:
-		icon_rect.visible = false
+		icon_rect.visible = true
 
 	_build_fill_style(base_fill_rect, BORDER_COLOR_NORMAL)
 	_build_fill_style(evolution_fill_rect, BORDER_COLOR_EVOLVED_A)
@@ -266,8 +266,9 @@ func _update_tp_fill(current_tp: float) -> void:
 	_apply_growing_border(base_fill_rect, _ratio_base)
 
 	if icon_rect:
-		icon_rect.visible = _ratio_base >= 1.0
+		icon_rect.visible = true
 		icon_rect.texture = active_data.icon if active_data.icon else null
+		icon_rect.modulate.a = lerpf(0.35, 1.0, _ratio_base)
 
 	var skip_tramo_2: bool = not has_evolution or permanent_swapped or is_permanent or not _is_evolved
 

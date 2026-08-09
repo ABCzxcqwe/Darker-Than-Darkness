@@ -18,6 +18,7 @@ tp_cost = 20.0
 tp_reward = 5.0
 move_restriction = 1
 attack_type = "projectile"
+base_damage = 15
 stun_duration = 5.0
 evolved_version = ExtResource("3_t4g8i")
 lms_auto_evolve = true

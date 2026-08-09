@@ -18,9 +18,32 @@ var _lms_service: Node = null
 var _ability_state_service: Node = null
 var _evolution_service: Node = null
 
+var _client_relay: Node = null
+
 signal damage_dealt(attacker_id: int, target_id: int, final_damage: int, attack_type: String)
 signal stun_applied(target_id: int, duration: float)
 signal heal_applied(caster_id: int, target_id: int, amount: int)
+
+func set_client_relay(relay: Node) -> void:
+	_client_relay = relay
+
+
+func _broadcast_damage_number(attacker: Node, target_peer: int, amount: int, pos: Vector2) -> void:
+	if not _client_relay or amount <= 0:
+		return
+	var attack_dir := 1.0
+	var atk_color := Color(1, 1, 1)
+	if attacker:
+		if attacker.get("facing_right") != null:
+			attack_dir = 1.0 if attacker.facing_right else -1.0
+		else:
+			var sp = attacker.get("animated_sprite")
+			if sp and sp.flip_h:
+				attack_dir = -1.0
+		var cd = attacker.get("character_data")
+		if cd:
+			atk_color = cd.theme_color
+	_client_relay.rpc("_rpc_add_damage_number", target_peer, amount, pos.x, pos.y, randi(), attack_dir, atk_color)
 
 func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: String) -> int:
 	if not multiplayer.is_server():
@@ -42,6 +65,8 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 		return 0
 
 	if target.character_data and target.character_data.team == "killer":
+		# Los killers actuales no tienen vida: solo se muestra el número visual del daño.
+		_broadcast_damage_number(attacker, target_peer, final_damage, target.global_position)
 		return 0
 
 	var now := Time.get_ticks_msec()
@@ -68,6 +93,8 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	var att_id: int = attacker.get_multiplayer_authority() if attacker else 0
 	damage_dealt.emit(att_id, target_peer, final_damage, attack_type)
+
+	_broadcast_damage_number(attacker, target_peer, final_damage, target.global_position)
 
 	if target.character_data and target.character_data.team == "survivor":
 		_play_hurt_sound(target)

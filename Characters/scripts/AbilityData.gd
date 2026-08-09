@@ -175,6 +175,10 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Retraso en segundos entre la animación de lanzamiento y la aparición del proyectil.
 @export var spawn_delay: float = 0.0
 
+## Duración total en segundos de la habilidad (root, animación y efectos ligados).
+## La habilidad se cancela/termina al cumplirse este tiempo.
+@export var cast_duration: float = 1.5
+
 ## Tipo de ataque para el sistema de invencibilidad de HealthService.
 ## Debe coincidir con los valores que verifica CharacterData.special_defense_against.
 @export var attack_type: String = "normal"

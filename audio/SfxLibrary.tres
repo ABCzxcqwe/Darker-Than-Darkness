@@ -37,6 +37,7 @@
 [ext_resource type="AudioStream" uid="uid://c8g3e6xuoub0p" path="res://audio/SFX/ralsei_sing2.MP3" id="32_sing2"]
 [ext_resource type="AudioStream" uid="uid://c60cj73kbsa83" path="res://audio/SFX/AUDIO_APPEARANCE.wav" id="36_77axo"]
 [ext_resource type="AudioStream" uid="uid://c800d46l0g5c3" path="res://audio/SFX/snd_dadblast.wav" id="37_2aie0"]
+[ext_resource type="AudioStream" uid="uid://6uo1tuw6xp06" path="res://audio/SFX/King laugh.wav" id="38_kinglaugh"]
 
 [sub_resource type="Resource" id="Sfx1"]
 script = ExtResource("2_b81f2")
@@ -146,8 +147,8 @@ metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 [sub_resource type="Resource" id="Sfx16"]
 script = ExtResource("2_b81f2")
 id = 16
-name = "explosion"
-stream = ExtResource("18_explosion")
+name = "king_laugh"
+stream = ExtResource("38_kinglaugh")
 metadata/_custom_type_script = "uid://c4cgdv7ishyrh"
 
 [sub_resource type="Resource" id="Resource_7u4fr"]

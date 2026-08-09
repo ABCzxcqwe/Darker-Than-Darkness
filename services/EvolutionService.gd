@@ -67,11 +67,8 @@ func consume_evolution(peer_id: int, slot_index: int) -> void:
 	if not _evolved_slots.has(peer_id):
 		return
 
-	if slot_index == 1 or slot_index == 3:
-		_clear_if_temporary(peer_id, 1)
-		_clear_if_temporary(peer_id, 3)
-	else:
-		_clear_if_temporary(peer_id, slot_index)
+	# Cada habilidad evolucionada revierte solo cuando ESA habilidad se usa.
+	_clear_if_temporary(peer_id, slot_index)
 
 
 func _clear_if_temporary(peer_id: int, slot_index: int) -> void:

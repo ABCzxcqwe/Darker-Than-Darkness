@@ -4,9 +4,13 @@
 [ext_resource type="PackedScene" uid="uid://bp13d3jfglp5h" path="res://Hitboxes/Jevil/DevilKnifeProjectile.tscn" id="1_k2lcl"]
 [ext_resource type="Script" uid="uid://cxqrp2j7vg0bk" path="res://abilities/jevil/scripts/DevilKnife.gd" id="2_k2lcl"]
 
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_k2lcl"]
+load_path = "res://.godot/imported/guadaña.png-0083abd934d6d8e68610f2515f99650a.ctex"
+
 [resource]
 script = ExtResource("1_abilitydata")
 display_name = "Devil Knife"
+icon = SubResource("CompressedTexture2D_k2lcl")
 ability_script = ExtResource("2_k2lcl")
 ability_scene = ExtResource("1_k2lcl")
 action_animation = "attack"

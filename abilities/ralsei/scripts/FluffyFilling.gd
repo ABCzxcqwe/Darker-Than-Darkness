@@ -44,7 +44,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	_active = true
 	_total_hits = 0
 	_fired_count = 0
-	_pending_projectiles = 3
+	_pending_projectiles = _get_projectile_count(data)
 
 	if data.tp_cost > 0.0 and _tp_svc:
 		if not _tp_svc.consume_tp(_caster_id, data.tp_cost):
@@ -67,7 +67,8 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	var combat = GameServiceLocator.combat_mediator
 	var anim_dur := _get_anim_duration(player_node, data.action_animation)
-	var total_cast: float = anim_dur + FIRE_INTERVAL * 2 + CAST_BUFFER
+	var projectile_count: int = _get_projectile_count(data)
+	var total_cast: float = anim_dur + FIRE_INTERVAL * (projectile_count - 1) + CAST_BUFFER
 	if combat:
 		combat.apply_root(_player_node, total_cast)
 
@@ -85,7 +86,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		)
 
 		var fire_start: float = anim_dur * 0.3
-		for i in range(3):
+		for i in range(projectile_count):
 			player_node.get_tree().create_timer(fire_start + FIRE_INTERVAL * i).timeout.connect(
 				func():
 					_fire_shot()
@@ -95,7 +96,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 
 func _fire_shot() -> void:
-	if not _active or not is_instance_valid(_player_node) or _fired_count >= 3:
+	if not _active or not is_instance_valid(_player_node) or _fired_count >= _pending_projectiles:
 		return
 	if not _container or not _shape_scene:
 		return
@@ -128,7 +129,7 @@ func _fire_shot() -> void:
 	_container.add_child(projectile, true)
 
 	_fired_count += 1
-	print("[FluffyFilling] Disparo ", _fired_count, "/3 | dir: ", dir)
+	print("[FluffyFilling] Disparo ", _fired_count, "/", _pending_projectiles, " | dir: ", dir)
 
 
 func _end_cast() -> void:
@@ -221,6 +222,12 @@ func _release_lock_for(peer_id: int, slot_index: int) -> void:
 	var cd = GameServiceLocator.cooldown
 	if cd and cd.has_method("release_lock"):
 		cd.release_lock(peer_id, slot_index)
+
+
+func _get_projectile_count(data: AbilityData) -> int:
+	if data and data.projectile_count > 0:
+		return data.projectile_count
+	return 1
 
 
 func _get_container(player_node: Node) -> Node:

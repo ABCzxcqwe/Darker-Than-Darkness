@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://kcpqhcglm85g" path="res://Characters/Ralsei/assets/ralsei_down.png" id="3_7knsr"]
 [ext_resource type="Texture2D" uid="uid://o6jba518jrj2" path="res://Characters/Ralsei/assets/ralsei_prepare.png" id="3_ocyci"]
 [ext_resource type="Texture2D" uid="uid://b34f20lgmtqyg" path="res://Characters/Ralsei/assets/ralsei_run.png" id="4_1beqw"]
-[ext_resource type="Texture2D" uid="uid://bw7wrhdeedolv" path="res://Characters/Ralsei/assets/ralsei_walk.png" id="4_c6mrk"]
+[ext_resource type="Texture2D" uid="uid://dvob444ntn4fn" path="res://Characters/Ralsei/assets/ralsei_walk.png" id="4_c6mrk"]
 [ext_resource type="Texture2D" uid="uid://e4ebxl7asitq" path="res://Characters/Ralsei/assets/ralsei_sing.png" id="6_tgn3b"]
 [ext_resource type="Texture2D" uid="uid://h2tt6av4i2kf" path="res://Characters/Ralsei/assets/ralsei_dust.png" id="6_v2l0g"]
 [ext_resource type="Texture2D" uid="uid://bghctodrxgplp" path="res://Characters/Ralsei/assets/icon.png" id="7_icon"]
@@ -186,6 +186,22 @@ region = Rect2(384, 0, 192, 192)
 [sub_resource type="AtlasTexture" id="AtlasTexture_3dma8"]
 atlas = ExtResource("4_c6mrk")
 region = Rect2(576, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w1wbq"]
+atlas = ExtResource("4_c6mrk")
+region = Rect2(768, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0geme"]
+atlas = ExtResource("4_c6mrk")
+region = Rect2(960, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kuuhb"]
+atlas = ExtResource("4_c6mrk")
+region = Rect2(1152, 0, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xoyo5"]
+atlas = ExtResource("4_c6mrk")
+region = Rect2(1344, 0, 192, 192)
 
 [resource]
 animations = [{
@@ -374,6 +390,18 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_3dma8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w1wbq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0geme")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kuuhb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xoyo5")
 }],
 "loop": true,
 "name": &"walk_horizontal",

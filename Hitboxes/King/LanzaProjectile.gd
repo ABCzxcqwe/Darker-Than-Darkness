@@ -194,7 +194,7 @@ func _resolve(success: bool) -> void:
 
 	var combat = GameServiceLocator.combat_mediator
 
-	if success and is_instance_valid(_grabbed):
+	if is_instance_valid(_grabbed):
 		if combat:
 			combat.remove_root(_grabbed)
 		_resume_sync(_grabbed)

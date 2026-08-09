@@ -145,9 +145,22 @@ func play_stream_2d(stream: AudioStream, position: Vector2) -> void:
 	player.global_position = position
 	player.play()
 
-@rpc("authority", "reliable", "call_local")
+@rpc("any_peer", "reliable", "call_local")
 func play_sfx_networked(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
+
+func play_sfx_global(sfx_id: int) -> void:
+	var stream = _sfx_library.get(sfx_id)
+	if not stream:
+		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
+		return
+	var player := _acquire()
+	player.stream = stream
+	player.play()
+
+@rpc("any_peer", "reliable", "call_local")
+func play_sfx_global_networked(sfx_id: int) -> void:
+	play_sfx_global(sfx_id)
 
 @rpc("authority", "reliable", "call_local")
 func play_stream_2d_rpc(path: String, x: float, y: float) -> void:

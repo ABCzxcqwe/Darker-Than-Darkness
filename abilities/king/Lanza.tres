@@ -16,6 +16,7 @@ cooldown = 8.0
 cooldown_fail = 4.0
 tp_cost = 15.0
 move_restriction = 1
+can_cancel = true
 defer_cooldown = true
 range_ = 1500.0
 spawn_delay = 1.0

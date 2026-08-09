@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvob444ntn4fn"
-path="res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"
+uid="uid://hh27pmiorma"
+path="res://.godot/imported/guadaña.png-0083abd934d6d8e68610f2515f99650a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei_walk.png"
-dest_files=["res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"]
+source_file="res://abilities/jevil/icons/guadaña.png"
+dest_files=["res://.godot/imported/guadaña.png-0083abd934d6d8e68610f2515f99650a.ctex"]
 
 [params]
 

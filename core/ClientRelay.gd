@@ -23,6 +23,8 @@ signal slot_devolved(slot_index: int)
 signal arrow_spawned(arrow_id: int, type: int, target_pos: Vector2, track_peer: int, filter_peer: int, duration: float)
 signal arrow_despawned(arrow_id: int)
 
+signal damage_number_spawned(peer_id: int, amount: int, pos_x: float, pos_y: float, rng_seed: int, dir_sign: float, color: Color)
+
 signal revive_started(rescuer_id: int, target_id: int, duration: float)
 signal revive_cancelled(rescuer_id: int, target_id: int)
 signal revive_completed(rescuer_id: int, target_id: int)
@@ -125,6 +127,12 @@ func _rpc_add_arrow(arrow_id: int, type: int, target_x: float, target_y: float, 
 @rpc("authority", "call_local", "reliable")
 func _rpc_remove_arrow(arrow_id: int) -> void:
 	arrow_despawned.emit(arrow_id)
+
+
+## Damage Numbers
+@rpc("authority", "call_local", "reliable")
+func _rpc_add_damage_number(peer_id: int, amount: int, pos_x: float, pos_y: float, rng_seed: int, dir_sign: float, color: Color) -> void:
+	damage_number_spawned.emit(peer_id, amount, pos_x, pos_y, rng_seed, dir_sign, color)
 
 
 ## Revive

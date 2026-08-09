@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://6uo1tuw6xp06"
+path="res://.godot/imported/King laugh.wav-e1fee4916c8ca8d56a0770c3b3d09be5.sample"
+
+[deps]
+
+source_file="res://audio/SFX/King laugh.wav"
+dest_files=["res://.godot/imported/King laugh.wav-e1fee4916c8ca8d56a0770c3b3d09be5.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

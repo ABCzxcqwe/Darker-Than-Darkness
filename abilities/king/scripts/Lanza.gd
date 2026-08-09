@@ -8,7 +8,16 @@ const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se lib
 # Evita que el RefCounted sea recolectado mientras la habilidad está activa.
 static var _keep_alive: Array = []
 
+
+static func find_active_for(player_node: Node, slot_index: int) -> LanzaAbility:
+	for inst in _keep_alive:
+		if inst._active and inst._player_node == player_node and inst._slot_index == slot_index:
+			return inst
+	return null
+
+
 var _active: bool = false
+var _canceled: bool = false
 var _player_node: Node = null
 var _caster_id: int = -1
 var _slot_index: int = -1
@@ -110,6 +119,17 @@ func resolve(success: bool) -> void:
 	_resolve(success)
 
 
+# ── Cancelación manual (presionar "E" de nuevo) ──────────────────────
+func cancel_early() -> void:
+	if not _active:
+		return
+	_canceled = true
+	if is_instance_valid(_lance) and _lance.has_method("_resolve"):
+		_lance._resolve(false)
+	else:
+		_resolve(false)
+
+
 func _resolve(success: bool) -> void:
 	if not _active:
 		return
@@ -123,11 +143,12 @@ func _resolve(success: bool) -> void:
 		_player_node.rpc("_sync_cancel_ability")
 
 	# Cooldown: si conectó usa el normal; si falló en blanco, el cooldown_fail.
+	# Si la canceló el jugador, cuenta como usada → cooldown completo.
 	var cd: float = _data.cooldown
 	if _cd_svc:
 		if _cd_svc.has_method("release_lock"):
 			_cd_svc.release_lock(_caster_id, _slot_index)
-		if not success and _data.cooldown_fail > 0.0:
+		if not success and not _canceled and _data.cooldown_fail > 0.0:
 			cd = _data.cooldown_fail
 		_cd_svc.start(_caster_id, _slot_index, cd)
 

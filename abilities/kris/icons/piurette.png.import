@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvob444ntn4fn"
-path="res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"
+uid="uid://cat6muhpmk450"
+path="res://.godot/imported/piurette.png-e3ffe185380bcde2957005fc1774c91a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei_walk.png"
-dest_files=["res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"]
+source_file="res://abilities/kris/icons/piurette.png"
+dest_files=["res://.godot/imported/piurette.png-e3ffe185380bcde2957005fc1774c91a.ctex"]
 
 [params]
 

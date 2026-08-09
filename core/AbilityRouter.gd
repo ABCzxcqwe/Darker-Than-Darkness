@@ -95,6 +95,9 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	if not base_data:
 		return
 
+	if _maybe_cancel_active_ability(peer_id, player_node, slot_index, base_data):
+		return
+
 	var evolution_service: Node = GameServiceLocator.evolution
 	var lms_svc: Node = GameServiceLocator.lms
 	var resolve := _resolve_ability_version(peer_id, slot_index, base_data, evolution_service, lms_svc)
@@ -248,6 +251,23 @@ func _validate_tp(peer_id: int, ability_data: AbilityData, slot_index: int,
 			return {"valid": false, "ability_data": ability_data, "is_evolved": is_evolved, "lms_wants_evolve": lms_wants_evolve}
 
 	return {"valid": true, "ability_data": ability_data, "is_evolved": is_evolved, "lms_wants_evolve": lms_wants_evolve}
+
+
+# ── Cancelación de habilidad activa (toggle del mismo botón) ──────────────
+
+func _maybe_cancel_active_ability(peer_id: int, player_node: Node, slot_index: int,
+		base_data: AbilityData) -> bool:
+	if not base_data.can_cancel:
+		return false
+	if player_node.state != 2 or player_node.active_ability_slot != slot_index:
+		return false
+	var lanza = LanzaAbility.find_active_for(player_node, slot_index)
+	if not lanza:
+		return false
+	lanza.cancel_early()
+	print("[AbilityRouter] Habilidad activa cancelada con la misma tecla | peer: ", peer_id,
+		  " | slot: ", slot_index)
+	return true
 
 
 func _handle_animation_state(peer_id: int, player_node: Node, slot_index: int,

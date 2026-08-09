@@ -789,6 +789,59 @@ func _rpc_spawn_secret_visual(caster_peer_id: int) -> void:
 	)
 
 
+# ── Soul Protect FX ───────────────────────────────────────────────────
+
+const SOUL_PROTECT_FX_POSITION: Vector2 = Vector2(0, -30.0)
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_soul_protect_show(peer_id: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var player := PlayerRegistry.get_player(peer_id) as Node2D
+	if not player:
+		return
+
+	var frames := preload("res://Characters/Kris/animations.tres")
+	if not frames:
+		return
+
+	var existing: AnimatedSprite2D = player.get_node_or_null("SoulProtectFX")
+	if existing:
+		existing.queue_free()
+
+	var fx := AnimatedSprite2D.new()
+	fx.name = "SoulProtectFX"
+	fx.sprite_frames = frames
+	fx.position = SOUL_PROTECT_FX_POSITION
+	fx.z_index = 10
+	fx.play("soul_protect_1")
+	player.add_child(fx)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_soul_protect_break(peer_id: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var player := PlayerRegistry.get_player(peer_id) as Node2D
+	if not player:
+		return
+
+	var fx: AnimatedSprite2D = player.get_node_or_null("SoulProtectFX")
+	if not fx:
+		return
+
+	fx.play("soul_protect_2")
+	fx.animation_finished.connect(
+		func() -> void:
+			if is_instance_valid(fx) and fx.animation == "soul_protect_2":
+				fx.queue_free()
+	)
+
+
 # ── Sincronización desde el servidor ──────────────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")

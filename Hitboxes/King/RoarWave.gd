@@ -1,11 +1,15 @@
 extends Node2D
 
-const WAVE_DURATION: float = 1.0
 const MAX_SIZE: float = 0.5
 const FORCE: float = 0.08
 const THICKNESS: float = 0.06
 
+var duration: float = 1.0
 var _time: float = 0.0
+
+
+func set_duration(value: float) -> void:
+	duration = maxf(value, 0.1)
 
 
 func _ready() -> void:
@@ -18,7 +22,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	var t := clampf(_time / WAVE_DURATION, 0.0, 1.0)
+	var t := clampf(_time / duration, 0.0, 1.0)
 	var eased := 1.0 - pow(1.0 - t, 3.0)
 
 	var quad: Polygon2D = $WaveQuad
@@ -33,5 +37,5 @@ func _process(delta: float) -> void:
 			var uv: Vector2 = cam.get_canvas_transform() * global_position / viewport_size
 			mat.set_shader_parameter("center", uv)
 
-	if _time >= WAVE_DURATION:
+	if _time >= duration:
 		queue_free()

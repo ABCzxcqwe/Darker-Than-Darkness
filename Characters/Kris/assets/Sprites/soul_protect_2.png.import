@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvob444ntn4fn"
-path="res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"
+uid="uid://c68pj5uody2f4"
+path="res://.godot/imported/soul_protect_2.png-4ef9f5f6a41e552fe765b61d855c6654.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Ralsei/assets/ralsei_walk.png"
-dest_files=["res://.godot/imported/ralsei_walk.png-38050338c2740df102758a8daa208c3b.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/soul_protect_2.png"
+dest_files=["res://.godot/imported/soul_protect_2.png-4ef9f5f6a41e552fe765b61d855c6654.ctex"]
 
 [params]
 

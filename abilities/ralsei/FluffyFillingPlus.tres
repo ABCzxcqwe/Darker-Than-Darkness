@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://qg4vjxg66xfx"]
+[gd_resource type="Resource" script_class="AbilityData" format=3]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_se41e"]
 [ext_resource type="Script" uid="uid://bpjrmkrie0hdp" path="res://abilities/ralsei/scripts/FluffyFilling.gd" id="2_ffscr"]
 [ext_resource type="PackedScene" uid="uid://d2fluffypj35hitbox" path="res://Hitboxes/Ralsei/FluffyHitbox.tscn" id="3_ffhitbox"]
-[ext_resource type="Resource" path="res://abilities/ralsei/FluffyFillingPlus.tres" id="4_ffplus"]
 
 [resource]
 script = ExtResource("1_se41e")
-display_name = "Fluffy Filling"
-description = "Ralsei canaliza y dispara 1 proyectil serpenteante hacia donde mira. Al golpear a un Killer: roba 15 TP + ralentiza. Al golpear a un aliado: otorga 15 TP. Si no golpea nada, se planta como mina. El cooldown aumenta +1.5s por mina activa. Con el ACT de Kris evoluciona a Fluffy Filling+ (2 proyectiles)."
+display_name = "Fluffy Filling+"
+description = "Versión evolucionada de Fluffy Filling otorgada por el ACT de Kris. Ralsei canaliza y dispara 2 proyectiles serpenteantes (0.5s entre cada uno). Al golpear a un Killer: roba 15 TP + ralentiza. Al golpear a un aliado: otorga 15 TP. Si no golpea nada, se planta como mina. El cooldown aumenta +1.5s por mina activa."
 ability_type = 1
 ability_script = ExtResource("2_ffscr")
 ability_scene = ExtResource("3_ffhitbox")
@@ -26,6 +25,5 @@ is_projectile = true
 projectile_speed = 700.0
 projectile_lifetime = 3.0
 projectile_max_range = 500.0
-evolved_version = ExtResource("4_ffplus")
-evolvable_by_ally = true
+projectile_count = 2
 metadata/_custom_type_script = "uid://bodks86qovy6s"

@@ -1,5 +1,9 @@
 extends MeleeAbilityBase
 
+## Solo para King: Lord del ataque deshabilitado — King se mueve durante todo el swipe.
+## El camera shake sigue disparándose en el impacto.
+const ATTACK_IMPACT_DELAY: float = 0.5
+
 func _get_config(data: AbilityData) -> Dictionary:
 	return {
 		"hitbox_lifetime": 0.5,
@@ -10,9 +14,11 @@ func _get_config(data: AbilityData) -> Dictionary:
 	}
 
 func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int, cfg: Dictionary) -> void:
+	if player_node.character_data and player_node.character_data.id == 5:
+		cfg["skip_root"] = true
 	super._execute(player_node, data, direction, slot_index, cfg)
 	if player_node.character_data and player_node.character_data.id == 5 and player_node.multiplayer.is_server():
-		player_node.get_tree().create_timer(0.5).timeout.connect(
+		player_node.get_tree().create_timer(ATTACK_IMPACT_DELAY).timeout.connect(
 			func():
 				if is_instance_valid(player_node):
 					var relay = GameServiceLocator.get_client_relay()

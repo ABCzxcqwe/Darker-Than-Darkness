@@ -43,8 +43,20 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var lifetime = cfg.get("hitbox_lifetime", 0.3)
 	var anim_fallback = cfg.get("anim_duration_fallback", lifetime)
 	var root_dur = cfg.get("apply_root_duration", anim_fallback)
+	var root_delay = cfg.get("apply_root_delay", 0.0)
+	var delayed_root: bool = root_delay > 0.0
+	var skip_root: bool = cfg.get("skip_root", false)
 
-	if combat:
+	if not skip_root and delayed_root:
+		var hold := maxf(_get_anim_duration(player_node, data.action_animation, anim_fallback) - root_delay, 0.0)
+		if combat:
+			if player_node.get_tree():
+				player_node.get_tree().create_timer(root_delay).timeout.connect(
+					func() -> void:
+						if is_instance_valid(player_node) and combat:
+							combat.apply_root(player_node, hold)
+				)
+	elif not skip_root and combat:
 		combat.apply_root(player_node, root_dur)
 
 	if data.action_animation != "":
@@ -97,7 +109,7 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 		"on_end": func(hit_count: int) -> void:
 			var c = GameServiceLocator.combat_mediator
-			if c and is_instance_valid(player_node):
+			if c and is_instance_valid(player_node) and not skip_root and not delayed_root:
 				c.remove_root(player_node)
 
 			if hit_count == 0 and cd_svc:

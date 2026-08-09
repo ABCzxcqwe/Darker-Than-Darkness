@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Hitboxes/King/KingHitbox.gd" id="1"]
 
 [sub_resource type="RectangleShape2D" id="1"]
-size = Vector2(220, 150)
+size = Vector2(234, 156)
 
 [node name="SlashHitbox" type="Area2D"]
 position = Vector2(-30, 80)

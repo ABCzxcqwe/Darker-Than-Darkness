@@ -53,6 +53,7 @@ var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
 var _revive_prompts:   Dictionary = {}
 var _radar_layer:      Control    = null
+var _dmg_layer:        Control    = null
 var _effect_notifications: Dictionary = {}
 var _dialog_queue: Array[Dictionary] = []
 var _current_dialog: PanelContainer = null
@@ -115,6 +116,17 @@ func setup(player_node: Node) -> void:
 		add_child(_radar_layer)
 		_radar_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_radar_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	# 5. DamageNumberLayer
+	var dmg_script := load("res://ui/GameUI/scripts/damage_number_layer.gd")
+	if dmg_script and not _dmg_layer:
+		_dmg_layer = Control.new()
+		_dmg_layer.name = "DamageNumberLayer"
+		_dmg_layer.set_script(dmg_script)
+		_dmg_layer.setup()
+		add_child(_dmg_layer)
+		_dmg_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_dmg_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_configure_killer_hp_visibility(player_node)
 

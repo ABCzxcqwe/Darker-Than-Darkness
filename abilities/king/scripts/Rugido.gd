@@ -1,7 +1,6 @@
 extends AbilityBase
 class_name RugidoAbility
 
-const CAST_DURATION: float = 1.5
 const VISION_FACTOR: float = 0.5
 const VISION_DURATION: float = 10.0
 const REVEAL_DURATION: float = 10.0
@@ -16,6 +15,8 @@ var _data: AbilityData = null
 var _cd_svc: Node = null
 var _combat: Node = null
 
+var _cast_duration: float = 1.5
+
 
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
@@ -26,6 +27,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	_data = data
 	_slot_index = slot_index
 	_active = true
+	_cast_duration = data.cast_duration if data and data.cast_duration > 0.0 else 1.5
 
 	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:
@@ -40,7 +42,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	player_node.play_ability_animation(data.action_animation, _slot_index, facing_right)
 
 	if _combat:
-		_combat.apply_root(_player_node, CAST_DURATION)
+		_combat.apply_root(_player_node, _cast_duration)
 
 	_keep_alive.append(self)
 
@@ -59,9 +61,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	_apply_vision_reduction_to_survivors()
 	_reveal_survivors()
 
-	AudioManager.play_sfx_networked.rpc(
-		SfxId.EXPLOSION, player_node.global_position.x, player_node.global_position.y
-	)
+	AudioManager.play_sfx_global_networked.rpc(SfxId.KING_LAUGH)
 
 	if _cd_svc:
 		if _cd_svc.has_method("release_lock"):
@@ -69,7 +69,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		_cd_svc.start(_caster_id, _slot_index, data.cooldown)
 
 	if player_node.get_tree():
-		player_node.get_tree().create_timer(CAST_DURATION).timeout.connect(
+		player_node.get_tree().create_timer(_cast_duration).timeout.connect(
 			func(): _finish()
 		)
 
@@ -92,6 +92,8 @@ func _spawn_wave() -> void:
 	var wave = _data.ability_scene.instantiate()
 	container.add_child(wave, true)
 	wave.global_position = _player_node.global_position
+	if wave.has_method("set_duration"):
+		wave.set_duration(_cast_duration)
 
 	print("[Rugido] Onda generada en ", wave.global_position)
 

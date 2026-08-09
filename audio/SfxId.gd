@@ -36,3 +36,4 @@ const RALSEI_SING1 := 32
 const RALSEI_SING2 := 33
 const AUDIO_APPEARANCE := 34
 const KING_BLAST := 35
+const KING_LAUGH := 16

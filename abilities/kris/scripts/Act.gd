@@ -29,11 +29,13 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 	var cd_svc  = GameServiceLocator.cooldown
 
 	if target_peer_id == caster_id:
+		_abort_act(player_node, caster_id, slot_index, cd_svc)
 		print("[ACT] Kris no puede potenciarse a sí mismo.")
 		return
 
 	var target_node := PlayerRegistry.get_player(target_peer_id)
 	if not is_instance_valid(target_node):
+		_abort_act(player_node, caster_id, slot_index, cd_svc)
 		push_warning("[ACT] Nodo no encontrado para peer: ", target_peer_id)
 		return
 
@@ -41,20 +43,24 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 	if not is_survivor and target_node.get("character_data") != null:
 		is_survivor = target_node.character_data.team == "survivor"
 	if not is_survivor:
+		_abort_act(player_node, caster_id, slot_index, cd_svc)
 		print("[ACT] El objetivo no es un survivor.")
 		return
 
 	var health_svc = GameServiceLocator.health
 	if health_svc and not health_svc.is_alive(target_peer_id):
+		_abort_act(player_node, caster_id, slot_index, cd_svc)
 		print("[ACT] El objetivo está caído o muerto.")
 		return
 
 	if not evo_svc:
+		_abort_act(player_node, caster_id, slot_index, cd_svc)
 		push_error("[ACT] EvolutionService no disponible.")
 		return
 
 	if data.tp_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, data.tp_cost):
+			_abort_act(player_node, caster_id, slot_index, cd_svc)
 			push_warning("[ACT] consume_tp falló para peer ", caster_id)
 			return
 
@@ -70,9 +76,6 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 				return
 
 			combat.remove_root(player_node)
-
-			if player_node.state != 2 or player_node.active_ability_slot != slot_index:
-				return
 
 			var evolved_count: int = 0
 			var t_node := PlayerRegistry.get_player(target_peer_id)
@@ -97,10 +100,18 @@ func _execute_act(player_node: Node, data: AbilityData, caster_id: int, target_p
 			if is_instance_valid(player_node) and player_node.multiplayer.is_server():
 				AudioManager.play_sfx(SfxId.BOOST, Vector2(player_node.global_position.x, player_node.global_position.y))
 				# El potenciado lo escucha privado, posicionado en él mismo
-				AudioManager.rpc_id(target_peer_id, "play_sfx_on_peer", SfxId.BOOST, t_node.global_position.x, t_node.global_position.y)
+				if is_instance_valid(t_node):
+					AudioManager.rpc_id(target_peer_id, "play_sfx_on_peer", SfxId.BOOST, t_node.global_position.x, t_node.global_position.y)
 			print("[ACT] Kris (", caster_id, ") potenció a peer ", target_peer_id,
 				  " | slots evolucionados: ", evolved_count)
 	)
+
+
+func _abort_act(player_node: Node, caster_id: int, slot_index: int, cd_svc) -> void:
+	if cd_svc and cd_svc.has_method("release_lock"):
+		cd_svc.release_lock(caster_id, slot_index)
+	if is_instance_valid(player_node):
+		player_node.rpc("_sync_cancel_ability")
 
 
 func _get_anim_duration(player_node: Node, anim_name: String) -> float:
