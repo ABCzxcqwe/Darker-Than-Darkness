@@ -1,19 +1,20 @@
 extends AbilityBase
 
 const DIAMOND_COUNT: int = 80
-const AOE_RADIUS: float = 1000.0
+const AOE_RADIUS: float = 600.0
 const DIAMOND_SPEED: float = 600.0
-const DIAMOND_LIFETIME: float = 3.0
 const SPAWN_INTERVAL: float = 0.08
-const RING_SLOT_COUNT: int = 80
-const ABILITY_DURATION: float = 6.0
+const DIAMOND_SPAWN_MARGIN: float = 80.0
+const DIAMOND_HOVER: float = 1.0
+const CENTER_SAFE_RADIUS: float = 200.0
+const ARENA_SCENE := preload("res://Hitboxes/Jevil/DiamondArena.tscn")
 
 var _active: bool = false
 var _player_node: Node = null
 var _caster_id: int = -1
 var _slot_index: int = -1
 var _data: AbilityData = null
-var _ring_picas: Array = []
+var _arena: Node = null
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -37,15 +38,15 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 	var combat = GameServiceLocator.combat_mediator
 	if combat:
-		combat.apply_root(_player_node, ABILITY_DURATION)
+		combat.apply_root(_player_node, total_duration())
 
 	var status = GameServiceLocator.status_effect
 	if status:
-		status.grant_stun_immunity(_caster_id, ABILITY_DURATION)
+		status.grant_stun_immunity(_caster_id, total_duration())
 
 	var target_center = player_node.global_position
 
-	_spawn_ring(target_center)
+	_spawn_arena(target_center)
 	_launch_diamonds(target_center)
 
 	var cd = GameServiceLocator.cooldown
@@ -54,7 +55,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		if _data and _data.cooldown > 0.0:
 			cd.start(_caster_id, _slot_index, _data.cooldown)
 
-	player_node.get_tree().create_timer(ABILITY_DURATION).timeout.connect(
+	player_node.get_tree().create_timer(total_duration()).timeout.connect(
 		func():
 			_finish_ability()
 	)
@@ -62,53 +63,37 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	print("[DiamondRain] Habilidad iniciada | peer: ", _caster_id, " | centro: ", target_center)
 
 
-func _spawn_ring(center: Vector2) -> void:
-	if not is_instance_valid(_player_node):
+func total_duration() -> float:
+	return float(DIAMOND_COUNT - 1) * SPAWN_INTERVAL + DIAMOND_HOVER + (2.0 * AOE_RADIUS) / DIAMOND_SPEED + 0.5
+
+
+func _spawn_arena(center: Vector2) -> void:
+	if not is_instance_valid(_player_node) or not _player_node.multiplayer.is_server():
 		return
 
-	var hs = GameServiceLocator.hitbox
-	var cmbt = GameServiceLocator.combat_mediator
-	var d = _data
-	var cid = _caster_id
-	var pn = _player_node
+	var world = _player_node.get_tree().root.find_child("World", true, false)
+	if not world:
+		return
+	var container = world.get_node_or_null("Projectiles")
+	if not container:
+		return
 
-	for i in range(RING_SLOT_COUNT):
-		var angle = (float(i) / float(RING_SLOT_COUNT)) * TAU
-		var pos = center + Vector2(cos(angle), sin(angle)) * AOE_RADIUS
+	var arena = ARENA_SCENE.instantiate()
+	arena.global_position = center
+	arena.set_multiplayer_authority(1)
+	container.add_child(arena, true)
+	_arena = arena
 
-		var config = {
-			"attacker_id": cid,
-			"attacker_node": pn,
-			"type": "projectile",
-			"aim_mode": "fixed",
-			"direction": Vector2.RIGHT,
-			"shape_scene": d.ability_scene if d else null,
-			"damage": d.base_damage if d else 10,
-			"attack_type": d.attack_type if d else "normal",
-			"hit_limit": 0,
-			"team_filter": "enemy",
-			"lifetime": ABILITY_DURATION,
-			"speed": 0.0,
-			"offset": 0.0,
-			"on_hit": func(target_node: Node) -> void:
-				if is_instance_valid(target_node) and cmbt and d:
-					cmbt.apply_damage(pn, target_node, d.base_damage, d.attack_type)
-		}
-
-		var hitbox = hs.create(config)
-		if hitbox:
-			hitbox.global_position = pos
-			hitbox.rotation = angle
-			_ring_picas.append(hitbox)
-
-	print("[DiamondRain] Ring creado con ", _ring_picas.size(), " picas alrededor de ", center)
+	print("[DiamondRain] Arena creada en ", center)
 
 
-func _clear_ring() -> void:
-	for pica in _ring_picas:
-		if is_instance_valid(pica):
-			pica.queue_free()
-	_ring_picas.clear()
+func _clear_arena() -> void:
+	if is_instance_valid(_arena):
+		if _arena.has_method("_rpc_disappear"):
+			_arena.rpc("_rpc_disappear")
+		else:
+			_arena.queue_free()
+	_arena = null
 
 
 func _launch_diamonds(target_center: Vector2) -> void:
@@ -117,7 +102,6 @@ func _launch_diamonds(target_center: Vector2) -> void:
 
 	var hs = GameServiceLocator.hitbox
 	var cmbt = GameServiceLocator.combat_mediator
-	var spawn_altitude = DIAMOND_SPEED * DIAMOND_LIFETIME * 0.5
 	var pn := _player_node
 	var cid := _caster_id
 	var d := _data
@@ -125,19 +109,20 @@ func _launch_diamonds(target_center: Vector2) -> void:
 	for i in range(DIAMOND_COUNT):
 		pn.get_tree().create_timer(i * SPAWN_INTERVAL).timeout.connect(
 			func():
-				_spawn_diamond(pn, cid, d, hs, cmbt, target_center, spawn_altitude)
+				_spawn_diamond(pn, cid, d, hs, cmbt, target_center)
 		)
 
 
-func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, target_center: Vector2, altitude: float) -> void:
+func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, target_center: Vector2) -> void:
 	if not is_instance_valid(pn) or not hs:
 		return
 
-	var offset_x = randf_range(-AOE_RADIUS, AOE_RADIUS)
-	var offset_y = randf_range(-AOE_RADIUS, AOE_RADIUS)
-	var spawn_pos = target_center + Vector2(offset_x, offset_y - altitude)
+	var target_point = _random_point_in_arena(target_center)
+	var spawn_pos = Vector2(target_point.x, target_center.y - AOE_RADIUS - DIAMOND_SPAWN_MARGIN)
+	var fall_distance = target_point.y - spawn_pos.y
+	var fall_time = fall_distance / DIAMOND_SPEED
 
-	var dmg = d.base_damage if d else 10
+	var dmg = d.base_damage if d else 20
 	var atk_type = d.attack_type if d else "normal"
 
 	var config = {
@@ -151,10 +136,12 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 		"attack_type": atk_type,
 		"hit_limit": 1,
 		"team_filter": "enemy",
-		"lifetime": DIAMOND_LIFETIME,
-		"speed": DIAMOND_SPEED,
+		"lifetime": DIAMOND_HOVER + fall_time + 0.3,
+		"speed": 0.0,
 		"offset": 0.0,
 		"impact_lifetime": 0.3,
+		"hitbox_max_range": fall_distance,
+		"position": spawn_pos,
 		"on_hit": func(target_node: Node) -> void:
 			if is_instance_valid(target_node) and cmbt:
 				cmbt.apply_damage(pn, target_node, dmg, atk_type)
@@ -162,8 +149,19 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 
 	var hitbox = hs.create(config)
 	if hitbox:
-		hitbox.global_position = spawn_pos
 		hitbox.rotation = 0.0
+		pn.get_tree().create_timer(DIAMOND_HOVER).timeout.connect(
+			func():
+				if is_instance_valid(hitbox):
+					hitbox.speed = DIAMOND_SPEED
+		)
+
+
+func _random_point_in_arena(center: Vector2) -> Vector2:
+	var p = center + Vector2(randf_range(-AOE_RADIUS, AOE_RADIUS), randf_range(-AOE_RADIUS, AOE_RADIUS))
+	if p.distance_to(center) < CENTER_SAFE_RADIUS:
+		p = center + Vector2(randf_range(-AOE_RADIUS, AOE_RADIUS), randf_range(-AOE_RADIUS, AOE_RADIUS))
+	return p
 
 
 func _finish_ability() -> void:
@@ -171,7 +169,7 @@ func _finish_ability() -> void:
 		return
 	_active = false
 
-	_clear_ring()
+	_clear_arena()
 
 	var combat = GameServiceLocator.combat_mediator
 	if combat and is_instance_valid(_player_node):
@@ -189,7 +187,7 @@ func _finish_ability() -> void:
 
 func _fail_cleanup() -> void:
 	_active = false
-	_clear_ring()
+	_clear_arena()
 	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)

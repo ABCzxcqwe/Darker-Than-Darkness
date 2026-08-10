@@ -6,7 +6,7 @@ signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
 
-const MAX_PLAYERS := 5
+const MAX_PLAYERS := 8
 
 enum GamePhase { LOBBY, CHARACTER_SELECT, PLAYING, ENDED }
 

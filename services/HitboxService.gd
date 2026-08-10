@@ -112,7 +112,9 @@ func create(config: Dictionary) -> Node:
 
 	# ── Posicionar ────────────────────────────────────────────────────
 	var origin: Vector2 = attacker_node.global_position
-	if aim_mode == "origin" or type == "area":
+	if config.has("position"):
+		hitbox.global_position = config["position"]
+	elif aim_mode == "origin" or type == "area":
 		hitbox.global_position = origin
 	else:
 		hitbox.global_position = origin + direction * offset
@@ -168,7 +170,10 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	var origin: Vector2 = attacker_node.global_position
 	var aim_mode: String = config.get("aim_mode", "mouse")
 	var offset_val: float = config.get("offset", 40.0)
-	hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
+	if config.has("position"):
+		hitbox.global_position = config["position"]
+	else:
+		hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
 	hitbox.set_direction(direction)
 	hitbox.set_multiplayer_authority(1)
 	_setup_hitbox_layers(hitbox, hitbox.team_filter, attacker_node)
