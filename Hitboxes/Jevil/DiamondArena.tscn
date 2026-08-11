@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://drflgu7vsd6"]
+[gd_scene format=3 uid="uid://dmiyl210itpqc"]
 
-[ext_resource type="Script" uid="uid://dtecb8vxu5gw4" path="res://Hitboxes/Jevil/DiamondArena.gd" id="1_arena"]
+[ext_resource type="Script" path="res://Hitboxes/Jevil/DiamondArena.gd" id="1_arena"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
 size = Vector2(1220, 20)

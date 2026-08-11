@@ -1,12 +1,12 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://cf8j6vv6rebpw"]
 
-[ext_resource type="Texture2D" uid="uid://i7pskgkmrnme" path="res://Characters/Jevil/assets/jevil_dance.png" id="1_lj7ca"]
-[ext_resource type="Texture2D" uid="uid://bl4hxyw1276uc" path="res://Characters/Jevil/assets/jevil_idle1.png" id="2_u2w8t"]
-[ext_resource type="Texture2D" uid="uid://b4cq2q6ug5vfo" path="res://Characters/Jevil/assets/jevil_attack2.png" id="3_kkrpl"]
-[ext_resource type="Texture2D" uid="uid://bgdvu7ko26slk" path="res://Characters/Jevil/assets/jevil_tp.png" id="4_ut8qp"]
-[ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/jevil_stun.png" id="5_tnbwv"]
-[ext_resource type="Texture2D" uid="uid://cmcs184nxk67p" path="res://Characters/Jevil/assets/jevil_sprint.png" id="6_y2x8j"]
-[ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/icon.png" id="7_icon"]
+[ext_resource type="Texture2D" uid="uid://i7pskgkmrnme" path="res://Characters/Jevil/assets/Sprites/jevil_dance.png" id="1_lj7ca"]
+[ext_resource type="Texture2D" uid="uid://bl4hxyw1276uc" path="res://Characters/Jevil/assets/Sprites/jevil_idle1.png" id="2_u2w8t"]
+[ext_resource type="Texture2D" uid="uid://b4cq2q6ug5vfo" path="res://Characters/Jevil/assets/Sprites/jevil_attack2.png" id="3_kkrpl"]
+[ext_resource type="Texture2D" uid="uid://bgdvu7ko26slk" path="res://Characters/Jevil/assets/Sprites/jevil_tp.png" id="4_ut8qp"]
+[ext_resource type="Texture2D" uid="uid://f4cg6c4spt1s" path="res://Characters/Jevil/assets/Sprites/jevil_stun.png" id="5_tnbwv"]
+[ext_resource type="Texture2D" uid="uid://cmcs184nxk67p" path="res://Characters/Jevil/assets/Sprites/jevil_sprint.png" id="6_y2x8j"]
+[ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/Sprites/icon.png" id="7_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nejuk"]
 atlas = ExtResource("3_kkrpl")

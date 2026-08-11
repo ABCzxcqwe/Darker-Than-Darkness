@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://c4f4ilt8pj623"]
+[gd_scene format=3 uid="uid://ca1rw57ikvvm2"]
 
 [ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="1_y1lj6"]
-[ext_resource type="Texture2D" uid="uid://b1mlv0088fosn" path="res://Hitboxes/Jevil/knife.png" id="2_74cxd"]
+[ext_resource type="Texture2D" path="res://Hitboxes/Jevil/knife.png" id="2_74cxd"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_y1lj6"]
 atlas = ExtResource("2_74cxd")

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dg7n3f2qbo0kp"]
+
+[ext_resource type="PackedScene" uid="uid://050hare15k77" path="res://Hitboxes/Susie/RedBuster/RedHitbox.tscn" id="1_6oeo8"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_f3kxx"]
+[ext_resource type="Script" uid="uid://1fux0qpow2db" path="res://abilities/susie/RedBuster/RudeBuster.gd" id="2_l2owp"]
+[ext_resource type="Texture2D" uid="uid://ctuk3fnjrsyfp" path="res://abilities/susie/RedBuster/icons/RedBuster.png" id="3_6oeo8"]
+
+[resource]
+script = ExtResource("1_f3kxx")
+display_name = "Red Buster"
+icon = ExtResource("3_6oeo8")
+ability_script = ExtResource("2_l2owp")
+ability_scene = ExtResource("1_6oeo8")
+action_animation = "susie_rude_buster"
+cooldown = 25.0
+tp_cost = 30.0
+tp_reward = 10.0
+move_restriction = 1
+base_damage = 20
+attack_type = "projectile"
+stun_duration = 5.0
+evo_status_duration_bonus = 1.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"

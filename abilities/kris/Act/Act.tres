@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://iwoc87j2eewu"]
+
+[ext_resource type="Script" uid="uid://ld7wt75cafvm" path="res://abilities/kris/Act/Act.gd" id="1_30owo"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ibkv2"]
+[ext_resource type="Resource" uid="uid://bgreo434aurfn" path="res://abilities/kris/Counter/Counter.tres" id="2_counter"]
+[ext_resource type="Texture2D" uid="uid://dn6lj428rw3dx" path="res://abilities/kris/Act/icons/Acticon.png" id="3_mc0ue"]
+
+[resource]
+script = ExtResource("1_ibkv2")
+display_name = "ACT"
+icon = ExtResource("3_mc0ue")
+ability_type = 1
+ability_script = ExtResource("1_30owo")
+action_animation = "act"
+prepare_animation = "idle_prepare"
+can_cancel = true
+cooldown = 20.0
+cooldown_cancel = 5.0
+tp_cost = 20.0
+can_use_while_stunned = true
+move_restriction = 1
+requires_selection = true
+defer_cooldown = true
+stun_duration = 2.0
+evolved_version = ExtResource("2_counter")
+lms_auto_evolve = true
+metadata/_custom_type_script = "uid://bodks86qovy6s"

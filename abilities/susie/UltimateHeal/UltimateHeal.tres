@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://n06e5je8jbxx"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_4fdfo"]
+[ext_resource type="Script" uid="uid://dk8uk5ymm80gn" path="res://abilities/susie/UltimateHeal/UltimateHeal.gd" id="1_l1irq"]
+[ext_resource type="Texture2D" uid="uid://bw60slbw3frlq" path="res://abilities/susie/UltimateHeal/icons/HealthU.png" id="2_rvw0h"]
+
+[resource]
+script = ExtResource("1_4fdfo")
+display_name = "Ultimate heal"
+description = "Mejora con el tiempo"
+icon = ExtResource("2_rvw0h")
+ability_script = ExtResource("1_l1irq")
+action_animation = "magic_health"
+prepare_animation = "idle_prepare"
+cooldown = 5.0
+tp_cost = 50.0
+requires_selection = true
+can_target_self = true
+is_scalable = true
+scaling_base_value = 7.0
+scaling_per_use = 7.0
+scaling_cap = 50.0
+tp_cost_reduction_per_use = 5.0
+tp_cost_floor = 40.0
+cooldown_increase_per_use = 1.5
+metadata/_custom_type_script = "uid://bodks86qovy6s"

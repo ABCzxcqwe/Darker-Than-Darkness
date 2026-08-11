@@ -1,12 +1,12 @@
-[gd_scene format=3 uid="uid://djw510qiudh6e"]
+[gd_scene format=3 uid="uid://2xyv3bxl635t"]
 
-[ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://Characters/Player.gd" id="1_onrkg"]
+[ext_resource type="Script" path="res://Characters/Player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
 [ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
 [ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
-[ext_resource type="Script" uid="uid://cdve0tt16kqmj" path="res://Characters/PlayerInteractionComponent.gd" id="5_interaction"]
-[ext_resource type="Script" uid="uid://dhto4ds8dqhya" path="res://Characters/PlayerAnimationComponent.gd" id="6_animation"]
-[ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://Characters/PlayerMovementComponent.gd" id="7_movement"]
+[ext_resource type="Script" path="res://Characters/PlayerInteractionComponent.gd" id="5_interaction"]
+[ext_resource type="Script" path="res://Characters/PlayerAnimationComponent.gd" id="6_animation"]
+[ext_resource type="Script" path="res://Characters/PlayerMovementComponent.gd" id="7_movement"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{

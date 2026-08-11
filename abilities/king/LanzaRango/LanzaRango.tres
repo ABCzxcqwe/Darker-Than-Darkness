@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dawt7s6mkntex"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" uid="uid://dnqklp2tl7sm5" path="res://abilities/king/LanzaRango/LanzaRango.gd" id="2_lanza"]
+[ext_resource type="PackedScene" uid="uid://cskem0y0l7mee" path="res://Hitboxes/King/LanzaRango/LanzaRangoProjectile.tscn" id="3_projectile"]
+[ext_resource type="Texture2D" uid="uid://c0s1t2np4oujg" path="res://Characters/King/assets/Sprites/lanza_cabeza.png" id="4_icon"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "Lanza Rango"
+icon = ExtResource("4_icon")
+ability_script = ExtResource("2_lanza")
+ability_scene = ExtResource("3_projectile")
+action_animation = "king_lanza"
+cooldown = 8.0
+cooldown_fail = 4.0
+tp_cost = 15.0
+move_restriction = 1
+defer_cooldown = true
+range_ = 1500.0
+spawn_delay = 1.0
+is_projectile = true
+projectile_speed = 1800.0
+projectile_lifetime = 30.0
+projectile_max_range = 1500.0

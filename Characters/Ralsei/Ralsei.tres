@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://cemfeymasjrvg"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_a3olq"]
-[ext_resource type="Resource" uid="uid://dhdv5nhtwrkf8" path="res://abilities/ralsei/HealPrayer.tres" id="2_krx5n"]
-[ext_resource type="Resource" uid="uid://crpks76wmrx48" path="res://abilities/ralsei/Pacify.tres" id="3_pacify"]
+[ext_resource type="Resource" uid="uid://dhdv5nhtwrkf8" path="res://abilities/ralsei/HealPrayer/HealPrayer.tres" id="2_krx5n"]
+[ext_resource type="Resource" uid="uid://crpks76wmrx48" path="res://abilities/ralsei/Pacify/Pacify.tres" id="3_pacify"]
 [ext_resource type="SpriteFrames" uid="uid://bwxd5203gvpts" path="res://Characters/Ralsei/animations.tres" id="4_btwx3"]
-[ext_resource type="AudioStream" uid="uid://b3imse5pxqpel" path="res://Characters/Ralsei/assets/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3" id="5_o4xcy"]
+[ext_resource type="AudioStream" uid="uid://b3imse5pxqpel" path="res://Characters/Ralsei/assets/Music/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3" id="5_o4xcy"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_juiwq"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_qrkhd"]
-[ext_resource type="Texture2D" uid="uid://drwoir6tp161i" path="res://Characters/Ralsei/assets/ralsei_panel.png" id="6_t4xhp"]
-[ext_resource type="Resource" uid="uid://qg4vjxg66xfx" path="res://abilities/ralsei/FluffyFilling.tres" id="7_fffill"]
+[ext_resource type="Texture2D" uid="uid://drwoir6tp161i" path="res://Characters/Ralsei/assets/Sprites/ralsei_panel.png" id="6_t4xhp"]
+[ext_resource type="Resource" uid="uid://qg4vjxg66xfx" path="res://abilities/ralsei/FluffyFilling/FluffyFilling.tres" id="7_fffill"]
 
 [resource]
 script = ExtResource("6_qrkhd")

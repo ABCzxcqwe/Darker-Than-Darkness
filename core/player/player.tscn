@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://djw510qiudh6e"]
+
+[ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://core/player/Player.gd" id="1_onrkg"]
+[ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
+[ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
+[ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
+[ext_resource type="Script" uid="uid://cdve0tt16kqmj" path="res://core/player/PlayerInteractionComponent.gd" id="5_interaction"]
+[ext_resource type="Script" uid="uid://dhto4ds8dqhya" path="res://core/player/PlayerAnimationComponent.gd" id="6_animation"]
+[ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://core/player/PlayerMovementComponent.gd" id="7_movement"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"idle_horizontal",
+"speed": 8.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5slg2"]
+size = Vector2(54, 60)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
+radius = 31.0
+height = 112.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sweqy"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath("AnimatedSprite2D:animation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath("AnimatedSprite2D:flip_h")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath("AnimatedSprite2D:frame")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:health")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:health_state")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+
+[node name="CharacterBody2D" type="CharacterBody2D" unique_id=156327789]
+collision_layer = 2
+script = ExtResource("1_onrkg")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=480451931]
+z_index = 2
+sprite_frames = SubResource("SpriteFrames_4flbx")
+animation = &"idle_horizontal"
+frame_progress = 0.35946932
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
+zoom = Vector2(0.7, 0.7)
+script = ExtResource("3_cam")
+zoom_sprint = 0.65
+
+[node name="Vision" type="Node" parent="." unique_id=1869788754]
+script = ExtResource("4_vis")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=45143778]
+z_index = 4
+position = Vector2(0, 30)
+shape = SubResource("RectangleShape2D_5slg2")
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=634505925]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("2_onrkg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=193273634]
+z_index = 4
+shape = SubResource("CapsuleShape2D_i3pqv")
+debug_color = Color(0, 0.52156866, 0.69803923, 0.41960785)
+
+[node name="NameTag" type="PanelContainer" parent="." unique_id=1729849509]
+z_index = 10
+custom_minimum_size = Vector2(100, 22)
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+offset_bottom = -75.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="NameTag" unique_id=980162363]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
+replication_config = SubResource("SceneReplicationConfig_sweqy")
+public_visibility = false
+
+[node name="PlayerInteractionComponent" type="Node" parent="." unique_id=1178568243]
+script = ExtResource("5_interaction")
+
+[node name="PlayerAnimationComponent" type="Node" parent="." unique_id=1123190987]
+script = ExtResource("6_animation")
+
+[node name="PlayerMovementComponent" type="Node" parent="." unique_id=1114141328]
+script = ExtResource("7_movement")
+
+[node name="VisionCircle" type="PointLight2D" parent="." unique_id=433607292]
+energy = 1.25
+blend_mode = 2
+shadow_enabled = true
+
+[node name="VisionCone" type="PointLight2D" parent="." unique_id=1372732865]
+blend_mode = 2
+shadow_enabled = true

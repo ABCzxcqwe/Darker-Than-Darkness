@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://d1sag4mtpoowo"
+path="res://.godot/imported/Sonic. Exe Chase.ogg-bc86df7ca69eebb2964393bb9ae490f5.oggvorbisstr"
+
+[deps]
+
+source_file="res://Characters/King/assets/Music/Sonic. Exe Chase.ogg"
+dest_files=["res://.godot/imported/Sonic. Exe Chase.ogg-bc86df7ca69eebb2964393bb9ae490f5.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

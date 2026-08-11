@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://chviuq8jxrh6s"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ad"]
+[ext_resource type="Script" uid="uid://bqocumgaeyabq" path="res://abilities/king/Rugido/Rugido.gd" id="2_rugido"]
+[ext_resource type="PackedScene" path="res://Hitboxes/King/Rugido/RoarWave.tscn" id="3_wave"]
+[ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/assets/Sprites/icon.png" id="4_icon"]
+
+[resource]
+script = ExtResource("1_ad")
+display_name = "Rugido"
+icon = ExtResource("4_icon")
+ability_script = ExtResource("2_rugido")
+ability_scene = ExtResource("3_wave")
+action_animation = "roaring"
+cooldown = 25.0
+tp_cost = 15.0
+move_restriction = 1
+defer_cooldown = true
+range_ = 1000.0
+cast_duration = 2.0
+slow_magnitude = 0.2
+slow_duration = 5.0

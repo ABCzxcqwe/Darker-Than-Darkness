@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://x11owyieepwu"
+path="res://.godot/imported/VS Susie Reprise.mp3-1a26cdcec9c2ed67e5f4f992d348cc49.mp3str"
+
+[deps]
+
+source_file="res://Characters/Susie_LMS/assets/Music/VS Susie Reprise.mp3"
+dest_files=["res://.godot/imported/VS Susie Reprise.mp3-1a26cdcec9c2ed67e5f4f992d348cc49.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0.0
+bpm=0.0
+beat_count=0
+bar_beats=4
