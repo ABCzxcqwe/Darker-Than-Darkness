@@ -9,6 +9,7 @@ enum AnimState { IDLE, PREPARE, ABILITY, STUNNED, EMOTE }
 const HURT_FLASH_DURATION_MS: int = 300
 const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
+const INVISIBILITY_ALPHA_SELF: float = 0.5
 @onready var synchronizer      = $Synchronizer
 @onready var animated_sprite   = $AnimatedSprite2D
 @onready var hurtbox: Area2D = $Hurtbox
@@ -147,13 +148,18 @@ func _process(_delta: float) -> void:
 	var now := Time.get_ticks_msec()
 	var target_modulate := _original_modulate
 
-	if now < invincible_until and state != AnimState.ABILITY:
-		var _show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
-		target_modulate.a = _original_modulate.a if _show else 0.2
+	if active_effects.has("invisibility"):
+		# Invisible: el propio jugador se ve al 50% de alfa; los demás lo ven al 0%.
+		# Prioridad sobre flicker de invencibilidad y heal flash.
+		target_modulate.a = INVISIBILITY_ALPHA_SELF if is_multiplayer_authority() else 0.0
+	else:
+		if now < invincible_until and state != AnimState.ABILITY:
+			var _show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
+			target_modulate.a = _original_modulate.a if _show else 0.2
 
-	if now < heal_flash_until:
-		var strength = float(heal_flash_until - now) / HEAL_FLASH_DURATION_MS
-		target_modulate *= Color(1.0, 1.0, 1.0).lerp(Color(0.5, 1.5, 0.5), strength)
+		if now < heal_flash_until:
+			var strength = float(heal_flash_until - now) / HEAL_FLASH_DURATION_MS
+			target_modulate *= Color(1.0, 1.0, 1.0).lerp(Color(0.5, 1.5, 0.5), strength)
 
 	if not animated_sprite.modulate.is_equal_approx(target_modulate):
 		animated_sprite.modulate = target_modulate

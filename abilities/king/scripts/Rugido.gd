@@ -116,9 +116,16 @@ func _apply_slow_to_nearby() -> void:
 
 
 func _apply_vision_reduction_to_survivors() -> void:
+	var status = GameServiceLocator.status_effect
+	if not status:
+		return
 	for survivor in _player_node.get_tree().get_nodes_in_group("survivor"):
-		if is_instance_valid(survivor) and survivor.has_method("_sync_vision_reduction"):
-			survivor.rpc("_sync_vision_reduction", VISION_FACTOR, VISION_DURATION)
+		if is_instance_valid(survivor):
+			status.apply(survivor, "blind", {
+				"duration": VISION_DURATION,
+				"vision_factor": VISION_FACTOR,
+				"miss_chance": 0.0,
+			})
 
 
 func _reveal_survivors() -> void:

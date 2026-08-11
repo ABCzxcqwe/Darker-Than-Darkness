@@ -117,6 +117,17 @@ func _on_area_entered(area: Area2D) -> void:
 	if not _passes_team_filter(target):
 		return
 
+	# Killer intangible (invulnerabilidad post-stun): el ataque lo atraviesa.
+	# on_hit dispara igual (los efectos no-stun como slow/TP aplican), pero el
+	# hitbox no se consume → los proyectiles continúan volando.
+	var combat = GameServiceLocator.combat_mediator
+	if is_instance_valid(combat) and combat.has_method("is_intangible") and combat.is_intangible(target):
+		if not _hit_targets.has(target_id):
+			_hit_targets.append(target_id)
+			if on_hit_callback.is_valid():
+				on_hit_callback.call(target)
+		return
+
 	# Evitar golpear al mismo target dos veces en hitboxes multi-hit
 	if _hit_targets.has(target_id):
 		return

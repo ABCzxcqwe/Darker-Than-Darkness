@@ -8,7 +8,11 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
-const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection"]
+const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "damage_boost", "damage_reduction", "invisibility"]
+
+# Efectos con acumulación por fuente: cada fuente distinta crea su propia
+# instancia en el array. Los demás efectos refrescan la instancia existente.
+const ACCUMULATE_EFFECTS := ["bleed", "damage_boost", "damage_reduction", "blind"]
 
 # { peer_id: { effect_name: [...instancias...] } }
 var _effects: Dictionary = {}
@@ -49,6 +53,14 @@ func _process(delta: float) -> void:
 	
 			while i >= 0:
 				instances[i]["timer"] -= delta
+
+				# DoT (bleed): tick de daño por intervalo.
+				if effect_name == "bleed":
+					instances[i]["tick_timer"] -= delta
+					if instances[i]["tick_timer"] <= 0.0:
+						_apply_bleed_tick(peer_id, instances[i])
+						instances[i]["tick_timer"] = instances[i]["tick_interval"]
+
 				if instances[i]["timer"] <= 0.0:
 					var expired_instance: Dictionary = instances[i]
 					instances.remove_at(i)
@@ -60,6 +72,9 @@ func _process(delta: float) -> void:
 
 					if effect_name == "stamina_reduction":
 						_on_stamina_reduction_expired(peer_id)
+
+					if effect_name == "blind":
+						_refresh_blind_visual(peer_id)
 
 					# Solo notificar a clientes cuando TODAS las instancias expiraron.
 					# Ej: slow puede tener múltiples fuentes — si una expira pero otra
@@ -125,8 +140,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			print("[StatusEffectService] stun acumulado para peer ", peer_id,
 				  " | duración total restante: ", instances[0]["timer"])
 		else:
-			var prev_duration: float = instances[0]["timer"]
-			instances[0]["timer"] = maxf(prev_duration, duration)
+			# Los efectos acumulables gestionan su propio refresh por fuente.
+			if not effect_name in ACCUMULATE_EFFECTS:
+				var prev_duration: float = instances[0]["timer"]
+				instances[0]["timer"] = maxf(prev_duration, duration)
 
 		# BUG 3 FIX: el slow acumulable necesita append, no refresh.
 		# _calculate_speed suma todas las instancias del array, pero apply()
@@ -148,6 +165,71 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 				print("[StatusEffectService] slow acumulado para peer ", peer_id,
 					  " | magnitude: ", incoming_magnitude)
 
+		if effect_name == "bleed":
+			var incoming_dps: float = params.get("dps", 5.0)
+			var incoming_interval: float = params.get("tick_interval", 1.0)
+			var found_bleed := false
+			for instance in instances:
+				if is_equal_approx(instance.get("dps", 0.0), incoming_dps) \
+						and is_equal_approx(instance.get("tick_interval", 0.0), incoming_interval):
+					instance["timer"] = maxf(instance["timer"], duration)
+					found_bleed = true
+					break
+			if not found_bleed:
+				instances.append({
+					"timer": duration,
+					"dps": incoming_dps,
+					"tick_interval": incoming_interval,
+					"tick_timer": incoming_interval,
+				})
+				print("[StatusEffectService] bleed acumulado para peer ", peer_id,
+					  " | dps: ", incoming_dps, " | intervalo: ", incoming_interval)
+
+		if effect_name == "damage_boost":
+			var incoming_mult: float = params.get("multiplier", 1.5)
+			var found_boost := false
+			for instance in instances:
+				if is_equal_approx(instance.get("multiplier", 0.0), incoming_mult):
+					instance["timer"] = maxf(instance["timer"], duration)
+					found_boost = true
+					break
+			if not found_boost:
+				instances.append({ "timer": duration, "multiplier": incoming_mult })
+				print("[StatusEffectService] damage_boost acumulado para peer ", peer_id,
+					  " | multiplier: ", incoming_mult)
+
+		if effect_name == "damage_reduction":
+			var incoming_mag: float = params.get("magnitude", 0.5)
+			var found_red := false
+			for instance in instances:
+				if is_equal_approx(instance.get("magnitude", 0.0), incoming_mag):
+					instance["timer"] = maxf(instance["timer"], duration)
+					found_red = true
+					break
+			if not found_red:
+				instances.append({ "timer": duration, "magnitude": incoming_mag })
+				print("[StatusEffectService] damage_reduction acumulado para peer ", peer_id,
+					  " | magnitude: ", incoming_mag)
+
+		if effect_name == "blind":
+			var incoming_factor: float = params.get("vision_factor", 0.5)
+			var incoming_miss: float = params.get("miss_chance", 0.3)
+			var found_blind := false
+			for instance in instances:
+				if is_equal_approx(instance.get("vision_factor", 0.0), incoming_factor) \
+						and is_equal_approx(instance.get("miss_chance", 0.0), incoming_miss):
+					instance["timer"] = maxf(instance["timer"], duration)
+					found_blind = true
+					break
+			if not found_blind:
+				instances.append({
+					"timer": duration,
+					"vision_factor": incoming_factor,
+					"miss_chance": incoming_miss,
+				})
+				print("[StatusEffectService] blind acumulado para peer ", peer_id,
+					  " | factor: ", incoming_factor, " | miss: ", incoming_miss)
+
 		if effect_name == "stamina_reduction":
 			var incoming_magnitude: float = params.get("magnitude", 0.7)
 			var found := false
@@ -168,6 +250,17 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 		var instance := { "timer": duration }
 		if effect_name == "slow":
 			instance["magnitude"] = params.get("magnitude", 0.3)
+		if effect_name == "bleed":
+			instance["dps"] = params.get("dps", 5.0)
+			instance["tick_interval"] = params.get("tick_interval", 1.0)
+			instance["tick_timer"] = instance["tick_interval"]
+		if effect_name == "damage_boost":
+			instance["multiplier"] = params.get("multiplier", 1.5)
+		if effect_name == "damage_reduction":
+			instance["magnitude"] = params.get("magnitude", 0.5)
+		if effect_name == "blind":
+			instance["vision_factor"] = params.get("vision_factor", 0.5)
+			instance["miss_chance"] = params.get("miss_chance", 0.3)
 		if effect_name == "stun":
 			var is_killer: bool = is_instance_valid(player_node) and player_node.character_data and player_node.character_data.team == "killer"
 			var max_stun := 5.0 if is_killer else INF
@@ -195,6 +288,9 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 	var notify_duration: float = instances[0]["timer"] if instances.size() > 0 else duration
 	_sync_effect_to_clients(peer_id, effect_name, true, notify_duration)
 
+	if effect_name == "blind":
+		_refresh_blind_visual(peer_id)
+
 
 ## Verifica si un jugador tiene un efecto activo.
 func has_effect(peer_id: int, effect_name: String) -> bool:
@@ -209,6 +305,37 @@ func is_silenced(peer_id: int) -> bool: return has_effect(peer_id, "silence")
 func is_blinded(peer_id: int)  -> bool: return has_effect(peer_id, "blind")
 func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost")
 func is_stamina_reduced(peer_id: int) -> bool: return has_effect(peer_id, "stamina_reduction")
+func is_bleeding(peer_id: int) -> bool: return has_effect(peer_id, "bleed")
+func is_invisible(peer_id: int) -> bool: return has_effect(peer_id, "invisibility")
+
+## Multiplicador de daño efectivo del atacante (1.0 = sin buff).
+## Acumulativo aditivo: 1.0 + Σ(multiplier_i − 1.0), cap 2.5.
+func get_damage_boost(peer_id: int) -> float:
+	if not _effects.has(peer_id) or _effects[peer_id]["damage_boost"].is_empty():
+		return 1.0
+	var total := 1.0
+	for instance in _effects[peer_id]["damage_boost"]:
+		total += instance.get("multiplier", 1.5) - 1.0
+	return minf(total, 2.5)
+
+## Reducción de daño efectiva del objetivo (0.0 = sin buff).
+## Acumulativo aditivo: Σ magnitude_i, cap 0.9.
+func get_damage_reduction(peer_id: int) -> float:
+	if not _effects.has(peer_id) or _effects[peer_id]["damage_reduction"].is_empty():
+		return 0.0
+	var total := 0.0
+	for instance in _effects[peer_id]["damage_reduction"]:
+		total += instance.get("magnitude", 0.5)
+	return minf(total, 0.9)
+
+## Probabilidad de que un cegado falle sus ataques (máximo entre fuentes activas).
+func get_blind_miss_chance(peer_id: int) -> float:
+	if not _effects.has(peer_id) or _effects[peer_id]["blind"].is_empty():
+		return 0.0
+	var best := 0.0
+	for instance in _effects[peer_id]["blind"]:
+		best = maxf(best, instance.get("miss_chance", 0.3))
+	return best
 
 ## Devuelve true si el killer tiene inmunidad post-stun activa
 func has_stun_immunity(peer_id: int) -> bool:
@@ -311,6 +438,38 @@ func _on_stamina_reduction_expired(peer_id: int) -> void:
 
 # ── Internos ───────────────────────────────────────────────────────────
 
+func _apply_bleed_tick(peer_id: int, instance: Dictionary) -> void:
+	var player_node := _get_player(peer_id)
+	if not is_instance_valid(player_node):
+		return
+	var dmg: int = ceili(instance.get("dps", 5.0) * instance.get("tick_interval", 1.0))
+	var combat = GameServiceLocator.combat_mediator
+	if is_instance_valid(combat) and combat.has_method("apply_dot_damage"):
+		combat.apply_dot_damage(null, player_node, dmg)
+
+
+## Recalcula el cegado visual efectivo ("más fuerte gana" = menor vision_factor).
+## Si no queda ninguna fuente activa, restaura la visión completa.
+func _refresh_blind_visual(peer_id: int) -> void:
+	var player_node := _get_player(peer_id)
+	if not is_instance_valid(player_node):
+		return
+	if not _effects.has(peer_id) or _effects[peer_id]["blind"].is_empty():
+		player_node.rpc("_sync_vision_reduction", 1.0, 0.0)
+		return
+
+	var best_factor := 1.0
+	var best_timer := 0.0
+	for instance in _effects[peer_id]["blind"]:
+		var factor: float = instance.get("vision_factor", 0.5)
+		if factor < best_factor or (is_equal_approx(factor, best_factor) and instance["timer"] > best_timer):
+			best_factor = factor
+			best_timer = instance["timer"]
+
+	if best_timer > 0.0:
+		player_node.rpc("_sync_vision_reduction", best_factor, best_timer)
+
+
 func _ensure_registered(peer_id: int) -> void:
 	if not _effects.has(peer_id):
 		_effects[peer_id] = {}
@@ -412,6 +571,8 @@ func remove_effect(player_node: Node, effect_name: String) -> void:
 		if is_instance_valid(player_node):
 			player_node.character_data.stamina_sprint_drain = _stamina_drain_originals[peer_id]
 		_stamina_drain_originals.erase(peer_id)
+	if effect_name == "blind":
+		_refresh_blind_visual(peer_id)
 	_sync_effect_to_clients(peer_id, effect_name, false)
 
 	print("[StatusEffectService] ", effect_name, " eliminado manualmente para peer ", peer_id)

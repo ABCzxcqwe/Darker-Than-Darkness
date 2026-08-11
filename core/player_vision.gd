@@ -64,9 +64,11 @@ func _apply_vision_scale(player: Node2D, data: CharacterData) -> void:
 	$"../VisionCone".texture_scale = (data.vision_cone_range / BASE_CONE_RADIUS) * scale
 
 func _update_player_visibility(player: Node2D, data: CharacterData, facing_dir: Vector2) -> void:
-	var circle_radius = data.vision_circle_radius
+	# El foco de luz (VisionCircle/Cone) y la distancia de detección comparten el mismo
+	# factor de visión: los jugadores desaparecen justo al salir de la luz reducida.
+	var circle_radius = data.vision_circle_radius * player._vision_scale
 	var cone_angle = data.vision_cone_angle
-	var cone_range = data.vision_cone_range
+	var cone_range = data.vision_cone_range * player._vision_scale
 
 	for other in get_tree().get_nodes_in_group("players"):
 		if other == player:
@@ -75,6 +77,15 @@ func _update_player_visibility(player: Node2D, data: CharacterData, facing_dir: 
 			continue
 		if not other.animated_sprite:
 			continue
+
+		# Invisible: nunca se revela por luz ni por distancia.
+		if other.active_effects.has("invisibility"):
+			other.animated_sprite.self_modulate.a = 0.0
+			other.animated_sprite.visible = false
+			if other.has_node("NameTag"):
+				other.name_tag.visible = false
+			continue
+
 		var other_pos = other.global_position
 		var dist = player.global_position.distance_to(other_pos)
 		var in_vision = false

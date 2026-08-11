@@ -28,6 +28,20 @@ func set_client_relay(relay: Node) -> void:
 	_client_relay = relay
 
 
+## True si el jugador es un killer en estado de invulnerabilidad (stun-immunity):
+## los ataques lo atraviesan (sin daño ni feedback), pero los efectos no-stun aplican.
+func is_intangible(player_node: Node) -> bool:
+	if not is_instance_valid(player_node):
+		return false
+	var cd = player_node.get("character_data")
+	if not cd or cd.team != "killer":
+		return false
+	var status = _status_effect_service
+	if not status or not status.has_method("has_stun_immunity"):
+		return false
+	return status.has_stun_immunity(player_node.get_multiplayer_authority())
+
+
 func _broadcast_damage_number(attacker: Node, target_peer: int, amount: int, pos: Vector2) -> void:
 	if not _client_relay or amount <= 0:
 		return
@@ -49,6 +63,8 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if not multiplayer.is_server():
 		return 0
 
+	var status_svc = _status_effect_service
+
 	if _check_intercept(attacker, target):
 		return 0
 
@@ -66,8 +82,16 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	if target.character_data and target.character_data.team == "killer":
 		# Los killers actuales no tienen vida: solo se muestra el número visual del daño.
-		_broadcast_damage_number(attacker, target_peer, final_damage, target.global_position)
+		# Durante su invulnerabilidad (stun-immunity) los ataques lo atraviesan sin feedback.
+		if not is_intangible(target):
+			_broadcast_damage_number(attacker, target_peer, final_damage, target.global_position)
 		return 0
+
+	# Blind: un atacante cegado puede fallar el golpe (sin número de daño).
+	if is_instance_valid(attacker) and status_svc and status_svc.has_method("get_blind_miss_chance"):
+		var miss_chance: float = status_svc.get_blind_miss_chance(attacker.get_multiplayer_authority())
+		if miss_chance > 0.0 and randf() < miss_chance:
+			return 0
 
 	var now := Time.get_ticks_msec()
 	if now < target.invincible_until:
@@ -84,7 +108,6 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	health_svc.take_damage(target, final_damage)
 
-	var status_svc = _status_effect_service
 	if status_svc and target.character_data and target.character_data.team == "survivor":
 		status_svc.apply(target, "speed_boost", {
 			"duration": SPEED_BOOST_DURATION,
@@ -99,6 +122,45 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if target.character_data and target.character_data.team == "survivor":
 		_play_hurt_sound(target)
 
+	return final_damage
+
+
+## Daño por tiempo (DoT) para efectos tipo bleed/veneno.
+## - Ignora frames de invencibilidad (no chequea invincible_until).
+## - Respeta protecciones y la reducción de daño del objetivo.
+## - No puede matar: deja al objetivo con 1 de vida.
+func apply_dot_damage(_attacker: Node, target: Node, amount: int) -> int:
+	if not multiplayer.is_server():
+		return 0
+	if not is_instance_valid(target):
+		return 0
+
+	var health_svc = _health_service
+	if not health_svc:
+		return 0
+	var target_peer: int = target.get_multiplayer_authority()
+	if not health_svc.is_alive(target_peer):
+		return 0
+
+	if target.character_data and target.character_data.team == "killer":
+		# Killers sin HP: solo número visual.
+		_broadcast_damage_number(null, target_peer, amount, target.global_position)
+		return 0
+
+	var final_damage: int = amount
+	var status = _status_effect_service
+	if status and status.has_method("get_damage_reduction"):
+		final_damage = ceili(final_damage * (1.0 - status.get_damage_reduction(target_peer)))
+
+	final_damage = _apply_protections(target_peer, target, final_damage)
+	final_damage = maxi(1, final_damage)
+	# No puede matar: dejar como máximo en 1 de vida.
+	final_damage = mini(final_damage, target.health - 1)
+	if final_damage <= 0:
+		return 0
+
+	health_svc.take_damage(target, final_damage)
+	_broadcast_damage_number(null, target_peer, final_damage, target.global_position)
 	return final_damage
 
 
@@ -125,7 +187,7 @@ func calculate_damage(attacker: Node, target: Node, base_damage: int, attack_typ
 	return _calculate_damage(attacker, target, base_damage, attack_type)
 
 
-func _calculate_damage(_attacker: Node, target: Node, base_damage: int, _attack_type: String) -> int:
+func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_type: String) -> int:
 	var damage: int = base_damage
 
 	if not target.character_data:
@@ -146,6 +208,15 @@ func _calculate_damage(_attacker: Node, target: Node, base_damage: int, _attack_
 		var dr: float = status.get_post_stun_dr(target_peer)
 		if dr > 0.0:
 			damage = ceili(damage * (1.0 - dr))
+
+		# Buff ofensivo del atacante (damage_boost)
+		if is_instance_valid(attacker):
+			var atk_peer: int = attacker.get_multiplayer_authority()
+			if status.has_method("get_damage_boost"):
+				damage = ceili(damage * status.get_damage_boost(atk_peer))
+		# Buff defensivo del objetivo (damage_reduction)
+		if status.has_method("get_damage_reduction"):
+			damage = ceili(damage * (1.0 - status.get_damage_reduction(target_peer)))
 
 	return maxi(1, damage)
 

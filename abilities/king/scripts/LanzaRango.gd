@@ -1,0 +1,143 @@
+extends AbilityBase
+class_name LanzaRangoAbility
+
+# ── Constantes de la mecánica de la lanza ────────────────────────────
+const LANZA_SPEED: float      = 1800.0   # avance de la cabeza (px/s)
+const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se libera al resolver)
+
+# Evita que el RefCounted sea recolectado mientras la habilidad está activa.
+static var _keep_alive: Array = []
+
+var _active: bool = false
+var _player_node: Node = null
+var _caster_id: int = -1
+var _slot_index: int = -1
+var _data: AbilityData = null
+var _lance: Node = null
+var _cd_svc: Node = null
+var _combat: Node = null
+
+
+func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
+	if not is_instance_valid(player_node):
+		return
+
+	_player_node = player_node
+	_caster_id = player_node.get_multiplayer_authority()
+	_data = data
+	_slot_index = slot_index
+	_active = true
+
+	var tp_svc = GameServiceLocator.tp
+	if data.tp_cost > 0.0 and tp_svc:
+		if not tp_svc.consume_tp(_caster_id, data.tp_cost):
+			_fail_cleanup()
+			return
+
+	_cd_svc = GameServiceLocator.cooldown
+	_combat = GameServiceLocator.combat_mediator
+
+	var facing_right: bool = direction.x >= 0.0 or direction == Vector2.ZERO
+
+	# King se queda en el último frame de la animación hasta resolver.
+	player_node.play_ability_animation(data.action_animation, _slot_index, facing_right)
+	player_node.hold_ability_anim = true
+	player_node.rpc("_sync_ability_hold", true)
+
+	if _combat:
+		_combat.apply_root(_player_node, ROOT_DURATION)
+
+	# Apuntar la lanza en la dirección del apuntado (mouse).
+	var lance_dir: Vector2 = direction.normalized()
+	if lance_dir == Vector2.ZERO:
+		lance_dir = Vector2.RIGHT if facing_right else Vector2.LEFT
+
+	_keep_alive.append(self)
+
+	var spawn_delay: float = data.spawn_delay if data.spawn_delay > 0.0 else 0.0
+	if player_node.get_tree():
+		player_node.get_tree().create_timer(spawn_delay).timeout.connect(
+			func(): _spawn_lance(lance_dir)
+		)
+
+	print("[LanzaRango] Habilidad iniciada | peer: ", _caster_id, " | dir: ", lance_dir)
+
+
+func _spawn_lance(lance_dir: Vector2) -> void:
+	if not _active or not is_instance_valid(_player_node):
+		_resolve(false)
+		return
+
+	var hs = GameServiceLocator.hitbox
+	if not hs:
+		_resolve(false)
+		return
+
+	var portal := hs.create({
+		"attacker_id": _caster_id,
+		"attacker_node": _player_node,
+		"type": "projectile",
+		"aim_mode": "fixed",
+		"direction": lance_dir,
+		"shape_scene": _data.ability_scene if _data else null,
+		"damage": 0,
+		"attack_type": _data.attack_type if _data else "normal",
+		"hit_limit": 0,
+		"team_filter": "enemy",
+		"lifetime": ROOT_DURATION,
+		"speed": LANZA_SPEED,
+		"hitbox_max_range": _data.range_ if _data else 0.0,
+		"offset": 0.0,
+		"custom_hitbox": true,
+		"detect_walls": true,
+	})
+
+	if not portal:
+		_resolve(false)
+		return
+
+	_lance = portal
+	var origin: Vector2 = _player_node.global_position
+	portal.global_position = origin
+	portal.origin = origin
+	portal.setup_lanza(self, _player_node, lance_dir)
+
+	print("[LanzaRango] Lanza lanzada desde ", origin)
+
+
+# ── Resolución (llamada por el proyectil) ────────────────────────────
+func resolve(success: bool) -> void:
+	_resolve(success)
+
+
+func _resolve(success: bool) -> void:
+	if not _active:
+		return
+	_active = false
+
+	if _combat and is_instance_valid(_player_node):
+		_combat.remove_root(_player_node)
+
+	if is_instance_valid(_player_node):
+		_player_node.hold_ability_anim = false
+		_player_node.rpc("_sync_cancel_ability")
+
+	# Cooldown: si conectó usa el normal; si falló en blanco, el cooldown_fail.
+	var cd: float = _data.cooldown
+	if _cd_svc:
+		if _cd_svc.has_method("release_lock"):
+			_cd_svc.release_lock(_caster_id, _slot_index)
+		if not success and _data.cooldown_fail > 0.0:
+			cd = _data.cooldown_fail
+		_cd_svc.start(_caster_id, _slot_index, cd)
+
+	print("[LanzaRango] Resuelta | peer: ", _caster_id, " | éxito: ", success, " | cooldown: ", cd)
+	_keep_alive.erase(self)
+
+
+func _fail_cleanup() -> void:
+	_active = false
+	if _cd_svc:
+		if _cd_svc.has_method("release_lock"):
+			_cd_svc.release_lock(_caster_id, _slot_index)
+	print("[LanzaRango] Fallo en activación | peer: ", _caster_id)

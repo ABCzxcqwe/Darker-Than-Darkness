@@ -43,6 +43,8 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	var status = GameServiceLocator.status_effect
 	if status:
 		status.grant_stun_immunity(_caster_id, total_duration())
+		status.apply(_player_node, "invisibility", { "duration": total_duration() })
+		status.apply(_player_node, "damage_reduction", { "duration": total_duration(), "magnitude": 0.9 })
 
 	var target_center = player_node.global_position
 
@@ -178,6 +180,9 @@ func _finish_ability() -> void:
 	var status = GameServiceLocator.status_effect
 	if status:
 		status.grant_stun_immunity(_caster_id, 0.0)
+		if _player_node.multiplayer.is_server() and is_instance_valid(_player_node):
+			status.remove_effect(_player_node, "invisibility")
+			status.remove_effect(_player_node, "damage_reduction")
 
 	if is_instance_valid(_player_node):
 		_player_node.rpc("_sync_cancel_ability")

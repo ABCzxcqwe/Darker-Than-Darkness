@@ -237,6 +237,14 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("11_icon")
+}],
+"loop": true,
+"name": &"icon",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_718th")
 }, {
 "duration": 1.0,
@@ -420,12 +428,4 @@ animations = [{
 "loop": true,
 "name": &"walk_horizontal",
 "speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("11_icon")
-}],
-"loop": true,
-"name": &"icon",
-"speed": 5.0
 }]
