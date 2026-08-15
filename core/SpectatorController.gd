@@ -86,6 +86,9 @@ func _process(delta: float) -> void:
 
 
 func _handle_input(delta: float) -> void:
+	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
+	if menu and menu.has_method("is_open") and menu.is_open():
+		return
 	if Input.is_action_just_pressed("spec_toggle"):
 		_spec_is_freecam = not _spec_is_freecam
 		if _spectator_camera:

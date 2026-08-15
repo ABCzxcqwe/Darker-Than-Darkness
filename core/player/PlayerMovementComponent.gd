@@ -42,28 +42,33 @@ func _physics_process(_delta: float) -> void:
 
 	if player.health_state == "dead": return
 
+	# Menú de pausa abierto: el jugador queda parado (el mundo sigue).
+	if player.has_method("is_pause_menu_open") and player.is_pause_menu_open():
+		player.velocity = Vector2.ZERO
+		return
+
 	# ── Si está emotando y se mueve, cancelar emote ──
 	if player.state == Player.AnimState.EMOTE:
-		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		if input_dir.length() > IDLE_MOVE_THRESHOLD:
+		var emote_move: Vector2 = _get_move_vector()
+		if emote_move.length() > IDLE_MOVE_THRESHOLD:
 			player.cancel_emote()
 			# Permitir que este frame procese el movimiento
 			player.state = Player.AnimState.IDLE
 
 	if player.state == Player.AnimState.IDLE or player.active_effects.has("free_look"):
-		var mouse_dir = (player.get_global_mouse_position() - player.global_position).normalized()
-		update_facing_and_flip(mouse_dir)
+		var aim_dir: Vector2 = player.input_component.get_aim_direction(player.global_position)
+		update_facing_and_flip(aim_dir)
 		if player.active_effects.has("free_look"):
 			var now = Time.get_ticks_msec()
 			if now - _last_aim_sync_time > 100:
 				_last_aim_sync_time = now
 				if player.multiplayer.is_server():
-					player._sync_aim_dir(mouse_dir)
+					player._sync_aim_dir(aim_dir)
 				else:
-					player.rpc_id(1, "_sync_aim_dir", mouse_dir)
+					player.rpc_id(1, "_sync_aim_dir", aim_dir)
 
 	if player.state == Player.AnimState.IDLE:
-		var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		var input_dir: Vector2 = _get_move_vector()
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
 		var stam_svc = GameServiceLocator.stamina
@@ -106,3 +111,9 @@ func update_facing_and_flip(dir: Vector2) -> void:
 		player.facing_right = dir.x > 0
 		player.animated_sprite.flip_h = not player.facing_right
 		player.facing = Vector2.RIGHT if player.facing_right else Vector2.LEFT
+
+
+func _get_move_vector() -> Vector2:
+	if player and player.input_component:
+		return player.input_component.get_move_vector()
+	return Input.get_vector("move_left", "move_right", "move_up", "move_down")

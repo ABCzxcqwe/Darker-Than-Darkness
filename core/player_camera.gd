@@ -7,6 +7,9 @@ extends Camera2D
 @export var zoom_speed: float = 3.0
 @export var smooth_speed: float = 5.0
 
+## Multiplicador de zoom cuando el jugador está cegado (>1 = más cerca).
+const BLIND_ZOOM_MULTIPLIER: float = 1.4
+
 var _shake_intensity: float = 0.0
 var _shake_remaining: float = 0.0
 var _shake_duration: float = 0.0
@@ -33,10 +36,15 @@ func _process(delta: float) -> void:
 
 
 func _calc_mouse_peek(parent: Node2D) -> Vector2:
-	var mouse_pos: Vector2 = get_global_mouse_position()
+	var player_input = parent.get("input_component")
+	var aim_pos: Vector2
+	if player_input:
+		aim_pos = player_input.get_aim_position(parent.global_position, mouse_peek_limit)
+	else:
+		aim_pos = get_global_mouse_position()
 	var player_pos: Vector2 = parent.global_position
-	var dir: Vector2 = (mouse_pos - player_pos).normalized()
-	var dist: float = clamp((mouse_pos - player_pos).length() / 500.0, 0.0, 1.0)
+	var dir: Vector2 = (aim_pos - player_pos).normalized()
+	var dist: float = clamp((aim_pos - player_pos).length() / 500.0, 0.0, 1.0)
 	return dir * dist * mouse_peek_amount * mouse_peek_limit
 
 
@@ -58,9 +66,17 @@ func _update_shake(delta: float) -> void:
 
 func _update_zoom(parent: Node2D, delta: float) -> void:
 	var target := zoom_base
-	if parent.movement_component.is_sprinting():
+	if _is_blinded(parent):
+		# Cegado: la cámara se acerca al jugador (zoom mayor = más cerca).
+		target = zoom_base * BLIND_ZOOM_MULTIPLIER
+	elif parent.movement_component.is_sprinting():
 		target = zoom_sprint
 	zoom = zoom.lerp(Vector2(target, target), zoom_speed * delta)
+
+
+func _is_blinded(parent: Node2D) -> bool:
+	var scale: float = parent.get("_vision_scale") if parent.get("_vision_scale") != null else 1.0
+	return scale < 1.0
 
 
 func shake(intensity: float = 5.0, duration: float = 0.2) -> void:

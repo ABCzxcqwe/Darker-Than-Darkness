@@ -96,6 +96,20 @@ const KILLER_ONLY := [
 @export var vision_cone_angle: float = 120.0
 @export var vision_cone_range: float = 1200.0
 
+@export_group("Cámara")
+## Zoom de la cámara en estado normal.
+@export var camera_zoom_base: float = 0.7
+## Zoom de la cámara al correr.
+@export var camera_zoom_sprint: float = 0.65
+## Velocidad de interpolación del zoom.
+@export var camera_zoom_speed: float = 3.0
+## Velocidad de suavizado de posición de la cámara.
+@export var camera_smooth_speed: float = 5.0
+## Cuánto se desplaza la cámara hacia el cursor al apuntar.
+@export var camera_mouse_peek_amount: float = 0.3
+## Distancia máxima del desplazamiento hacia el cursor.
+@export var camera_mouse_peek_limit: float = 120.0
+
 @export_group("Emotes")
 @export var emote_slots: Array[EmoteData] = [null, null, null, null]
 

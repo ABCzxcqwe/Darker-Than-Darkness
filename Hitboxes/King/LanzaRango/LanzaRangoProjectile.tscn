@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://Hitboxes/King/LanzaRango/LanzaRangoProjectile.gd" id="1_lanza"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_head"]
-size = Vector2(50, 50)
+size = Vector2(70, 70)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_detector"]
-radius = 40.0
+radius = 55.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lanza"]
 properties/0/path = NodePath(".:position")

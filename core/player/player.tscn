@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://cdve0tt16kqmj" path="res://core/player/PlayerInteractionComponent.gd" id="5_interaction"]
 [ext_resource type="Script" uid="uid://dhto4ds8dqhya" path="res://core/player/PlayerAnimationComponent.gd" id="6_animation"]
 [ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://core/player/PlayerMovementComponent.gd" id="7_movement"]
+[ext_resource type="Script" uid="uid://cja6xwd2n8ocv" path="res://core/player/PlayerInputComponent.gd" id="8_input"]
+[ext_resource type="Script" uid="uid://bmlyo5sy67r1p" path="res://core/player/AimIndicator.gd" id="9_aim"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -107,6 +109,9 @@ script = ExtResource("6_animation")
 [node name="PlayerMovementComponent" type="Node" parent="." unique_id=1114141328]
 script = ExtResource("7_movement")
 
+[node name="PlayerInputComponent" type="Node" parent="."]
+script = ExtResource("8_input")
+
 [node name="VisionCircle" type="PointLight2D" parent="." unique_id=433607292]
 energy = 1.25
 blend_mode = 2
@@ -115,3 +120,6 @@ shadow_enabled = true
 [node name="VisionCone" type="PointLight2D" parent="." unique_id=1372732865]
 blend_mode = 2
 shadow_enabled = true
+
+[node name="AimIndicator" type="Node2D" parent="."]
+script = ExtResource("9_aim")

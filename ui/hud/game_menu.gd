@@ -1,4 +1,4 @@
-extends Control
+extends "res://ui/MainMenu/scripts/menu_base.gd"
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
 
@@ -10,68 +10,30 @@ var music_slider: HSlider
 var sfx_slider: HSlider
 var exit_button: Button
 
-var _focus_items: Array[Control] = []
-var _focus_idx := 0
-
 func _ready() -> void:
+	add_to_group(GroupNames.GAME_MENU)
 	_build_ui()
 	exit_button.pressed.connect(_on_exit_pressed)
 	music_slider.value_changed.connect(_on_music_changed)
 	sfx_slider.value_changed.connect(_on_sfx_changed)
-	_apply_focus()
+	_setup_focus([music_slider, sfx_slider, exit_button])
 	_close()
 
-func _apply_focus() -> void:
-	var focus_style := StyleBoxFlat.new()
-	focus_style.bg_color = Color(0.114, 0.114, 0.114, 1)
-	focus_style.border_color = Color.WHITE
-	focus_style.border_width_left = 3
-	focus_style.border_width_top = 3
-	focus_style.border_width_right = 3
-	focus_style.border_width_bottom = 3
-	focus_style.set_corner_radius_all(3)
-	focus_style.set_expand_margin_all(5)
-	_focus_items = [$Panel/Margin/VBox/MusicRow/MusicSlider,
-		$Panel/Margin/VBox/SFXRow/SFXSlider,
-		$Panel/Margin/VBox/ExitButton]
-	for i in _focus_items.size():
-		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
-		_focus_items[i].focus_entered.connect(_update_focus.bind(i))
-
-func _update_focus(i: int) -> void:
-	_focus_idx = i
-
-func _input(event):
-	if not _is_open:
-		return
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		var kc = event.keycode
-		var pkc = event.physical_keycode
-
-		if (kc == KEY_ENTER or kc == KEY_KP_ENTER):
-			if _focus_idx < _focus_items.size() and (_focus_items[_focus_idx] is LineEdit or _focus_items[_focus_idx] is TextEdit):
-				_focus_items[_focus_idx].editable = not _focus_items[_focus_idx].editable
-				get_viewport().set_input_as_handled()
-				return
-
-		if kc != KEY_W and kc != KEY_S and pkc != KEY_W and pkc != KEY_S:
-			return
-
-		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
-			_focus_idx -= 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-			get_viewport().set_input_as_handled()
-		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
-			_focus_idx += 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-			get_viewport().set_input_as_handled()
+func is_open() -> bool:
+	return _is_open
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
+	var vp := get_viewport()
+	if vp == null:
+		return
+	if _is_open:
+		if event.is_action_pressed("pause") or event.is_action_pressed("menu_cancel"):
+			_toggle()
+			vp.set_input_as_handled()
+		return
+	if event.is_action_pressed("pause"):
 		_toggle()
-		get_viewport().set_input_as_handled()
+		vp.set_input_as_handled()
 
 func _build_ui() -> void:
 	var panel_bg := StyleBoxFlat.new()
@@ -172,16 +134,23 @@ func _toggle() -> void:
 
 func _open() -> void:
 	_is_open = true
+	_menu_enabled = true
 	overlay.visible = true
 	menu_panel.visible = true
 	music_slider.value = SettingsManager.music_volume
 	sfx_slider.value = SettingsManager.sfx_volume
 	music_slider.grab_focus()
+	_focus_idx = 0
 
 func _close() -> void:
 	_is_open = false
+	_menu_enabled = false
 	overlay.visible = false
 	menu_panel.visible = false
+
+func _on_menu_cancel() -> bool:
+	_toggle()
+	return true
 
 func _on_music_changed(value: float) -> void:
 	SettingsManager.music_volume = value

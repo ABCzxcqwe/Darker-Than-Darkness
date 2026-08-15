@@ -16,9 +16,9 @@ var hitbox_max_range: float = 1200.0
 
 # ── Mecánica de la lanza ─────────────────────────────────────────────
 var origin: Vector2 = Vector2.ZERO          # estómago del Rey (replicado)
-const RETRACT_SPEED: float = 1800.0         # retracción del asta (px/s)
-const HOOK_PULL_SPEED: float = 1800.0       # Rei jalado hacia la pared enganchada (px/s)
-const RETURN_SPEED: float = 2500.0          # retorno al Rey al alcanzar el límite de rango (px/s)
+const RETRACT_SPEED: float = 2200.0         # retracción del asta (px/s)
+const HOOK_PULL_SPEED: float = 2400.0       # Rei jalado hacia la pared enganchada (px/s)
+const RETURN_SPEED: float = 3000.0          # retorno al Rey al alcanzar el límite de rango (px/s)
 const ARRIVE_DIST: float   = 40.0           # dist. para considerar "recogido"
 const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
 
@@ -78,6 +78,11 @@ func _physics_process(delta: float) -> void:
 	if not multiplayer.is_server():
 		return
 
+	# Si King fue stuneado mientras la lanza está activa, la habilidad se cancela.
+	if _caster_is_stunned():
+		_resolve(false)
+		return
+
 	match _phase:
 		Phase.EXTEND:
 			_extend_phase(delta)
@@ -87,6 +92,15 @@ func _physics_process(delta: float) -> void:
 			_hook_phase(delta)
 		Phase.RETURN:
 			_return_phase(delta)
+
+
+func _caster_is_stunned() -> bool:
+	var status = GameServiceLocator.status_effect
+	if status and status.has_method("is_stunned"):
+		return status.is_stunned(attacker_id)
+	if is_instance_valid(_caster):
+		return _caster.active_effects.has("stun")
+	return false
 
 
 func _extend_phase(delta: float) -> void:
@@ -161,6 +175,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 	var combat = GameServiceLocator.combat_mediator
 	if combat and is_instance_valid(target):
+		combat.apply_damage(_caster, target, damage, attack_type)
 		combat.apply_root(target, 30.0)
 	_pause_sync(target)
 

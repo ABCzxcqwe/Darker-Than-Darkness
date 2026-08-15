@@ -97,6 +97,8 @@ func load_settings() -> void:
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
+	# Cargar el existente para NO pisar secciones de otros sistemas (p. ej. [input] de InputService)
+	cfg.load(SETTINGS_PATH)
 	cfg.set_value("audio", "music_volume", music_volume)
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
 	cfg.set_value("network", "network_mode", network_mode)

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://fjjt3ktxlxjt"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://bgqbu6pxua7f4"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ad"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_cd"]
@@ -6,11 +6,10 @@
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_cg5l8"]
 [ext_resource type="PackedScene" path="res://Hitboxes/King/basic/KingHitbox.tscn" id="4_hitbox"]
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/assets/Sprites/icon.png" id="4_icon"]
-[ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/assets/Sprites/king_panel.png" id="5_panel"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/Sword/SwordSlash.gd" id="6_sword"]
 [ext_resource type="AudioStream" uid="uid://c800d46l0g5c3" path="res://audio/SFX/snd_dadblast.wav" id="7_3e8eq"]
-[ext_resource type="Resource" uid="uid://cqh3sljtgj5t4" path="res://abilities/king/Lanza/Lanza.tres" id="7_lanza"]
 [ext_resource type="Resource" uid="uid://chviuq8jxrh6s" path="res://abilities/king/Rugido/Rugido.tres" id="8_rugido"]
+[ext_resource type="Resource" uid="uid://dawt7s6mkntex" path="res://abilities/king/LanzaRango/LanzaRango.tres" id="9_lanza_rango"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Music/Sonic.exe LAYER.ogg" id="9_terror"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Music/Sonic. Exe Chase.ogg" id="10_chase"]
 
@@ -26,8 +25,8 @@ base_damage = 40
 
 [resource]
 script = ExtResource("2_cd")
-id = 5
-display_name = "King"
+id = 7
+display_name = "KING_LANZA"
 team = "killer"
 speed = 450.0
 max_health = 750
@@ -42,7 +41,7 @@ chase_radius = 500.0
 terror_music = ExtResource("9_terror")
 chase_music = ExtResource("10_chase")
 hit_sfx = Array[AudioStream]([ExtResource("7_3e8eq")])
-ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), ExtResource("8_rugido"), null, null])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("9_lanza_rango"), ExtResource("8_rugido"), null, null])
 tp_gain_time = 1.5
 stamina_max = 240.0
 stamina_regen_rate = 25.0
@@ -51,6 +50,6 @@ vision_cone_range = 1400.0
 camera_zoom_base = 0.6
 camera_zoom_sprint = 0.55
 icon = ExtResource("4_icon")
-panel_texture = ExtResource("5_panel")
+panel_texture = ExtResource("4_icon")
 animation_frames = ExtResource("3_anim")
 theme_color = Color(0.8, 0.2, 0.2, 1)

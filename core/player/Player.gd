@@ -19,6 +19,7 @@ const INVISIBILITY_ALPHA_SELF: float = 0.5
 
 @onready var interaction: PlayerInteractionComponent = $PlayerInteractionComponent
 @onready var animation_component: PlayerAnimationComponent = $PlayerAnimationComponent
+@onready var input_component: PlayerInputComponent = $PlayerInputComponent
 var movement_component: PlayerMovementComponent
 
 var character_data:   CharacterData
@@ -56,6 +57,7 @@ func _ready() -> void:
 	interaction.initialize(self)
 	animation_component.initialize(self)
 	movement_component.initialize(self)
+	input_component.initialize(self)
 	if character_data:
 		movement_component.speed = character_data.speed
 
@@ -214,6 +216,13 @@ func _exit_tree() -> void:
 
 # ── Input ─────────────────────────────────────────────────────────────
 
+## true si el menú de pausa (desplegable) está abierto. Mientras lo está,
+## el jugador local no actúa (movilidad, habilidades, etc.) pero el mundo sigue.
+func is_pause_menu_open() -> bool:
+	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
+	return menu != null and menu.has_method("is_open") and menu.is_open()
+
+
 func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 
@@ -221,6 +230,18 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if health_state != "alive": return
+
+	# Si el menú de pausa está abierto, el input del jugador queda bloqueado
+	# (menú desplegable: el mundo sigue, pero el jugador no actúa).
+	if is_pause_menu_open():
+		return
+
+	# Si el menú contextual del HUD está abierto, el input es del HUD
+	# (evita que en mando el botón A dispare habilidad y seleccione a la vez).
+	var hud_menu := get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
+	for hud in hud_menu:
+		if hud.has_method("is_menu_open") and hud.is_menu_open():
+			return
 
 	var action_map = {
 		"ability_1": 1,
@@ -238,24 +259,20 @@ func _input(event: InputEvent) -> void:
 		return
 
 	# ── Emote selection (solo si barra abierta) ──
-	if _emote_bar_open and event is InputEventKey and event.pressed and not event.echo:
-		var emote_slot = -1
-		match event.keycode:
-			KEY_1: emote_slot = 0
-			KEY_2: emote_slot = 1
-			KEY_3: emote_slot = 2
-			KEY_4: emote_slot = 3
-			KEY_ESCAPE:
-				_emote_bar_open = false
-				_toggle_emote_bar(false)
-				return
-		if emote_slot >= 0:
+	var _is_press: bool = event is InputEventKey and event.pressed or event is InputEventMouseButton and event.pressed or event is InputEventJoypadButton and event.pressed
+	if _emote_bar_open and _is_press:
+		if event.is_action_pressed("ui_cancel"):
+			_emote_bar_open = false
+			_toggle_emote_bar(false)
+			return
+		var _emote_slot: int = input_component.resolve_emote_slot(event)
+		if _emote_slot >= 0:
 			_emote_bar_open = false
 			_toggle_emote_bar(false)
 			if multiplayer.is_server():
-				_request_emote(emote_slot)
+				_request_emote(_emote_slot)
 			else:
-				rpc_id(1, "_request_emote", emote_slot)
+				rpc_id(1, "_request_emote", _emote_slot)
 			return
 
 	# ── Bloquear habilidades si está emotando ──
@@ -263,13 +280,11 @@ func _input(event: InputEvent) -> void:
 		for action in action_map:
 			if event.is_action_pressed(action):
 				return
-		if event.is_action_pressed("secret_ability"):
-			return
 		return
 
 	if event.is_action_pressed("confirm") and aiming_slot >= 0:
 		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
-		mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		mouse_dir = input_component.get_aim_direction(global_position)
 		if multiplayer.is_server():
 			AbilityRouter.request_ability(aiming_slot, mouse_dir)
 		else:
@@ -294,7 +309,7 @@ func _input(event: InputEvent) -> void:
 				print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
 				if action == "ability_0":
 					print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
-					mouse_dir = (get_global_mouse_position() - global_position).normalized()
+					mouse_dir = input_component.get_aim_direction(global_position)
 					if multiplayer.is_server():
 						AbilityRouter.request_ability(aiming_slot, mouse_dir)
 					else:
@@ -323,7 +338,7 @@ func _input(event: InputEvent) -> void:
 					huds[0].cancel_selection()
 				return
 
-			mouse_dir = (get_global_mouse_position() - global_position).normalized()
+			mouse_dir = input_component.get_aim_direction(global_position)
 
 			if multiplayer.is_server():
 				print("[Player] Llamando Router.request_ability (servidor) | slot: ", slot)
@@ -333,12 +348,6 @@ func _input(event: InputEvent) -> void:
 				AbilityRouter.rpc_id(1, "request_ability", slot, mouse_dir)
 			ability_used.emit(slot)
 			break
-
-	if event.is_action_pressed("secret_ability"):
-		if multiplayer.is_server():
-			_activate_secret_heal()
-		else:
-			rpc_id(1, "_request_secret_heal")
 
 	if event.is_action_pressed("interact"):
 		_try_revive()
@@ -471,6 +480,20 @@ func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 	if $AnimatedSprite2D:
 		$AnimatedSprite2D.sprite_frames = data.animation_frames
 	_setup_collision_layers(data)
+	_apply_camera_config(data)
+
+
+func _apply_camera_config(data: CharacterData) -> void:
+	var cam: Camera2D = $Camera2D
+	if not cam:
+		return
+	cam.zoom_base = data.camera_zoom_base
+	cam.zoom_sprint = data.camera_zoom_sprint
+	cam.zoom_speed = data.camera_zoom_speed
+	cam.smooth_speed = data.camera_smooth_speed
+	cam.position_smoothing_speed = data.camera_smooth_speed
+	cam.mouse_peek_amount = data.camera_mouse_peek_amount
+	cam.mouse_peek_limit = data.camera_mouse_peek_limit
 
 
 func _setup_collision_layers(data: CharacterData) -> void:

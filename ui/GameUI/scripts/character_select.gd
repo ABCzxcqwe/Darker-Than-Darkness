@@ -138,36 +138,36 @@ func _update_selection(prev_idx: int) -> void:
 
 
 func _input(event):
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		var kc = event.keycode
-		var pkc = event.physical_keycode
-		var is_left = (kc == KEY_A or pkc == KEY_A or kc == KEY_LEFT or pkc == KEY_LEFT)
-		var is_right = (kc == KEY_D or pkc == KEY_D or kc == KEY_RIGHT or pkc == KEY_RIGHT)
-		var is_enter = (kc == KEY_ENTER or kc == KEY_KP_ENTER or kc == KEY_SPACE)
+	var vp := get_viewport()
+	if vp == null:
+		return
+	if _selection_locked:
+		return
 
-		if _selection_locked:
-			return
+	var is_left: bool = event.is_action_pressed("menu_left")
+	var is_right: bool = event.is_action_pressed("menu_right")
+	var is_enter: bool = event.is_action_pressed("menu_accept")
 
-		if is_enter and available_char_ids.size() > 0:
-			AudioManager.play_sfx_ui(SfxId.SELECT)
-			_confirm_selection(available_char_ids[_focus_idx])
-			get_viewport().set_input_as_handled()
-			return
+	if is_enter and available_char_ids.size() > 0:
+		AudioManager.play_sfx_ui(SfxId.SELECT)
+		_confirm_selection(available_char_ids[_focus_idx])
+		vp.set_input_as_handled()
+		return
 
-		if not is_left and not is_right:
-			return
+	if not is_left and not is_right:
+		return
 
-		var prev = _focus_idx
-		if is_left and _focus_idx > 0:
-			_focus_idx -= 1
-		elif is_right and _focus_idx < available_char_ids.size() - 1:
-			_focus_idx += 1
-		else:
-			return
+	var prev = _focus_idx
+	if is_left and _focus_idx > 0:
+		_focus_idx -= 1
+	elif is_right and _focus_idx < available_char_ids.size() - 1:
+		_focus_idx += 1
+	else:
+		return
 
-		AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-		_update_selection(prev)
-		get_viewport().set_input_as_handled()
+	AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
+	_update_selection(prev)
+	vp.set_input_as_handled()
 
 
 func _on_character_clicked(char_id: int) -> void:

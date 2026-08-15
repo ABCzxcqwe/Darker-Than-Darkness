@@ -1,55 +1,15 @@
-extends Control
+extends "res://ui/MainMenu/scripts/menu_base.gd"
 
 @onready var create_room_btn = $MarginContainer/VBoxContainer/CreateRoomButton
 @onready var join_room_btn = $MarginContainer/VBoxContainer/JoinRoomButton
 @onready var options_btn = $MarginContainer/VBoxContainer/OptionsButton
 @onready var quit_btn = $MarginContainer/VBoxContainer/QuitButton
-var _focus_items: Array[Control] = []
-var _focus_idx := 0
 
 func _ready():
 	await get_tree().process_frame
 	if not is_inside_tree():
 		return
-	_setup_focus()
-
-func _setup_focus() -> void:
-	var focus_style := StyleBoxFlat.new()
-	focus_style.bg_color = Color(0.114, 0.114, 0.114, 1)
-	focus_style.border_color = Color.WHITE
-	focus_style.border_width_left = 3
-	focus_style.border_width_top = 3
-	focus_style.border_width_right = 3
-	focus_style.border_width_bottom = 3
-	focus_style.set_corner_radius_all(3)
-	focus_style.set_expand_margin_all(5)
-	_focus_items = [create_room_btn, join_room_btn, options_btn, quit_btn]
-	for i in _focus_items.size():
-		_focus_items[i].add_theme_stylebox_override("focus", focus_style)
-		_focus_items[i].focus_entered.connect(_update_focus.bind(i))
-	create_room_btn.grab_focus()
-	_focus_idx = 0
-
-func _update_focus(i: int) -> void:
-	_focus_idx = i
-
-func _input(event):
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		var kc = event.keycode
-		var pkc = event.physical_keycode
-		if kc != KEY_W and kc != KEY_S and pkc != KEY_W and pkc != KEY_S:
-			return
-
-		if (kc == KEY_W or pkc == KEY_W) and _focus_idx > 0:
-			_focus_idx -= 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-			get_viewport().set_input_as_handled()
-		elif (kc == KEY_S or pkc == KEY_S) and _focus_idx < _focus_items.size() - 1:
-			_focus_idx += 1
-			_focus_items[_focus_idx].grab_focus()
-			AudioManager.play_sfx_ui(SfxId.MENU_MOVE)
-			get_viewport().set_input_as_handled()
+	_setup_focus([create_room_btn, join_room_btn, options_btn, quit_btn])
 
 func _full_network_reset():
 	print("Reiniciando sistema multiplayer por completo")

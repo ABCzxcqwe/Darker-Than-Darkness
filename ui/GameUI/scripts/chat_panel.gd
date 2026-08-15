@@ -39,9 +39,17 @@ func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 
+	if _is_pause_open():
+		return
+
 	if not _input_active and event.keycode == KEY_T:
 		get_viewport().set_input_as_handled()
 		_open_input()
+
+
+func _is_pause_open() -> bool:
+	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
+	return menu != null and menu.has_method("is_open") and menu.is_open()
 
 
 func _unhandled_input(event: InputEvent) -> void:

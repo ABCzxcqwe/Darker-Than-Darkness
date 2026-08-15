@@ -68,6 +68,34 @@ func _ready() -> void:
 	if killer_hp_public:
 		killer_hp_public.visible = false
 	_connect_dialog_relay()
+	if not InputService.device_changed.is_connected(_on_input_device_changed):
+		InputService.device_changed.connect(_on_input_device_changed)
+
+
+func _on_input_device_changed(_device: int) -> void:
+	_refresh_revive_labels()
+
+
+func _revive_label_text() -> String:
+	return "REVIVIR [%s]" % InputService.get_action_label("interact")
+
+
+func _refresh_revive_labels() -> void:
+	for entry in _revive_prompts.values():
+		var panel = entry.get("panel")
+		if not is_instance_valid(panel):
+			continue
+		var label = panel.get_node_or_null("ReviveLabel")
+		if label:
+			label.text = _revive_label_text()
+
+
+func is_menu_open() -> bool:
+	return _menu_open
+
+func _is_pause_open() -> bool:
+	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
+	return menu != null and menu.has_method("is_open") and menu.is_open()
 
 func _connect_dialog_relay() -> void:
 	var relay = GameServiceLocator.get_client_relay()
@@ -358,6 +386,7 @@ func _select_ctx_item(idx: int) -> void:
 # ── Input del menú contextual ──────────────────────────────────────────
 func _input(event: InputEvent) -> void:
 	if not _menu_open: return
+	if _is_pause_open(): return
 
 	if event.is_action_pressed("ui_cancel"):
 		cancel_selection()
@@ -467,7 +496,8 @@ func _create_revive_prompt(player_node: Node) -> void:
 	vbox.add_child(bar_bg)
 
 	var label := Label.new()
-	label.text = "REVIVIR [F]"
+	label.name = "ReviveLabel"
+	label.text = _revive_label_text()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_override("font", FONT_DELTARUNE)

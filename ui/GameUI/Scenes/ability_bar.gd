@@ -2,14 +2,6 @@ extends HBoxContainer
 
 const ABILITY_BUTTON_SCENE := preload("uid://bmtkxxhx3sll5")
 
-const KEY_NAMES := {
-	0: "M1",
-	1: "E",
-	2: "Q",
-	3: "X",
-	4: "Z",
-}
-
 var _player_node: Node = null
 var _buttons: Dictionary = {}
 
@@ -25,12 +17,27 @@ func setup(player_node: Node) -> void:
 		var data: AbilityData = slots[i]
 		if not data:
 			continue
-
-		var key_name: String = KEY_NAMES.get(i, str(i))
 		var btn := ABILITY_BUTTON_SCENE.instantiate()
 		add_child(btn)
-		btn.setup(data, i, key_name, peer_id)
+		btn.setup(data, i, "", peer_id)
 		_buttons[i] = btn
+
+	if InputService.device_changed.is_connected(_on_device_changed):
+		InputService.device_changed.disconnect(_on_device_changed)
+	InputService.device_changed.connect(_on_device_changed)
+	_refresh_labels()
+
+
+func _refresh_labels() -> void:
+	for slot in _buttons:
+		var action := "ability_%d" % slot
+		var label: String = InputService.get_action_label(action)
+		if _buttons[slot].has_method("set_key_label"):
+			_buttons[slot].set_key_label(label)
+
+
+func _on_device_changed(_device: int) -> void:
+	_refresh_labels()
 
 
 func on_cooldown_state_changed(slot_index: int, duration: float) -> void:

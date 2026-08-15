@@ -65,6 +65,12 @@ func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -
 	if key_label:
 		key_label.text = key_name
 
+
+## Actualiza la etiqueta de tecla en caliente (dispositivo cambiante/rebinding).
+func set_key_label(key_name: String) -> void:
+	if key_label:
+		key_label.text = key_name
+
 	# El panel base ya no dibuja el borde cuando hay una habilidad real —
 	# el borde de habilidades con datos lo dibujan BaseFillRect/EvolutionFillRect
 	# (relleno por TP). Para un slot vacío, mantenemos el borde estático de siempre.

@@ -46,8 +46,12 @@ func _process(_delta: float) -> void:
 
 	_apply_vision_scale(player, data)
 
-	var mouse_pos = player.get_global_mouse_position()
-	var facing = (mouse_pos - player.global_position).normalized()
+	var input_component = player.get("input_component")
+	var facing: Vector2
+	if input_component:
+		facing = input_component.get_aim_direction(player.global_position)
+	else:
+		facing = (player.get_global_mouse_position() - player.global_position).normalized()
 	if facing.length() < 0.001:
 		facing = Vector2.RIGHT
 

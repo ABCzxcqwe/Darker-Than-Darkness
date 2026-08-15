@@ -2,8 +2,9 @@ extends AbilityBase
 class_name LanzaAbility
 
 # ── Constantes de la mecánica de la lanza ────────────────────────────
-const LANZA_SPEED: float      = 1800.0   # avance de la cabeza (px/s)
+const LANZA_SPEED: float      = 2200.0   # avance de la cabeza (px/s)
 const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se libera al resolver)
+const IFRAME_DURATION: float  = 2.5     # invencibilidad al inicio de la habilidad (seg)
 
 # Evita que el RefCounted sea recolectado mientras la habilidad está activa.
 static var _keep_alive: Array = []
@@ -56,6 +57,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if _combat:
 		_combat.apply_root(_player_node, ROOT_DURATION)
 
+	# Iframes al inicio: King se vuelve invencible mientras apunta la lanza.
+	_grant_iframes()
+
 	# Apuntar la lanza en la dirección del apuntado (mouse).
 	var lance_dir: Vector2 = direction.normalized()
 	if lance_dir == Vector2.ZERO:
@@ -72,8 +76,31 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	print("[Lanza] Habilidad iniciada | peer: ", _caster_id, " | dir: ", lance_dir)
 
 
+func _grant_iframes() -> void:
+	if not is_instance_valid(_player_node):
+		return
+	var ms: int = int(IFRAME_DURATION * 1000.0)
+	_player_node.invincible_until = Time.get_ticks_msec() + ms
+	_player_node.rpc("_sync_invincibility", ms)
+
+
+func _caster_is_stunned() -> bool:
+	var status = GameServiceLocator.status_effect
+	if status and status.has_method("is_stunned"):
+		return status.is_stunned(_caster_id)
+	if is_instance_valid(_player_node):
+		return _player_node.active_effects.has("stun")
+	return false
+
+
 func _spawn_lance(lance_dir: Vector2) -> void:
 	if not _active or not is_instance_valid(_player_node):
+		_resolve(false)
+		return
+
+	# Si King fue stuneado durante el spawn_delay, la habilidad se cancela.
+	if _caster_is_stunned():
+		print("[Lanza] Cancelada — King stuneado durante el delay | peer: ", _caster_id)
 		_resolve(false)
 		return
 
@@ -89,13 +116,13 @@ func _spawn_lance(lance_dir: Vector2) -> void:
 		"aim_mode": "fixed",
 		"direction": lance_dir,
 		"shape_scene": _data.ability_scene if _data else null,
-		"damage": 0,
+		"damage": _data.base_damage if _data else 0,
 		"attack_type": _data.attack_type if _data else "normal",
 		"hit_limit": 0,
 		"team_filter": "enemy",
 		"lifetime": ROOT_DURATION,
 		"speed": LANZA_SPEED,
-		"hitbox_max_range": 0.0,
+		"hitbox_max_range": _data.projectile_max_range if _data else 0.0,
 		"offset": 0.0,
 		"custom_hitbox": true,
 		"detect_walls": true,
