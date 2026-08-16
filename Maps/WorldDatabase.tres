@@ -5,6 +5,7 @@
 [ext_resource type="Resource" uid="uid://brm2fbmi75hjd" path="res://Maps/Card Castle/map_data.tres" id="3"]
 [ext_resource type="Resource" uid="uid://d0qfo6ahu5j5t" path="res://Maps/Card Castle test/map_data.tres" id="3_xeo6q"]
 [ext_resource type="PackedScene" uid="uid://ctjsceyvkt4sn" path="res://Maps/Test/TestMap.tscn" id="4_euxgi"]
+[ext_resource type="Resource" uid="uid://b07vox47yw4kx" path="res://Maps/Scartlet Forest/map_data.tres" id="5_scarlet"]
 
 [sub_resource type="Resource" id="Resource_nbnq8"]
 script = ExtResource("1_xeo6q")
@@ -15,4 +16,4 @@ metadata/_custom_type_script = "uid://cnpjj5828cix"
 
 [resource]
 script = ExtResource("1")
-map_list = Array[ExtResource("1_xeo6q")]([ExtResource("3_xeo6q"), ExtResource("3"), SubResource("Resource_nbnq8")])
+map_list = Array[ExtResource("1_xeo6q")]([ExtResource("3_xeo6q"), ExtResource("3"), ExtResource("5_scarlet"), SubResource("Resource_nbnq8")])
