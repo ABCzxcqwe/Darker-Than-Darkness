@@ -5,7 +5,7 @@ extends Node
 
 var _players: Dictionary = {}
 
-
+ 
 func register(peer_id: int, player_node: Node) -> void:
 	_players[peer_id] = player_node
 
