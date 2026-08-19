@@ -8,8 +8,9 @@
 [ext_resource type="Resource" uid="uid://fjjt3ktxlxjt" path="res://Characters/King/King.tres" id="10_king"]
 [ext_resource type="Resource" uid="uid://fv0xvgd6j6bb" path="res://Characters/Susie_LMS/Susie_LMS.tres" id="11_lms"]
 [ext_resource type="Resource" uid="uid://fb46g8m7fh26v" path="res://Characters/King_Lanza/King_Lanza.tres" id="13_king_lanza"]
+[ext_resource type="Resource" path="res://Characters/Jevil_Test/Jevil_Test.tres" id="14_jevil_test"]
 [ext_resource type="Script" uid="uid://cva4utk4fditj" path="res://Characters/scripts/CharacterDatabase.gd" id="12_vygkj"]
 
 [resource]
 script = ExtResource("12_vygkj")
-character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("3_4x0q4"), ExtResource("5_u7bad"), ExtResource("9_mgrb0"), ExtResource("10_king"), ExtResource("11_lms"), ExtResource("13_king_lanza")])
+character_list = Array[ExtResource("1_0fdf6")]([ExtResource("2_0fdf6"), ExtResource("3_4x0q4"), ExtResource("5_u7bad"), ExtResource("9_mgrb0"), ExtResource("10_king"), ExtResource("11_lms"), ExtResource("13_king_lanza"), ExtResource("14_jevil_test")])

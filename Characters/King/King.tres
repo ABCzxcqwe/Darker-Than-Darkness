@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_cd"]
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/King/animations.tres" id="3_anim"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_cg5l8"]
-[ext_resource type="PackedScene" path="res://Hitboxes/King/basic/KingHitbox.tscn" id="4_hitbox"]
+[ext_resource type="PackedScene" uid="uid://bck5gaco7ipxq" path="res://Hitboxes/King/basic/KingHitbox.tscn" id="4_hitbox"]
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/assets/Sprites/icon.png" id="4_icon"]
 [ext_resource type="Texture2D" uid="uid://dkglg7armwk4r" path="res://Characters/King/assets/Sprites/king_panel.png" id="5_panel"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/Sword/SwordSlash.gd" id="6_sword"]
@@ -30,7 +30,8 @@ id = 5
 display_name = "King"
 team = "killer"
 speed = 450.0
-max_health = 750
+max_health = 1000
+invincibility_frames = 0.0
 size_x = 70
 size_y = 50
 position_y = 50
@@ -43,8 +44,9 @@ terror_music = ExtResource("9_terror")
 chase_music = ExtResource("10_chase")
 hit_sfx = Array[AudioStream]([ExtResource("7_3e8eq")])
 ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), ExtResource("8_rugido"), null, null])
-tp_gain_time = 1.5
-stamina_max = 240.0
+tp_max = 150.0
+tp_gain_time = 2.5
+stamina_max = 300.0
 stamina_regen_rate = 25.0
 stamina_sprint_drain = 35.0
 vision_cone_range = 1400.0
@@ -53,4 +55,4 @@ camera_zoom_sprint = 0.55
 icon = ExtResource("4_icon")
 panel_texture = ExtResource("5_panel")
 animation_frames = ExtResource("3_anim")
-theme_color = Color(0.8, 0.2, 0.2, 1)
+theme_color = Color(0.12941177, 0.34117648, 0.77254903, 1)

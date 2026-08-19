@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://bmosfg6r4siy1"]
+
+[ext_resource type="Script" uid="uid://buqmvyrqm7obr" path="res://Hitboxes/Jevil/shared/scripts/CardProjectile.gd" id="1_card"]
+[ext_resource type="Texture2D" uid="uid://dgpvcjh0vgcpa" path="res://Hitboxes/Jevil/CarouselRain/assets/horse.png" id="2_skvtx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f8e6s"]
+atlas = ExtResource("2_skvtx")
+region = Rect2(0, 0, 50, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mf4yf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f8e6s")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_skvtx"]
+radius = 50.0
+height = 140.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_carousel"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:modulate")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("AnimatedSprite2D:animation")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath("AnimatedSprite2D:frame")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath("AnimatedSprite2D:scale")
+properties/5/spawn = true
+properties/5/replication_mode = 1
+properties/6/path = NodePath("AnimatedSprite2D:z_index")
+properties/6/spawn = true
+properties/6/replication_mode = 1
+
+[node name="CarouselHitbox" type="Area2D" unique_id=1410975637]
+z_index = 4
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_card")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2049518808]
+scale = Vector2(6, 6)
+sprite_frames = SubResource("SpriteFrames_mf4yf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=196809104]
+position = Vector2(0, 60)
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_skvtx")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=801441569]
+replication_config = SubResource("SceneReplicationConfig_carousel")

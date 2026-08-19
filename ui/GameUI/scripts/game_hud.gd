@@ -269,9 +269,9 @@ func _on_effect_removed(peer_id: int, effect_name: String) -> void:
 
 ## Llamado por EvolutionService._rpc_sync_slot_state() desde el servidor
 ## para actualizar el visual de evolución en clientes remotos.
-func visual_evolve_slot(slot_index: int) -> void:
+func visual_evolve_slot(slot_index: int, stage: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
-		ability_bar.on_slot_evolved(slot_index)
+		ability_bar.on_slot_evolved(slot_index, stage)
 
 func visual_devolve_slot(slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):
@@ -281,19 +281,20 @@ func resync_evolution_state() -> void:
 	if not is_instance_valid(_player_node):
 		return
 	var relay = GameServiceLocator.get_client_relay()
-	if not relay or not relay.has_method("is_evolved"):
+	if not relay or not relay.has_method("get_evolved_stage"):
 		return
 	var peer_id = _player_node.get_multiplayer_authority()
 	var slots = _player_node.character_data.ability_slots if _player_node.character_data else []
 	for i in slots.size():
-		if relay.is_evolved(peer_id, i):
+		var stage: int = relay.get_evolved_stage(peer_id, i)
+		if stage > 0:
 			if ability_bar and ability_bar.has_method("on_slot_evolved"):
-				ability_bar.on_slot_evolved(i)
+				ability_bar.on_slot_evolved(i, stage)
 
 
-func _on_slot_evolved(slot_index: int) -> void:
+func _on_slot_evolved(slot_index: int, stage: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_evolved"):
-		ability_bar.on_slot_evolved(slot_index)
+		ability_bar.on_slot_evolved(slot_index, stage)
 
 func _on_slot_devolved(slot_index: int) -> void:
 	if ability_bar and ability_bar.has_method("on_slot_devolved"):

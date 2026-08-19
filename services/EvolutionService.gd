@@ -23,7 +23,7 @@ func _ready() -> void:
 func register_player(peer_id: int, _data: Resource = null) -> void:
 	if not multiplayer.is_server():
 		return
-	_evolved_slots[peer_id] = [false, false, false, false, false]
+	_evolved_slots[peer_id] = [0, 0, 0, 0, 0]
 	_tp_ready_slots[peer_id] = [false, false, false, false, false]
 	print("[EvolutionService] Jugador ", peer_id, " registrado.")
 
@@ -43,21 +43,49 @@ func evolve_slot(peer_id: int, slot_index: int, skip_rpc: bool = false) -> void:
 	if slot_index < 0 or slot_index >= 5:
 		return
 
-	if _evolved_slots[peer_id][slot_index]:
+	var max_stage := _get_max_stage(peer_id, slot_index)
+	var current: int = _evolved_slots[peer_id][slot_index]
+	if current >= max_stage:
 		return
 
-	_evolved_slots[peer_id][slot_index] = true
+	var new_stage: int = current + 1
+	_evolved_slots[peer_id][slot_index] = new_stage
 	slot_evolved.emit(peer_id, slot_index)
 	if not skip_rpc:
-		_sync_visual_to_client(peer_id, slot_index, true)
+		_sync_visual_to_client(peer_id, slot_index, new_stage)
+
+
+## Resetea un slot a su versión base (stage 0). Usado por habilidades en ciclo
+## (p. ej. Diamond Rain de Jevil) para volver al inicio de la cadena.
+func reset_slot(peer_id: int, slot_index: int, skip_rpc: bool = false) -> void:
+	if not multiplayer.is_server():
+		return
+	if not _evolved_slots.has(peer_id):
+		return
+	if slot_index < 0 or slot_index >= 5:
+		return
+
+	if _evolved_slots[peer_id][slot_index] == 0:
+		return
+
+	_evolved_slots[peer_id][slot_index] = 0
+	slot_devolved.emit(peer_id, slot_index)
+	if not skip_rpc:
+		_sync_visual_to_client(peer_id, slot_index, 0)
 
 
 func is_evolved(peer_id: int, slot_index: int) -> bool:
+	return get_evolved_stage(peer_id, slot_index) > 0
+
+
+## Etapa actual de evolución del slot (0 = base, 1 = primera evolución, ...).
+## Permite cadenas de evolución multi-hop (p. ej. Diamond Rain de Jevil).
+func get_evolved_stage(peer_id: int, slot_index: int) -> int:
 	var slots = _evolved_slots if multiplayer.is_server() else _client_evolved_slots
 	if not slots.has(peer_id):
-		return false
+		return 0
 	if slot_index < 0 or slot_index >= 5:
-		return false
+		return 0
 	return slots[peer_id][slot_index]
 
 
@@ -90,6 +118,25 @@ func _is_permanent_evolution(peer_id: int, slot_index: int) -> bool:
 	return base.evolved_version.evolution_consume == 1
 
 
+## Cuántas evoluciones encadena el slot desde su versión base (stage máximo).
+## P. ej. base → A → B → C tiene max_stage 3.
+func _get_max_stage(peer_id: int, slot_index: int) -> int:
+	var player = PlayerRegistry.get_player(peer_id)
+	if not player or not player.character_data:
+		return 0
+	var slots: Array = player.character_data.ability_slots
+	if slot_index < 0 or slot_index >= slots.size():
+		return 0
+	var data = slots[slot_index]
+	var stage := 0
+	while data and data.evolved_version:
+		data = data.evolved_version
+		stage += 1
+		if stage > 9:
+			break
+	return stage
+
+
 func clear_all(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
@@ -101,34 +148,30 @@ func clear_all(peer_id: int) -> void:
 
 
 func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
-	if _evolved_slots[peer_id][slot_index]:
-		_evolved_slots[peer_id][slot_index] = false
+	if _evolved_slots[peer_id][slot_index] > 0:
+		_evolved_slots[peer_id][slot_index] = 0
 		slot_devolved.emit(peer_id, slot_index)
-
-		if _evolved_slots[peer_id][slot_index]:
-			return
-
-		_sync_visual_to_client(peer_id, slot_index, false)
+		_sync_visual_to_client(peer_id, slot_index, 0)
 		_set_tp_ready(peer_id, slot_index, false)
 
 
-func _sync_visual_to_client(peer_id: int, slot_index: int, evolved: bool) -> void:
+func _sync_visual_to_client(peer_id: int, slot_index: int, stage: int) -> void:
 	if LobbyManager.players.has(peer_id):
-		_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", slot_index, evolved)
+		_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", slot_index, stage)
 
 
-func _sync_evolve_local(slot_index: int, evolved: bool) -> void:
+func _sync_evolve_local(slot_index: int, stage: int) -> void:
 	var peer_id = multiplayer.get_unique_id()
 	if not _client_evolved_slots.has(peer_id):
-		_client_evolved_slots[peer_id] = [false, false, false, false, false]
+		_client_evolved_slots[peer_id] = [0, 0, 0, 0, 0]
 	if slot_index >= 0 and slot_index < 5:
-		_client_evolved_slots[peer_id][slot_index] = evolved
+		_client_evolved_slots[peer_id][slot_index] = stage
 
 	var huds = get_tree().get_nodes_in_group("game_hud")
 	for hud in huds:
-		if evolved:
+		if stage > 0:
 			if hud.has_method("visual_evolve_slot"):
-				hud.visual_evolve_slot(slot_index)
+				hud.visual_evolve_slot(slot_index, stage)
 		else:
 			if hud.has_method("visual_devolve_slot"):
 				hud.visual_devolve_slot(slot_index)
@@ -140,8 +183,8 @@ func resync_client_visuals(peer_id: int) -> void:
 		if evolved == null:
 			return
 		for i in evolved.size():
-			if evolved[i]:
-				_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", i, true)
+			if evolved[i] > 0:
+				_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", i, evolved[i])
 
 
 func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
@@ -167,7 +210,7 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 			continue
 
 		var evolved = _evolved_slots.get(peer_id)
-		if evolved == null or not evolved[i]:
+		if evolved == null or evolved[i] <= 0:
 			continue
 
 		_set_tp_ready(peer_id, i, tp_sufficient)

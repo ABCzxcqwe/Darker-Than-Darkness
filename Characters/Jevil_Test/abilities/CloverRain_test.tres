@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" uid="uid://c0kf56crji665" path="res://abilities/jevil/CloverRain/CloverRain.gd" id="2_fdvpl"]
+[ext_resource type="PackedScene" uid="uid://boo4cnpq7pcy3" path="res://Hitboxes/Jevil/CloverRain/scenes/CloverHitbox.tscn" id="3_hitbox"]
+[ext_resource type="Texture2D" uid="uid://d0vq4fymr7bb3" path="res://abilities/jevil/CloverRain/icons/clover.svg" id="4_icon"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "Clover Rain (TEST)"
+description = "Tréboles bomba; al explotar lanzan 3 tréboles en arco hacia el objetivo"
+icon = ExtResource("4_icon")
+ability_script = ExtResource("2_fdvpl")
+ability_scene = ExtResource("3_hitbox")
+action_animation = "attack"
+cooldown = 20.0
+cooldown_cancel = 3.0
+tp_cost = 35.0
+move_restriction = 1
+base_damage = 20
+range_ = 700.0

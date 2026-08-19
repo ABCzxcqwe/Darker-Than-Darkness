@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://cq44vmxhsdag2"]
+
+[ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="1_emote"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_hjm08"]
+[ext_resource type="PackedScene" uid="uid://vt7t7p1b0c3x" path="res://Hitboxes/Jevil/basic/JHitbox.tscn" id="2_8ecap"]
+[ext_resource type="Texture2D" uid="uid://dypk5a8hb25wa" path="res://Hitboxes/Jevil/basic/icons/M1.png" id="3_m1"]
+[ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/Sword/SwordSlash.gd" id="3_r2u3k"]
+[ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Music/Sonic. Exe Chase.ogg" id="5_r2u3k"]
+[ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
+[ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/Sprites/icon.png" id="6_fnfn6"]
+[ext_resource type="SpriteFrames" uid="uid://cf8j6vv6rebpw" path="res://Characters/Jevil/animations.tres" id="7_8bkff"]
+[ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Music/Sonic.exe LAYER.ogg" id="7_hq0h8"]
+[ext_resource type="AudioStream" uid="uid://b50mh88nebllf" path="res://audio/SFX/snd_joker_ha0.wav" id="9_0l8st"]
+[ext_resource type="AudioStream" uid="uid://bet6l5kk461ac" path="res://audio/SFX/snd_joker_ha1.wav" id="10_7uki1"]
+[ext_resource type="Resource" path="res://emotes/jevil/Emote1.tres" id="11_emote1"]
+[ext_resource type="Resource" path="res://Characters/Jevil_Test/abilities/DiamondRain_test.tres" id="12_tdiamond"]
+[ext_resource type="Resource" path="res://Characters/Jevil_Test/abilities/HeartRain_test.tres" id="13_theart"]
+[ext_resource type="Resource" path="res://Characters/Jevil_Test/abilities/CloverRain_test.tres" id="14_tclover"]
+[ext_resource type="Resource" path="res://Characters/Jevil_Test/abilities/CarouselRain_test.tres" id="15_tcarousel"]
+
+[sub_resource type="Resource" id="Resource_r2u3k"]
+script = ExtResource("1_hjm08")
+display_name = "golpe"
+icon = ExtResource("3_m1")
+ability_script = ExtResource("3_r2u3k")
+ability_scene = ExtResource("2_8ecap")
+action_animation = "attack"
+cooldown = 1.5
+tp_reward = 5.0
+base_damage = 30
+metadata/_custom_type_script = "uid://bodks86qovy6s"
+
+[resource]
+script = ExtResource("5_ueqpj")
+id = 8
+display_name = "Jevil TEST"
+team = "killer"
+speed = 600.0
+max_health = 1000
+size_x = 70
+size_y = 50
+position_y = 50
+h_size_x = 50
+h_size_y = 150
+can_take_damage = false
+terror_radius = 1000.0
+chase_radius = 500.0
+terror_music = ExtResource("7_hq0h8")
+chase_music = ExtResource("5_r2u3k")
+hit_sfx = Array[AudioStream]([ExtResource("9_0l8st"), ExtResource("10_7uki1")])
+ability_slots = Array[ExtResource("1_hjm08")]([SubResource("Resource_r2u3k"), ExtResource("12_tdiamond"), ExtResource("13_theart"), ExtResource("14_tclover"), ExtResource("15_tcarousel")])
+tp_gain_time = 3.0
+stamina_max = 240.0
+stamina_regen_rate = 25.0
+stamina_sprint_drain = 35.0
+vision_circle_radius = 450.0
+vision_cone_angle = 110.0
+vision_cone_range = 1100.0
+emote_slots = Array[ExtResource("1_emote")]([ExtResource("11_emote1"), null, null, null])
+icon = ExtResource("6_fnfn6")
+panel_texture = ExtResource("6_fnfn6")
+animation_frames = ExtResource("7_8bkff")
+theme_color = Color(0.5860059, 0.25085285, 1, 1)
+metadata/_custom_type_script = "uid://2kq331ai6c40"

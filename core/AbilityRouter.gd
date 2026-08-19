@@ -178,18 +178,26 @@ func _validate_slot(slot_index: int, char_data: CharacterData, _peer_id: int) ->
 
 func _resolve_ability_version(peer_id: int, slot_index: int, base_data: AbilityData,
 		evolution_service: Node, lms_svc: Node) -> Dictionary:
-	var is_evolved: bool = evolution_service != null and evolution_service.is_evolved(peer_id, slot_index)
+	var stage: int = evolution_service.get_evolved_stage(peer_id, slot_index) if evolution_service else 0
 	var lms_wants_evolve: bool = false
 
-	if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
+	if stage <= 0 and base_data.lms_auto_evolve and base_data.evolved_version:
 		if lms_svc and lms_svc.is_lms_active():
 			var lms_survivor = lms_svc.get_active_survivor()
 			if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
 				lms_wants_evolve = true
 	if lms_wants_evolve:
-		is_evolved = true
+		stage = 1
 
-	var ability_data: AbilityData = base_data.evolved_version if (is_evolved and base_data.evolved_version) else base_data
+	# Camina la cadena evolved_version `stage` veces (soporta evolución multi-hop).
+	var ability_data: AbilityData = base_data
+	for i in range(stage):
+		if ability_data and ability_data.evolved_version:
+			ability_data = ability_data.evolved_version
+		else:
+			break
+
+	var is_evolved: bool = stage > 0 and ability_data != base_data
 	return {
 		"ability_data": ability_data,
 		"is_evolved": is_evolved,

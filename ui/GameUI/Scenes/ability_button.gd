@@ -25,6 +25,7 @@ var slot_index:          int         = 0
 var _state:              int         = State.READY
 var _cooldown_remaining: float       = 0.0
 var _is_evolved:         bool        = false
+var _stage:              int         = 0
 var _base_data:          AbilityData = null
 var _evolved_data:       AbilityData = null
 
@@ -106,10 +107,10 @@ func set_key_label(key_name: String) -> void:
 
 	# Sincronizar estado de evolución existente via ClientRelay
 	var relay: Node = GameServiceLocator.get_client_relay()
-	if relay and relay.has_method("is_evolved"):
-		var was_evolved = relay.is_evolved(_peer_id, slot_index)
-		if was_evolved != _is_evolved:
-			set_evolved(was_evolved)
+	if relay and relay.has_method("get_evolved_stage"):
+		var current_stage = relay.get_evolved_stage(_peer_id, slot_index)
+		if current_stage != _stage:
+			set_evolution_stage(current_stage)
 
 
 func _process(delta: float) -> void:
@@ -152,17 +153,37 @@ func set_cooldown_state(duration: float) -> void:
 
 
 func set_evolved(evolved: bool) -> void:
+	set_evolution_stage(1 if evolved else 0)
+
+
+## Aplica una etapa de evolución. El botón camina la cadena evolved_version
+## `stage` veces para resolver el icono y datos de esa etapa.
+func set_evolution_stage(stage: int) -> void:
 	if not ability_data:
 		return
-	if _is_evolved == evolved:
+	stage = maxi(stage, 0)
+	if _stage == stage:
 		return
-	_is_evolved = evolved
+	_stage = stage
+	_is_evolved = stage > 0
+
+	var target: AbilityData = _base_data
+	for i in range(stage):
+		if target and target.evolved_version:
+			target = target.evolved_version
+		else:
+			break
+
+	if _evolved_data == null and _base_data:
+		_evolved_data = _base_data.evolved_version
+	if _is_evolved:
+		_evolved_data = target
 
 	if icon_rect:
-		if evolved and _evolved_data and _evolved_data.icon:
-			icon_rect.texture = _evolved_data.icon
+		if target and target.icon:
+			icon_rect.texture = target.icon
 		else:
-			icon_rect.texture = _base_data.icon if _base_data and _base_data.icon else null
+			icon_rect.texture = _base_data.icon if _base_data else null
 		icon_rect.visible = true
 
 	_update_tp_fill(_last_known_tp)

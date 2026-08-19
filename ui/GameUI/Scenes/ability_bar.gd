@@ -46,16 +46,16 @@ func on_cooldown_state_changed(slot_index: int, duration: float) -> void:
 	_buttons[slot_index].set_cooldown_state(duration)
 
 
-func on_slot_evolved(slot_index: int) -> void:
+func on_slot_evolved(slot_index: int, stage: int) -> void:
 	if not _buttons.has(slot_index):
 		return
-	_buttons[slot_index].set_evolved(true)
+	_buttons[slot_index].set_evolution_stage(stage)
 
 
 func on_slot_devolved(slot_index: int) -> void:
 	if not _buttons.has(slot_index):
 		return
-	_buttons[slot_index].set_evolved(false)
+	_buttons[slot_index].set_evolution_stage(0)
 
 
 func on_tp_ready(slot_index: int, is_ready: bool) -> void:

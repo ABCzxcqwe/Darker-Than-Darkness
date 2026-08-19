@@ -1023,7 +1023,7 @@ func _sync_show_aoe_indicator(center: Vector2) -> void:
 	var indicator = Node2D.new()
 	indicator.name = "DiamondRainAOE_local"
 	indicator.global_position = center
-	indicator.set_script(preload("res://abilities/jevil/DiamondRain/AoEIndicator.gd"))
+	indicator.set_script(preload("res://Hitboxes/Jevil/shared/scripts/AoEIndicator.gd"))
 	world.add_child(indicator)
 
 
@@ -1048,7 +1048,7 @@ func _sync_show_pacify_indicator(center: Vector2, area_radius: float) -> void:
 	var indicator = Node2D.new()
 	indicator.name = "PacifyAOE_local"
 	indicator.global_position = center
-	indicator.set_script(preload("res://abilities/jevil/DiamondRain/AoEIndicator.gd"))
+	indicator.set_script(preload("res://Hitboxes/Jevil/shared/scripts/AoEIndicator.gd"))
 	indicator.radius = area_radius
 	indicator.color = Color(0.3, 0.5, 1.0)
 	world.add_child(indicator)

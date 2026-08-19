@@ -92,7 +92,6 @@ func _spawn_lance(lance_dir: Vector2) -> void:
 		"aim_mode": "fixed",
 		"direction": lance_dir,
 		"shape_scene": _data.ability_scene if _data else null,
-		"damage": _data.base_damage if _data else 0,
 		"attack_type": _data.attack_type if _data else "normal",
 		"hit_limit": 0,
 		"team_filter": "enemy",

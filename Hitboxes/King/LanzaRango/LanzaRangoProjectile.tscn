@@ -1,12 +1,9 @@
 [gd_scene format=3 uid="uid://cskem0y0l7mee"]
 
-[ext_resource type="Script" path="res://Hitboxes/King/LanzaRango/LanzaRangoProjectile.gd" id="1_lanza"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_head"]
-size = Vector2(70, 70)
+[ext_resource type="Script" uid="uid://bdd5d55xjk1ip" path="res://Hitboxes/King/LanzaRango/LanzaRangoProjectile.gd" id="1_lanza"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_detector"]
-radius = 55.0
+radius = 65.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lanza"]
 properties/0/path = NodePath(".:position")
@@ -19,21 +16,18 @@ properties/2/path = NodePath(".:origin")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
-[node name="LanzaRangoProjectile" type="CharacterBody2D"]
+[node name="LanzaRangoProjectile" type="CharacterBody2D" unique_id=1201630800]
 z_index = 4
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_lanza")
 
-[node name="BodyShape" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_head")
-
-[node name="HurtboxDetector" type="Area2D" parent="."]
+[node name="HurtboxDetector" type="Area2D" parent="." unique_id=150487888]
 collision_layer = 0
 collision_mask = 0
 
-[node name="DetectShape" type="CollisionShape2D" parent="HurtboxDetector"]
+[node name="DetectShape" type="CollisionShape2D" parent="HurtboxDetector" unique_id=943932472]
 shape = SubResource("CircleShape2D_detector")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1001033908]
 replication_config = SubResource("SceneReplicationConfig_lanza")

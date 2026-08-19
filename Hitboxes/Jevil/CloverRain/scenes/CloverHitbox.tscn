@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://boo4cnpq7pcy3"]
+
+[ext_resource type="Script" uid="uid://d2l2ekx672nml" path="res://Hitboxes/Jevil/shared/scripts/ExplosiveCharge.gd" id="1_charge"]
+[ext_resource type="Texture2D" uid="uid://dapyc6kjc23mo" path="res://Hitboxes/Jevil/Teleport/hit.png" id="2_ctllr"]
+[ext_resource type="Texture2D" uid="uid://d0t6flm5xpvpc" path="res://Hitboxes/Jevil/CloverRain/assets/clover_box.png" id="3_kl2hq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_djl1i"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(0, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mugcr"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(84, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ceua"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(168, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tje3h"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(252, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_viaqw"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(336, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rryu6"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(420, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xrig6"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(504, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cbr8c"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(588, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1pub1"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(672, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lb22o"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(756, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tfeo6"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(840, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ewgno"]
+atlas = ExtResource("2_ctllr")
+region = Rect2(924, 0, 84, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6a2nq"]
+atlas = ExtResource("3_kl2hq")
+region = Rect2(0, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nisx4"]
+atlas = ExtResource("3_kl2hq")
+region = Rect2(25, 0, 25, 25)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bnxlg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_djl1i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mugcr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1ceua")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tje3h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_viaqw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rryu6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xrig6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cbr8c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1pub1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lb22o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tfeo6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ewgno")
+}],
+"loop": true,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6a2nq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nisx4")
+}],
+"loop": true,
+"name": &"travel",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_charge"]
+radius = 120.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_charge"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:modulate")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:exploded")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:armed")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:explosion_radius")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+
+[node name="CloverHitbox" type="Area2D" unique_id=171560020]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_charge")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1348880578]
+z_index = 5
+scale = Vector2(6, 6)
+sprite_frames = SubResource("SpriteFrames_bnxlg")
+animation = &"travel"
+autoplay = "travel"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1126445090]
+shape = SubResource("CircleShape2D_charge")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1363605600]
+replication_config = SubResource("SceneReplicationConfig_charge")

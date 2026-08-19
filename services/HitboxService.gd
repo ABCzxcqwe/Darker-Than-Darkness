@@ -150,6 +150,11 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 		hitbox.set_script(HITBOX_SCRIPT)
 
 	hitbox.attacker_id   = config.get("attacker_id",   -1)
+	# attacker_node solo en hitboxes custom (CardProjectile, que sobrescriben el
+	# movimiento y lo usan para el filtro de equipo). En el Hitbox base, nodo
+	# no-nulo activa el modo "attached" y rompería los proyectiles de línea recta.
+	if config.get("custom_hitbox", false):
+		hitbox.attacker_node = config.get("attacker_node", null)
 	hitbox.damage        = config.get("damage",        0)
 	hitbox.attack_type   = config.get("attack_type",   "normal")
 	hitbox.hit_limit     = config.get("hit_limit",     1)

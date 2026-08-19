@@ -1,0 +1,81 @@
+[gd_scene format=3 uid="uid://drflgu7vsd6"]
+
+[ext_resource type="Script" uid="uid://dtecb8vxu5gw4" path="res://Hitboxes/Jevil/CombatArena/scripts/CombatArena.gd" id="1_arena"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
+size = Vector2(1220, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v"]
+size = Vector2(20, 1220)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_arena"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+
+[node name="CombatArena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="BlackBg" type="Polygon2D" parent="."]
+z_index = 1
+color = Color(0, 0, 0, 0.55)
+polygon = PackedVector2Array(-600, -600, 600, -600, 600, 600, -600, 600)
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+z_index = 2
+position = Vector2(0, -600)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Visual" type="Polygon2D" parent="WallTop"]
+position = Vector2(9.536743e-07, 0)
+scale = Vector2(0.983871, 1)
+color = Color(0, 0.7529412, 0, 1)
+polygon = PackedVector2Array(-620, -10, 620, -10, 620, 10, -620, 10)
+
+[node name="WallBottom" type="StaticBody2D" parent="."]
+z_index = 2
+position = Vector2(0, 600)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom"]
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Visual" type="Polygon2D" parent="WallBottom"]
+position = Vector2(-8.032736, 0)
+scale = Vector2(0.97091496, 1)
+color = Color(0, 0.7529412, 0, 1)
+polygon = PackedVector2Array(-620, -10, 636.54675, -10, 636.54675, 10, -620, 10)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+z_index = 2
+position = Vector2(-600, 0)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft"]
+shape = SubResource("RectangleShape2D_v")
+
+[node name="Visual" type="Polygon2D" parent="WallLeft"]
+position = Vector2(0, 9.536743e-07)
+scale = Vector2(1, 0.983871)
+color = Color(0, 0.7529412, 0, 1)
+polygon = PackedVector2Array(-10, -620, 10, -620, 10, 620, -10, 620)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+z_index = 2
+position = Vector2(600, 0)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight"]
+shape = SubResource("RectangleShape2D_v")
+
+[node name="Visual" type="Polygon2D" parent="WallRight"]
+position = Vector2(0, 9.536743e-07)
+scale = Vector2(1, 0.983871)
+color = Color(0, 0.7529412, 0, 1)
+polygon = PackedVector2Array(-10, -620, 10, -620, 10, 620, -10, 620)
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_arena")

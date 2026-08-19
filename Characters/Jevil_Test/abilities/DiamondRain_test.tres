@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" uid="uid://bn605ooew1jrc" path="res://abilities/jevil/DiamondRain/DiamondRain.gd" id="2_fdvpl"]
+[ext_resource type="PackedScene" uid="uid://dclh3afhrc5qs" path="res://Hitboxes/Jevil/DiamondRain/scenes/DiamondHitbox.tscn" id="3_diamondhitbox"]
+[ext_resource type="Texture2D" uid="uid://tfs25dxl4thg" path="res://abilities/jevil/DiamondRain/icons/diamond.svg" id="4_icon"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "Diamond Rain (TEST)"
+description = "Invoca diamantes que caen del cielo en una zona"
+icon = ExtResource("4_icon")
+ability_script = ExtResource("2_fdvpl")
+ability_scene = ExtResource("3_diamondhitbox")
+action_animation = "attack"
+cooldown = 20.0
+cooldown_cancel = 3.0
+tp_cost = 35.0
+move_restriction = 1
+base_damage = 20
+range_ = 700.0

@@ -17,7 +17,7 @@ signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
 signal dynamic_tp_cost_changed(slot_index: int, cost: float)
 
-signal slot_evolved(slot_index: int)
+signal slot_evolved(slot_index: int, stage: int)
 signal slot_devolved(slot_index: int)
 
 signal arrow_spawned(arrow_id: int, type: int, target_pos: Vector2, track_peer: int, filter_peer: int, duration: float)
@@ -95,15 +95,15 @@ func _rpc_cooldown_state(slot_index: int, duration: float) -> void:
 
 ## Evolution
 @rpc("authority", "call_local", "reliable")
-func _rpc_evolve_slot(slot_index: int, evolved: bool) -> void:
+func _rpc_evolve_slot(slot_index: int, stage: int) -> void:
 	var peer_id = multiplayer.get_unique_id()
 	if not _evolved_slots.has(peer_id):
-		_evolved_slots[peer_id] = [false, false, false, false, false]
+		_evolved_slots[peer_id] = [0, 0, 0, 0, 0]
 	if slot_index >= 0 and slot_index < 5:
-		_evolved_slots[peer_id][slot_index] = evolved
+		_evolved_slots[peer_id][slot_index] = stage
 
-	if evolved:
-		slot_evolved.emit(slot_index)
+	if stage > 0:
+		slot_evolved.emit(slot_index, stage)
 	else:
 		slot_devolved.emit(slot_index)
 
@@ -251,11 +251,16 @@ func has_player_escaped(peer_id: int) -> bool:
 
 
 func is_evolved(peer_id: int, slot_index: int) -> bool:
+	return get_evolved_stage(peer_id, slot_index) > 0
+
+
+## Etapa actual de evolución del slot (0 = base, 1 = primera evolución, ...).
+func get_evolved_stage(peer_id: int, slot_index: int) -> int:
 	var slots = _evolved_slots.get(peer_id)
 	if slots == null:
-		return false
+		return 0
 	if slot_index < 0 or slot_index >= slots.size():
-		return false
+		return 0
 	return slots[slot_index]
 
 

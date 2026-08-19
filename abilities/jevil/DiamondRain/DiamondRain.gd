@@ -1,13 +1,18 @@
 extends AbilityBase
 
+## Fase base del ciclo: lluvia de diamantes que caen del cielo y atraviesan
+## el área de combate hasta salir por debajo del recuadro.
+
+const ARENA_RADIUS: float = 600.0
+const ARENA_SCENE := preload("res://Hitboxes/Jevil/CombatArena/scenes/CombatArena.tscn")
+
 const DIAMOND_COUNT: int = 80
-const AOE_RADIUS: float = 600.0
 const DIAMOND_SPEED: float = 600.0
 const SPAWN_INTERVAL: float = 0.08
 const DIAMOND_SPAWN_MARGIN: float = 80.0
 const DIAMOND_HOVER: float = 1.0
 const CENTER_SAFE_RADIUS: float = 200.0
-const ARENA_SCENE := preload("res://Hitboxes/Jevil/DiamondRain/DiamondArena.tscn")
+const BELOW_BOX_OVERTRAVEL: float = 200.0
 
 var _active: bool = false
 var _player_node: Node = null
@@ -15,6 +20,12 @@ var _caster_id: int = -1
 var _slot_index: int = -1
 var _data: AbilityData = null
 var _arena: Node = null
+
+
+func total_duration() -> float:
+	var max_fall: float = (ARENA_RADIUS + DIAMOND_SPAWN_MARGIN) + (ARENA_RADIUS + BELOW_BOX_OVERTRAVEL)
+	var fall_time: float = max_fall / DIAMOND_SPEED
+	return float(DIAMOND_COUNT - 1) * SPAWN_INTERVAL + DIAMOND_HOVER + fall_time + 0.5
 
 
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
@@ -45,11 +56,12 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		status.grant_stun_immunity(_caster_id, total_duration())
 		status.apply(_player_node, "invisibility", { "duration": total_duration() })
 		status.apply(_player_node, "damage_reduction", { "duration": total_duration(), "magnitude": 0.9 })
+		status.apply(_player_node, "silence", { "duration": total_duration() })
 
 	var target_center = player_node.global_position
 
 	_spawn_arena(target_center)
-	_launch_diamonds(target_center)
+	_run_phase(target_center)
 
 	var cd = GameServiceLocator.cooldown
 	if cd:
@@ -62,43 +74,11 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 			_finish_ability()
 	)
 
-	print("[DiamondRain] Habilidad iniciada | peer: ", _caster_id, " | centro: ", target_center)
+	print("[", get_script().resource_path.get_file(), "] Fase iniciada | peer: ", _caster_id, " | centro: ", target_center)
 
 
-func total_duration() -> float:
-	return float(DIAMOND_COUNT - 1) * SPAWN_INTERVAL + DIAMOND_HOVER + (2.0 * AOE_RADIUS) / DIAMOND_SPEED + 0.5
-
-
-func _spawn_arena(center: Vector2) -> void:
-	if not is_instance_valid(_player_node) or not _player_node.multiplayer.is_server():
-		return
-
-	var world = _player_node.get_tree().root.find_child("World", true, false)
-	if not world:
-		return
-	var container = world.get_node_or_null("Projectiles")
-	if not container:
-		return
-
-	var arena = ARENA_SCENE.instantiate()
-	arena.global_position = center
-	arena.set_multiplayer_authority(1)
-	container.add_child(arena, true)
-	_arena = arena
-
-	print("[DiamondRain] Arena creada en ", center)
-
-
-func _clear_arena() -> void:
-	if is_instance_valid(_arena):
-		if _arena.has_method("_rpc_disappear"):
-			_arena.rpc("_rpc_disappear")
-		else:
-			_arena.queue_free()
-	_arena = null
-
-
-func _launch_diamonds(target_center: Vector2) -> void:
+# ── Ataque ───────────────────────────────────────────────────────────────
+func _run_phase(target_center: Vector2) -> void:
 	if not is_instance_valid(_player_node):
 		return
 
@@ -120,12 +100,12 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 		return
 
 	var target_point = _random_point_in_arena(target_center)
-	var spawn_pos = Vector2(target_point.x, target_center.y - AOE_RADIUS - DIAMOND_SPAWN_MARGIN)
-	var fall_distance = target_point.y - spawn_pos.y
-	var fall_time = fall_distance / DIAMOND_SPEED
+	var spawn_pos = Vector2(target_point.x, target_center.y - ARENA_RADIUS - DIAMOND_SPAWN_MARGIN)
+	var fall_distance: float = (target_center.y + ARENA_RADIUS + BELOW_BOX_OVERTRAVEL) - spawn_pos.y
+	var fall_time: float = fall_distance / DIAMOND_SPEED
 
-	var dmg = d.base_damage if d else 20
-	var atk_type = d.attack_type if d else "normal"
+	var dmg: int = d.base_damage if d else 20
+	var atk_type: String = d.attack_type if d else "normal"
 
 	var config = {
 		"attacker_id": cid,
@@ -160,12 +140,45 @@ func _spawn_diamond(pn: Node, cid: int, d: AbilityData, hs: Node, cmbt: Node, ta
 
 
 func _random_point_in_arena(center: Vector2) -> Vector2:
-	var p = center + Vector2(randf_range(-AOE_RADIUS, AOE_RADIUS), randf_range(-AOE_RADIUS, AOE_RADIUS))
+	var p = center + Vector2(randf_range(-ARENA_RADIUS, ARENA_RADIUS), randf_range(-ARENA_RADIUS, ARENA_RADIUS))
 	if p.distance_to(center) < CENTER_SAFE_RADIUS:
-		p = center + Vector2(randf_range(-AOE_RADIUS, AOE_RADIUS), randf_range(-AOE_RADIUS, AOE_RADIUS))
+		p = center + Vector2(randf_range(-ARENA_RADIUS, ARENA_RADIUS), randf_range(-ARENA_RADIUS, ARENA_RADIUS))
 	return p
 
 
+# ── Arena (elemento compartido) ─────────────────────────────────────────
+func _spawn_arena(center: Vector2) -> void:
+	if not is_instance_valid(_player_node) or not _player_node.multiplayer.is_server():
+		return
+	var container = _projectiles_container()
+	if not container:
+		return
+	var arena = ARENA_SCENE.instantiate()
+	arena.configure(center, ARENA_RADIUS)
+	arena.set_multiplayer_authority(1)
+	container.add_child(arena, true)
+	_arena = arena
+
+
+func _clear_arena() -> void:
+	if is_instance_valid(_arena):
+		if _arena.has_method("_rpc_disappear"):
+			_arena.rpc("_rpc_disappear")
+		else:
+			_arena.queue_free()
+	_arena = null
+
+
+func _projectiles_container() -> Node:
+	if not is_instance_valid(_player_node):
+		return null
+	var world = _player_node.get_tree().root.find_child("World", true, false)
+	if not world:
+		return null
+	return world.get_node_or_null("Projectiles")
+
+
+# ── Finalización ─────────────────────────────────────────────────────────
 func _finish_ability() -> void:
 	if not _active:
 		return
@@ -181,13 +194,30 @@ func _finish_ability() -> void:
 	if status:
 		status.grant_stun_immunity(_caster_id, 0.0)
 		if _player_node.multiplayer.is_server() and is_instance_valid(_player_node):
+			status.remove_effect(_player_node, "silence")
 			status.remove_effect(_player_node, "invisibility")
 			status.remove_effect(_player_node, "damage_reduction")
+
+	_advance_stage()
 
 	if is_instance_valid(_player_node):
 		_player_node.rpc("_sync_cancel_ability")
 
-	print("[DiamondRain] Habilidad finalizada | peer: ", _caster_id)
+	print("[", get_script().resource_path.get_file(), "] Fase finalizada | peer: ", _caster_id)
+
+
+## Avanza o resetea la evolución del slot según la cadena del AbilityData
+## (si no hay evolved_version, es la fase terminal y se resetea el ciclo).
+func _advance_stage() -> void:
+	if not is_instance_valid(_player_node) or not _player_node.multiplayer.is_server():
+		return
+	var evo = GameServiceLocator.evolution
+	if not evo:
+		return
+	if _data and _data.evolved_version != null:
+		evo.evolve_slot(_caster_id, _slot_index)
+	else:
+		evo.reset_slot(_caster_id, _slot_index)
 
 
 func _fail_cleanup() -> void:
@@ -196,4 +226,4 @@ func _fail_cleanup() -> void:
 	var cd = GameServiceLocator.cooldown
 	if cd:
 		cd.release_lock(_caster_id, _slot_index)
-	print("[DiamondRain] Fallo en activación | peer: ", _caster_id)
+	print("[", get_script().resource_path.get_file(), "] Fallo en activación | peer: ", _caster_id)
