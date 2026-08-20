@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b5n7rkewv1ls7"
+path="res://.godot/imported/castle.ogg-b626461e3418f6871f17372baf1904e3.oggvorbisstr"
+
+[deps]
+
+source_file="res://Maps/Card Castle/Assets/castle.ogg"
+dest_files=["res://.godot/imported/castle.ogg-b626461e3418f6871f17372baf1904e3.oggvorbisstr"]
+
+[params]
+
+loop=true
+loop_offset=59.5
+bpm=120.0
+beat_count=0
+bar_beats=4

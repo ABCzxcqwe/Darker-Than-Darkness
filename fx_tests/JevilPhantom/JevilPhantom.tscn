@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://bgj0t5x3jevil"]
+
+[ext_resource type="Script" uid="uid://bc0ukxoyc5sxn" path="res://fx_tests/JevilPhantom/JevilPhantom.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://i7pskgkmrnme" path="res://Characters/Jevil/assets/Sprites/jevil_dance.png" id="2_m7au1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h1k3q"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(0, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uvugj"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(160, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_37nau"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(320, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bfv6l"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(480, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vd8j0"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(640, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hfs24"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(800, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qdxhl"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(960, 0, 160, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8lqpc"]
+atlas = ExtResource("2_m7au1")
+region = Rect2(1120, 0, 160, 180)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mfwld"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h1k3q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uvugj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_37nau")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bfv6l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vd8j0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hfs24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qdxhl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8lqpc")
+}],
+"loop": true,
+"name": &"default",
+"speed": 10.0
+}]
+
+[node name="JevilPhantom" type="Node2D" unique_id=580855026]
+script = ExtResource("1_script")
+
+[node name="SourceSprite" type="AnimatedSprite2D" parent="." unique_id=222850526]
+sprite_frames = SubResource("SpriteFrames_mfwld")
+frame_progress = 0.18295506

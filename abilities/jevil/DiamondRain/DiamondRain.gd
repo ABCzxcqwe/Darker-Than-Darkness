@@ -6,7 +6,7 @@ extends AbilityBase
 const ARENA_RADIUS: float = 600.0
 const ARENA_SCENE := preload("res://Hitboxes/Jevil/CombatArena/scenes/CombatArena.tscn")
 
-const DIAMOND_COUNT: int = 80
+const DIAMOND_COUNT: int = 60
 const DIAMOND_SPEED: float = 600.0
 const SPAWN_INTERVAL: float = 0.08
 const DIAMOND_SPAWN_MARGIN: float = 80.0
