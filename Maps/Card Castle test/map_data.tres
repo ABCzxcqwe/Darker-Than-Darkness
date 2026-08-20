@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="MapData" format=3 uid="uid://d0qfo6ahu5j5t"]
 
 [ext_resource type="AudioStream" uid="uid://d2a7ihc3yy3t0" path="res://Maps/Card Castle/Assets/The Escape Deltarune.wav" id="1_ptnom"]
-[ext_resource type="AudioStream" uid="uid://b5n7rkewv1ls7" path="res://Maps/Card Castle/Assets/castle.ogg" id="2_ef53e"]
+[ext_resource type="AudioStream" uid="uid://bgdynwmbmpykq" path="res://Maps/Card Castle/Assets/castle card.mp3" id="2_ef53e"]
 [ext_resource type="PackedScene" uid="uid://ifwsomtcn1dp" path="res://Maps/Card Castle test/Castle.tscn" id="2_ptnom"]
 [ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/map_data.gd" id="3_ef53e"]
 
