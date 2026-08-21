@@ -320,6 +320,11 @@ enum EvolutionConsume { TEMPORARY, PERMANENT }
 ## Ejemplo: -10% por stun → rage_stun_resistance_decay = 0.1.
 @export var rage_stun_resistance_decay: float = 0.0
 
+## Número de stuns recibidos que necesita el asesino para cargar su ultimate (Rage).
+## Lo lee MatchStatsService del slot de ultimate (índice 4).
+## 0 = esta habilidad no es un ultimate cargable por stuns.
+@export var rage_stuns_required: int = 0
+
 ## Penalización de cooldown (en segundos) si el tiempo de vuelo se agota sin aterrizar.
 ## Solo aplica a habilidades de tipo AERIAL (Vuelo de Spamton).
 @export var flight_timeout_cooldown_penalty: float = 0.0

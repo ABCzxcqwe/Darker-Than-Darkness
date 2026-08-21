@@ -62,3 +62,17 @@ func on_tp_ready(slot_index: int, is_ready: bool) -> void:
 	if not _buttons.has(slot_index):
 		return
 	_buttons[slot_index].set_tp_ready(is_ready)
+
+
+func on_rage_ready(charged: bool, progress: int, required: int) -> void:
+	if not _buttons.has(4):
+		return
+	_buttons[4].set_rage_state(charged, progress, required)
+
+
+func on_rage_time(remaining: float) -> void:
+	if not _buttons.has(4):
+		return
+	var btn = _buttons[4]
+	if btn.has_method("set_rage_time"):
+		btn.set_rage_time(remaining)

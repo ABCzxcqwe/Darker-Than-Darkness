@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://efd80e8401244"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="Script" uid="uid://4967ee461bfb4" path="res://abilities/jevil/Rage/RageMode.gd" id="2_ragemode"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "CHAOS"
+description = "Modo Rage activo. Placeholder sin efecto hasta definir el set definitivo."
+ability_type = 1
+ability_script = ExtResource("2_ragemode")
+cooldown = 1.0
+evolution_consume = 1
+metadata/_custom_type_script = "uid://bodks86qovy6s"

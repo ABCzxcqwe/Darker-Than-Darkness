@@ -92,6 +92,14 @@ func _setup_map_audio() -> void:
 
 func _cleanup_match_audio() -> void:
 	AudioManager.reset_match_audio()
+	AudioManager.rpc("_rpc_deactivate_rage_music")
+	_client_relay.rpc("_rpc_rage_time", -1, 0.0)
+	var timer = GameServiceLocator.timer
+	if timer:
+		timer.rpc("_rpc_set_paused", false)
+	var mec = GameServiceLocator.map_event_coordinator
+	if mec:
+		mec.rpc("_rpc_rage_exits_restore")
 
 
 # ─── TIMER ───────────────────────────────────────────────
@@ -314,6 +322,9 @@ func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
 		"time_left": final_time,
 		"players_snapshot": LobbyManager.players.duplicate(true)
 	}
+	var stats_service = GameServiceLocator.match_stats
+	if stats_service:
+		stats_data["player_stats"] = stats_service.get_snapshot()
 	if not extra.is_empty():
 		stats_data.merge(extra)
 	MatchCoordinator.rpc("_go_to_stats_screen", stats_data)

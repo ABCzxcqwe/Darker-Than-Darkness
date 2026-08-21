@@ -22,6 +22,9 @@ var _client_relay: Node = null
 
 signal damage_dealt(attacker_id: int, target_id: int, final_damage: int, attack_type: String)
 signal stun_applied(target_id: int, duration: float)
+## Variante de stun_applied que incluye al atacante (para estadísticas).
+## Solo se emite cuando apply_stun recibe el parámetro attacker.
+signal stun_applied_by(attacker_id: int, target_id: int, duration: float)
 signal heal_applied(caster_id: int, target_id: int, amount: int)
 
 func set_client_relay(relay: Node) -> void:
@@ -270,7 +273,7 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 	return false
 
 
-func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> void:
+func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0, attacker: Node = null) -> void:
 	if not multiplayer.is_server():
 		return
 
@@ -279,6 +282,10 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> voi
 
 	var target_peer: int = target.get_multiplayer_authority() if target else -1
 	stun_applied.emit(target_peer, duration)
+
+	if attacker and is_instance_valid(attacker):
+		var attacker_peer: int = attacker.get_multiplayer_authority()
+		stun_applied_by.emit(attacker_peer, target_peer, duration)
 
 	var status = _status_effect_service
 	if status:

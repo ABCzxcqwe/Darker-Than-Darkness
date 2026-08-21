@@ -63,6 +63,11 @@ func set_paused(paused: bool) -> void:
 	print("[TimerService] Estado de pausa cambiado a: ", paused)
 
 
+@rpc("authority", "call_local", "reliable")
+func _rpc_set_paused(paused: bool) -> void:
+	is_paused = paused
+
+
 ## Añade o resta segundos al tiempo actual de la ronda
 func modify_time(seconds: float) -> void:
 	if not multiplayer.is_server() or not is_active:

@@ -37,6 +37,9 @@ signal game_state_changed(new_state: int, old_state: int)
 signal effect_applied(peer_id: int, effect_name: String, duration: float)
 signal effect_removed(peer_id: int, effect_name: String)
 
+signal rage_state_changed(charged: bool, progress: int, required: int)
+signal rage_time_changed(caster_id: int, remaining: float)
+
 signal dialog_notification(message: String, type: int)
 
 signal camera_shake(intensity: float, duration: float)
@@ -183,6 +186,17 @@ func _rpc_effect_applied(peer_id: int, effect_name: String, duration: float) -> 
 @rpc("authority", "call_local", "reliable")
 func _rpc_effect_removed(peer_id: int, effect_name: String) -> void:
 	effect_removed.emit(peer_id, effect_name)
+
+
+## Rage (ultimate del killer) — llega solo al peer dueño vía rpc_id.
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_state(charged: bool, progress: int, required: int) -> void:
+	rage_state_changed.emit(charged, progress, required)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_time(caster_id: int, remaining: float) -> void:
+	rage_time_changed.emit(caster_id, remaining)
 
 
 @rpc("authority", "reliable", "call_local")

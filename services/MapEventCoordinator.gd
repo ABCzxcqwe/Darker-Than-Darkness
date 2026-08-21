@@ -25,6 +25,8 @@ var _final_phase_triggered: bool = false
 var _exit_arrows: Dictionary = {}
 var _client_relay: Node
 var _services_connected: bool = false
+var _rage_active: bool = false
+var _rage_closed_exits: Array[String] = []
 
 
 func set_client_relay(relay: Node) -> void:
@@ -135,6 +137,39 @@ func _get_inactive_exits() -> Array[String]:
 	return result
 
 
+# ── Rage (cierre total de salidas + pausa de timer) ──────────
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_exits_close() -> void:
+	_rage_active = true
+	_rage_closed_exits.clear()
+	for exit_id in _exits:
+		if _exits[exit_id].is_active:
+			_rage_closed_exits.append(exit_id)
+	for exit_id in _rage_closed_exits:
+		_exits[exit_id].deactivate()
+		exit_deactivated.emit(exit_id)
+		if _exit_arrows.has(exit_id):
+			var radar = _radar_service
+			if radar:
+				_radar_service.remove_map_indicator(_exit_arrows[exit_id])
+			_exit_arrows.erase(exit_id)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_exits_restore() -> void:
+	_rage_active = false
+	var to_restore: Array[String] = _rage_closed_exits.duplicate()
+	_rage_closed_exits.clear()
+	for exit_id in to_restore:
+		if not _exits.has(exit_id):
+			continue
+		if _lms_active and not _exits[exit_id].open_during_lms:
+			continue
+		_exits[exit_id].activate()
+		exit_activated.emit(exit_id)
+
+
 # ── Setup (llamado por World tras cargar el mapa) ────────
 
 func setup(map_node: BaseMap) -> void:
@@ -242,6 +277,8 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 		push_warning("[MapEventCoordinator] Exit '", exit_id, "' no encontrado.")
 		return
 	var exit = _exits[exit_id]
+	if _rage_active and not force:
+		return
 	if not force and _lms_active and not exit.open_during_lms:
 		return
 	exit.activate()
@@ -465,6 +502,8 @@ func clear() -> void:
 	_exit_arrows.clear()
 	_lms_active = false
 	_lms_exits_opened = false
+	_rage_active = false
+	_rage_closed_exits.clear()
 	_final_phase_triggered = false
 	_lms_exit_threshold = 0.0
 	_map_node = null

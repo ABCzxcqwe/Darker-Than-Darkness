@@ -59,7 +59,7 @@ func _on_anim_timer(player_node: Node, data: AbilityData, caster_id: int, slot_i
 					if target_node.is_in_group("killer") and data.stun_duration > 0.0:
 						var combat_stun = GameServiceLocator.combat_mediator
 						if combat_stun:
-							combat_stun.apply_stun(target_node, data.stun_duration)
+							combat_stun.apply_stun(target_node, data.stun_duration, 0.0, player_node)
 		})
 
 	var cd = GameServiceLocator.cooldown

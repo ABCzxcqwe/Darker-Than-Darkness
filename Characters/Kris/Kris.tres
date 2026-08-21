@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_1fol0"]
 [ext_resource type="Texture2D" uid="uid://cfubwwtwcl7yt" path="res://Characters/Kris/assets/Sprites/icon.png" id="6_kpcxu"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="7_n1uxm"]
-[ext_resource type="AudioStream" uid="uid://dkw5pcegdoes4" path="res://Characters/Kris/assets/Music/Penumbra Phantasm - Kris Lms.mp3" id="8_1fol0"]
+[ext_resource type="AudioStream" uid="uid://c8b4lcqvdgoxn" path="res://Characters/Kris/assets/Music/Penumbra Phantasm - krissnlms.mp3" id="8_1fol0"]
 [ext_resource type="Texture2D" uid="uid://bori46sdkmtc0" path="res://Characters/Kris/assets/Sprites/kris_panel.png" id="8_hywcm"]
 
 [resource]

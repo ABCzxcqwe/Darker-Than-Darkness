@@ -501,6 +501,46 @@ func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
 
 # =======================================================================
+# RPCs (RAGE — ultimate de Jevil)
+# Reutiliza lms_music_player con prioridad SPECIAL. El guard de
+# desactivación evita pisar la música del LMS si éste canceló el Rage.
+# =======================================================================
+## Tema del ultimate. Si cambias la música, ajusta también
+## RAGE_DURATION en abilities/jevil/Rage/Rage.gd.
+const RAGE_MUSIC_PATH := "res://Characters/Jevil/assets/Music/THE WORLD REVOLVING.mp3"
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_activate_rage_music() -> void:
+	var stream := load(RAGE_MUSIC_PATH) as AudioStream
+	if stream == null:
+		push_warning("[AudioManager] Música del Rage no encontrada: ", RAGE_MUSIC_PATH)
+		return
+	_set_stream_loop(stream, false)
+	if map_music_player.playing:
+		map_music_player.stop()
+	if terror_music_player.playing:
+		terror_music_player.stop()
+	if chase_music_player.playing:
+		chase_music_player.stop()
+	if lms_music_player.playing:
+		lms_music_player.stop()
+	lms_music_player.stream = stream
+	lms_music_player.volume_db = MAX_DB
+	lms_music_player.play()
+	_current_priority = PriorityLevel.SPECIAL
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_deactivate_rage_music() -> void:
+	if _current_priority != PriorityLevel.SPECIAL:
+		return
+	_current_priority = PriorityLevel.NONE
+	if lms_music_player.playing:
+		lms_music_player.stop()
+	lms_music_player.stream = null
+	_restore_base()
+
+# =======================================================================
 # HELPERS
 # =======================================================================
 func _restore_base() -> void:
