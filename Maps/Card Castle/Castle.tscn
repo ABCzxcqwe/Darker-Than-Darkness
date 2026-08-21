@@ -17676,7 +17676,7 @@ occluder = SubResource("OccluderPolygon2D_w677h")
 occluder = SubResource("OccluderPolygon2D_dyqkr")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=401787612]
-color = Color(0.076835774, 0.07683585, 0.0768358, 1)
+color = Color(0.14509805, 0.14509805, 0.14509805, 1)
 
 [node name="MapEvents" type="Node2D" parent="." unique_id=1329688481]
 

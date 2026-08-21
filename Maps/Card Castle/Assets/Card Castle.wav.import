@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://tnlsld5lnbqv"
+path="res://.godot/imported/Card Castle.wav-e72597048e8be0e2ffbd12bc53b1f332.sample"
+
+[deps]
+
+source_file="res://Maps/Card Castle/Assets/Card Castle.wav"
+dest_files=["res://.godot/imported/Card Castle.wav-e72597048e8be0e2ffbd12bc53b1f332.sample"]
+
+[params]
+
+force/8_bit=true
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=32058.0
+edit/trim=true
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
