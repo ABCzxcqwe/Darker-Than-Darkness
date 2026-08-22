@@ -76,26 +76,17 @@ func _spawn_wave(wave_idx: int) -> void:
 func _spawn_warning(pos: Vector2) -> void:
 	if not _active or not is_instance_valid(_player_node) or not _player_node.get_tree() or not _player_node.multiplayer.is_server():
 		return
-	var hs = GameServiceLocator.hitbox
-	if not hs:
+	# Hotfix: WarningCircle es visual puro (Node2D sin attacker_id) — spawn manual como en a3599f9
+	# para no pasar por HitboxService que espera props de hitbox y crashea en _spawn_projectile:152.
+	# TopoSpear sí sigue por HitboxService (es custom_hitbox compatible).
+	var world = _player_node.get_tree().root.find_child("World", true, false)
+	if not world:
 		return
-	# WarningCircle no es hitbox real pero lo spawneamos como projectile custom para replicar vía ProjectileSpawner
-	var warning = hs.create({
-		"attacker_id": _caster_id,
-		"attacker_node": _player_node,
-		"type": "projectile",
-		"aim_mode": "fixed",
-		"direction": Vector2.DOWN,
-		"shape_scene": WARNING_SCENE,
-		"team_filter": "enemy",
-		"lifetime": WARNING_TIME + SPEAR_HOLD + 1.0,
-		"speed": 0.0,
-		"hit_limit": 0,
-		"custom_hitbox": true,
-		"position": pos,
-	})
-	if not warning:
-		return
+	var container = world.get_node_or_null("Projectiles")
+	if not container:
+		container = world
+	var warning = WARNING_SCENE.instantiate()
+	warning.global_position = pos
 	var circle_duration: float = WARNING_TIME + SPEAR_HOLD + 1.0
 	if "radius" in warning:
 		warning.radius = WARNING_RADIUS
@@ -103,6 +94,7 @@ func _spawn_warning(pos: Vector2) -> void:
 		warning.duration = circle_duration
 	elif warning.has_method("set_duration"):
 		warning.set_duration(circle_duration)
+	container.add_child(warning, true)
 	var tree2 := _player_node.get_tree()
 	if tree2:
 		tree2.create_timer(WARNING_TIME).timeout.connect(_spawn_spear.bind(pos))
