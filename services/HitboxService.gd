@@ -71,7 +71,7 @@ func create(config: Dictionary) -> Node:
 		push_warning("[HitboxService] Falló spawn por ProjectileSpawner, usando modo local.")
 
 	# ── Crear hitbox ──────────────────────────────────────────────────
-	var hitbox: CollisionObject2D
+	var hitbox: Node
 	if shape_scene:
 		hitbox = shape_scene.instantiate()
 		if not config.get("custom_hitbox", false):
@@ -80,34 +80,38 @@ func create(config: Dictionary) -> Node:
 		hitbox = Area2D.new()
 		hitbox.set_script(HITBOX_SCRIPT)
 
-	# ── Asignar propiedades ───────────────────────────────────────────
-	hitbox.attacker_id   = attacker_id
-	hitbox.damage        = damage
-	hitbox.attack_type   = attack_type
-	hitbox.hit_limit     = hit_limit
-	hitbox.team_filter   = team_filter
-	hitbox.lifetime      = lifetime
-	hitbox.speed         = speed
-	hitbox.aim_mode      = aim_mode
+	# ── Asignar propiedades (duck-typing para soportar Node2D contenedor) ──
+	if "attacker_id" in hitbox: hitbox.attacker_id = attacker_id
+	if "damage" in hitbox: hitbox.damage = damage
+	if "attack_type" in hitbox: hitbox.attack_type = attack_type
+	if "hit_limit" in hitbox: hitbox.hit_limit = hit_limit
+	if "team_filter" in hitbox: hitbox.team_filter = team_filter
+	if "lifetime" in hitbox: hitbox.lifetime = lifetime
+	if "speed" in hitbox: hitbox.speed = speed
+	if "aim_mode" in hitbox: hitbox.aim_mode = aim_mode
 
 	# Attached: guardar referencia al nodo atacante para seguirlo
-	if type == "attached":
+	if type == "attached" and "attacker_node" in hitbox:
 		hitbox.attacker_node = attacker_node
 
 	# Proyectil: velocidad en dirección
 	if type == "projectile":
-		hitbox.speed = speed if speed > 0.0 else 300.0
-		hitbox.detect_walls = config.get("detect_walls", false)
-		hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
-		hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
+		if "speed" in hitbox:
+			hitbox.speed = speed if speed > 0.0 else 300.0
+		if "detect_walls" in hitbox:
+			hitbox.detect_walls = config.get("detect_walls", false)
+		if "impact_lifetime" in hitbox:
+			hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+		if "hitbox_max_range" in hitbox:
+			hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 
 	# Área y zona: hit_limit ilimitado por defecto
-	if type == "area" or type == "zone":
+	if (type == "area" or type == "zone") and "hit_limit" in hitbox:
 		hitbox.hit_limit = config.get("hit_limit", 0)
 
-	if on_hit.is_valid():
+	if on_hit.is_valid() and "on_hit_callback" in hitbox:
 		hitbox.on_hit_callback = on_hit
-	if on_end.is_valid():
+	if on_end.is_valid() and "on_end_callback" in hitbox:
 		hitbox.on_end_callback = on_end
 
 	# ── Posicionar ────────────────────────────────────────────────────
@@ -119,12 +123,15 @@ func create(config: Dictionary) -> Node:
 	else:
 		hitbox.global_position = origin + direction * offset
 
-	hitbox.set_direction(direction)
-	hitbox.set_multiplayer_authority(1)
+	if hitbox.has_method("set_direction"):
+		hitbox.set_direction(direction)
+	if hitbox.has_method("set_multiplayer_authority"):
+		hitbox.set_multiplayer_authority(1)
 	_setup_hitbox_layers(hitbox, team_filter, attacker_node)
 	print("[HitboxService] Hitbox posición final: ", hitbox.global_position, " | direction: ", direction, " | offset: ", offset)
 	add_child(hitbox)
-	print("[HitboxService] Hitbox añadido al árbol. Colisión mask: ", hitbox.collision_mask)
+	var dbg_mask = hitbox.get("collision_mask") if "collision_mask" in hitbox else _find_hurtbox_area(hitbox).collision_mask if _find_hurtbox_area(hitbox) else -1
+	print("[HitboxService] Hitbox añadido al árbol. Colisión mask: ", dbg_mask)
 
 	print("[HitboxService] Hitbox creado | tipo:", type,
 		  " | aim:", aim_mode, " | atacante:", attacker_id,
@@ -145,31 +152,30 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	if not shape_scene:
 		return null
 
-	var hitbox = shape_scene.instantiate()
+	var hitbox: Node = shape_scene.instantiate()
 	if not config.get("custom_hitbox", false):
 		hitbox.set_script(HITBOX_SCRIPT)
 
-	hitbox.attacker_id   = config.get("attacker_id",   -1)
-	# attacker_node solo en hitboxes custom (CardProjectile, que sobrescriben el
-	# movimiento y lo usan para el filtro de equipo). En el Hitbox base, nodo
-	# no-nulo activa el modo "attached" y rompería los proyectiles de línea recta.
-	if config.get("custom_hitbox", false):
+	# Asignación duck-typing para soportar Node2D contenedor (TopoSpear) y Area2D/CharacterBody2D
+	if "attacker_id" in hitbox: hitbox.attacker_id = config.get("attacker_id", -1)
+	# attacker_node solo en hitboxes custom
+	if config.get("custom_hitbox", false) and "attacker_node" in hitbox:
 		hitbox.attacker_node = config.get("attacker_node", null)
-	hitbox.damage        = config.get("damage",        0)
-	hitbox.attack_type   = config.get("attack_type",   "normal")
-	hitbox.hit_limit     = config.get("hit_limit",     1)
-	hitbox.team_filter   = config.get("team_filter",   "enemy")
-	hitbox.lifetime      = config.get("lifetime",      2.0)
-	hitbox.speed         = config.get("speed",         300.0)
-	hitbox.aim_mode      = config.get("aim_mode",      "fixed")
-	hitbox.detect_walls  = config.get("detect_walls",  false)
-	hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
-	hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
+	if "damage" in hitbox: hitbox.damage = config.get("damage", 0)
+	if "attack_type" in hitbox: hitbox.attack_type = config.get("attack_type", "normal")
+	if "hit_limit" in hitbox: hitbox.hit_limit = config.get("hit_limit", 1)
+	if "team_filter" in hitbox: hitbox.team_filter = config.get("team_filter", "enemy")
+	if "lifetime" in hitbox: hitbox.lifetime = config.get("lifetime", 2.0)
+	if "speed" in hitbox: hitbox.speed = config.get("speed", 300.0)
+	if "aim_mode" in hitbox: hitbox.aim_mode = config.get("aim_mode", "fixed")
+	if "detect_walls" in hitbox: hitbox.detect_walls = config.get("detect_walls", false)
+	if "impact_lifetime" in hitbox: hitbox.impact_lifetime = config.get("impact_lifetime", 0.0)
+	if "hitbox_max_range" in hitbox: hitbox.hitbox_max_range = config.get("hitbox_max_range", 0.0)
 	var on_hit = config.get("on_hit", Callable())
-	if on_hit.is_valid():
+	if on_hit.is_valid() and "on_hit_callback" in hitbox:
 		hitbox.on_hit_callback = on_hit
 	var on_end = config.get("on_end", Callable())
-	if on_end.is_valid():
+	if on_end.is_valid() and "on_end_callback" in hitbox:
 		hitbox.on_end_callback = on_end
 
 	var origin: Vector2 = attacker_node.global_position
@@ -179,12 +185,22 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 		hitbox.global_position = config["position"]
 	else:
 		hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
-	hitbox.set_direction(direction)
-	hitbox.set_multiplayer_authority(1)
-	_setup_hitbox_layers(hitbox, hitbox.team_filter, attacker_node)
+	if hitbox.has_method("set_direction"):
+		hitbox.set_direction(direction)
+	if hitbox.has_method("set_multiplayer_authority"):
+		hitbox.set_multiplayer_authority(1)
+	var team_filter_val: String = hitbox.get("team_filter") if "team_filter" in hitbox else config.get("team_filter", "enemy")
+	_setup_hitbox_layers(hitbox, team_filter_val, attacker_node)
 
-	if hitbox.detect_walls:
-		hitbox.collision_mask |= 1  # capa 1 = world (paredes)
+	var dbg_detect_walls: bool = hitbox.get("detect_walls") if "detect_walls" in hitbox else false
+	if dbg_detect_walls:
+		# Para Node2D contenedor, aplicar a Hurtbox Area2D hijo
+		if hitbox is CollisionObject2D:
+			hitbox.collision_mask |= 1
+		else:
+			var area_walls = _find_hurtbox_area(hitbox)
+			if area_walls:
+				area_walls.collision_mask |= 1
 
 	container.add_child(hitbox, true)
 
@@ -245,26 +261,52 @@ func _get_facing(attacker_node: Node) -> Vector2:
 # Capas definidas en Project Settings > Layer Names > 2D Physics:
 #   1 = world          2 = survivor_body   3 = killer_body
 #   4 = survivor_hurtbox   5 = killer_hurtbox   6 = hitbox   7 = projectile
-func _setup_hitbox_layers(hitbox: CollisionObject2D, team_filter: String, attacker_node: Node) -> void:
+# Soporta tanto Area2D/CharacterBody2D root como Node2D contenedor con hijo Hurtbox Area2D (TopoSpear).
+func _setup_hitbox_layers(hitbox: Node, team_filter: String, attacker_node: Node) -> void:
+	var target: CollisionObject2D = null
+	if hitbox is CollisionObject2D:
+		target = hitbox as CollisionObject2D
+	else:
+		# Node2D contenedor (TopoSpear, futuros visuales) — buscar Area2D hijo
+		target = _find_hurtbox_area(hitbox)
+		if not target:
+			push_warning("[HitboxService] Node2D hitbox sin Area2D hijo para capas | ", hitbox.name)
+			return
 	var attacker_team: String = ""
 	if attacker_node and attacker_node.character_data:
 		attacker_team = attacker_node.character_data.team
 
 	# Layer: siempre capa 6 (hitbox)
-	hitbox.collision_layer = 32  # bit 6
+	target.collision_layer = 32  # bit 6
 
 	match team_filter:
 		"enemy":
 			if attacker_team == "killer":
-				hitbox.collision_mask = 8   # survivor_hurtbox (capa 4)
+				target.collision_mask = 8   # survivor_hurtbox (capa 4)
 			else:
-				hitbox.collision_mask = 16  # killer_hurtbox (capa 5)
+				target.collision_mask = 16  # killer_hurtbox (capa 5)
 		"ally":
-			hitbox.collision_mask = 8       # survivor_hurtbox — aliados siempre survivors
+			target.collision_mask = 8       # survivor_hurtbox — aliados siempre survivors
 		"all":
-			hitbox.collision_mask = 8 | 16  # ambos hurtboxes
+			target.collision_mask = 8 | 16  # ambos hurtboxes
 		_:
-			hitbox.collision_mask = 8 | 16
+			target.collision_mask = 8 | 16
+
+
+func _find_hurtbox_area(root: Node) -> Area2D:
+	# Búsqueda determinística por nombres comunes, luego primer Area2D
+	var names: Array[String] = ["Hurtbox", "HurtboxDetector", "Detector", "Area"]
+	for n in names:
+		var c = root.get_node_or_null(n)
+		if c and c is Area2D:
+			return c as Area2D
+	for child in root.get_children():
+		if child is Area2D:
+			return child as Area2D
+		var found = child.find_child("Hurtbox", true, false)
+		if found and found is Area2D:
+			return found as Area2D
+	return null
 
 
 func _exit_tree() -> void:
