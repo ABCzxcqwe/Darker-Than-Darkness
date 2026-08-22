@@ -38,7 +38,15 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		_release_lock()
 		return
 	if abs_svc:
-		abs_svc.activate_mode(_caster_id, RAGE_SLOT_INDEX, {"stamina_drain_mult": RAGE_STAMINA_DRAIN_MULT})
+		var base_resist: float = _data.rage_stun_resistance_base if _data and _data.rage_stun_resistance_base > 0.0 else 0.5
+		var decay_resist: float = _data.rage_stun_resistance_decay if _data and _data.rage_stun_resistance_decay > 0.0 else 0.1
+		abs_svc.activate_mode(_caster_id, RAGE_SLOT_INDEX, {
+			"stamina_drain_mult": RAGE_STAMINA_DRAIN_MULT,
+			"stun_resistance": base_resist,
+			"stun_hits": 0,
+			"base_resistance": base_resist,
+			"decay_resistance": decay_resist,
+		})
 	var evo = GameServiceLocator.evolution
 	if evo:
 		for s in EVOLVED_SLOTS:

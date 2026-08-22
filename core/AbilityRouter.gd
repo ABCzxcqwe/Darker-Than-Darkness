@@ -269,15 +269,17 @@ func _maybe_cancel_active_ability(peer_id: int, player_node: Node, slot_index: i
 		return false
 	if player_node.state != 2 or player_node.active_ability_slot != slot_index:
 		return false
-	var lanza = LanzaAbility.find_active_for(player_node, slot_index)
-	if not lanza:
+	var ability: AbilityBase = AbilityBase.find_active_for(player_node, slot_index)
+	if not ability:
+		# Fallback legacy para instancias que aún no registran en AbilityBase (transición)
+		ability = LanzaAbility.find_active_for(player_node, slot_index) if LanzaAbility else null
+	if not ability:
 		return false
-	# Grace period 2s: E presionado muy pronto no cancela, solo se consume (no pasa nada).
-	if lanza.has_method("can_cancel_now") and not lanza.can_cancel_now():
-		print("[AbilityRouter] Cancel Lanza bloqueado por grace period | peer: ", peer_id,
+	if ability.has_method("can_cancel_now") and not ability.can_cancel_now():
+		print("[AbilityRouter] Cancel bloqueado por grace period | peer: ", peer_id,
 			  " | slot: ", slot_index)
 		return true
-	lanza.cancel_early()
+	ability.cancel_early()
 	print("[AbilityRouter] Habilidad activa cancelada con la misma tecla | peer: ", peer_id,
 		  " | slot: ", slot_index)
 	return true
@@ -293,9 +295,10 @@ func _handle_animation_state(peer_id: int, player_node: Node, slot_index: int,
 
 	if anim_state == 2: # ABILITY
 		if slot_index == player_node.active_ability_slot and base_data.can_cancel:
-			# Respetar grace period de Lanza también por esta vía.
-			var lanza = LanzaAbility.find_active_for(player_node, slot_index)
-			if lanza and lanza.has_method("can_cancel_now") and not lanza.can_cancel_now():
+			var ability: AbilityBase = AbilityBase.find_active_for(player_node, slot_index)
+			if not ability:
+				ability = LanzaAbility.find_active_for(player_node, slot_index) if LanzaAbility else null
+			if ability and ability.has_method("can_cancel_now") and not ability.can_cancel_now():
 				print("[AbilityRouter] Cancel via _handle_animation_state bloqueado por grace | peer: ", peer_id)
 				return true
 			_cancel_ability(peer_id, player_node, slot_index, base_data, cd)

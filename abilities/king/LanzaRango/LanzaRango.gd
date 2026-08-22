@@ -57,6 +57,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		lance_dir = Vector2.RIGHT if facing_right else Vector2.LEFT
 
 	_keep_alive.append(self)
+	AbilityBase.register_active(_caster_id, _slot_index, self)
 
 	var spawn_delay: float = data.spawn_delay if data.spawn_delay > 0.0 else 0.0
 	if player_node.get_tree():
@@ -143,11 +144,13 @@ func _resolve(success: bool) -> void:
 		_cd_svc.start(_caster_id, _slot_index, cd)
 
 	print("[LanzaRango] Resuelta | peer: ", _caster_id, " | éxito: ", success, " | cooldown: ", cd)
+	AbilityBase.unregister_active(_caster_id, _slot_index)
 	_keep_alive.erase(self)
 
 
 func _fail_cleanup() -> void:
 	_active = false
+	AbilityBase.unregister_active(_caster_id, _slot_index)
 	if _cd_svc:
 		if _cd_svc.has_method("release_lock"):
 			_cd_svc.release_lock(_caster_id, _slot_index)
