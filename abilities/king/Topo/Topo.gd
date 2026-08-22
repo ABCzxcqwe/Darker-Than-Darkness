@@ -1,14 +1,14 @@
 extends "res://abilities/king/ChannelledAbilityBase.gd"
 class_name TopoAbility
 
-const WAVE_COUNT: int = 5
+const WAVE_COUNT: int = 6
 const WAVE_INTERVAL: float = 1.5
 const WARNING_TIME: float = 1.0
 const SPEAR_HOLD: float = 1.5
-const SPEARS_PER_SURVIVOR: int = 8
+const SPEARS_PER_SURVIVOR: int = 12
 const WARNING_RADIUS: float = 110.0
-const SPEAR_MIN_MULT: float = 2.0
-const SPEAR_MAX_MULT: float = 5.0
+const SPEAR_MIN_MULT: float = 3.0
+const SPEAR_MAX_MULT: float = 8.0
 
 const SIGNAL_TEX := preload("res://Characters/King/assets/Sprites/señal.png")
 const WARNING_SCENE := preload("res://Hitboxes/King/Topo/WarningCircle.tscn")
@@ -36,6 +36,9 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	print("[Topo] king_topo hold=", _player_node.hold_ability_anim, " invincible_until=", _player_node.invincible_until, " anim=", data.action_animation)
 	var status_svc = GameServiceLocator.status_effect
 	if status_svc:
+		# Invencibilidad completa durante Topo: stun_immunity hace que Hitbox sea intangible y bloquea stun en StatusEffectService
+		if status_svc.has_method("grant_stun_immunity"):
+			status_svc.grant_stun_immunity(_caster_id, _total_duration)
 		for survivor in _get_alive_survivors():
 			if is_instance_valid(survivor):
 				status_svc.apply(survivor, "sprint_disabled", { "duration": _total_duration })
@@ -125,7 +128,7 @@ func _spawn_spear(pos: Vector2) -> void:
 	})
 	if not spear:
 		return
-	var mult: float = float([2, 3, 4, 5].pick_random())
+	var mult: float = float([3, 4, 5, 6, 7, 8].pick_random())
 	print("[Topo] spear mult=", mult, " pos=", pos)
 	if spear.has_method("setup_topo"):
 		spear.setup_topo(self, _player_node, mult)
@@ -151,6 +154,12 @@ func _finish() -> void:
 		for survivor in _get_alive_survivors():
 			if is_instance_valid(survivor):
 				status_svc.remove_effect(survivor, "sprint_disabled")
+		if status_svc.has_method("grant_stun_immunity"):
+			status_svc.grant_stun_immunity(_caster_id, 0.0)
+	# Limpiar invencibilidad residual: solo mientras dura el hold de king_topo
+	if is_instance_valid(_player_node) and Time.get_ticks_msec() < _player_node.invincible_until:
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
 	_finish_channelled()
 	AbilityBase.unregister_active(_caster_id, _slot_index)
 	_keep_alive.erase(self)
@@ -160,5 +169,11 @@ func _finish() -> void:
 func _fail_cleanup() -> void:
 	_active = false
 	AbilityBase.unregister_active(_caster_id, _slot_index)
+	var status_svc = GameServiceLocator.status_effect
+	if status_svc and status_svc.has_method("grant_stun_immunity"):
+		status_svc.grant_stun_immunity(_caster_id, 0.0)
+	if is_instance_valid(_player_node) and Time.get_ticks_msec() < _player_node.invincible_until:
+		_player_node.invincible_until = 0
+		_player_node.rpc("_sync_invincibility", 0)
 	super._fail_cleanup()
 	print("[Topo] Fallo activación | peer: ", _caster_id)

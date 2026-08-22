@@ -1,6 +1,6 @@
 extends Node2D
 # TopoSpear — Lanza Undyne vertical estática (sin gancho)
-# Crece 3-5x desde el suelo (señal), hold 1s, retrae y se destruye. Solo daño 10.
+# Crece 3-8x desde el suelo (señal), hold 1.5s, retrae y se destruye. Solo daño 10.
 
 var attacker_id: int = -1
 var attacker_node: Node = null
@@ -49,7 +49,7 @@ var _caster: Node = null
 func setup_topo(ability: RefCounted, caster: Node, height_mult: float) -> void:
 	_ability = ability
 	_caster = caster
-	_target_height = TILE_SIZE * clampf(height_mult, 2.0, 5.0)
+	_target_height = TILE_SIZE * clampf(height_mult, 3.0, 8.0)
 
 
 func set_direction(_dir: Vector2) -> void:

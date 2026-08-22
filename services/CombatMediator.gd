@@ -83,6 +83,14 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if not health_svc.is_alive(target_peer):
 		return 0
 
+	var now := Time.get_ticks_msec()
+	# Invencibilidad por habilidad (ej: King Topo): bloquea todo daño salvo special_defense_against.
+	# Debe evaluarse ANTES del early-return de killer para que King sea invencible durante Topo.
+	if now < target.invincible_until:
+		if target.character_data and \
+		   not attack_type in target.character_data.special_defense_against:
+			return 0
+
 	if target.character_data and target.character_data.team == "killer":
 		# Los killers actuales no tienen vida: solo se muestra el número visual del daño.
 		# Durante su invulnerabilidad (stun-immunity) los ataques lo atraviesan sin feedback.
@@ -94,12 +102,6 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if is_instance_valid(attacker) and status_svc and status_svc.has_method("get_blind_miss_chance"):
 		var miss_chance: float = status_svc.get_blind_miss_chance(attacker.get_multiplayer_authority())
 		if miss_chance > 0.0 and randf() < miss_chance:
-			return 0
-
-	var now := Time.get_ticks_msec()
-	if now < target.invincible_until:
-		if target.character_data and \
-		   not attack_type in target.character_data.special_defense_against:
 			return 0
 
 	final_damage = _apply_protections(target_peer, target, final_damage)
