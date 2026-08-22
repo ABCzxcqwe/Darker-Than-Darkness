@@ -33,6 +33,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if data.cast_duration > 0.0:
 		_total_duration = maxf(_total_duration, data.cast_duration)
 	_setup_channelled(data, slot_index, facing_right, _total_duration, _total_duration)
+	print("[Topo] king_topo hold=", _player_node.hold_ability_anim, " invincible_until=", _player_node.invincible_until, " anim=", data.action_animation)
 	var status_svc = GameServiceLocator.status_effect
 	if status_svc:
 		for survivor in _get_alive_survivors():
@@ -125,6 +126,7 @@ func _spawn_spear(pos: Vector2) -> void:
 	if not spear:
 		return
 	var mult: float = float([2, 3, 4, 5].pick_random())
+	print("[Topo] spear mult=", mult, " pos=", pos)
 	if spear.has_method("setup_topo"):
 		spear.setup_topo(self, _player_node, mult)
 
