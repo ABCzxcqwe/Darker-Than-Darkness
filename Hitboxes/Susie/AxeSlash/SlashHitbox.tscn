@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://g1fdtgpk3fw0"]
 
 [ext_resource type="Script" uid="uid://c6occisbqljis" path="res://Hitboxes/Susie/AxeSlash/SlashHitbox.gd" id="1_7lxvf"]
 
@@ -11,20 +11,4 @@ collision_mask = 2
 script = ExtResource("1_7lxvf")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1108275219]
-position = Vector2(-50, 0)
 shape = SubResource("RectangleShape2D_m0kxg")
-
-[node name="ColorRect" type="ColorRect" parent="CollisionShape2D" unique_id=2118287676]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -70.0
-offset_top = -85.0
-offset_right = 70.0
-offset_bottom = 85.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(2.5990605e-06, 0.7131395, 0.7050037, 1)
-metadata/_edit_use_anchors_ = true

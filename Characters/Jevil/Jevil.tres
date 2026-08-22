@@ -18,6 +18,7 @@
 [ext_resource type="AudioStream" uid="uid://bet6l5kk461ac" path="res://audio/SFX/snd_joker_ha1.wav" id="10_7uki1"]
 [ext_resource type="Resource" path="res://emotes/jevil/Emote1.tres" id="11_emote1"]
 [ext_resource type="Resource" path="res://abilities/jevil/Rage/Rage.tres" id="12_rage"]
+[ext_resource type="Resource" uid="uid://c9f3a1b2d4e67" path="res://abilities/jevil/M1Circle/M1Circle.tres" id="13_m1c"]
 
 [sub_resource type="Resource" id="Resource_r2u3k"]
 script = ExtResource("1_hjm08")
@@ -29,6 +30,7 @@ action_animation = "attack"
 cooldown = 1.5
 tp_reward = 5.0
 base_damage = 30
+evolved_version = ExtResource("13_m1c")
 metadata/_custom_type_script = "uid://bodks86qovy6s"
 
 [resource]

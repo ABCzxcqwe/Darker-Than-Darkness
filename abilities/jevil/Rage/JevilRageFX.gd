@@ -29,6 +29,7 @@ var _player: Node2D = null
 var _sprite: AnimatedSprite2D = null
 var _base_offset: Vector2 = Vector2.ZERO
 var _spawn_timer: float = 0.0
+var _elapsed: float = 0.0
 var _phantoms: Array = []
 
 
@@ -44,9 +45,40 @@ func _ready() -> void:
 	_base_offset = _sprite.offset
 
 
+func _should_suppress() -> bool:
+	if not is_instance_valid(_player):
+		return true
+	if _player.active_effects.has("stun"):
+		return true
+	if _player.active_effects.has("invisibility"):
+		return true
+	var st: int = _player.get("state")
+	if st == 1 or st == 2:
+		var allowed := [0, 1]
+		var slot: int = _player.get("active_ability_slot")
+		if slot == -1:
+			slot = _player.get("aiming_slot")
+		if slot not in allowed:
+			return true
+	return false
+
+func _clear_phantoms() -> void:
+	for p in _phantoms:
+		if is_instance_valid(p):
+			p.queue_free()
+	_phantoms.clear()
+	if is_instance_valid(_sprite):
+		_sprite.offset = _base_offset
+
 func _process(delta: float) -> void:
 	if not is_instance_valid(_player) or not is_instance_valid(_sprite):
 		return
+	if _should_suppress():
+		_clear_phantoms()
+		visible = false
+		return
+	visible = true
+	_elapsed += delta
 	_apply_jitter()
 	_spawn_phantoms(delta)
 
@@ -59,8 +91,10 @@ func _apply_jitter() -> void:
 
 
 func _spawn_phantoms(delta: float) -> void:
+	var t := clampf(_elapsed / 2.0, 0.0, 1.0)
+	var cur_interval := lerpf(0.30, SPAWN_INTERVAL, t)
 	_spawn_timer += delta
-	if _spawn_timer < SPAWN_INTERVAL:
+	if _spawn_timer < cur_interval:
 		return
 	_spawn_timer = 0.0
 	_spawn_phantom()

@@ -28,6 +28,8 @@ var _last_speed: Dictionary = {}
 
 var _stamina_drain_originals: Dictionary = {}  # { peer_id: float }
 
+var _rage_stun_hits: Dictionary = {}  # { peer_id: int }
+
 var _revive_service: Node = null
 var _health_service: Node = null
 
@@ -39,6 +41,12 @@ func _process(delta: float) -> void:
 		return
 	if multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		return
+	for __dbg_pid in _effects.keys():
+		for __dbg_eff in ["root", "silence"]:
+			if has_effect(__dbg_pid, __dbg_eff):
+				var __dbg_t: float = _effects[__dbg_pid][__dbg_eff][0]["timer"] if _effects[__dbg_pid][__dbg_eff].size() > 0 else -1.0
+				if int(Time.get_ticks_msec() / 500) % 4 == 0:
+					print("[StatusEffectService][DBG] peer ", __dbg_pid, " ", __dbg_eff, " timer=", __dbg_t)
 	for peer_id in _effects.keys().duplicate():
 		var changed := false
 	
@@ -119,6 +127,14 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 
 	var peer_id := player_node.get_multiplayer_authority()
 	var duration: float = params.get("duration", 1.0)
+
+	if effect_name == "stun" and _is_rage_active(peer_id):
+		var resist := _get_rage_resistance(peer_id)
+		if resist > 0.0:
+			var orig := duration
+			duration = maxf(0.2, duration * (1.0 - resist))
+			print("[StatusEffectService] Rage resistencia stun peer ", peer_id, " ", resist*100, "% ", orig, "->", duration)
+			_rage_stun_hits[peer_id] = _rage_stun_hits.get(peer_id, 0) + 1
 
 	# Bloquear stun si el killer tiene inmunidad post-stun
 	if effect_name == "stun" and _stun_immunity.has(peer_id):
@@ -358,6 +374,9 @@ func get_post_stun_dr(peer_id: int) -> float:
 		return 0.0
 	return _post_stun_dr[peer_id]["magnitude"]
 
+func clear_rage_resistance(peer_id: int) -> void:
+	_rage_stun_hits.erase(peer_id)
+
 
 # BUG 1 FIX: register/unregister ahora reciben Node igual que apply().
 # Antes recibían peer_id: int pero player.gd llamaba ss.register(self),
@@ -373,6 +392,29 @@ func register(player_node: Node) -> void:
 	print("[StatusEffectService] ", peer_id, " registrado.")
 
 
+func _is_rage_active(peer_id: int) -> bool:
+	var abs_svc = GameServiceLocator.ability_state
+	if abs_svc and abs_svc.has_method("is_mode_active"):
+		return abs_svc.is_mode_active(peer_id, 4)
+	return false
+
+func _get_rage_resistance(peer_id: int) -> float:
+	var player_node := _get_player(peer_id)
+	if not is_instance_valid(player_node) or not player_node.character_data:
+		return 0.0
+	var slots: Array = player_node.character_data.ability_slots
+	if slots.size() <= 4 or not slots[4]:
+		return 0.0
+	var rage_data: AbilityData = slots[4]
+	var base: float = rage_data.rage_stun_resistance_base
+	var decay: float = rage_data.rage_stun_resistance_decay
+	if base <= 0.0:
+		base = 0.5
+		decay = 0.1
+	var hits: int = _rage_stun_hits.get(peer_id, 0)
+	var resist: float = base - decay * hits
+	return clampf(resist, 0.0, 0.9)
+
 ## Limpia todos los efectos de un jugador.
 func unregister(player_node: Node) -> void:
 	if not multiplayer.is_server():
@@ -383,6 +425,7 @@ func unregister(player_node: Node) -> void:
 	_stun_immunity.erase(peer_id)
 	_post_stun_dr.erase(peer_id)
 	_stamina_drain_originals.erase(peer_id)
+	_rage_stun_hits.erase(peer_id)
 	print("[StatusEffectService] ", peer_id, " desregistrado.")
 
 
@@ -584,4 +627,5 @@ func _exit_tree() -> void:
 	_stun_immunity.clear()
 	_post_stun_dr.clear()
 	_stamina_drain_originals.clear()
+	_rage_stun_hits.clear()
 	print("[StatusEffectService] Limpiado.")

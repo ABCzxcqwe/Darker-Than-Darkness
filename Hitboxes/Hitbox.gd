@@ -78,7 +78,22 @@ func _ready() -> void:
 
 func set_direction(dir: Vector2) -> void:
 	_direction = dir.normalized()
-	rotation = _direction.angle()
+	# ── Fix global M1: melee usa espejo preservando tamaño, proyectiles usan rotación ─
+	# Bug: rotation invertía offset Y (0,30) → (0,-30) al mirar izquierda,
+	# todas las M1 descuadraban (Jevil más evidente).
+	# Melee (speed==0 y aim_mode != mouse) → espejo horizontal, rotation=0,
+	# preserva Y siempre abajo y coloca delante según facing.
+	# Proyectiles (speed>0) o aim_mode mouse (360°) → rotation=angle(), scale intacto.
+	if (speed > 0.0 and attacker_node == null) or aim_mode == "mouse":
+		# Proyectil / apuntado 360°: solo rotar, no tocar scale (RudeBuster=4,4 se achicaba a 1,1)
+		rotation = _direction.angle()
+	else:
+		# Melee/area/attached/zone: axis-aligned + espejo preservando magnitud del .tscn
+		var sx: float = abs(scale.x) if scale.x != 0.0 else 1.0
+		var sy: float = abs(scale.y) if scale.y != 0.0 else 1.0
+		scale.x = sx * (-1.0 if _direction.x < 0.0 else 1.0)
+		scale.y = sy
+		rotation = 0
 
 # ── Proceso (solo proyectiles y attached usan _physics_process) ────────
 func _physics_process(delta: float) -> void:

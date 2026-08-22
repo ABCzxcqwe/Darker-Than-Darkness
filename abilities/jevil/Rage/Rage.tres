@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="AbilityData" format=3]
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://be0uy7t104ebs"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
 [ext_resource type="Script" uid="uid://bq6fmqatv0b8l" path="res://abilities/jevil/Rage/Rage.gd" id="2_rage"]
-[ext_resource type="Resource" uid="uid://efd80e8401244" path="res://abilities/jevil/Rage/RageMode.tres" id="3_ragemode"]
+[ext_resource type="Resource" uid="uid://jyefdcvgt7ed" path="res://abilities/jevil/Rage/RageMode.tres" id="3_ragemode"]
 
 [resource]
 script = ExtResource("1_abilitydata")
@@ -12,6 +12,8 @@ ability_type = 1
 ability_script = ExtResource("2_rage")
 cooldown = 30.0
 defer_cooldown = true
-rage_stuns_required = 15
 evolved_version = ExtResource("3_ragemode")
+rage_stun_resistance_base = 0.5
+rage_stun_resistance_decay = 0.1
+rage_stuns_required = 4
 metadata/_custom_type_script = "uid://bodks86qovy6s"
