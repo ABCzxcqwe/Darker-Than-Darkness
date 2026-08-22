@@ -8,7 +8,7 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
-const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "damage_boost", "damage_reduction", "invisibility"]
+const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "damage_boost", "damage_reduction", "invisibility", "sprint_disabled"]
 
 # Efectos con acumulación por fuente: cada fuente distinta crea su propia
 # instancia en el array. Los demás efectos refrescan la instancia existente.
@@ -323,6 +323,7 @@ func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost"
 func is_stamina_reduced(peer_id: int) -> bool: return has_effect(peer_id, "stamina_reduction")
 func is_bleeding(peer_id: int) -> bool: return has_effect(peer_id, "bleed")
 func is_invisible(peer_id: int) -> bool: return has_effect(peer_id, "invisibility")
+func is_sprint_disabled(peer_id: int) -> bool: return has_effect(peer_id, "sprint_disabled")
 
 ## Multiplicador de daño efectivo del atacante (1.0 = sin buff).
 ## Acumulativo aditivo: 1.0 + Σ(multiplier_i − 1.0), cap 2.5.
