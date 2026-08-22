@@ -1,4 +1,4 @@
-extends AbilityBase
+extends "res://abilities/AbilityBase.gd"
 class_name KingAbilityBase
 
 # Base para habilidades de King — helpers comunes sin static keep_alive compartido.

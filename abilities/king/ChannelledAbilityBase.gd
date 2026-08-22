@@ -1,4 +1,4 @@
-extends KingAbilityBase
+extends "res://abilities/king/KingAbilityBase.gd"
 class_name ChannelledAbilityBase
 
 # Para habilidades canalizadas de King (Topo, Lanza) que usan hold + root durante toda la canalización.

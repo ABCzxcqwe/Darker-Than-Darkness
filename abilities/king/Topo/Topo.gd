@@ -1,4 +1,4 @@
-extends ChannelledAbilityBase
+extends "res://abilities/king/ChannelledAbilityBase.gd"
 class_name TopoAbility
 
 const WAVE_COUNT: int = 5
