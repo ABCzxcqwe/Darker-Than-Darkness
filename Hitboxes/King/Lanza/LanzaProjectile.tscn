@@ -5,6 +5,9 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_detector"]
 radius = 65.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_head"]
+size = Vector2(70, 70)
+
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lanza"]
 properties/0/path = NodePath(".:position")
 properties/0/spawn = true
@@ -21,6 +24,9 @@ z_index = 4
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_lanza")
+
+[node name="BodyShape" type="CollisionShape2D" parent="." unique_id=102]
+shape = SubResource("RectangleShape2D_head")
 
 [node name="HurtboxDetector" type="Area2D" parent="." unique_id=103]
 collision_layer = 0

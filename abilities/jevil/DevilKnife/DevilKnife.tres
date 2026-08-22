@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
 [ext_resource type="PackedScene" uid="uid://bp13d3jfglp5h" path="res://Hitboxes/Jevil/DevilKnife/DevilKnifeProjectile.tscn" id="1_k2lcl"]
 [ext_resource type="Script" uid="uid://cxqrp2j7vg0bk" path="res://abilities/jevil/DevilKnife/DevilKnife.gd" id="2_k2lcl"]
-[ext_resource type="Texture2D" uid="uid://hh27pmiorma" path="res://abilities/jevil/DevilKnife/icons/guadaña.png" id="3_icon"]
+[ext_resource type="Texture2D" uid="uid://587eythfot73" path="res://abilities/jevil/DevilKnife/icons/guadaña.png" id="3_icon"]
 
 [resource]
 script = ExtResource("1_abilitydata")

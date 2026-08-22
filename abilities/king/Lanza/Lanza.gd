@@ -5,6 +5,7 @@ class_name LanzaAbility
 const LANZA_SPEED: float      = 2200.0   # avance de la cabeza (px/s)
 const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se libera al resolver)
 const IFRAME_DURATION: float  = 2.5     # invencibilidad al inicio de la habilidad (seg)
+const CANCEL_GRACE_SEC: float = 1.5     # ventana donde E no cancela (anti doble-press)
 
 # Evita que el RefCounted sea recolectado mientras la habilidad está activa.
 static var _keep_alive: Array = []
@@ -26,6 +27,7 @@ var _data: AbilityData = null
 var _lance: Node = null
 var _cd_svc: Node = null
 var _combat: Node = null
+var _activated_at_msec: int = 0
 
 
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
@@ -65,6 +67,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if lance_dir == Vector2.ZERO:
 		lance_dir = Vector2.RIGHT if facing_right else Vector2.LEFT
 
+	_activated_at_msec = Time.get_ticks_msec()
 	_keep_alive.append(self)
 
 	var spawn_delay: float = data.spawn_delay if data.spawn_delay > 0.0 else 0.0
@@ -73,7 +76,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 			func(): _spawn_lance(lance_dir)
 		)
 
-	print("[Lanza] Habilidad iniciada | peer: ", _caster_id, " | dir: ", lance_dir)
+	print("[Lanza] Habilidad iniciada | peer: ", _caster_id, " | dir: ", lance_dir, " | grace: ", CANCEL_GRACE_SEC, "s")
 
 
 func _grant_iframes() -> void:
@@ -145,9 +148,19 @@ func resolve(success: bool) -> void:
 	_resolve(success)
 
 
+func can_cancel_now() -> bool:
+	if not _active:
+		return false
+	return Time.get_ticks_msec() - _activated_at_msec >= int(CANCEL_GRACE_SEC * 1000.0)
+
+
 # ── Cancelación manual (presionar "E" de nuevo) ──────────────────────
 func cancel_early() -> void:
 	if not _active:
+		return
+	if not can_cancel_now():
+		var elapsed := (Time.get_ticks_msec() - _activated_at_msec) / 1000.0
+		print("[Lanza] Cancel bloqueado por grace period | elapsed: ", elapsed, "s / ", CANCEL_GRACE_SEC, "s")
 		return
 	_canceled = true
 	if is_instance_valid(_lance) and _lance.has_method("_resolve"):

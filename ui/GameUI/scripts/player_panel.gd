@@ -21,6 +21,7 @@ extends PanelContainer
 @onready var hp_bar:       ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
 @onready var hp_numbers:   Label       = $HBoxContainer/InfoColumn/HpNumbers
 @onready var stamina_bar:  ProgressBar = $HBoxContainer/InfoColumn/StaminaRow/StaminaBar
+@onready var sprint_disabled_x: Label = $HBoxContainer/InfoColumn/StaminaRow/StaminaBar/SprintDisabledX
 
 const COLOR_OVER_MAX: Color = Color(0.9, 0.2, 0.9)  # magenta: HP sobre el máximo
 
@@ -61,6 +62,10 @@ func setup(player_node: Node) -> void:
 			relay.player_state_changed.connect(_on_state_changed)
 		if relay.has_signal("stamina_changed"):
 			relay.stamina_changed.connect(_on_stamina_changed)
+		if relay.has_signal("effect_applied"):
+			relay.effect_applied.connect(_on_effect_applied)
+		if relay.has_signal("effect_removed"):
+			relay.effect_removed.connect(_on_effect_removed)
 
 	if stamina_bar:
 		stamina_bar.max_value = data.stamina_max
@@ -138,3 +143,24 @@ func _apply_border_color(color: Color) -> void:
 
 func _fmt(cur: int, max_val: int) -> String:
 	return "%d/ %d" % [cur, max_val]
+
+
+# ── Sprint Disabled X Indicator ──────────────────────────────────────
+
+func _on_effect_applied(peer_id: int, effect_name: String, duration: float) -> void:
+	if peer_id != _peer_id:
+		return
+	if effect_name == "sprint_disabled":
+		_show_sprint_disabled_x(true)
+
+
+func _on_effect_removed(peer_id: int, effect_name: String) -> void:
+	if peer_id != _peer_id:
+		return
+	if effect_name == "sprint_disabled":
+		_show_sprint_disabled_x(false)
+
+
+func _show_sprint_disabled_x(show: bool) -> void:
+	if sprint_disabled_x and is_instance_valid(sprint_disabled_x):
+		sprint_disabled_x.visible = show

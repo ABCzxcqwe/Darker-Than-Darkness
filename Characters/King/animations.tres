@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dq7i6c2jjvs1u" path="res://Characters/King/assets/Sprites/king_attack.png" id="1_6wceg"]
 [ext_resource type="Texture2D" uid="uid://dtys5vhepuxy7" path="res://Characters/King/assets/Sprites/king_idle.png" id="1_q5svj"]
 [ext_resource type="Texture2D" uid="uid://38j55i1d8758" path="res://Characters/King/assets/Sprites/king_run.png" id="3_sk5l5"]
+[ext_resource type="Texture2D" uid="uid://db1g4k8wbargk" path="res://Characters/King/assets/Sprites/king_topo.png" id="5_0ht6f"]
 [ext_resource type="Texture2D" uid="uid://cdfmal5dhio7" path="res://Characters/King/assets/Sprites/king_stun-Sheet.png" id="5_6wceg"]
 [ext_resource type="Texture2D" uid="uid://du6c3ekv2um0f" path="res://Characters/King/assets/Sprites/king_lanza.png" id="5_i264h"]
 [ext_resource type="Texture2D" uid="uid://c8sfkup1qrspx" path="res://Characters/King/assets/Sprites/king_rugido.png" id="5_sk5l5"]
@@ -76,6 +77,38 @@ region = Rect2(2496, 0, 624, 528)
 [sub_resource type="AtlasTexture" id="AtlasTexture_x8bob"]
 atlas = ExtResource("5_i264h")
 region = Rect2(3120, 0, 624, 528)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ht6f"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(0, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m763k"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(432, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0psuf"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(864, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3t8e2"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(1296, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g3rg3"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(1728, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_16vxc"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(2160, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2t3gm"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(2592, 0, 432, 432)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3f7p"]
+atlas = ExtResource("5_0ht6f")
+region = Rect2(3024, 0, 432, 432)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sfokg"]
 atlas = ExtResource("5_sk5l5")
@@ -320,6 +353,35 @@ animations = [{
 }],
 "loop": false,
 "name": &"king_lanza",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ht6f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m763k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0psuf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3t8e2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g3rg3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_16vxc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2t3gm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3f7p")
+}],
+"loop": true,
+"name": &"king_topo",
 "speed": 5.0
 }, {
 "frames": [{

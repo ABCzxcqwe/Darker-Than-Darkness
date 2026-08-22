@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://2t4h6n6zbea2i"]
 
-[ext_resource type="Script" path="res://Hitboxes/King/Rugido/RoarWave.gd" id="1_wave"]
-[ext_resource type="Shader" path="res://eco.gdshader" id="2_eco"]
+[ext_resource type="Script" uid="uid://centd8lb6rnkt" path="res://Hitboxes/King/Rugido/RoarWave.gd" id="1_wave"]
+[ext_resource type="Shader" uid="uid://by4q8frflu1m1" path="res://eco.gdshader" id="2_eco"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_wave"]
 properties/0/path = NodePath(".:position")

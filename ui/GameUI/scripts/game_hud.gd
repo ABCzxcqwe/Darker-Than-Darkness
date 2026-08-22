@@ -255,10 +255,10 @@ func _on_effect_applied(peer_id: int, effect_name: String, duration: float) -> v
 			return
 		_effect_notifications.erase(effect_name)
 
-	var notification := EFFECT_NOTIFICATION_SCENE.instantiate()
-	notification.setup(peer_id, effect_name, duration)
-	effect_stack.add_child(notification)
-	_effect_notifications[effect_name] = notification
+	var eff_notification := EFFECT_NOTIFICATION_SCENE.instantiate()
+	eff_notification.setup(peer_id, effect_name, duration)
+	effect_stack.add_child(eff_notification)
+	_effect_notifications[effect_name] = eff_notification
 
 
 func _on_effect_removed(peer_id: int, effect_name: String) -> void:
@@ -266,9 +266,9 @@ func _on_effect_removed(peer_id: int, effect_name: String) -> void:
 		return
 	if not _effect_notifications.has(effect_name):
 		return
-	var notification = _effect_notifications[effect_name]
-	if is_instance_valid(notification):
-		notification.queue_free()
+	var eff_notification = _effect_notifications[effect_name]
+	if is_instance_valid(eff_notification):
+		eff_notification.queue_free()
 	_effect_notifications.erase(effect_name)
 
 

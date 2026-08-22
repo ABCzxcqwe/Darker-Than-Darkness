@@ -30,7 +30,13 @@ func _load_database() -> void:
 		if not data:
 			push_warning("[CharacterRegistry] Se encontró un slot vacío (null) en la lista de la base de datos.")
 			continue
-			
+		# Robustez: si el .tres tenía UID inválido, Godot crea PlaceholderText en lugar de CharacterData
+		if not data is CharacterData:
+			push_warning("[CharacterRegistry] Recurso corrupto/Placeholder en DB (UID inválido): ", data, " — ignorando.")
+			continue
+		if data.id <= 0:
+			push_warning("[CharacterRegistry] ID inválido (", data.id, ") en '", data.resource_path.get_file(), "' — ignorando. Revisa CharacterData.id")
+			continue
 		if characters.has(data.id):
 			push_warning("[CharacterRegistry] ID duplicado detectado: ", data.id, 
 				" en el recurso '", data.resource_path.get_file(), "' — ignorando duplicado.")
