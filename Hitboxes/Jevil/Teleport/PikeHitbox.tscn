@@ -108,8 +108,8 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_shape"]
-size = Vector2(28, 20)
+[sub_resource type="CircleShape2D" id="CircleShape2D_rr5ph"]
+radius = 20.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_pike"]
 properties/0/path = NodePath(".:position")
@@ -125,20 +125,20 @@ properties/3/path = NodePath("AnimatedSprite2D:frame")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 
-[node name="PikeHitbox" type="Area2D" unique_id=179504056]
+[node name="PikeHitbox2" type="Area2D" unique_id=179504056]
 z_index = 3
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_hitbox")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=234949598]
-scale = Vector2(2, 2)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_pike")
 animation = &"travel"
 autoplay = "travel"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1561420448]
-shape = SubResource("RectangleShape2D_shape")
+shape = SubResource("CircleShape2D_rr5ph")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1212345416]
 replication_config = SubResource("SceneReplicationConfig_pike")

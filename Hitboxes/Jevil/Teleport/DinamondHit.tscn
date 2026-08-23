@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://ditpbdnyukhdl"]
+
+[ext_resource type="Script" uid="uid://ct6ctabp7nijt" path="res://Hitboxes/Hitbox.gd" id="1_e4kly"]
+[ext_resource type="Texture2D" uid="uid://dx1tnubpfjwv1" path="res://Hitboxes/Jevil/Teleport/dinamond.png" id="2_npx1h"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e4kly"]
+atlas = ExtResource("2_npx1h")
+region = Rect2(0, 0, 20, 14)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pike"]
+animations = [{
+"frames": [],
+"loop": false,
+"name": &"hit",
+"speed": 50.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e4kly")
+}],
+"loop": false,
+"name": &"travel",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e4kly"]
+radius = 20.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_pike"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath("AnimatedSprite2D:animation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("AnimatedSprite2D:frame")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
+[node name="PikeHitbox" type="Area2D" unique_id=179504056]
+z_index = 3
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_e4kly")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=234949598]
+scale = Vector2(4, 4)
+sprite_frames = SubResource("SpriteFrames_pike")
+animation = &"travel"
+autoplay = "travel"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1561420448]
+shape = SubResource("CircleShape2D_e4kly")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1212345416]
+replication_config = SubResource("SceneReplicationConfig_pike")

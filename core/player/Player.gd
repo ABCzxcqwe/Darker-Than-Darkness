@@ -909,6 +909,38 @@ func _rpc_rage_vfx_hide() -> void:
 		fx.queue_free()
 
 
+# ── Jevil Ghost para TeleportRage (clon visual width-shrink) ──────────
+
+const GHOST_SCENE := preload("res://abilities/jevil/Teleport/JevilGhost.tscn")
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_jevil_ghost(pos: Vector2, dir: Vector2) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var ghost = GHOST_SCENE.instantiate()
+	if ghost.has_method("configure"):
+		ghost.configure(pos, dir)
+	else:
+		ghost.global_position = pos
+		ghost.set("shoot_dir", dir)
+	# Buscar contenedor Projectiles, fallback a World o root
+	var world = get_tree().root.find_child("World", true, false)
+	var container: Node = null
+	if world:
+		container = world.get_node_or_null("Projectiles")
+	if container:
+		container.add_child(ghost, true)
+		ghost.global_position = pos
+	else:
+		get_tree().root.add_child(ghost)
+		ghost.global_position = pos
+
+	# Ghost solo visual: JevilGhost ya programa su propio shrink (0.5s delay + width->0)
+	# Compat: no necesita notify_shoot externo
+
+
 # ── Sincronización desde el servidor ──────────────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://dpafusalga8wa"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
+[ext_resource type="PackedScene" uid="uid://ditpbdnyukhdl" path="res://Hitboxes/Jevil/Teleport/DinamondHit.tscn" id="1_ttc1s"]
+[ext_resource type="Script" uid="uid://bddvfo8kfxnya" path="res://abilities/jevil/Teleport/TeleportRage.gd" id="2_teleportrage"]
+
+[resource]
+script = ExtResource("1_abilitydata")
+display_name = "Teleport RAGE"
+ability_script = ExtResource("2_teleportrage")
+ability_scene = ExtResource("1_ttc1s")
+action_animation = "jevil_tp"
+cooldown = 25.0
+tp_cost = 20.0
+move_restriction = 1
+base_damage = 20
+range_ = 400.0
+spawn_delay = 0.5
+evolution_consume = 1
+is_projectile = true
+projectile_speed = 880.0
+projectile_lifetime = 5.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"

@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://bqvv2ek470v2y"]
+[ext_resource type="Script" uid="uid://ldlmc8k9vj7fw" path="res://abilities/jevil/Teleport/JevilGhost.gd" id="1_ghost"]
+[node name="JevilGhost" type="Node2D"]
+script = ExtResource("1_ghost")
