@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="MapData" format=3 uid="uid://d0qfo6ahu5j5t"]
 
-[ext_resource type="AudioStream" uid="uid://d2a7ihc3yy3t0" path="res://Maps/Card Castle/Assets/The Escape Deltarune.wav" id="1_ptnom"]
+[ext_resource type="AudioStream" uid="uid://frn061cx4rl1" path="res://Maps/Card Castle/Assets/The Escape Deltarune.wav" id="1_ptnom"]
 [ext_resource type="AudioStream" uid="uid://bgdynwmbmpykq" path="res://Maps/Card Castle/Assets/castle card.mp3" id="2_ef53e"]
 [ext_resource type="PackedScene" uid="uid://ifwsomtcn1dp" path="res://Maps/Card Castle test/Castle.tscn" id="2_ptnom"]
 [ext_resource type="Script" uid="uid://cnpjj5828cix" path="res://Maps/map_data.gd" id="3_ef53e"]
@@ -11,4 +11,7 @@ id = "0"
 display_name = "Card Castle test"
 map_scene = ExtResource("2_ptnom")
 map_bgm = ExtResource("2_ef53e")
+map_bgm_loop_end = 59.0
 final_phase_music = ExtResource("1_ptnom")
+final_phase_loop_start = 11.5
+final_phase_loop_end = 91.65

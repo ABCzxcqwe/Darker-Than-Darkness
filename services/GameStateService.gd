@@ -91,15 +91,43 @@ func _setup_map_audio() -> void:
 
 
 func _cleanup_match_audio() -> void:
+	if multiplayer.is_server():
+		rpc("_rpc_cleanup_match_audio")
+	else:
+		_rpc_cleanup_match_audio()
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_cleanup_match_audio() -> void:
+	# Silencio total replicado a todos los peers (fix: antes solo servidor)
 	AudioManager.reset_match_audio()
-	AudioManager.rpc("_rpc_deactivate_rage_music")
-	_client_relay.rpc("_rpc_rage_time", -1, 0.0)
+	# reset_match_audio ya detiene lms/rage y resetea prioridad, pero
+	# aseguramos desactivación sin rebote extra de RPC N^2
+	if AudioManager.has_method("_rpc_deactivate_rage_music"):
+		# llamada directa local: el rpc desde servidor ya llegó a todos via este _rpc_cleanup
+		if AudioManager._current_priority == AudioManager.PriorityLevel.SPECIAL:
+			AudioManager._current_priority = AudioManager.PriorityLevel.NONE
+			if AudioManager.lms_music_player:
+				if AudioManager.lms_music_player.playing:
+					AudioManager.lms_music_player.stop()
+				AudioManager.lms_music_player.stream = null
 	var timer = GameServiceLocator.timer
 	if timer:
-		timer.rpc("_rpc_set_paused", false)
+		timer.is_paused = false
+		if multiplayer.is_server():
+			timer.rpc("_rpc_set_paused", false)
 	var mec = GameServiceLocator.map_event_coordinator
 	if mec:
-		mec.rpc("_rpc_rage_exits_restore")
+		if multiplayer.is_server():
+			mec.rpc("_rpc_rage_exits_restore")
+		else:
+			mec._rage_active = false
+			mec._rage_closed_exits.clear()
+	if _client_relay:
+		if multiplayer.is_server():
+			_client_relay.rpc("_rpc_rage_time", -1, 0.0)
+		else:
+			_client_relay.rage_time_changed.emit(-1, 0.0)
 
 
 # ─── TIMER ───────────────────────────────────────────────

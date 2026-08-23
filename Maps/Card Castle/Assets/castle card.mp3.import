@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/castle card.mp3-8fbafded19825e498a49b3098f920
 [params]
 
 loop=true
-loop_offset=59.5
+loop_offset=0.0
 bpm=0.0
 beat_count=0
 bar_beats=4
