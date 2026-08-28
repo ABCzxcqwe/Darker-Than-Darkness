@@ -35,10 +35,11 @@ func _ready() -> void:
 	_highlight(_index, true)
 	_position_soul(_index, true)
 	_update_footer()
-	# Música menú via MapMusicPlayer (bus Map Music) sin superposición — parche mínimo AudioManager menu_drone
+	# Música menú via MenuMusicPlayer (bus Menu Music dedicado) — no reiniciar si ya suena
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_menu_drone"):
-		am.play_menu_drone()
+		if am.current_global_state != "menu_drone" or not (am.menu_music_player and am.menu_music_player.playing):
+			am.play_menu_drone()
 	elif am and am.has_method("change_audio_state"):
 		var tm := get_node_or_null("/root/ThemeManager")
 		var path: String = tm.get_music_path() if tm and tm.has_method("get_music_path") else "res://ui/Boot/scenes/AUDIO_DRONE.wav"

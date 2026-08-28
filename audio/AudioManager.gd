@@ -24,6 +24,8 @@ var _chase_variant: int = ChaseVariantType.NORMAL
 @onready var lms_music_player: AudioStreamPlayer = $LMSMusicPlayer
 @onready var menu_music_player: AudioStreamPlayer = $MenuMusicPlayer
 
+var _last_menu_path: String = ""
+
 # Streams de chase (se intercambian según variante)
 var _chase_stream_normal: AudioStream = null
 var _chase_stream_last_life: AudioStream = null
@@ -189,14 +191,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# Menu drone: canal dedicado Menu Music -> Master, aislado de Map Music.
-	# Auto-repair si estamos en menu sin musica (tras reset_match_audio o arranque).
 	if current_global_state == "menu" and multiplayer.multiplayer_peer == null:
 		if menu_music_player and (menu_music_player.stream == null or not menu_music_player.playing):
 			if get_tree().current_scene and get_tree().current_scene.name != "CharacterSelect":
 				play_menu_drone()
 				return
 	if current_global_state == "menu_drone":
-		# Asegurar que el drone siga sonando, no silenciar.
 		if menu_music_player and menu_music_player.stream and not menu_music_player.playing:
 			menu_music_player.volume_db = MAX_DB
 			menu_music_player.play()
@@ -239,7 +239,6 @@ func _is_disconnected_or_menu() -> bool:
 		return true
 	if current_global_state == "menu" or current_global_state == "lobby":
 		return true
-	# Fallback por LobbyManager (cubre ENDED sin que AudioManager haya recibido reset aún)
 	if LobbyManager and LobbyManager.current_phase == LobbyManager.GamePhase.ENDED:
 		return true
 	return false
@@ -381,13 +380,18 @@ func _configure_stream_loop(stream: AudioStream, loop_start: float, loop_end: fl
 	var s := _duplicate_stream(stream)
 	if loop and s is AudioStreamWAV:
 		var wav := s as AudioStreamWAV
+		var orig := stream as AudioStreamWAV
 		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
 		if loop_start >= 0.0:
 			wav.loop_begin = int(loop_start * wav.mix_rate)
 		if loop_end >= 0.0:
 			wav.loop_end = int(loop_end * wav.mix_rate)
 		elif loop_end < 0:
-			wav.loop_end = -1
+			# -1 = mantener loop_end original del import (96367 para AUDIO_DRONE).
+			# Forzar -1 rompe el loop en WAV importados con data_len fijo (se detiene a los 2 frames).
+			if orig:
+				wav.loop_end = orig.loop_end
+			# si orig no disponible, dejar -1 como fallback para streams procedurales
 		return wav
 	if "loop" in s:
 		s.loop = loop
@@ -428,8 +432,6 @@ func reset_match_audio() -> void:
 		chase_music_player.stream = null
 	if lms_music_player:
 		lms_music_player.stream = null
-	# Menu Music es canal dedicado -> no tocar aquí, preserva drone entre Settings/CreateRoom/Lobby
-	# Solo resetear si se pide explícitamente via stop_menu_drone()
 
 	_chase_stream_normal = null
 	_chase_stream_last_life = null
@@ -488,7 +490,6 @@ func change_audio_state(new_state: String) -> void:
 			menu_music_player.play()
 		return
 	if new_state == "ingame":
-		# Al entrar a partida, apagar menu drone (canal dedicado)
 		if menu_music_player and menu_music_player.playing:
 			menu_music_player.stop()
 		if not lms_bloqueo_activo:
@@ -691,9 +692,14 @@ func play_menu_drone(path: String = "") -> void:
 			path = tm.get_music_path()
 		else:
 			path = "res://ui/Boot/scenes/AUDIO_DRONE.wav"
+	# Idempotencia: no reiniciar si ya estamos en menu_drone con mismo path sonando
+	if current_global_state == "menu_drone" and menu_music_player and menu_music_player.playing and menu_music_player.stream != null and _last_menu_path == path and path != "":
+		return
+	if _last_menu_path == path and current_global_state == "menu_drone" and menu_music_player and menu_music_player.playing:
+		return
 	var s := load(path) as AudioStream
 	if s == null:
-		push_warning("[AudioManager] AUDIO_DRONE no encontrado: ", path)
+		push_warning("[AudioManager] AUDIO_DRONE no encontrado: " + path)
 		return
 	s = _configure_stream_loop(s, 0.0, -1.0, true)
 	if menu_music_player:
@@ -701,14 +707,13 @@ func play_menu_drone(path: String = "") -> void:
 			menu_music_player.stop()
 		menu_music_player.stream = s
 		menu_music_player.volume_db = MAX_DB
-		# Aplicar volumen actual de SettingsManager al nuevo bus dedicado
 		var sm := get_node_or_null("/root/SettingsManager")
 		if sm and "music_volume" in sm:
 			var idx := AudioServer.get_bus_index(&"Menu Music")
 			if idx != -1:
-				# Menu Music -> Master, replicamos volumen de Music para respetar slider
 				AudioServer.set_bus_volume_db(idx, linear_to_db(float(sm.music_volume)))
 		menu_music_player.play()
+		_last_menu_path = path
 		change_audio_state("menu_drone")
 
 func stop_menu_drone() -> void:

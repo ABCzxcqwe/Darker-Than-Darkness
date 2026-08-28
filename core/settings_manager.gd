@@ -7,10 +7,12 @@ const SETTINGS_PATH := "user://settings.cfg"
 var music_volume: float = 1.0:
 	set(v):
 		music_volume = v
-		AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Music"), linear_to_db(v))
+		var mus_idx := AudioServer.get_bus_index(&"Music")
+		var db := linear_to_db(v)
+		AudioServer.set_bus_volume_db(mus_idx, db)
 		var menu_idx := AudioServer.get_bus_index(&"Menu Music")
 		if menu_idx != -1:
-			AudioServer.set_bus_volume_db(menu_idx, linear_to_db(v))
+			AudioServer.set_bus_volume_db(menu_idx, db)
 		setting_changed.emit("music_volume", v)
 
 var sfx_volume: float = 1.0:
