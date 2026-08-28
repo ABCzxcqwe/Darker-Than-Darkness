@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/menu_base.gd"
+extends "res://ui/Old/scripts/menu_base.gd"
 ## Base para sub-secciones de Opciones.
 ## Cada sub-sección es una ESCENA propia (settings_*.tscn) que ocupa toda la
 ## pantalla; al navegar entramos con change_scene_to_file desde el hub y

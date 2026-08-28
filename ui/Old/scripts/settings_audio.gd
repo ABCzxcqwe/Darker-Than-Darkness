@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/settings_section.gd"
+extends "res://ui/Old/scripts/settings_section.gd"
 ## Sub-sección Audio: Música y SFX.
 ## Escena propia: ui/MainMenu/scenes/SettingsAudio.tscn
 

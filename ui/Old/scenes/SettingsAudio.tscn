@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cc7a12m1q2ab"]
 
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_theme"]
-[ext_resource type="Script" path="res://ui/MainMenu/scripts/settings_audio.gd" id="2_script"]
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/Old/Styles/Tema.tres" id="1_theme"]
+[ext_resource type="Script" path="res://ui/Old/scripts/settings_audio.gd" id="2_script"]
 
 [node name="SettingsAudio" type="Control"]
 layout_mode = 3

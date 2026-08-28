@@ -2,6 +2,7 @@
 extends Node
 
 enum NetworkMode { LAN, STEAM }
+const ONLINE = NetworkMode.STEAM
 
 const PORT := 4242
 const MAX_LOBBIES := 16
@@ -18,7 +19,10 @@ var steam_lobby_id: int = 0
 var _disconnecting := false
 
 var _steam: Variant = null
+var current_online_provider: String = "steam"
 var _steam_ready := false
+# Lista interna dev: hardcodear aquí futuros servidores {name, address} - no accesible al jugador
+var custom_servers: Array = [] # Ej: [{"name":"Brazil","address":"brazil.example.com:4242"}]
 
 
 func _process(_delta: float):
@@ -69,6 +73,7 @@ func initialize_steam() -> bool:
 	if not _steam_ready:
 		print("[NetworkManager] Steam no se pudo inicializar. Revisá la consola para más detalles.")
 		return false
+	current_online_provider = "steam"
 	network_mode = NetworkMode.STEAM
 	print("[NetworkManager] Modo Steam activado")
 	return true
@@ -77,6 +82,23 @@ func initialize_steam() -> bool:
 func is_steam_ready() -> bool:
 	return _steam_ready
 
+func is_online_available(provider: String = "steam") -> bool:
+	if provider.to_lower() == "steam":
+		return _steam_ready
+	return false
+
+func get_online_providers() -> Array:
+	# Solo Steam por ahora, placeholders futuros no visibles
+	return ["Steam"]
+
+func initialize_online(provider: String = "steam") -> bool:
+	if provider.to_lower() != "steam":
+		print("[NetworkManager] Proveedor no soportado: ", provider)
+		return false
+	return initialize_steam()
+
+func set_online_mode(provider: String = "steam") -> bool:
+	return initialize_online(provider)
 
 func set_lan_mode():
 	network_mode = NetworkMode.LAN
@@ -90,13 +112,13 @@ func _on_internal_server_disconnected():
 	emit_signal("server_disconnected")
 
 
-func create_server(player_name: String, map_name: String) -> bool:
+func create_server(player_name: String, map_name: String, room_name: String = "", game_mode: String = "Escape", p_max_players: int = 4) -> bool:
 	_disconnecting = false
-	LobbyManager.setup_as_host(player_name, map_name)
+	LobbyManager.setup_as_host(player_name, map_name, room_name, game_mode, p_max_players)
 
 	if network_mode == NetworkMode.LAN:
 		peer = ENetMultiplayerPeer.new()
-		var err = peer.create_server(PORT, LobbyManager.MAX_PLAYERS)
+		var err = peer.create_server(PORT, clampi(p_max_players, 2, LobbyManager.MAX_PLAYERS))
 		if err != OK:
 			print("Error al crear servidor: ", err)
 			LobbyManager.reset_lobby_state()
@@ -107,7 +129,7 @@ func create_server(player_name: String, map_name: String) -> bool:
 			LobbyManager.reset_lobby_state()
 			return false
 		print("[NetworkManager] Creando lobby Steam...")
-		_steam.createLobby(_steam.LOBBY_TYPE_PUBLIC, LobbyManager.MAX_PLAYERS)
+		_steam.createLobby(_steam.LOBBY_TYPE_PUBLIC, clampi(p_max_players, 2, LobbyManager.MAX_PLAYERS))
 		return true
 
 	multiplayer.multiplayer_peer = peer
@@ -163,6 +185,9 @@ func disconnect_from_server():
 	LobbyManager.is_host = false
 	LobbyManager.local_player_name = ""
 	LobbyManager.selected_map = ""
+	LobbyManager.room_name = ""
+	LobbyManager.game_mode = "Escape"
+	LobbyManager.max_players = 4
 
 
 # ── SEÑALES DE CONEXIÓN ──
@@ -182,8 +207,13 @@ func _on_steam_lobby_created(connect_or_result: int, lobby_id: int):
 	if connect_or_result == 1 and lobby_id != 0:
 		steam_lobby_id = lobby_id
 		print("[Steam] Lobby creado exitosamente! ID:", lobby_id)
-		_steam.setLobbyData(lobby_id, "name", LobbyManager.local_player_name)
+		var room_nm: String = LobbyManager.room_name if LobbyManager.room_name != "" else LobbyManager.local_player_name
+		_steam.setLobbyData(lobby_id, "name", room_nm)
+		_steam.setLobbyData(lobby_id, "room_name", room_nm)
+		_steam.setLobbyData(lobby_id, "host", LobbyManager.local_player_name)
 		_steam.setLobbyData(lobby_id, "map", LobbyManager.selected_map)
+		_steam.setLobbyData(lobby_id, "mode", LobbyManager.game_mode)
+		_steam.setLobbyData(lobby_id, "max_players", str(LobbyManager.max_players))
 		_steam.setLobbyData(lobby_id, "game_id", GAME_ID_FILTER)
 		_steam.setLobbyJoinable(lobby_id, true)
 		_steam.setLobbyType(lobby_id, _steam.LOBBY_TYPE_PUBLIC)

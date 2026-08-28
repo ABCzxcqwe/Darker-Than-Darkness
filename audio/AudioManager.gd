@@ -22,6 +22,7 @@ var _chase_variant: int = ChaseVariantType.NORMAL
 @onready var terror_music_player: AudioStreamPlayer = $TerrorMusicPlayer
 @onready var chase_music_player: AudioStreamPlayer = $ChaseMusicPlayer
 @onready var lms_music_player: AudioStreamPlayer = $LMSMusicPlayer
+@onready var menu_music_player: AudioStreamPlayer = $MenuMusicPlayer
 
 # Streams de chase (se intercambian según variante)
 var _chase_stream_normal: AudioStream = null
@@ -187,6 +188,19 @@ func _ready() -> void:
 	_load_sfx_files()
 
 func _process(delta: float) -> void:
+	# Menu drone: canal dedicado Menu Music -> Master, aislado de Map Music.
+	# Auto-repair si estamos en menu sin musica (tras reset_match_audio o arranque).
+	if current_global_state == "menu" and multiplayer.multiplayer_peer == null:
+		if menu_music_player and (menu_music_player.stream == null or not menu_music_player.playing):
+			if get_tree().current_scene and get_tree().current_scene.name != "CharacterSelect":
+				play_menu_drone()
+				return
+	if current_global_state == "menu_drone":
+		# Asegurar que el drone siga sonando, no silenciar.
+		if menu_music_player and menu_music_player.stream and not menu_music_player.playing:
+			menu_music_player.volume_db = MAX_DB
+			menu_music_player.play()
+		return
 	if _is_disconnected_or_menu():
 		_silence_all_match_audio(delta)
 		return
@@ -219,6 +233,8 @@ func _handle_loop_ends() -> void:
 				lms_music_player.seek(_final_loop_start)
 
 func _is_disconnected_or_menu() -> bool:
+	if current_global_state == "menu_drone":
+		return false
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		return true
 	if current_global_state == "menu" or current_global_state == "lobby":
@@ -412,6 +428,8 @@ func reset_match_audio() -> void:
 		chase_music_player.stream = null
 	if lms_music_player:
 		lms_music_player.stream = null
+	# Menu Music es canal dedicado -> no tocar aquí, preserva drone entre Settings/CreateRoom/Lobby
+	# Solo resetear si se pide explícitamente via stop_menu_drone()
 
 	_chase_stream_normal = null
 	_chase_stream_last_life = null
@@ -464,10 +482,19 @@ func register_match_character_music(killer_terror: AudioStream, killer_chase: Au
 
 func change_audio_state(new_state: String) -> void:
 	current_global_state = new_state
-	if new_state == "ingame" and not lms_bloqueo_activo:
-		if map_music_player.stream and not map_music_player.playing:
-			map_music_player.volume_db = MAX_DB
-			map_music_player.play()
+	if new_state == "menu_drone":
+		if menu_music_player and menu_music_player.stream and not menu_music_player.playing:
+			menu_music_player.volume_db = MAX_DB
+			menu_music_player.play()
+		return
+	if new_state == "ingame":
+		# Al entrar a partida, apagar menu drone (canal dedicado)
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		if not lms_bloqueo_activo:
+			if map_music_player.stream and not map_music_player.playing:
+				map_music_player.volume_db = MAX_DB
+				map_music_player.play()
 
 # =======================================================================
 # PRIORIDAD: SPECIAL → ESCAPE → LMS
@@ -657,6 +684,39 @@ func _rpc_deactivate_rage_music() -> void:
 # =======================================================================
 # HELPERS
 # =======================================================================
+func play_menu_drone(path: String = "") -> void:
+	if path == "":
+		var tm := get_node_or_null("/root/ThemeManager")
+		if tm and tm.has_method("get_music_path"):
+			path = tm.get_music_path()
+		else:
+			path = "res://ui/Boot/scenes/AUDIO_DRONE.wav"
+	var s := load(path) as AudioStream
+	if s == null:
+		push_warning("[AudioManager] AUDIO_DRONE no encontrado: ", path)
+		return
+	s = _configure_stream_loop(s, 0.0, -1.0, true)
+	if menu_music_player:
+		if menu_music_player.playing:
+			menu_music_player.stop()
+		menu_music_player.stream = s
+		menu_music_player.volume_db = MAX_DB
+		# Aplicar volumen actual de SettingsManager al nuevo bus dedicado
+		var sm := get_node_or_null("/root/SettingsManager")
+		if sm and "music_volume" in sm:
+			var idx := AudioServer.get_bus_index(&"Menu Music")
+			if idx != -1:
+				# Menu Music -> Master, replicamos volumen de Music para respetar slider
+				AudioServer.set_bus_volume_db(idx, linear_to_db(float(sm.music_volume)))
+		menu_music_player.play()
+		change_audio_state("menu_drone")
+
+func stop_menu_drone() -> void:
+	if menu_music_player and menu_music_player.playing:
+		menu_music_player.stop()
+	if current_global_state == "menu_drone":
+		current_global_state = "menu"
+
 func _restore_base() -> void:
 	var alive_count := 0
 	for s in get_tree().get_nodes_in_group("survivor"):
@@ -674,11 +734,14 @@ func _restore_base() -> void:
 			map_music_player.volume_db = MAX_DB
 
 func _silence_all_match_audio(delta: float) -> void:
+	if current_global_state == "menu_drone":
+		return
 	lms_bloqueo_activo = false
 	_smooth_fade(map_music_player, MIN_DB, delta)
 	_smooth_fade(terror_music_player, MIN_DB, delta)
 	_smooth_fade(chase_music_player, MIN_DB, delta)
 	_smooth_fade(lms_music_player, MIN_DB, delta)
+	# Menu Music es canal dedicado -> nunca fadear aquí
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
 	for group_name in ["survivor", "killer"]:

@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/settings_section.gd"
+extends "res://ui/Old/scripts/settings_section.gd"
 ## Sub-sección Red: modo LAN/Steam.
 ## Escena propia: ui/MainMenu/scenes/SettingsNetwork.tscn
 

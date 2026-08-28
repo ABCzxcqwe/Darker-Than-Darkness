@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/settings_section.gd"
+extends "res://ui/Old/scripts/settings_section.gd"
 ## Sub-sección Controles: rebinding por dispositivo (Teclado/Mando),
 ## captura de teclas, reset y deadzone de sticks.
 ## Escena propia: ui/MainMenu/scenes/SettingsControls.tscn

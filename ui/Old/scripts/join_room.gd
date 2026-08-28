@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/menu_base.gd"
+extends "res://ui/Old/scripts/menu_base.gd"
 
 @onready var player_name_input = $MarginContainer/VBoxContainer/PlayerNameInput
 @onready var ip_input = $MarginContainer/VBoxContainer/IPInput
@@ -99,7 +99,7 @@ func _on_connection_succeeded():
 	print("Conexión exitosa, cambiando a lobby...")
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+	get_tree().change_scene_to_file("res://ui/Old/scenes/Lobby.tscn")
 
 func _on_connection_failed():
 	status_label.text = "Error: No se pudo conectar al servidor"
@@ -116,7 +116,7 @@ func _on_back_pressed():
 	NetworkManager.disconnect_from_server()
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://ui/Old/scenes/MainMenu.tscn")
 
 func _exit_tree():
 	if NetworkManager.connection_succeeded.is_connected(_on_connection_succeeded):

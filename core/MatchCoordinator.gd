@@ -131,7 +131,6 @@ func host_return_to_lobby_reconfigured() -> void:
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.players = reseted_players
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
-	# Asegurar silencio si se vuelve al lobby desde stats (puede quedar audio residual si el host reconfigura)
 	AudioManager.reset_match_audio()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
@@ -148,6 +147,8 @@ func reset_to_menu() -> void:
 	LobbyManager.reset_lobby_state()
 	LobbyManager.local_player_name = ""
 	LobbyManager.selected_map = ""
+	LobbyManager.room_name = ""
+	LobbyManager.game_mode = "Escape"
 	LobbyManager.is_host = false
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 

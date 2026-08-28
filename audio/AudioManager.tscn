@@ -16,3 +16,6 @@ bus = &"Chase Music"
 
 [node name="LMSMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1276790935]
 bus = &"LMS Music"
+
+[node name="MenuMusicPlayer" type="AudioStreamPlayer" parent="." unique_id=998877665]
+bus = &"Menu Music"

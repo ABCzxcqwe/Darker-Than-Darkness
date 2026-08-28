@@ -6,13 +6,16 @@ signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
 
-const MAX_PLAYERS := 8
+const MAX_PLAYERS := 10
 
 enum GamePhase { LOBBY, CHARACTER_SELECT, PLAYING, ENDED }
 
 var players: Dictionary = {}
 var local_player_name: String = ""
 var selected_map: String = ""
+var room_name: String = ""
+var game_mode: String = "Escape"
+var max_players: int = 4
 var is_host: bool = false
 var current_phase: int = GamePhase.LOBBY
 
@@ -47,7 +50,8 @@ func _request_player_info():
 func _send_player_info(player_name: String):
 	var sender = multiplayer.get_remote_sender_id()
 	if multiplayer.is_server():
-		var is_late_join := current_phase != GamePhase.LOBBY
+		var is_full := players.size() >= max_players
+		var is_late_join := current_phase != GamePhase.LOBBY or is_full
 		players[sender] = {
 			"name": player_name,
 			"is_host": false,
@@ -62,19 +66,22 @@ func _send_player_info(player_name: String):
 		if not is_late_join:
 			for pid in players:
 				if pid != self_id:
-					rpc_id(pid, "_sync_lobby_state", players, selected_map)
+					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
 		else:
 			for pid in players:
 				if pid != self_id and pid != sender:
-					rpc_id(pid, "_sync_lobby_state", players, selected_map)
-			rpc_id(sender, "_sync_lobby_state", players, selected_map)
+					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+			rpc_id(sender, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
 			_send_spectator_join(sender)
 
 
 @rpc("authority", "reliable")
-func _sync_lobby_state(all_players: Dictionary, map_id: String):
+func _sync_lobby_state(all_players: Dictionary, map_id: String, p_room_name: String = "", p_game_mode: String = "Escape", p_max_players: int = 4):
 	players = all_players
 	selected_map = map_id
+	room_name = p_room_name
+	game_mode = p_game_mode
+	max_players = clampi(p_max_players, 2, MAX_PLAYERS)
 	emit_signal("lobby_updated")
 
 
@@ -111,7 +118,7 @@ func _on_peer_disconnected(peer_id: int):
 		var self_id = multiplayer.get_unique_id()
 		for pid in players:
 			if pid != self_id:
-				rpc_id(pid, "_sync_lobby_state", players, selected_map)
+				rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
 
 
 # ── Player list management ──
@@ -238,11 +245,14 @@ func _sync_screen_selection(peer_id: int, char_id: int):
 
 # ── Setup / Reset ──
 
-func setup_as_host(player_name: String, map_name: String) -> void:
+func setup_as_host(player_name: String, map_name: String, p_room_name: String = "", p_game_mode: String = "Escape", p_max_players: int = 4) -> void:
+	reset_lobby_state()
 	is_host = true
 	local_player_name = player_name
 	selected_map = map_name
-	reset_lobby_state()
+	room_name = p_room_name if p_room_name != "" else player_name
+	game_mode = p_game_mode if p_game_mode != "" else "Escape"
+	max_players = clampi(p_max_players, 2, MAX_PLAYERS)
 
 
 func setup_as_client(player_name: String) -> void:

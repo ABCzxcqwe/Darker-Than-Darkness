@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://dpa14wapsdfno"]
 
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_8rnsp"]
-[ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://ui/MainMenu/scripts/join_room.gd" id="1_rtag2"]
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/Old/Styles/Tema.tres" id="1_8rnsp"]
+[ext_resource type="Script" uid="uid://gtu5wug1ffso" path="res://ui/Old/scripts/join_room.gd" id="1_rtag2"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_kkheg"]
-[ext_resource type="StyleBox" uid="uid://ddvxb23q0fnwa" path="res://ui/MainMenu/Styles/boxStyle.tres" id="3_dliil"]
+[ext_resource type="StyleBox" uid="uid://ddvxb23q0fnwa" path="res://ui/Old/Styles/boxStyle.tres" id="3_dliil"]
 
 [sub_resource type="Theme" id="Theme_g2v7k"]
 

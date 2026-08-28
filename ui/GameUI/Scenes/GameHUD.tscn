@@ -8,10 +8,10 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-[ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
+[ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/InGameMenu/GameMenu.tscn" id="7_abcd"]
 [ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
 [ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="9_emote"]
-[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
+[ext_resource type="Script" uid="uid://0ccneednndmd" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0

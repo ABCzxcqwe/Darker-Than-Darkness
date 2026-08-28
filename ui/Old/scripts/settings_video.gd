@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/settings_section.gd"
+extends "res://ui/Old/scripts/settings_section.gd"
 ## Sub-sección Video: pantalla, VHS y niebla.
 ## Escena propia: ui/MainMenu/scenes/SettingsVideo.tscn
 

@@ -1,64 +1,185 @@
-[gd_scene load_steps=3 format=3 uid="uid://cygyb2f5s47pc"]
+[gd_scene format=3 uid="uid://by1sqxs8me3nq"]
 
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_0a"]
-[ext_resource type="Script" uid="uid://bn6y0aqlxkiyo" path="res://ui/MainMenu/scripts/settings.gd" id="1_hr74d"]
+[ext_resource type="Script" uid="uid://choi7ag2480t1" path="res://ui/MainMenu/scripts/settings.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
+[ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="4_box"]
 
-[node name="Settings" type="Control"]
+[node name="MockSettings" type="Control" unique_id=9400001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_0a")
-script = ExtResource("1_hr74d")
+script = ExtResource("1_script")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=9400002]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -180
-offset_top = -180
-offset_right = 180
-offset_bottom = 180
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 24
+color = Color(0, 0, 0, 1)
 
-[node name="Title" type="Label" parent="VBox"]
+[node name="LeftPanel" type="PanelContainer" parent="." unique_id=9400003]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.05
+anchor_right = 0.3
+anchor_bottom = 0.95
+offset_left = 20.0
+offset_right = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="Margin" type="MarginContainer" parent="LeftPanel" unique_id=9400004]
 layout_mode = 2
-text = "CONFIGURACIÓN"
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="LeftVBox" type="VBoxContainer" parent="LeftPanel/Margin" unique_id=9400005]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="LeftPanel/Margin/LeftVBox" unique_id=9400006]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "OPCIONES"
 horizontal_alignment = 1
 
-[node name="AudioButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(320, 44)
+[node name="Separator" type="ColorRect" parent="LeftPanel/Margin/LeftVBox" unique_id=9400007]
+custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Audio"
+color = Color(0, 0.5019608, 0, 1)
 
-[node name="VideoButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(320, 44)
+[node name="Tabs" type="VBoxContainer" parent="LeftPanel/Margin/LeftVBox" unique_id=9400008]
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Video"
+theme_override_constants/separation = 10
 
-[node name="NetworkButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(320, 44)
+[node name="Tab0" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400009]
+custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Red"
+size_flags_horizontal = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "GENERAL"
 
-[node name="ControlsButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(320, 44)
+[node name="Tab1" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400010]
+custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Controles"
+size_flags_horizontal = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "AUDIO"
 
-[node name="BackButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(320, 44)
+[node name="Tab2" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400011]
+custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Volver"
+size_flags_horizontal = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "VIDEO"
+
+[node name="Tab3" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400013]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_horizontal = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "CONTROLES"
+
+[node name="Tab4" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400014]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+size_flags_horizontal = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "VOLVER"
+
+[node name="RightPanel" type="PanelContainer" parent="." unique_id=9400015]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.32
+anchor_top = 0.05
+anchor_right = 0.95
+anchor_bottom = 0.95
+offset_left = 8.0
+offset_right = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="Margin" type="MarginContainer" parent="RightPanel" unique_id=9400016]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="RightVBox" type="VBoxContainer" parent="RightPanel/Margin" unique_id=9400017]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RightTitle" type="Label" parent="RightPanel/Margin/RightVBox" unique_id=9400018]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "GENERAL"
+horizontal_alignment = 1
+
+[node name="Separator2" type="ColorRect" parent="RightPanel/Margin/RightVBox" unique_id=9400019]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 0.5019608, 0, 1)
+
+[node name="Scroll" type="ScrollContainer" parent="RightPanel/Margin/RightVBox" unique_id=9400020]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="RightPanel/Margin/RightVBox/Scroll" unique_id=9400021]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Hint" type="Label" parent="RightPanel/Margin/RightVBox" unique_id=9400022]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset"
+horizontal_alignment = 1
+
+[node name="SoulCursor" type="TextureRect" parent="." unique_id=9400023]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 1
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+texture = ExtResource("3_soul")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Footer" type="Label" parent="." unique_id=9400024]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.95
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER"
+horizontal_alignment = 1

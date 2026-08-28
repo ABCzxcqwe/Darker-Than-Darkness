@@ -1,79 +1,177 @@
-[gd_scene format=3 uid="uid://bttebyji40434"]
+[gd_scene format=3 uid="uid://danv6jvtbxqfi"]
 
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_4wjeu"]
-[ext_resource type="Script" uid="uid://bqc1rn3i34t1q" path="res://ui/MainMenu/scripts/lobby.gd" id="1_j7rk1"]
+[ext_resource type="Script" uid="uid://myjixx2pi151" path="res://ui/MainMenu/scripts/lobby.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
+[ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="4_box"]
 
-[node name="Lobby" type="Control" unique_id=444361842]
+[node name="MockLobby" type="Control" unique_id=9500001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_4wjeu")
-script = ExtResource("1_j7rk1")
+script = ExtResource("1_script")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2045960985]
+[node name="Background" type="ColorRect" parent="." unique_id=9500002]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -50.0
-offset_bottom = 198.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(0.8, 0.8)
-pivot_offset = Vector2(600, 0)
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 100
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 100
+color = Color(0, 0, 0, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=147078344]
+[node name="CenterContainer" type="MarginContainer" parent="." unique_id=9500003]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.05
+anchor_right = 0.95
+anchor_bottom = 0.95
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="DeltaruneBox" type="PanelContainer" parent="CenterContainer" unique_id=9500004]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/DeltaruneBox" unique_id=9500005]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin" unique_id=9500006]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500007]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "LOBBY"
+horizontal_alignment = 1
+
+[node name="Separator" type="ColorRect" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500008]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 0.5019608, 0, 1)
+
+[node name="MapLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500009]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "MAPA: Cargando..."
+horizontal_alignment = 1
+
+[node name="PlayersHeader" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500010]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.5019608, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "JUGADORES CONECTADOS:"
+
+[node name="ListBox" type="PanelContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500011]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginList" type="MarginContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ListBox" unique_id=9500012]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxList" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList" unique_id=9500013]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EmptyLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList" unique_id=9500014]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Esperando jugadores..."
+horizontal_alignment = 1
+
+[node name="Rooms" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList" unique_id=9500015]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500016]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Jugadores: 0/4"
+horizontal_alignment = 1
+
+[node name="Actions" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500017]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="StartBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9500018]
+custom_minimum_size = Vector2(360, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_constants/separation = 20
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("4_box")
+text = "INICIAR PARTIDA [Z]"
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=352231769]
+[node name="LeaveBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9500019]
+custom_minimum_size = Vector2(360, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Lobby"
-horizontal_alignment = 1
-vertical_alignment = 1
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("4_box")
+text = "SALIR DEL LOBBY [X]"
 
-[node name="MapLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=659035191]
+[node name="HintLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500020]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Mapa Cargado: "
-horizontal_alignment = 1
-
-[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer" unique_id=896710507]
-modulate = Color(0.9933676, 0.9933675, 1.4631748e-05, 1)
-custom_minimum_size = Vector2(400, 40)
-layout_mode = 2
-text = "Jugadores conectados:"
-vertical_alignment = 1
-
-[node name="PlayerList" type="ItemList" parent="MarginContainer/VBoxContainer" unique_id=192605565]
-custom_minimum_size = Vector2(500, 300)
-layout_mode = 2
-
-[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1397090165]
-modulate = Color(0.934358, 0.9343584, 0, 1)
-layout_mode = 2
-text = "Esperando Jugadores"
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00"
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1375569776]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Iniciar Partida"
+[node name="SoulCursor" type="TextureRect" parent="." unique_id=9500021]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 1
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+texture = ExtResource("3_soul")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="LeaveButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=4820411]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Salir del Lobby"
-
-[connection signal="pressed" from="MarginContainer/VBoxContainer/StartButton" to="." method="_on_start_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/LeaveButton" to="." method="_on_leave_pressed"]
+[node name="Footer" type="Label" parent="." unique_id=9500022]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.95
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER"
+horizontal_alignment = 1

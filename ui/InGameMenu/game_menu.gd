@@ -1,4 +1,4 @@
-extends "res://ui/MainMenu/scripts/menu_base.gd"
+extends "res://ui/Old/scripts/menu_base.gd"
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
 

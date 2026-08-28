@@ -4,7 +4,7 @@ extends Control
 ## Subclases: construyen su UI y llaman `_setup_focus(items)`.
 
 ## Ruta por defecto al volver de una sub-sección de Opciones.
-const SETTINGS_HUB_PATH := "res://ui/MainMenu/scenes/Settings.tscn"
+const SETTINGS_HUB_PATH := "res://ui/Old/scenes/Settings.tscn"
 
 var _focus_items: Array[Control] = []
 var _focus_idx := 0

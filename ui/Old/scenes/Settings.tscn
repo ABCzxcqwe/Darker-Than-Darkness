@@ -1,0 +1,64 @@
+[gd_scene load_steps=3 format=3 uid="uid://cygyb2f5s47pc"]
+
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/Old/Styles/Tema.tres" id="1_0a"]
+[ext_resource type="Script" uid="uid://bn6y0aqlxkiyo" path="res://ui/Old/scripts/settings.gd" id="1_hr74d"]
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_0a")
+script = ExtResource("1_hr74d")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180
+offset_top = -180
+offset_right = 180
+offset_bottom = 180
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "CONFIGURACIÓN"
+horizontal_alignment = 1
+
+[node name="AudioButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Audio"
+
+[node name="VideoButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Video"
+
+[node name="NetworkButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Red"
+
+[node name="ControlsButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Controles"
+
+[node name="BackButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Volver"

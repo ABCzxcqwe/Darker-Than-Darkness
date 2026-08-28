@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Darker Than Darkness"
-run/main_scene="uid://du07rrw0bna8l"
+run/main_scene="uid://qbyreok1dwnkx"
 config/features=PackedStringArray("4.6", "Forward Plus")
 run/max_fps=30
 boot_splash/bg_color=Color(0, 0, 0, 1)
@@ -40,6 +40,7 @@ InputService="*res://core/input_service.gd"
 PlayerRegistry="*res://core/PlayerRegistry.gd"
 LobbyManager="*res://core/LobbyManager.gd"
 ChatService="*res://core/ChatService.gd"
+ThemeManager="*res://core/theme_manager.gd"
 
 [display]
 

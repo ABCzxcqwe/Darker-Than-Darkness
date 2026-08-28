@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://2xyv3bxl635t"]
 
-[ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/MainMenu/scripts/hurtbox.gd" id="2_onrkg"]
+[ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/Old/scripts/hurtbox.gd" id="2_onrkg"]
 [ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
 [ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
 
