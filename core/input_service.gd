@@ -247,7 +247,7 @@ func _event_signature(event: InputEvent) -> String:
 func _device_of_event(event: InputEvent) -> int:
 	if event is InputEventKey or event is InputEventMouseButton or event is InputEventMouseMotion:
 		return InputDevice.MOUSE
-	if event is InputEventJoypadButton:
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		return InputDevice.GAMEPAD
 	return -1
 

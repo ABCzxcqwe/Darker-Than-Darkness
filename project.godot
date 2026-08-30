@@ -16,8 +16,8 @@ config/features=PackedStringArray("4.6", "Forward Plus")
 run/max_fps=30
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/stretch_mode=0
-boot_splash/image="uid://cnqwcelsop1a7"
 config/icon="uid://cnqwcelsop1a7"
+boot_splash/minimum_display_time=15
 
 [audio]
 
@@ -34,8 +34,9 @@ PlayerLifecycleManager="*res://core/PlayerLifecycleManager.gd"
 MapRegistry="*uid://dc7fwd2kgom44"
 AudioManager="*uid://cha1sw3egunlu"
 MatchCoordinator="*uid://b8e8e7uvc056"
-GlobalVHS="*res://core/global_vhs.gd"
 SettingsManager="*res://core/settings_manager.gd"
+GlobalBrightness="*res://core/global_brightness.gd"
+GlobalVHS="*res://core/global_vhs.gd"
 InputService="*res://core/input_service.gd"
 PlayerRegistry="*res://core/PlayerRegistry.gd"
 LobbyManager="*res://core/LobbyManager.gd"
@@ -46,6 +47,7 @@ ThemeManager="*res://core/theme_manager.gd"
 
 window/size/viewport_width=1440
 window/size/viewport_height=1080
+window/size/mode=3
 window/stretch/mode="viewport"
 window/max_fps=0
 window/windows_native_icon=""

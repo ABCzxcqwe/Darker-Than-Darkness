@@ -6,7 +6,8 @@
 [ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="4_box"]
 [ext_resource type="StyleBox" uid="uid://ciakkn0ymljhk" path="res://ui/Old/Styles/line.tres" id="5_line"]
 
-[node name="MockServerBrowser" type="Control" unique_id=9200001]
+[node name="ServerBrowser" type="Control" unique_id=9200001]
+z_index = 10
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,46 +26,48 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="CenterContainer" type="MarginContainer" parent="." unique_id=9200003]
+z_index = 10
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.025
-anchor_top = 0.05
+anchor_top = 0.03
 anchor_right = 0.975
 anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 60
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 60
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
 
 [node name="DeltaruneBox" type="PanelContainer" parent="CenterContainer" unique_id=9200004]
+self_modulate = Color(1, 1, 1, 0.5)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("4_box")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/DeltaruneBox" unique_id=9200005]
 layout_mode = 2
 theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 18
+theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin" unique_id=9200006]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200007]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 30
 text = "BUSCAR PARTIDA — ONLINE"
 horizontal_alignment = 1
 
 [node name="Separator" type="ColorRect" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200008]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
-color = Color(0, 0.5019608, 0, 1)
+color = Color(0, 0.501961, 0, 1)
 
 [node name="Header" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200030]
 layout_mode = 2
@@ -76,7 +79,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "NOMBRE"
 horizontal_alignment = 1
 
@@ -86,7 +89,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "HOST"
 horizontal_alignment = 1
 
@@ -96,7 +99,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "MAPA"
 horizontal_alignment = 1
 
@@ -106,7 +109,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "JUG."
 horizontal_alignment = 1
 
@@ -116,7 +119,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "MODO"
 horizontal_alignment = 1
 
@@ -126,12 +129,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "PING"
 horizontal_alignment = 1
 
 [node name="ListBox" type="PanelContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200009]
-custom_minimum_size = Vector2(0, 380)
+custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -162,78 +165,98 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
-text = "Pulsa C para buscar"
+theme_override_font_sizes/font_size = 14
+text = "Pulsa C para refrescar la lista"
 horizontal_alignment = 1
 
-[node name="Actions" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200015]
+[node name="Separator2" type="ColorRect" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200025]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 0.501961, 0, 1)
+
+[node name="ControlsContainer" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200015]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="RefreshBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9200016]
-custom_minimum_size = Vector2(320, 36)
-layout_mode = 2
-size_flags_horizontal = 4
-focus_mode = 0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("4_box")
-text = "ACTUALIZAR [C]"
-
-[node name="CreateBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9200017]
-custom_minimum_size = Vector2(320, 36)
-layout_mode = 2
-size_flags_horizontal = 4
-focus_mode = 0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("4_box")
-text = "CREAR SALA"
-
-[node name="IPRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200018]
+[node name="ActionRow" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer" unique_id=9200027]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="IPInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/IPRow" unique_id=9200019]
-custom_minimum_size = Vector2(280, 32)
-layout_mode = 2
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = ExtResource("5_line")
-text = "127.0.0.1"
-placeholder_text = "IP (ej: 192.168.1.10)"
-
-[node name="ConnectBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/IPRow" unique_id=9200020]
-custom_minimum_size = Vector2(200, 32)
-layout_mode = 2
-focus_mode = 0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = ExtResource("4_box")
-text = "CONECTAR POR IP"
-
-[node name="BackRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200021]
-layout_mode = 2
-alignment = 1
-
-[node name="BackBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/BackRow" unique_id=9200022]
-custom_minimum_size = Vector2(320, 36)
+[node name="RefreshBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow" unique_id=9200016]
+custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 focus_mode = 0
 mouse_filter = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+text = "ACTUALIZAR [C]"
+
+[node name="CreateBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow" unique_id=9200017]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+action_mode = 0
+text = "CREAR SALA"
+
+[node name="BackBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow" unique_id=9200022]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("4_box")
 text = "VOLVER [X]"
 
+[node name="IPRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer" unique_id=9200018]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="IPLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200026]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "DIRECCIÓN IP:"
+
+[node name="IPInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200019]
+custom_minimum_size = Vector2(240, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("5_line")
+text = "127.0.0.1"
+placeholder_text = "192.168.1.10"
+alignment = 1
+
+[node name="ConnectBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200020]
+custom_minimum_size = Vector2(320, 48)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+text = "CONECTAR"
+
 [node name="SoulCursor" type="TextureRect" parent="." unique_id=9200023]
+z_index = 10
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 offset_right = 20.0
@@ -244,15 +267,17 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Footer" type="Label" parent="." unique_id=9200024]
+z_index = 10
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.95
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-text = "[↑][↓] MOVER    [Z] CONFIRMAR   [X] VOLVER   [C] REFRESCAR"
+theme_override_font_sizes/font_size = 22
+text = "[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR"
 horizontal_alignment = 1

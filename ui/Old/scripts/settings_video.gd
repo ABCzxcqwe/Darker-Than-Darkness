@@ -10,13 +10,22 @@ extends "res://ui/Old/scripts/settings_section.gd"
 
 func _ready() -> void:
 	display_option.selected = 0 if SettingsManager.display_mode == 0 else 1
-	display_option.item_selected.connect(func(i): SettingsManager.display_mode = display_option.get_item_id(i))
+	display_option.item_selected.connect(func(i):
+		SettingsManager.display_mode = display_option.get_item_id(i)
+		SettingsManager.save_settings()
+	)
 
 	vhs_check.button_pressed = SettingsManager.vhs_enabled
-	vhs_check.toggled.connect(func(b): SettingsManager.vhs_enabled = b)
+	vhs_check.toggled.connect(func(b):
+		SettingsManager.vhs_enabled = b
+		SettingsManager.save_settings()
+	)
 
 	fog_check.button_pressed = SettingsManager.fog_enabled
-	fog_check.toggled.connect(func(b): SettingsManager.fog_enabled = b)
+	fog_check.toggled.connect(func(b):
+		SettingsManager.fog_enabled = b
+		SettingsManager.save_settings()
+	)
 
 	back_btn.pressed.connect(_go_back)
 

@@ -24,6 +24,8 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=9100003]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
@@ -90,6 +92,8 @@ text = "Partidas por Internet"
 horizontal_alignment = 1
 
 [node name="SoulCursor" type="TextureRect" parent="." unique_id=9100014]
+z_index = 10
+z_as_relative = false
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 offset_right = 20.0
@@ -99,6 +103,8 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Footer" type="Label" parent="." unique_id=9100015]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.95

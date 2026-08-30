@@ -24,9 +24,13 @@ func _ready() -> void:
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
+	_apply_theme()
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.connect(_on_theme_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	var nm := get_node_or_null("/root/NetworkManager")
-	# Mostrar modo red actual desde SettingsManager (no mock cfg)
+	# Mostrar modo red actual desde SettingsManager (no  cfg)
 	var net_mode_str := "LAN"
 	if sm and sm.network_mode == 1:
 		net_mode_str = "ONLINE"
@@ -57,6 +61,21 @@ func _ready() -> void:
 	grab_focus()
 	_highlight(_focus_idx)
 	_position_soul(_focus_idx, true)
+	# Enter es consumido por LineEdit → conectar señales del nodo
+	if _name_edit and not _name_edit.text_submitted.is_connected(_on_name_submitted):
+		_name_edit.text_submitted.connect(_on_name_submitted)
+	if _name_edit and not _name_edit.focus_exited.is_connected(_on_name_focus_exited):
+		_name_edit.focus_exited.connect(_on_name_focus_exited)
+
+func _on_name_submitted(_text: String) -> void:
+	_name_edit.release_focus()
+	grab_focus.call_deferred()
+	var ams := get_node_or_null("/root/AudioManager")
+	if ams and ams.has_method("play_sfx_ui"):
+		ams.play_sfx_ui(SfxId.SELECT)
+
+func _on_name_focus_exited() -> void:
+	grab_focus.call_deferred()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy:
@@ -65,10 +84,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if vp == null:
 		return
 	var editing := _field_nodes[_focus_idx] == _name_edit and _name_edit.has_focus()
-	if editing and event is InputEventKey and event.pressed and event.keycode != KEY_ENTER and event.keycode != KEY_KP_ENTER and event.keycode != KEY_ESCAPE and event.unicode == 0:
+	if editing and event is InputEventKey and event.pressed:
+		if event.unicode != 0 and event.keycode != KEY_ENTER and event.keycode != KEY_KP_ENTER and event.keycode != KEY_ESCAPE:
+			return
+		# bloquea navegación del soul mientras se tipeabal
 		if event.is_action_pressed("menu_up") or event.is_action_pressed("menu_down"):
-			pass
-		else:
+			return
+		if event.is_action_pressed("menu_left") or event.is_action_pressed("menu_right"):
+			return
+		if event.is_action_pressed("menu_cancel") or event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_X):
+			_name_edit.release_focus()
+			grab_focus.call_deferred()
+			vp.set_input_as_handled()
 			return
 	if event.is_action_pressed("menu_up"):
 		_move_vert(-1)
@@ -106,6 +133,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		vp.set_input_as_handled()
 
 func _move_vert(dir: int) -> void:
+	# si está editando, salir de edición guardando valor
+	if _field_nodes[_focus_idx] == _name_edit and _name_edit.has_focus():
+		_name_edit.release_focus()
+		grab_focus.call_deferred()
 	var ni := clampi(_focus_idx + dir, 0, _field_nodes.size() - 1)
 	if ni == _focus_idx:
 		return
@@ -115,38 +146,52 @@ func _move_vert(dir: int) -> void:
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.MENU_MOVE)
-	if _field_nodes[_focus_idx] == _name_edit:
-		_name_edit.grab_focus()
-	else:
-		if _name_edit.has_focus():
-			_name_edit.release_focus()
+	# no auto-grab focus para LineEdit, solo al confirmar con Z
+	if _name_edit.has_focus() and _field_nodes[_focus_idx] != _name_edit:
+		_name_edit.release_focus()
 
 func _highlight(idx: int) -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	var pal: Dictionary = tm.get_palette() if tm and tm.has_method("get_palette") else {}
+	var sel: Color = pal.get("selected", Color(0,1,0,1))
+	var dim: Color = pal.get("dim", Color(0,0.50196081,0,1))
 	for i in _field_nodes.size():
 		var c := _field_nodes[i]
 		if c is LineEdit:
-			c.modulate = Color(0, 1, 0, 1) if i == idx else Color(0, 0.50196081, 0, 1)
+			c.modulate = sel if i == idx else dim
 		elif c is Label:
-			c.modulate = Color(0, 1, 0, 1) if i == idx else Color(0, 0.50196081, 0, 1)
+			c.modulate = sel if i == idx else dim
 		elif c is Button:
-			c.modulate = Color(0, 1, 0, 1) if i == idx else Color(0, 0.50196081, 0, 1)
+			c.modulate = sel if i == idx else dim
 	if _hint:
 		match idx:
-			0: _hint.text = "Escribe nombre de sala"
-			1: _hint.text = "< > cambiar mapa"
-			2: _hint.text = "Modo fijo: Escape (Supervivencia)"
-			3: _hint.text = "< > cambiar jugadores 2..10"
-			4: _hint.text = "Crear sala [Z]"
-			5: _hint.text = "Volver [X]"
+			0:
+				var cur_name: String = _name_edit.text.strip_edges()
+				_hint.text = "Título visible en el buscador — %s" % (cur_name if cur_name != "" else "vacío")
+			1:
+				var cur_map: String = _map_label.text if _map_label else ""
+				_hint.text = "Mapa — %s (%d/%d)" % [cur_map, _map_idx + 1, maxi(_available_maps.size(), 1)]
+			2: _hint.text = "Modo juego — Escape supervivencia"
+			3: _hint.text = "Máximo %d en sala" % _max_players
+			4: _hint.text = "Crea y entra al lobby"
+			5: _hint.text = "Volver al buscador"
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _field_nodes.is_empty():
 		return
-	await get_tree().process_frame
-	var target: Control = _field_nodes[idx]
-	if not is_instance_valid(target):
+	if idx < 0 or idx >= _field_nodes.size():
 		return
-	var dest := target.global_position + Vector2(-28, (target.size.y - _soul.size.y)/2.0) - global_position
+	var target: Control = _field_nodes[idx]
+	if not is_instance_valid(target) or not target.is_visible_in_tree():
+		return
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_instance_valid(target) or not is_instance_valid(_soul):
+		return
+	if not target.is_visible_in_tree():
+		return
+	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
+	var dest := target.global_position + Vector2(-28, (target.size.y - soul_h)/2.0) - global_position
 	if instant:
 		_soul.position = dest
 	else:
@@ -188,7 +233,14 @@ func _change_max_players(dir: int) -> void:
 
 func _confirm() -> void:
 	if _focus_idx == 0:
-		_move_vert(1)
+		# toggle edición LineEdit
+		if not _name_edit.has_focus():
+			_name_edit.grab_focus()
+			_name_edit.select_all()
+		else:
+			_name_edit.release_focus()
+			grab_focus.call_deferred()
+			_move_vert(1)
 		return
 	if _focus_idx == 1:
 		_move_vert(1)
@@ -246,7 +298,7 @@ func _on_server_created() -> void:
 
 func _on_create_failed() -> void:
 	_busy = false
-	_hint.text = "Error al crear lobby (Steam no disponible?)"
+	_hint.text = "Error al crear lobby (Online no disponible?)"
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.ERROR)
@@ -257,7 +309,65 @@ func _go_back() -> void:
 		am.play_sfx_ui(SfxId.SELECT)
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/ServerBrowser.tscn")
 
+func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+	_highlight(_focus_idx)
+
+func _apply_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null:
+		return
+	var bg := get_node_or_null("Background")
+	if bg and tm.has_method("apply_to_background"):
+		tm.apply_to_background(bg)
+	var box := get_node_or_null("CenterContainer/DeltaruneBox") as PanelContainer
+	if box and tm.has_method("make_box_style"):
+		box.add_theme_stylebox_override("panel", tm.make_box_style())
+	var pal: Dictionary = tm.get_palette() if tm.has_method("get_palette") else {}
+	var title := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Title") as Label
+	var sep := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Separator") as ColorRect
+	var footer := get_node_or_null("Footer") as Label
+	if title:
+		title.add_theme_color_override("font_color", pal.get("title", Color(0,1,0,1)))
+		if tm.has_method("get_font"):
+			var f: FontFile = tm.get_font()
+			if f:
+				title.add_theme_font_override("font", f)
+	if sep:
+		sep.color = pal.get("separator", pal.get("border", Color(0,0.5,0,1)))
+	if _hint:
+		_hint.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
+	if footer:
+		footer.add_theme_color_override("font_color", pal.get("dim", Color(0.5,0.5,0.5,1)))
+	if _soul and tm.has_method("get_soul_texture"):
+		var st: Texture2D = tm.get_soul_texture()
+		if st:
+			_soul.texture = st
+	# tematizar filas y flechas verdes residuales
+	var pal_dim: Color = pal.get("dim", Color(0,0.5,0,1))
+	for path in ["CenterContainer/DeltaruneBox/Margin/VBox/NameRow/NameLabel", "CenterContainer/DeltaruneBox/Margin/VBox/ModeRow/ModeLabel", "CenterContainer/DeltaruneBox/Margin/VBox/MapRow/MapText", "CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow/GameModeText", "CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow/PlayersText"]:
+		var lbl := get_node_or_null(path) as Label
+		if lbl:
+			lbl.add_theme_color_override("font_color", pal_dim)
+	for path2 in ["CenterContainer/DeltaruneBox/Margin/VBox/MapRow/MapLeft", "CenterContainer/DeltaruneBox/Margin/VBox/MapRow/MapRight", "CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow/GameModeLeft", "CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow/GameModeRight", "CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow/PlayersLeft", "CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow/PlayersRight"]:
+		var arr := get_node_or_null(path2) as Label
+		if arr:
+			arr.add_theme_color_override("font_color", pal_dim)
+	if _name_edit:
+		_name_edit.add_theme_color_override("font_color", pal.get("selected", Color(0,1,0,1)))
+	if _mode_label:
+		_mode_label.add_theme_color_override("font_color", pal_dim)
+	if _map_label:
+		_map_label.add_theme_color_override("font_color", pal_dim)
+	if _game_mode_label:
+		_game_mode_label.add_theme_color_override("font_color", pal_dim)
+	if _players_label:
+		_players_label.add_theme_color_override("font_color", pal_dim)
+
 func _exit_tree() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.disconnect(_on_theme_changed)
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if nm.connection_succeeded.is_connected(_on_server_created):

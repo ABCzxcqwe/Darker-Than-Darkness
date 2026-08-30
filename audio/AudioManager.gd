@@ -11,8 +11,9 @@ enum ChaseVariantType { NORMAL = 0, LAST_LIFE = 1 }
 # =======================================================================
 # ESTADOS
 # =======================================================================
-var current_global_state: String = "menu"
+var current_global_state: String = "boot"
 var lms_bloqueo_activo: bool = false
+const BOOT_SCENES: Array[String] = ["Boot", "TerminalLoader", "Intro", "FirstTime", "LegalNotice"]
 var _is_chasing: bool = false
 var _current_priority: int = PriorityLevel.NONE
 var _chase_variant: int = ChaseVariantType.NORMAL
@@ -190,10 +191,21 @@ func _ready() -> void:
 	_load_sfx_files()
 
 func _process(delta: float) -> void:
+	# Silencio total durante boot (Boot/Terminal/Intro/FirstTime/LegalNotice)
+	if current_global_state == "boot":
+		# Asegurar menú silenciado mientras carga
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		return
+	var cur_name: String = get_tree().current_scene.name if get_tree().current_scene else ""
+	if cur_name in BOOT_SCENES:
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		return
 	# Menu drone: canal dedicado Menu Music -> Master, aislado de Map Music.
 	if current_global_state == "menu" and multiplayer.multiplayer_peer == null:
 		if menu_music_player and (menu_music_player.stream == null or not menu_music_player.playing):
-			if get_tree().current_scene and get_tree().current_scene.name != "CharacterSelect":
+			if cur_name != "CharacterSelect":
 				play_menu_drone()
 				return
 	if current_global_state == "menu_drone":

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bbj2x1rrgw8b8"
+path="res://.godot/imported/Before the Story.mp3-26a03a1f23b4ab348a6b2fd05bb66029.mp3str"
+
+[deps]
+
+source_file="res://ui/MainMenu/themes/light/Before the Story.mp3"
+dest_files=["res://.godot/imported/Before the Story.mp3-26a03a1f23b4ab348a6b2fd05bb66029.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

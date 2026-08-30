@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
 [ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="4_box"]
 
-[node name="MockSettings" type="Control" unique_id=9400001]
+[node name="Settings" type="Control" unique_id=9400001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,13 +24,14 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="LeftPanel" type="PanelContainer" parent="." unique_id=9400003]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
+anchor_left = 0.05
 anchor_top = 0.05
-anchor_right = 0.3
+anchor_right = 0.35
 anchor_bottom = 0.95
-offset_left = 20.0
-offset_right = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("4_box")
@@ -104,14 +105,15 @@ theme_override_font_sizes/font_size = 22
 text = "VOLVER"
 
 [node name="RightPanel" type="PanelContainer" parent="." unique_id=9400015]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.32
+anchor_left = 0.35
 anchor_top = 0.05
 anchor_right = 0.95
 anchor_bottom = 0.95
 offset_left = 8.0
-offset_right = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("4_box")
@@ -141,14 +143,13 @@ layout_mode = 2
 color = Color(0, 0.5019608, 0, 1)
 
 [node name="Scroll" type="ScrollContainer" parent="RightPanel/Margin/RightVBox" unique_id=9400020]
-custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 
 [node name="Content" type="VBoxContainer" parent="RightPanel/Margin/RightVBox/Scroll" unique_id=9400021]
+layout_direction = 2
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
@@ -161,6 +162,8 @@ text = "↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset"
 horizontal_alignment = 1
 
 [node name="SoulCursor" type="TextureRect" parent="." unique_id=9400023]
+z_index = 10
+z_as_relative = false
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 offset_right = 20.0
@@ -171,6 +174,8 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Footer" type="Label" parent="." unique_id=9400024]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.95
@@ -178,8 +183,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER"
 horizontal_alignment = 1

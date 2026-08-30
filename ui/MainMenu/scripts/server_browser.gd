@@ -1,5 +1,5 @@
 extends Control
-## Mock ServerBrowser — LAN IP real + ONLINE Steam real, timeout anti-atasco, soul rojo
+## ServerBrowser — LAN IP real + ONLINE real, timeout anti-atasco, soul rojo
 
 const MODE_ONLINE := "ONLINE"
 const MODE_LAN := "LAN"
@@ -20,17 +20,26 @@ var _steam_lobbies: Array = []
 @onready var _list_empty: Label = $CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList/EmptyLabel
 @onready var _list_container: VBoxContainer = $CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList/Rooms
 @onready var _hint: Label = $CenterContainer/DeltaruneBox/Margin/VBox/HintLabel
-@onready var _ip_edit: LineEdit = $CenterContainer/DeltaruneBox/Margin/VBox/IPRow/IPInput
+
+# Nodos UI
+@onready var _controls_container: VBoxContainer = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer
+@onready var _ip_edit: LineEdit = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPInput
 
 func _ready() -> void:
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
+	
+	_apply_theme()
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.connect(_on_theme_changed)
+	
 	_mode = _load_mode()
 	if _title:
 		_title.text = "BUSCAR PARTIDA — " + _mode
 	_configure_search_row()
-	# Conectar señales reales
+
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if not nm.connection_succeeded.is_connected(_on_connection_succeeded):
@@ -41,11 +50,12 @@ func _ready() -> void:
 			nm.server_disconnected.connect(_on_server_disconnected)
 		if not nm.steam_lobby_list_updated.is_connected(_on_steam_lobby_list):
 			nm.steam_lobby_list_updated.connect(_on_steam_lobby_list)
+		
 		var sm := get_node_or_null("/root/SettingsManager")
 		if _mode == MODE_ONLINE:
 			var ok = nm.initialize_steam()
 			if not ok or not nm.is_steam_ready():
-				print("[Mock_ServerBrowser] Steam no disponible, forzando LAN")
+				print("[ServerBrowser] Online no disponible, forzando LAN")
 				_mode = MODE_LAN
 				if _title:
 					_title.text = "BUSCAR PARTIDA — " + _mode
@@ -67,32 +77,56 @@ func _ready() -> void:
 				sm.network_mode = 0
 				sm.save_settings()
 			nm.set_lan_mode()
+
 	_rebuild_focusables()
 	if _focusables.is_empty():
 		_refresh_empty_state()
 		return
+	# primer foco = Actualizar si no hay salas, si no primera sala
+	if _mock_rooms.is_empty():
+		for i in _focusables.size():
+			if _focusables[i] and _focusables[i].name == "RefreshBtn":
+				_index = i
+				break
+	else:
+		_index = 0
 	_highlight(_index, true)
 	_position_soul(_index, true)
 	_refresh_empty_state()
 	grab_focus()
-	# Auto buscar si ONLINE y steam listo
+	if _ip_edit and not _ip_edit.text_submitted.is_connected(_on_ip_submitted):
+		_ip_edit.text_submitted.connect(_on_ip_submitted)
+	if _ip_edit and not _ip_edit.focus_exited.is_connected(_on_ip_focus_exited):
+		_ip_edit.focus_exited.connect(_on_ip_focus_exited)
+
 	if _mode == MODE_ONLINE:
 		_do_refresh()
+
+func _on_ip_submitted(_text: String) -> void:
+	# igual que Settings: Enter solo sale de edición, no dispara búsqueda (va por botón)
+	_ip_edit.release_focus()
+	grab_focus.call_deferred()
+	var ams := get_node_or_null("/root/AudioManager")
+	if ams and ams.has_method("play_sfx_ui"):
+		ams.play_sfx_ui(SfxId.SELECT)
+
+func _on_ip_focus_exited() -> void:
+	grab_focus.call_deferred()
 
 func _configure_search_row() -> void:
 	if _ip_edit == null:
 		return
-	var connect_btn := $CenterContainer/DeltaruneBox/Margin/VBox/IPRow/ConnectBtn as Button
+	var connect_btn := $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/ConnectBtn as Button
 	if _mode == MODE_ONLINE:
 		_ip_edit.placeholder_text = "Buscar sala o host..."
 		_ip_edit.text = ""
 		if connect_btn:
 			connect_btn.text = "BUSCAR"
 	else:
-		_ip_edit.placeholder_text = "Filtrar por IP o nombre"
+		_ip_edit.placeholder_text = "192.168.1.10"
 		_ip_edit.text = "127.0.0.1"
 		if connect_btn:
-			connect_btn.text = "BUSCAR"
+			connect_btn.text = "CONECTAR"
 
 func _load_mode() -> String:
 	var sm := get_node_or_null("/root/SettingsManager")
@@ -105,100 +139,117 @@ func _load_mode() -> String:
 
 func _rebuild_focusables() -> void:
 	_focusables.clear()
+	
 	if _list_container:
 		for c in _list_container.get_children():
-			if not is_instance_valid(c):
-				continue
-			if c is HBoxContainer:
+			if is_instance_valid(c) and c is HBoxContainer:
 				_focusables.append(c)
-	var actions := $CenterContainer/DeltaruneBox/Margin/VBox/Actions
-	var ip_row := $CenterContainer/DeltaruneBox/Margin/VBox/IPRow
-	var back_row := $CenterContainer/DeltaruneBox/Margin/VBox/BackRow
-	if actions and actions.has_node("RefreshBtn"):
-		_focusables.append(actions.get_node("RefreshBtn"))
-	if actions and actions.has_node("CreateBtn"):
-		_focusables.append(actions.get_node("CreateBtn"))
+				
+	var ip_row := _controls_container.get_node_or_null("IPRow")
+	var action_row := _controls_container.get_node_or_null("ActionRow")
+
+	# Orden: Actualizar primero entre botones, Connect al final (pedido)
+	if action_row:
+		if action_row.has_node("RefreshBtn"):
+			_focusables.append(action_row.get_node("RefreshBtn"))
+		if action_row.has_node("CreateBtn"):
+			_focusables.append(action_row.get_node("CreateBtn"))
+		if action_row.has_node("BackBtn"):
+			_focusables.append(action_row.get_node("BackBtn"))
 	if ip_row and is_instance_valid(_ip_edit):
 		_focusables.append(_ip_edit)
 	if ip_row and ip_row.has_node("ConnectBtn"):
 		_focusables.append(ip_row.get_node("ConnectBtn"))
-	if back_row and back_row.has_node("BackBtn"):
-		_focusables.append(back_row.get_node("BackBtn"))
-	if _focusables.is_empty():
-		return
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy and not _joining:
 		return
-	# Si está en join timeout, ignorar todo excepto X para cancelar?
+
 	if _joining and event.is_action_pressed("menu_cancel"):
 		_cancel_join()
 		var vp2 := get_viewport()
-		if vp2:
-			vp2.set_input_as_handled()
+		if vp2: vp2.set_input_as_handled()
 		return
+
 	var vp := get_viewport()
 	if vp == null:
 		return
+
 	var is_on_search_field := _focusables.size() > _index and is_instance_valid(_focusables[_index]) and _focusables[_index] == _ip_edit
 	var editing_search := is_on_search_field and _ip_edit.has_focus()
-	if is_on_search_field and not editing_search and event is InputEventKey and event.pressed and event.unicode != 0 and event.keycode != KEY_ENTER and event.keycode != KEY_KP_ENTER and event.keycode != KEY_ESCAPE:
-		_ip_edit.grab_focus()
-		var ch := char(event.unicode)
-		_ip_edit.text += ch
-		_ip_edit.caret_column = _ip_edit.text.length()
-		vp.set_input_as_handled()
-		return
+
+	if editing_search and event is InputEventKey and event.pressed:
+		if event.unicode != 0 and event.keycode != KEY_ENTER and event.keycode != KEY_KP_ENTER and event.keycode != KEY_ESCAPE:
+			return
+		if event.is_action_pressed("menu_up") or event.is_action_pressed("menu_down") or event.is_action_pressed("menu_left") or event.is_action_pressed("menu_right"):
+			return
+
+	# auto-edición deshabilitada: solo Z/Enter entra a editar (evita bloqueo al rozar)
+
 	if event is InputEventKey and event.pressed and event.keycode == KEY_C and not editing_search and not _joining:
 		_do_refresh()
 		vp.set_input_as_handled()
 		return
-	if event.is_action_pressed("menu_up"):
-		if _joining:
-			return
-		_move(-1)
-		vp.set_input_as_handled()
-	elif event.is_action_pressed("menu_down"):
-		if _joining:
-			return
-		_move(1)
-		vp.set_input_as_handled()
+
+	if event.is_action_pressed("menu_up") or event.is_action_pressed("ui_up"):
+		if not _joining:
+			_move(-1)
+			vp.set_input_as_handled()
+	elif event.is_action_pressed("menu_down") or event.is_action_pressed("ui_down"):
+		if not _joining:
+			_move(1)
+			vp.set_input_as_handled()
 	elif event.is_action_pressed("menu_accept") or event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and event.keycode == KEY_Z):
 		if editing_search:
-			if event is InputEventKey and event.keycode == KEY_Z and event.unicode != 0:
+			if event is InputEventKey and event.unicode != 0 and event.keycode == KEY_Z:
 				return
-		if _joining:
-			return
-		_confirm()
-		vp.set_input_as_handled()
+			# Z/Enter mientras edita: solo sale de edición (igual que Settings), sin buscar
+			if _ip_edit.has_focus():
+				_ip_edit.release_focus()
+				grab_focus.call_deferred()
+				vp.set_input_as_handled()
+				return
+		if not _joining:
+			_confirm()
+			vp.set_input_as_handled()
 	elif event.is_action_pressed("menu_cancel") or event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_X):
 		if editing_search:
 			_ip_edit.release_focus()
+			grab_focus.call_deferred()
 			vp.set_input_as_handled()
 			return
 		if _joining:
 			_cancel_join()
-			vp.set_input_as_handled()
-			return
-		_go_back()
+		else:
+			_go_back()
 		vp.set_input_as_handled()
 
 func _move(dir: int) -> void:
 	if _focusables.is_empty() or _joining:
 		return
-	var ni := clampi(_index + dir, 0, _focusables.size() - 1)
-	if ni == _index:
+	# si IP edit está en foco, salir antes de mover
+	if is_instance_valid(_ip_edit) and _ip_edit.has_focus():
+		_ip_edit.release_focus()
+		grab_focus.call_deferred()
+	# bucle circular
+	var size := _focusables.size()
+	var ni := (_index + dir) % size
+	if ni < 0:
+		ni += size
+	# saltar inválidos
+	var attempts := 0
+	while attempts < size and not is_instance_valid(_focusables[ni]):
+		ni = (ni + dir) % size
+		if ni < 0:
+			ni += size
+		attempts += 1
+	if ni == _index or not is_instance_valid(_focusables[ni]):
 		return
-	if not is_instance_valid(_focusables[ni]):
-		return
+
 	_index = ni
 	_highlight(_index, false)
 	_position_soul(_index, false)
-	if _focusables[_index] == _ip_edit:
-		_ip_edit.grab_focus()
-	else:
-		if is_instance_valid(_ip_edit) and _ip_edit.has_focus():
-			_ip_edit.release_focus()
+
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.MENU_MOVE)
@@ -207,72 +258,107 @@ func _highlight(idx: int, instant: bool) -> void:
 	if _focusables.is_empty():
 		return
 	idx = clampi(idx, 0, _focusables.size() - 1)
+	var tm := get_node_or_null("/root/ThemeManager")
+	var pal: Dictionary = tm.get_palette() if tm and tm.has_method("get_palette") else {}
+	var sel: Color = pal.get("selected", Color(0, 1, 0, 1))
+	var dim: Color = pal.get("dim", Color(0, 0.5, 0, 1))
+
 	for j in _focusables.size():
 		var c := _focusables[j]
 		if not is_instance_valid(c):
 			continue
+
 		if c is HBoxContainer:
 			var is_sel := j == idx
 			for lbl in c.get_children():
-				if not is_instance_valid(lbl):
-					continue
-				if lbl is Label:
-					lbl.modulate = Color(0, 1, 0, 1) if is_sel else Color(0, 0.50196081, 0, 1)
-			var first: Label = c.get_child(0) as Label if c.get_child_count() > 0 else null
-			if first and is_instance_valid(first):
-				var base := first.text.trim_prefix("  ").trim_prefix("    ").strip_edges()
-				first.text = ("    " + base) if is_sel else ("  " + base)
+				if is_instance_valid(lbl) and lbl is Label:
+					lbl.modulate = sel if is_sel else dim
 		elif c is Button:
-			if not is_instance_valid(c):
-				continue
-			c.modulate = Color(0, 1, 0, 1) if j == idx else Color(0, 0.50196081, 0, 1)
+			c.modulate = sel if j == idx else dim
 			c.disabled = _joining
 		elif c is LineEdit:
-			if not is_instance_valid(c):
-				continue
-			if j == idx:
-				c.modulate = Color(0, 1, 0, 1)
-				if not _joining:
-					c.grab_focus()
-			else:
-				c.modulate = Color(0, 0.50196081, 0, 1)
-				if c.has_focus():
-					c.release_focus()
+			c.modulate = sel if j == idx else dim
+
 	if _hint and not _joining:
-		if idx < 0 or idx >= _focusables.size():
-			return
 		var cur := _focusables[idx]
 		if cur.name == "RefreshBtn":
-			_hint.text = "Actualizar lista [C]"
+			_hint.text = "Recargar lista — %d salas" % _mock_rooms.size()
 		elif cur.name == "CreateBtn":
-			_hint.text = "Crear nueva sala"
+			_hint.text = "Abre crear sala"
 		elif cur.name == "ConnectBtn":
 			if _mode == MODE_ONLINE:
-				_hint.text = "Buscar por nombre/host [Z]"
+				_hint.text = "Conectar a la sala filtrada"
 			else:
-				_hint.text = "Buscar por IP [Z]"
+				_hint.text = "Conectar a la IP ingresada"
 		elif cur.name == "BackBtn":
-			_hint.text = "Volver [X]"
+			_hint.text = "Volver a modo de red"
+		elif cur is LineEdit:
+			if _mode == MODE_ONLINE:
+				_hint.text = "Filtra por nombre o pega IP"
+			else:
+				_hint.text = "Pega la IP del host"
 		else:
-			_hint.text = "Unirse a sala seleccionada [Z]"
+			# Row HBoxContainer → mostrar detalle de la sala enfocada
+			var row_idx := -1
+			var cnt := 0
+			for i in _focusables.size():
+				if _focusables[i] is HBoxContainer:
+					if _focusables[i] == cur:
+						row_idx = cnt
+						break
+					cnt += 1
+			if row_idx >= 0 and row_idx < _mock_rooms.size():
+				var r: Dictionary = _mock_rooms[row_idx]
+				_hint.text = "%s — %s — %s %s" % [str(r.get("nombre","")), str(r.get("mapa","")), str(r.get("jugadores","")), str(r.get("ping",""))]
+			else:
+				_hint.text = "Sala disponible — detalles"
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _focusables.is_empty():
 		return
-	if idx < 0 or idx >= _focusables.size():
-		return
-	var t0 := _focusables[idx]
-	if not is_instance_valid(t0):
-		return
-	await get_tree().process_frame
-	if not is_instance_valid(t0) or _focusables.is_empty() or idx >= _focusables.size():
-		return
-	if not is_instance_valid(_soul):
-		return
+	idx = clampi(idx, 0, _focusables.size() - 1)
 	var target: Control = _focusables[idx]
-	if not is_instance_valid(target):
+	if not is_instance_valid(target) or not target.is_visible_in_tree():
 		return
-	var dest := target.global_position + Vector2(-28, (target.size.y - _soul.size.y) / 2.0) - global_position
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_instance_valid(target) or not is_instance_valid(_soul):
+		return
+	if not target.is_visible_in_tree():
+		return
+
+	# si es botón, corazón dentro del botón como hijo
+	if target is Button:
+		if _soul.get_parent() != target:
+			# guardar posición global antes de reparent
+			var keep_global := _soul.global_position
+			if _soul.get_parent():
+				_soul.get_parent().remove_child(_soul)
+			target.add_child(_soul)
+			_soul.global_position = keep_global
+		var soul_h2 := _soul.size.y if _soul.size.y > 0 else 20.0
+		var inside_pos := Vector2(10, (target.size.y - soul_h2) / 2.0)
+		if target is Button:
+			# compensar padding del texto del botón
+			inside_pos.x = 12
+		if instant:
+			_soul.position = inside_pos
+		else:
+			var tw2 := create_tween()
+			tw2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw2.tween_property(_soul, "position", inside_pos, 0.08)
+		return
+	else:
+		# asegurar que soul esté en el root si estaba dentro de un botón
+		if _soul.get_parent() != self:
+			var keep2 := _soul.global_position
+			_soul.get_parent().remove_child(_soul)
+			add_child(_soul)
+			_soul.global_position = keep2
+
+	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
+	var dest := target.global_position + Vector2(-28, (target.size.y - soul_h) / 2.0) - global_position
 	if instant:
 		_soul.position = dest
 	else:
@@ -283,58 +369,47 @@ func _position_soul(idx: int, instant: bool) -> void:
 func _confirm() -> void:
 	if _focusables.is_empty() or _joining:
 		return
-	if _index < 0 or _index >= _focusables.size():
-		return
 	var cur := _focusables[_index]
 	if not is_instance_valid(cur):
 		return
+
+	var am := get_node_or_null("/root/AudioManager")
+
 	if cur is LineEdit:
+		# toggle igual que Settings: Z entra/sale, sin disparar búsqueda
 		if not _ip_edit.has_focus():
 			_ip_edit.grab_focus()
-			var am0 := get_node_or_null("/root/AudioManager")
-			if am0 and am0.has_method("play_sfx_ui"):
-				am0.play_sfx_ui(SfxId.SELECT)
-			return
-		if _mode == MODE_ONLINE:
-			var am0b := get_node_or_null("/root/AudioManager")
-			if am0b and am0b.has_method("play_sfx_ui"):
-				am0b.play_sfx_ui(SfxId.SELECT)
-			_do_search()
-			_ip_edit.release_focus()
+			_ip_edit.select_all()
 		else:
 			_ip_edit.release_focus()
-		_do_search()
+			grab_focus.call_deferred()
 		return
-	var am := get_node_or_null("/root/AudioManager")
+
 	if cur.name == "RefreshBtn":
-		if am and am.has_method("play_sfx_ui"):
-			am.play_sfx_ui(SfxId.SELECT)
+		if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
 		_do_refresh()
 		return
+
 	if cur.name == "CreateBtn":
-		if am and am.has_method("play_sfx_ui"):
-			am.play_sfx_ui(SfxId.SELECT)
+		if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/CreateRoom.tscn")
 		return
+
 	if cur.name == "ConnectBtn":
-		if am and am.has_method("play_sfx_ui"):
-			am.play_sfx_ui(SfxId.SELECT)
-		if _mode == MODE_ONLINE:
-			_do_search()
+		if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
+		if _mode == MODE_LAN:
+			_try_join_lan()
 		else:
 			_do_search()
 		return
+
 	if cur.name == "BackBtn":
 		_go_back()
 		return
+
 	if cur is HBoxContainer:
-		if am and am.has_method("play_sfx_ui"):
-			am.play_sfx_ui(SfxId.SELECT)
-		# ONLINE: unirse al lobby seleccionado
+		if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
 		if _mode == MODE_ONLINE:
-			var lobby_idx := _focusables.find(cur)
-			# HBox rows están antes de los botones, su Á­ndice es también Á­ndice de lobby si hay lobbies
-			# Buscar Á­ndice real entre los HBox
 			var row_index := -1
 			var count_hbox := 0
 			for i in _focusables.size():
@@ -345,10 +420,7 @@ func _confirm() -> void:
 					count_hbox += 1
 			if row_index >= 0 and row_index < _steam_lobbies.size():
 				_try_join_steam(_steam_lobbies[row_index])
-			else:
-				_hint.text = "→ (mock) Unirse a " + str(cur.get_child(0).get("text")).strip_edges()
 		else:
-			# LAN: buscar IP de la fila seleccionada
 			var row_idx2 := -1
 			var cnt2 := 0
 			for i in _focusables.size():
@@ -358,20 +430,14 @@ func _confirm() -> void:
 						break
 					cnt2 += 1
 			if row_idx2 >= 0 and row_idx2 < _mock_rooms.size():
-				var ip_target: String = str(_mock_rooms[row_idx2].get("ip", _mock_rooms[row_idx2].get("host","")))
-				if ip_target.is_valid_ip_address():
-					_try_join_lan_with_ip(ip_target)
-				else:
-					_hint.text = "IP no válida en fila"
-			else:
-				var nombre2: Label = cur.get_child(0) as Label
-				_hint.text = "→ (mock) Unirse a " + (nombre2.text.strip_edges() if nombre2 else cur.name)
+				var ip_target: String = str(_mock_rooms[row_idx2].get("ip", ""))
+				_try_join_lan_with_ip(ip_target)
 
-# â”€â”€ Red real â”€â”€
+# --- Red / Conexión ---
 
 func _try_join_lan_with_ip(ip: String) -> void:
 	if ip.is_empty():
-		_hint.text = "Ingresá una IP."
+		_hint.text = "Ingresa una IP."
 		return
 	if not ip.is_valid_ip_address():
 		_hint.text = "IP inválida: " + ip
@@ -388,106 +454,61 @@ func _try_join_lan_with_ip(ip: String) -> void:
 
 func _try_join_lan() -> void:
 	var ip := _ip_edit.text.strip_edges()
-	if ip.is_empty():
-		_hint.text = "Ingresá una IP."
-		var am := get_node_or_null("/root/AudioManager")
-		if am: am.play_sfx_ui(SfxId.ERROR)
-		return
-	if not ip.is_valid_ip_address():
-		_hint.text = "IP inválida: " + ip
-		var am2 := get_node_or_null("/root/AudioManager")
-		if am2: am2.play_sfx_ui(SfxId.ERROR)
-		return
-	var sm := get_node_or_null("/root/SettingsManager")
-	var player_name: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
-	var nm := get_node_or_null("/root/NetworkManager")
-	if nm == null:
-		_hint.text = "NetworkManager no encontrado"
-		return
-	# Validar modo
-	if nm.network_mode != nm.NetworkMode.LAN:
-		nm.set_lan_mode()
-	_begin_join("Conectando a " + ip + "...", nm, player_name, ip)
+	_try_join_lan_with_ip(ip)
 
 func _try_join_steam(lobby_id: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	var player_name: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
 	var nm := get_node_or_null("/root/NetworkManager")
-	if nm == null:
-		_hint.text = "NetworkManager no encontrado"
+	if nm == null or not nm.is_steam_ready():
+		_hint.text = "Online no disponible"
 		return
-	if not nm.is_steam_ready():
-		_hint.text = "Steam no disponible"
-		var am := get_node_or_null("/root/AudioManager")
-		if am: am.play_sfx_ui(SfxId.ERROR)
-		return
-	_begin_join("Conectando a lobby...", nm, player_name, lobby_id)
+	_begin_join("Conectando a sala online...", nm, player_name, lobby_id)
 
 func _begin_join(msg: String, nm, player_name: String, target) -> void:
 	_hint.text = msg
 	_joining = true
 	_busy = true
-	# Deshabilitar botones para evitar doble click
 	for c in _focusables:
-		if c is Button:
-			c.disabled = true
+		if c is Button: c.disabled = true
+	
 	var am := get_node_or_null("/root/AudioManager")
-	if am: am.play_sfx_ui(SfxId.SELECT)
+	if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
+	
 	var ok: bool = nm.join_server(player_name, target)
 	if not ok:
 		_end_join("Error al iniciar conexión")
 		return
-	# Timeout anti-atasco
+
 	await get_tree().create_timer(JOIN_TIMEOUT).timeout
 	if _joining:
-		_end_join("Tiempo agotado — verifica IP/puerto 4242 o Steam")
+		_end_join("No se pudo conectar — servidor no responde")
 
 func _end_join(msg: String) -> void:
 	_joining = false
 	_busy = false
 	_hint.text = msg
 	for c in _focusables:
-		if c is Button:
-			c.disabled = false
+		if c is Button: c.disabled = false
 	_highlight(_index, false)
-	var am := get_node_or_null("/root/AudioManager")
-	if am: am.play_sfx_ui(SfxId.ERROR)
 
 func _cancel_join() -> void:
-	if not _joining:
-		return
+	if not _joining: return
 	var nm := get_node_or_null("/root/NetworkManager")
-	if nm:
-		nm.disconnect_from_server()
+	if nm: nm.disconnect_from_server()
 	_end_join("Cancelado [X]")
 
 func _on_connection_succeeded() -> void:
-	if not _joining:
-		# Puede ser host creando sala, no join
-		if is_inside_tree():
-			get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
-		return
 	_joining = false
 	_busy = false
-	if not is_inside_tree():
-		return
-	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_connection_failed() -> void:
-	if _joining:
-		_end_join("No se pudo conectar — IP/puerto o Steam")
-	else:
-		_hint.text = "Error de conexión"
-		_highlight(_index, false)
+	_end_join("No se encontró servidor activo en la IP/Lobby")
 
 func _on_server_disconnected() -> void:
-	if _joining:
-		_end_join("Servidor desconectado")
-	else:
-		_hint.text = "Servidor desconectado"
-		for c in _focusables:
-			if c is Button:
-				c.disabled = false
+	_end_join("Servidor desconectado")
 
 func _on_steam_lobby_list(lobbies: Array) -> void:
 	_steam_lobbies = lobbies
@@ -499,101 +520,66 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 		var map_text: String = usteam.getLobbyData(lobby_id, "map") if usteam else "?"
 		var members: int = usteam.getNumLobbyMembers(lobby_id) if usteam else 1
 		var mode_text: String = GAME_MODES[0]
-		# Intentar leer modo si está en lobby data
-		if usteam:
-			var m = usteam.getLobbyData(lobby_id, "mode")
-			if m != "":
-				mode_text = m
-		var room_text2: String = name_text
-		var host_text2: String = name_text
 		var maxp: int = 10
 		if usteam:
+			var m = usteam.getLobbyData(lobby_id, "mode")
+			if m != "": mode_text = m
 			var mp_str: String = str(usteam.getLobbyData(lobby_id, "max_players"))
-			if mp_str != "":
-				maxp = int(mp_str)
-		var d := {"nombre": room_text2, "host": host_text2, "mapa": map_text, "jugadores": "%d/%d" % [members, maxp], "modo": mode_text, "ping": "-", "ip": host_text2}
+			if mp_str != "": maxp = int(mp_str)
+		var d := {"nombre": name_text, "host": name_text, "mapa": map_text, "jugadores": "%d/%d" % [members, maxp], "modo": mode_text, "ping": "-", "ip": name_text}
 		_master_rooms.append(d)
 	_mock_rooms = _master_rooms.duplicate()
 	_populate_rooms()
 	_rebuild_focusables()
-	_index = clampi(_index, 0, max(0, _focusables.size() - 1))
-	if not _focusables.is_empty():
-		_highlight(_index, false)
-		_position_soul(_index, false)
 	_refresh_empty_state()
 	_busy = false
-	if _mock_rooms.is_empty():
-		_hint.text = "No se encontraron salas"
-	else:
-		_hint.text = "%d salas encontradas" % _mock_rooms.size()
+	_hint.text = "%d salas encontradas" % _mock_rooms.size() if not _mock_rooms.is_empty() else "No se encontraron salas"
 
 func _do_refresh() -> void:
 	if _mode == MODE_ONLINE:
 		var nm := get_node_or_null("/root/NetworkManager")
 		if nm == null or not nm.is_steam_ready():
-			_hint.text = "Steam no disponible — usa LAN o activa Steam"
-			var am := get_node_or_null("/root/AudioManager")
-			if am: am.play_sfx_ui(SfxId.ERROR)
+			_hint.text = "Online no disponible"
 			return
 		_busy = true
-		_hint.text = "Buscando salas Online..."
-		# Vaciar antes de pedir
+		_hint.text = "Buscando salas online..."
 		_master_rooms.clear()
 		_mock_rooms.clear()
 		_populate_rooms()
 		_rebuild_focusables()
 		_refresh_empty_state()
 		nm.request_lobby_list()
-		# Timeout para búsqueda: si en 5s no llega lista, mostrar vacÁ­o
 		await get_tree().create_timer(JOIN_TIMEOUT).timeout
 		if _busy and _master_rooms.is_empty():
 			_busy = false
 			_hint.text = "No se encontraron salas Online"
-		else:
-			_busy = false
 		return
-	# LAN: no hay descubrimiento, solo IP directa
-	_hint.text = "Ingresá IP y pulsa CONECTAR"
+
+	_hint.text = "Ingresa IP y presiona CONECTAR"
 	_master_rooms.clear()
 	_mock_rooms.clear()
 	_populate_rooms()
 	_rebuild_focusables()
 	_refresh_empty_state()
-	_busy = false
 
 func _do_search() -> void:
 	var term := _ip_edit.text.strip_edges().to_lower()
 	if term == "":
 		_mock_rooms = _master_rooms.duplicate()
-		_hint.text = "Mostrando todas (%d)" % _mock_rooms.size()
 	else:
 		var filtered: Array[Dictionary] = []
 		for r in _master_rooms:
-			if str(r["nombre"]).to_lower().contains(term) or str(r["host"]).to_lower().contains(term) or str(r["mapa"]).to_lower().contains(term) or str(r["modo"]).to_lower().contains(term) or str(r.get("ip","")).to_lower().contains(term):
+			if str(r["nombre"]).to_lower().contains(term) or str(r.get("ip","")).to_lower().contains(term):
 				filtered.append(r)
-		# LAN: si term es IP válida y no hay resultados, ofrecer entrada directa como fila filtrable
-		if filtered.is_empty() and _mode == MODE_LAN and term.is_valid_ip_address():
-			var dummy := {"nombre": "Servidor " + term, "host": term, "mapa": "Desconocido", "jugadores": "1/10", "modo": "Escape", "ping": "-", "ip": term}
-			filtered.append(dummy)
 		_mock_rooms = filtered
-		if _mock_rooms.is_empty():
-			_hint.text = "Sin resultados para '%s'" % term
-		else:
-			_hint.text = "%d coinciden con '%s'" % [_mock_rooms.size(), term]
 	_populate_rooms()
 	_rebuild_focusables()
-	_index = clampi(_index, 0, max(0, _focusables.size() - 1))
-	if not _focusables.is_empty():
-		_highlight(_index, false)
-		_position_soul(_index, false)
 	_refresh_empty_state()
 
 func _populate_rooms() -> void:
-	if _list_container == null:
-		return
+	if _list_container == null: return
 	for c in _list_container.get_children():
-		if is_instance_valid(c):
-			c.free()
+		if is_instance_valid(c): c.free()
 	for r in _mock_rooms:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
@@ -601,42 +587,121 @@ func _populate_rooms() -> void:
 		var widths := [170, 130, 145, 70, 85, 80]
 		for i in cols.size():
 			var lbl := Label.new()
-			var raw := str(r.get(cols[i], ""))
-			if i == 0:
-				raw = "  " + raw
-			lbl.text = raw
+			lbl.text = str(r.get(cols[i], ""))
 			lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
 			lbl.add_theme_font_size_override("font_size", 18)
-			lbl.clip_text = true
-			lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			lbl.ellipsis_char = "..."
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 			lbl.custom_minimum_size = Vector2(widths[i], 22)
-			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(lbl)
 		_list_container.add_child(row)
 
 func _refresh_empty_state() -> void:
-	if _list_empty == null:
-		return
+	if _list_empty == null: return
 	_list_empty.visible = _mock_rooms.is_empty()
-	if _mock_rooms.is_empty():
-		_list_empty.text = "NO SE ENCONTRARON PARTIDAS"
-		_list_empty.modulate = Color(0, 1, 0, 1)
-		_list_empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func _go_back() -> void:
 	if _joining:
 		_cancel_join()
 		return
 	var am := get_node_or_null("/root/AudioManager")
-	if am and am.has_method("play_sfx_ui"):
-		am.play_sfx_ui(SfxId.SELECT)
+	if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/PlayMode.tscn")
 
+func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+
+func _apply_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null:
+		return
+
+	# Busca automáticamente cualquier nodo de fondo posible en la escena
+	var bg_node: Node = null
+	for target_name in ["Background", "BG", "ColorRect", "BackgroundContainer"]:
+		if has_node(target_name):
+			bg_node = get_node(target_name)
+			break
+
+	if bg_node:
+		tm.apply_to_background(bg_node)
+
+	# 2. Aplicar textura del Alma (Cursor)
+	var soul_tex: Texture2D = tm.get_soul_texture()
+	if soul_tex and _soul:
+		_soul.texture = soul_tex
+
+	# 3. Fuente
+	var theme_font: FontFile = tm.get_font()
+
+	# 4. Paleta de colores
+	var palette: Dictionary = tm.get_palette()
+	var border: Color = palette.get("border", Color(0, 0.5, 0, 1))
+	var title_col: Color = palette.get("title", Color(0, 1, 0, 1))
+	var sel_col: Color = palette.get("selected", Color(0, 1, 0, 1))
+	var dim_col: Color = palette.get("dim", border)
+	var hint_col: Color = palette.get("hint", sel_col)
+	var sep_col: Color = palette.get("separator", border)
+
+	if _title:
+		_title.add_theme_color_override("font_color", title_col)
+		if theme_font:
+			_title.add_theme_font_override("font", theme_font)
+
+	# headers NOMBRE|HOST|MAPA|JUG.|MODO|PING
+	var header := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Header") as HBoxContainer
+	if header:
+		for ch in header.get_children():
+			if ch is Label:
+				ch.add_theme_color_override("font_color", dim_col)
+				if theme_font:
+					ch.add_theme_font_override("font", theme_font)
+	# separadores
+	var sep1 := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Separator") as ColorRect
+	if sep1:
+		sep1.color = sep_col
+	var sep2 := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Separator2") as ColorRect
+	if sep2:
+		sep2.color = sep_col
+	# listbox panel
+	var list_box := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ListBox") as PanelContainer
+	if list_box and tm.has_method("make_box_style"):
+		list_box.add_theme_stylebox_override("panel", tm.make_box_style())
+	if _hint:
+		_hint.add_theme_color_override("font_color", hint_col)
+	if _list_empty:
+		_list_empty.add_theme_color_override("font_color", hint_col)
+	var footer := get_node_or_null("Footer") as Label
+	if footer:
+		footer.add_theme_color_override("font_color", dim_col)
+	# IP row label y input
+	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPLabel") as Label
+	if ip_label:
+		ip_label.add_theme_color_override("font_color", hint_col)
+	if _ip_edit:
+		_ip_edit.add_theme_color_override("font_color", sel_col)
+	var box := get_node_or_null("CenterContainer/DeltaruneBox") as PanelContainer
+	if box and tm.has_method("make_box_style"):
+		box.add_theme_stylebox_override("panel", tm.make_box_style())
+
+	var btns = [
+		_controls_container.get_node_or_null("IPRow/ConnectBtn"),
+		_controls_container.get_node_or_null("ActionRow/RefreshBtn"),
+		_controls_container.get_node_or_null("ActionRow/CreateBtn"),
+		_controls_container.get_node_or_null("ActionRow/BackBtn")
+	]
+
+	for btn in btns:
+		if btn:
+			btn.add_theme_color_override("font_color", sel_col)
+			if theme_font:
+				btn.add_theme_font_override("font", theme_font)
+			if tm.has_method("make_box_style"):
+				btn.add_theme_stylebox_override("normal", tm.make_box_style())
+
 func _exit_tree() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.disconnect(_on_theme_changed)
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if nm.connection_succeeded.is_connected(_on_connection_succeeded):

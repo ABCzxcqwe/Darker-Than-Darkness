@@ -6,6 +6,7 @@ extends Control
 @onready var reset_room_button: Button = $ResetRoomButton
 
 func _ready() -> void:
+	_record_theme_progress()
 	# 1. Obtener resultados de red de forma segura
 	var results: Dictionary = MatchCoordinator.last_match_results
 	
@@ -50,6 +51,55 @@ func _ready() -> void:
 		host_status_label.text = "Esperando a que el host cree una nueva sala..."
 		reset_room_button.visible = false
 
+
+func _record_theme_progress() -> void:
+	# Cada cliente registra si él ganó con su personaje (local). Si no hay snapshot, no hace nada.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null or not sm.has_method("record_win_for_character"):
+		return
+	var results: Dictionary = MatchCoordinator.last_match_results
+	if results.is_empty():
+		return
+	var my_id := multiplayer.get_unique_id()
+	# Snapshot autoritativo (players_snapshot) propagado en _go_to_stats
+	var snapshot: Dictionary = results.get("players_snapshot", {})
+	if snapshot.is_empty():
+		snapshot = LobbyManager.players
+	if not snapshot.has(my_id):
+		return
+	var my_entry: Dictionary = snapshot[my_id] as Dictionary
+	var my_role: String = str(my_entry.get("assigned_role", ""))
+	var my_char: int = int(my_entry.get("character_id", -1))
+	if my_char <= 0:
+		return
+	var reason: String = str(results.get("end_reason", results.get("reason", "")))
+	var winner: String = str(results.get("winner", ""))
+	var i_won := false
+	if reason == "killer_disconnected":
+		i_won = my_role == "survivor"
+	elif winner == "killer" or reason == "killer_elimination":
+		i_won = my_role == "killer"
+	elif reason == "survivors_escaped":
+		# Solo survivors que escaparon o siguen vivos cuentan; simplificado: survivors vivos ganan
+		if my_role == "survivor":
+			# Si tenemos coord, verificar escape, sino asumir vivo = ganancia
+			var hes := get_node_or_null("/root/GameServiceLocator")
+			i_won = true
+			# Refinar si MapEventCoordinator disponible (opcional)
+			var mec = get_node_or_null("/root/MatchCoordinator")
+			if mec != null:
+				# no bloquear si no hay info, mantener true para survivors_escaped
+				pass
+	else:
+		# Fallback winner team
+		if winner != "":
+			i_won = winner == my_role
+	if i_won:
+		var was_unlocked: bool = sm.is_theme_unlocked("light")
+		sm.record_win_for_character(my_char)
+		if not was_unlocked and sm.is_theme_unlocked("light"):
+			# Notificación: se auto-activa vía SettingsManager.unlock_theme -> menu_theme
+			print("[MatchStats] ¡Tema LIGHT desbloqueado! Tema auto-activado.")
 
 func _on_reset_room_pressed() -> void:
 	MatchCoordinator.host_return_to_lobby_reconfigured()

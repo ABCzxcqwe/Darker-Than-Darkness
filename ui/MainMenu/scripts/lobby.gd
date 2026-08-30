@@ -1,5 +1,5 @@
 extends Control
-## Mock Lobby — verde #008000/#00FF00 soul rojo, casi fullscreen, teclado-only Z/X
+##  Lobby — verde #008000/#00FF00 soul rojo, casi fullscreen, teclado-only Z/X
 
 var _focusables: Array[Control] = []
 var _index := 0
@@ -17,7 +17,56 @@ func _ready() -> void:
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
+	_apply_theme()
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.connect(_on_theme_changed)
 	add_to_group("lobby")
+
+func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+	_update_player_list()
+
+func _apply_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null:
+		return
+	var bg := get_node_or_null("Background")
+	if bg and tm.has_method("apply_to_background"):
+		tm.apply_to_background(bg)
+	var box := get_node_or_null("CenterContainer/DeltaruneBox") as PanelContainer
+	if box and tm.has_method("make_box_style"):
+		box.add_theme_stylebox_override("panel", tm.make_box_style())
+	var title := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Title") as Label
+	var sep := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Separator") as ColorRect
+	var footer := get_node_or_null("Footer") as Label
+	var list_box := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ListBox") as PanelContainer
+	var pal: Dictionary = tm.get_palette() if tm.has_method("get_palette") else {}
+	if title:
+		title.add_theme_color_override("font_color", pal.get("title", Color(0,1,0,1)))
+		if tm.has_method("get_font"):
+			var f: FontFile = tm.get_font()
+			if f:
+				title.add_theme_font_override("font", f)
+	if sep:
+		sep.color = pal.get("separator", pal.get("border", Color(0,0.5,0,1)))
+	if list_box and tm.has_method("make_box_style"):
+		list_box.add_theme_stylebox_override("panel", tm.make_box_style())
+	if _hint:
+		_hint.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
+	if footer:
+		footer.add_theme_color_override("font_color", pal.get("dim", Color(0.5,0.5,0.5,1)))
+	var players_header := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/PlayersHeader") as Label
+	if players_header:
+		players_header.add_theme_color_override("font_color", pal.get("dim", Color(0,0.5,0,1)))
+	if _status_label:
+		_status_label.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
+	if _empty_label:
+		_empty_label.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
+	if _soul and tm.has_method("get_soul_texture"):
+		var st: Texture2D = tm.get_soul_texture()
+		if st:
+			_soul.texture = st
 	_update_from_lobby()
 	var lm := get_node_or_null("/root/LobbyManager")
 	var nm := get_node_or_null("/root/NetworkManager")
@@ -68,7 +117,9 @@ func _update_from_lobby() -> void:
 		if room_name != "":
 			prefix = room_name + " | "
 		_map_label.text = prefix + "MAPA: " + (map_name if map_name != "" else "Cargando...") + " | MODO: " + game_mode
-		_map_label.add_theme_color_override("font_color", Color(0, 1, 0, 1))
+		var tm2 := get_node_or_null("/root/ThemeManager")
+		var pal2: Dictionary = tm2.get_palette() if tm2 and tm2.has_method("get_palette") else {}
+		_map_label.add_theme_color_override("font_color", pal2.get("hint", Color(0, 1, 0, 1)))
 	_update_player_list()
 
 func _update_player_list() -> void:
@@ -89,6 +140,10 @@ func _update_player_list() -> void:
 		for p in players:
 			var row := HBoxContainer.new()
 			row.add_theme_constant_override("separation", 12)
+			var tm3 := get_node_or_null("/root/ThemeManager")
+			var pal3: Dictionary = tm3.get_palette() if tm3 and tm3.has_method("get_palette") else {}
+			var sel_c: Color = pal3.get("selected", Color(0,1,0,1))
+			var dim_c: Color = pal3.get("dim", Color(0,0.5,0,1))
 			var name_lbl := Label.new()
 			name_lbl.text = str(p.get("name", "?"))
 			if bool(p.get("is_host", false)):
@@ -97,7 +152,7 @@ func _update_player_list() -> void:
 			name_lbl.add_theme_font_size_override("font_size", 18)
 			name_lbl.custom_minimum_size = Vector2(200, 0)
 			name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			name_lbl.modulate = Color(0, 1, 0, 1) if bool(p.get("is_host", false)) else Color(0, 0.50196081, 0, 1)
+			name_lbl.modulate = sel_c if bool(p.get("is_host", false)) else dim_c
 			row.add_child(name_lbl)
 			var char_lbl := Label.new()
 			var cid: int = int(p.get("character_id", -1))
@@ -111,7 +166,7 @@ func _update_player_list() -> void:
 			char_lbl.text = char_name
 			char_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
 			char_lbl.add_theme_font_size_override("font_size", 16)
-			char_lbl.modulate = Color(0, 0.50196081, 0, 1)
+			char_lbl.modulate = dim_c
 			char_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			char_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(char_lbl)
@@ -129,7 +184,9 @@ func _refresh_empty(is_empty: bool) -> void:
 		_empty_label.visible = is_empty
 		if is_empty:
 			_empty_label.text = "Esperando jugadores..."
-			_empty_label.modulate = Color(0, 1, 0, 1)
+			var tm4 := get_node_or_null("/root/ThemeManager")
+			var pal4: Dictionary = tm4.get_palette() if tm4 and tm4.has_method("get_palette") else {}
+			_empty_label.modulate = pal4.get("hint", Color(0,1,0,1))
 
 func _unhandled_input(event: InputEvent) -> void:
 	var vp := get_viewport()
@@ -165,20 +222,33 @@ func _highlight(idx: int, instant: bool) -> void:
 	if _focusables.is_empty():
 		return
 	idx = clampi(idx, 0, _focusables.size() - 1)
+	var tm := get_node_or_null("/root/ThemeManager")
+	var pal: Dictionary = tm.get_palette() if tm and tm.has_method("get_palette") else {}
+	var sel: Color = pal.get("selected", Color(0,1,0,1))
+	var dim: Color = pal.get("dim", Color(0,0.50196081,0,1))
 	for i in _focusables.size():
 		var c := _focusables[i]
 		if not is_instance_valid(c):
 			continue
 		if c is Button:
-			c.modulate = Color(0, 1, 0, 1) if i == idx else Color(0, 0.50196081, 0, 1)
+			c.modulate = sel if i == idx else dim
 			if c.disabled:
-				c.modulate = Color(0, 0.50196081, 0, 0.5)
+				c.modulate = Color(dim.r, dim.g, dim.b, 0.5)
 	if _hint:
 		var cur := _focusables[idx]
+		var lm := get_node_or_null("/root/LobbyManager")
 		if cur == _start_btn:
-			_hint.text = "Iniciar partida [Z] (host)"
+			if lm and lm.has_method("get_player_list"):
+				var cnt: int = lm.players.size() if "players" in lm else 0
+				var maxp: int = lm.max_players if "max_players" in lm else 4
+				if cnt < 2:
+					_hint.text = "Inicia selección de personaje — %d/%d falta 1 jugador" % [cnt, maxp]
+				else:
+					_hint.text = "Inicia selección de personaje — %d/%d listo" % [cnt, maxp]
+			else:
+				_hint.text = "Inicia selección de personaje — requiere 2 jugadores"
 		elif cur == _leave_btn:
-			_hint.text = "Salir del lobby [X]"
+			_hint.text = "Salir y volver al buscador"
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _focusables.is_empty():
@@ -186,12 +256,16 @@ func _position_soul(idx: int, instant: bool) -> void:
 	if idx < 0 or idx >= _focusables.size():
 		return
 	var t := _focusables[idx]
-	if not is_instance_valid(t):
+	if not is_instance_valid(t) or not t.is_visible_in_tree():
 		return
 	await get_tree().process_frame
-	if not is_instance_valid(t):
+	await get_tree().process_frame
+	if not is_instance_valid(t) or not is_instance_valid(_soul):
 		return
-	var dest := t.global_position + Vector2(-28, (t.size.y - _soul.size.y)/2.0) - global_position
+	if not t.is_visible_in_tree():
+		return
+	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
+	var dest := t.global_position + Vector2(-28, (t.size.y - soul_h)/2.0) - global_position
 	if instant:
 		_soul.position = dest
 	else:
@@ -250,6 +324,9 @@ func _on_leave_pressed() -> void:
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
 
 func _exit_tree() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
+		tm.theme_changed.disconnect(_on_theme_changed)
 	var lm := get_node_or_null("/root/LobbyManager")
 	if lm:
 		if lm.lobby_updated.is_connected(_update_player_list):
