@@ -44,12 +44,15 @@ signal dialog_notification(message: String, type: int)
 
 signal camera_shake(intensity: float, duration: float)
 
+signal stats_received(stats: Dictionary)
+
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
 var time_left: float = 0.0
 var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
 var _escaped_players: Array[int] = []
 var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
+var _stats_cache: Dictionary = {}    # stats de este peer (menú de pausa)
 
 
 # ── RPCs ─────────────────────────────────────────────────────────────
@@ -243,6 +246,13 @@ func _rpc_camera_shake(intensity: float, duration: float) -> void:
 	camera_shake.emit(intensity, duration)
 
 
+## Stats del menú de pausa — respuesta a MatchStatsService.request_my_stats.
+@rpc("authority", "reliable")
+func _rpc_my_stats(stats: Dictionary) -> void:
+	_stats_cache = stats
+	stats_received.emit(stats)
+
+
 # ── Internos ──────────────────────────────────────────────────────────
 func _find_killer_node() -> Node2D:
 	var killers = get_tree().get_nodes_in_group("killer")
@@ -282,8 +292,14 @@ func get_stamina(peer_id: int) -> Dictionary:
 	return _stamina_cache.get(peer_id, { "current": 0.0, "max": 0.0 })
 
 
+## Stats del peer local para el menú de pausa.
+func get_my_stats() -> Dictionary:
+	return _stats_cache
+
+
 func reset_state() -> void:
 	time_left = 0.0
 	_evolved_slots.clear()
 	_escaped_players.clear()
 	_stamina_cache.clear()
+	_stats_cache.clear()

@@ -61,6 +61,11 @@ func _connect_combat_signals() -> void:
 	if combat.has_signal("stun_applied_by") and not combat.stun_applied_by.is_connected(_on_stun_applied_by):
 		combat.stun_applied_by.connect(_on_stun_applied_by)
 
+	var health_svc = GameServiceLocator.health
+	if health_svc and health_svc.has_signal("survivor_died_permanently"):
+		if not health_svc.survivor_died_permanently.is_connected(_on_survivor_died):
+			health_svc.survivor_died_permanently.connect(_on_survivor_died)
+
 
 # ════════════════════════════════════════════════════════════════════════════
 # REGISTRO DE JUGADORES (llamado por PlayerLifecycleManager)
@@ -70,6 +75,7 @@ func register_player(peer_id: int, _data: Resource = null) -> void:
 	if not multiplayer.is_server():
 		return
 	_stats[peer_id] = {
+		"kills": 0,
 		"damage_dealt": 0,
 		"damage_taken": 0,
 		"stuns_received": 0,
@@ -118,6 +124,18 @@ func _on_stun_applied(target_id: int, _duration: float) -> void:
 func _on_stun_applied_by(attacker_id: int, _target_id: int, _duration: float) -> void:
 	if attacker_id > 0 and _stats.has(attacker_id):
 		_stats[attacker_id]["stuns_applied"] += 1
+
+
+## Muerte permanente de un survivor → cuenta como kill del killer actual.
+func _on_survivor_died(_victim_peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var killer_node := _find_killer_node()
+	if not is_instance_valid(killer_node):
+		return
+	var killer_peer: int = killer_node.get_multiplayer_authority()
+	if _stats.has(killer_peer):
+		_stats[killer_peer]["kills"] = int(_stats[killer_peer].get("kills", 0)) + 1
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -260,6 +278,7 @@ func get_snapshot() -> Dictionary:
 	for pid in _stats.keys():
 		var e: Dictionary = _stats[pid]
 		snapshot[pid] = {
+			"kills": e.get("kills", 0),
 			"damage_dealt": e["damage_dealt"],
 			"damage_taken": e["damage_taken"],
 			"stuns_received": e["stuns_received"],
@@ -267,3 +286,29 @@ func get_snapshot() -> Dictionary:
 			"time_in_danger": snappedf(e["time_in_danger"], 0.1),
 		}
 	return snapshot
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# STATS IN-GAME (menú de pausa)
+# ════════════════════════════════════════════════════════════════════════════
+
+## Pedido del menú de pausa: el servidor responde con las stats del peer que
+## pregunta vía ClientRelay._rpc_my_stats.
+@rpc("any_peer", "reliable", "call_local")
+func request_my_stats() -> void:
+	if not multiplayer.is_server():
+		return
+	var peer := multiplayer.get_remote_sender_id()
+	if peer == 0:
+		peer = multiplayer.get_unique_id()
+	_send_stats_to(peer)
+
+
+func _send_stats_to(peer: int) -> void:
+	var relay := _client_relay
+	if relay == null:
+		relay = GameServiceLocator.get_client_relay()
+	if relay == null:
+		return
+	var stats: Dictionary = get_snapshot().get(peer, {})
+	relay.rpc_id(peer, "_rpc_my_stats", stats)

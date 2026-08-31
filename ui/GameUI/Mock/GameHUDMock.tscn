@@ -1,33 +1,29 @@
-[gd_scene format=3 uid="uid://cvjakwoxx54w4"]
+[gd_scene format=3 uid="uid://dtd_hud_mock"]
 
-[ext_resource type="Script" uid="uid://du4ejaq1p8a67" path="res://ui/GameUI/scripts/game_hud.gd" id="1_o4xvh"]
-[ext_resource type="Script" uid="uid://chqhmp7n0y4i2" path="res://ui/GameUI/Scenes/tp_bar.gd" id="2_ecre4"]
-[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_kqcow"]
-[ext_resource type="Script" uid="uid://j6u1gk2tpbns" path="res://ui/GameUI/scripts/player_panel.gd" id="2_mfo51"]
-[ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="4_su3ou"]
-[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
-[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
-[ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-[ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="7_abcd"]
-[ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
-[ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="9_emote"]
-[ext_resource type="Script" uid="uid://0ccneednndmd" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
+[ext_resource type="Script" uid="uid://du4ejaq1p8a67" path="res://ui/GameUI/scripts/game_hud.gd" id="1_hud"]
+[ext_resource type="PackedScene" uid="uid://dtd_tpbar_custom" path="res://ui/GameUI/Mock/TpBarCustom.tscn" id="2_tp"]
+[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="3_font_battle"]
+[ext_resource type="Script" uid="uid://j6u1gk2tpbns" path="res://ui/GameUI/scripts/player_panel.gd" id="4_player"]
+[ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="5_allies"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="6_font"]
+[ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="7_abar"]
+[ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="8_apanel"]
+[ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="9_menu"]
+[ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="10_chat"]
+[ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="11_emote"]
+[ext_resource type="Script" uid="uid://0ccneednndmd" path="res://ui/GameUI/Scenes/animated_icon.gd" id="12_icon"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
-content_margin_left = 3.0
-content_margin_top = 3.0
-content_margin_right = 3.0
-bg_color = Color(0.3808012, 0.052263863, 0, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.11119685, 0.11119684, 0.11119684, 1)
-corner_radius_top_left = 120
-corner_radius_bottom_right = 120
-corner_detail = 1
-expand_margin_top = 3.0
-expand_margin_bottom = 4.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mock_timer"]
+bg_color = Color(0, 0, 0, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.50196, 0, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
 anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
@@ -65,9 +61,9 @@ border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
 corner_radius_top_right = 80
 corner_radius_bottom_left = 80
 
-[node name="GameHud" type="CanvasLayer" unique_id=1755802739]
+[node name="GameHudMock" type="CanvasLayer" unique_id=1755802739]
 layer = 100
-script = ExtResource("1_o4xvh")
+script = ExtResource("1_hud")
 
 [node name="TimerPanel" type="PanelContainer" parent="." unique_id=650307735]
 anchors_preset = -1
@@ -76,6 +72,7 @@ anchor_top = 0.01
 anchor_right = 0.55
 anchor_bottom = 0.08
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mock_timer")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TimerPanel" unique_id=2082339603]
 layout_mode = 2
@@ -83,73 +80,17 @@ alignment = 1
 
 [node name="TimerLabel" type="Label" parent="TimerPanel/VBoxContainer" unique_id=736506738]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_fonts/font = ExtResource("3_font_battle")
 theme_override_font_sizes/font_size = 20
 text = "TIMER"
 horizontal_alignment = 1
 
 [node name="TimerNumbers" type="Label" parent="TimerPanel/VBoxContainer" unique_id=1650599317]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_fonts/font = ExtResource("3_font_battle")
 theme_override_font_sizes/font_size = 25
 text = "01:00"
 horizontal_alignment = 1
-
-[node name="TpBar" type="Control" parent="." unique_id=1504409030]
-layout_mode = 3
-anchor_left = 0.04
-anchor_top = 0.25
-anchor_right = 0.09
-anchor_bottom = 0.75
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-script = ExtResource("2_ecre4")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="TpBar" unique_id=1182673139]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-alignment = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="TpBar/HBoxContainer" unique_id=711126216]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-alignment = 1
-
-[node name="TpLetters" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=167869725]
-layout_mode = 2
-theme_override_constants/line_spacing = -21
-theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 18
-text = "TP"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TpPercent" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=1310723264]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
-theme_override_font_sizes/font_size = 15
-text = "0%"
-horizontal_alignment = 1
-
-[node name="TpTrack" type="PanelContainer" parent="TpBar/HBoxContainer" unique_id=1188802328]
-clip_children = 2
-custom_minimum_size = Vector2(30, 360)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
-
-[node name="TpFill" type="ColorRect" parent="TpBar/HBoxContainer/TpTrack" unique_id=1159643669]
-texture_filter = 1
-layout_mode = 2
-color = Color(0, 0, 0, 0)
 
 [node name="KillerHpPublic" type="PanelContainer" parent="." unique_id=1106165521]
 anchors_preset = -1
@@ -186,20 +127,23 @@ text = "0/ 0"
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
 anchor_left = 0.05
-anchor_top = 0.86
-anchor_right = 0.28
+anchor_top = 0.82
+anchor_right = 0.3
 anchor_bottom = 0.99
 offset_top = 0.8999634
 offset_right = -80.00003
 grow_vertical = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
+
+[node name="TpBar" parent="PlayerPanelWrap" instance=ExtResource("2_tp")]
+layout_mode = 2
 
 [node name="PlayerPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=826925484]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_s5e2t")
-script = ExtResource("2_mfo51")
+script = ExtResource("4_player")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PlayerPanelWrap/PlayerPanel" unique_id=162359098]
 layout_mode = 2
@@ -211,12 +155,12 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_vertical = 4
 stretch_mode = 5
-script = ExtResource("10_icon")
+script = ExtResource("12_icon")
 
 [node name="NameLabel" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=555215661]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 24
 text = "KRIS"
 horizontal_alignment = 1
@@ -230,7 +174,7 @@ alignment = 1
 
 [node name="HpNumbers" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn" unique_id=1496910452]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 18
 text = "0/ 0"
 horizontal_alignment = 2
@@ -242,7 +186,7 @@ theme_override_constants/separation = 4
 
 [node name="HpTag" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/HpRow" unique_id=553920330]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 15
 text = "HP"
 
@@ -262,7 +206,7 @@ layout_mode = 2
 [node name="StaminaTag" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow" unique_id=1243353430]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 15
 text = "ST"
 horizontal_alignment = 2
@@ -286,7 +230,7 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 text = "✕"
@@ -310,7 +254,7 @@ theme_override_constants/separation = 4
 
 [node name="ContextTitle" type="Label" parent="ContextMenu/VBoxContainer" unique_id=1147891814]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_fonts/font = ExtResource("3_font_battle")
 theme_override_font_sizes/font_size = 20
 text = "SELECCIONAR OBJETIVO"
 horizontal_alignment = 1
@@ -324,7 +268,7 @@ columns = 2
 [node name="ContextHint" type="Label" parent="ContextMenu/VBoxContainer" unique_id=255336458]
 modulate = Color(0.5, 0.5, 0.5, 1)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_kqcow")
+theme_override_fonts/font = ExtResource("3_font_battle")
 theme_override_font_sizes/font_size = 15
 text = "↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR"
 
@@ -337,7 +281,7 @@ anchor_right = 0.9
 anchor_bottom = 0.4
 grow_horizontal = 0
 theme_override_constants/separation = 4
-script = ExtResource("4_su3ou")
+script = ExtResource("5_allies")
 
 [node name="EffectStack" type="VBoxContainer" parent="." unique_id=1095291736]
 anchors_preset = -1
@@ -357,7 +301,7 @@ anchor_right = 0.98
 anchor_bottom = 0.98
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_8ord7")
-script = ExtResource("6_s5e2t")
+script = ExtResource("8_apanel")
 
 [node name="AbilityBar" type="HBoxContainer" parent="AbilityPanel" unique_id=772607126]
 custom_minimum_size = Vector2(50, 50)
@@ -366,9 +310,9 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 6
 alignment = 1
-script = ExtResource("6_8ord7")
+script = ExtResource("7_abar")
 
-[node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("7_abcd")]
+[node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("9_menu")]
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -380,7 +324,7 @@ anchor_right = 0.68
 anchor_bottom = 0.95
 mouse_filter = 2
 
-[node name="ChatPanel" parent="." unique_id=191919196 instance=ExtResource("8_abcd")]
+[node name="ChatPanel" parent="." unique_id=191919196 instance=ExtResource("10_chat")]
 anchor_left = 0.05
 anchor_top = 0.08
 anchor_right = 0.4
@@ -392,5 +336,5 @@ offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="EmoteBar" parent="." instance=ExtResource("9_emote")]
+[node name="EmoteBar" parent="." instance=ExtResource("11_emote")]
 visible = false

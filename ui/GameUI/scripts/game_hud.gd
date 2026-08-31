@@ -8,7 +8,7 @@ extends CanvasLayer
 @onready var timer_label:      Label          = $TimerPanel/VBoxContainer/TimerLabel
 @onready var timer_numbers:    Label          = $TimerPanel/VBoxContainer/TimerNumbers
 
-@onready var tp_bar:           Control        = $TpBar
+@onready var tp_bar:           Control        = get_node_or_null("TpBar") if has_node("TpBar") else get_node_or_null("PlayerPanelWrap/TpBar")
 
 @onready var killer_hp_public: PanelContainer = $KillerHpPublic
 @onready var killer_name_lbl:  Label          = $KillerHpPublic/HBoxContainer/KillerNameLabel
