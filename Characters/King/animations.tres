@@ -380,9 +380,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i3f7p")
 }],
-"loop": false,
+"loop": true,
 "name": &"king_topo",
-"speed": 10.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 2.0,
