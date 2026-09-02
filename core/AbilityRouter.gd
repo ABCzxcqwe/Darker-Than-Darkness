@@ -61,6 +61,12 @@ func _dispatch_with_target(slot_index: int, target_peer_id: int, caster_id: int)
 	print("[AbilityRouter] '", ability_data.display_name, "' despachado directo | peer: ", caster_id,
 		  " | slot: ", slot_index, " | target: ", target_peer_id)
 
+	# Notificación centralizada también para dispatch con target
+	var char_data2: CharacterData = player_node.character_data
+	if char_data2 and slot_index >= 0 and slot_index < char_data2.ability_slots.size():
+		var base2: AbilityData = char_data2.ability_slots[slot_index]
+		_notify_slot_updated(caster_id, slot_index, ability_data, base2 if base2 else ability_data)
+
 
 @rpc("any_peer", "reliable")
 func request_ability(slot_index: int, direction: Vector2) -> void:
@@ -135,6 +141,8 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 
 	if evolution_service:
 		_consume_evolution(evolution_service, peer_id, slot_index, is_evolved, lms_wants_evolve)
+
+	_notify_slot_updated(peer_id, slot_index, ability_data, base_data)
 
 
 func _validate_game_active() -> bool:
@@ -426,6 +434,25 @@ func _open_context_menu(peer_id: int, player_node: Node, slot_index: int,
 
 	print("[AbilityRouter] Menú contextual abierto | peer: ", peer_id,
 		  " | slot: ", slot_index, " | tipo: ", ability_data.selection_type)
+
+
+# ── Notificación centralizada a UI ────────────────────────────────────────
+
+func _notify_slot_updated(peer_id: int, slot_index: int, ability_data: AbilityData, base_data: AbilityData) -> void:
+	var abs_svc: Node = GameServiceLocator.ability_state
+	var evo_svc: Node = GameServiceLocator.evolution
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if not relay or not relay.has_method("_rpc_ability_slot_updated"):
+		return
+	var tp: float = _resolve_tp_cost(ability_data, peer_id, slot_index, abs_svc)
+	# Para is_scalable usar cooldown dinámico, si no base
+	var cd: float = ability_data.cooldown
+	if abs_svc and ability_data.is_scalable and abs_svc.has_method("get_dynamic_cooldown"):
+		cd = abs_svc.get_dynamic_cooldown(peer_id, slot_index)
+	var stage: int = 0
+	if evo_svc and evo_svc.has_method("get_evolved_stage"):
+		stage = evo_svc.get_evolved_stage(peer_id, slot_index)
+	relay.rpc_id(peer_id, "_rpc_ability_slot_updated", slot_index, tp, cd, stage)
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────

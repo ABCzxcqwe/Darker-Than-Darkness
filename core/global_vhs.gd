@@ -29,7 +29,8 @@ func _create_overlay() -> void:
 		vp_size = get_viewport().get_visible_rect().size
 		if vp_size.x < 100 or vp_size.y < 100:
 			vp_size = Vector2(1440, 1080)
-	shader_mat.set_shader_parameter("vhs_resolution", vp_size)
+	##shader_mat.set_shader_parameter("vhs_resolution", vp_size)
+	shader_mat.set_shader_parameter("vhs_resolution", Vector2(640, 480))
 	shader_mat.set_shader_parameter("samples", 3)
 	shader_mat.set_shader_parameter("crease_noise", 0.3)
 	shader_mat.set_shader_parameter("crease_opacity", 0.5)

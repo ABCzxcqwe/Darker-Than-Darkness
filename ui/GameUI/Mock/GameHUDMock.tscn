@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dtd_hud_mock"]
+[gd_scene format=3 uid="uid://c5dxq2lw6bx8c"]
 
 [ext_resource type="Script" uid="uid://du4ejaq1p8a67" path="res://ui/GameUI/scripts/game_hud.gd" id="1_hud"]
-[ext_resource type="PackedScene" uid="uid://dtd_tpbar_custom" path="res://ui/GameUI/Mock/TpBarCustom.tscn" id="2_tp"]
+[ext_resource type="PackedScene" uid="uid://bjxkr0gvlib3r" path="res://ui/GameUI/Mock/TpBarCustom.tscn" id="2_tp"]
 [ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="3_font_battle"]
 [ext_resource type="Script" uid="uid://j6u1gk2tpbns" path="res://ui/GameUI/scripts/player_panel.gd" id="4_player"]
 [ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="5_allies"]
@@ -22,8 +22,8 @@ border_width_bottom = 2
 border_color = Color(0, 0.50196, 0, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
-corner_radius_bottom_left = 4
 corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5e2t"]
@@ -127,17 +127,16 @@ text = "0/ 0"
 [node name="PlayerPanelWrap" type="VBoxContainer" parent="." unique_id=1134894741]
 anchors_preset = -1
 anchor_left = 0.05
-anchor_top = 0.82
-anchor_right = 0.3
-anchor_bottom = 0.99
-offset_top = 0.8999634
-offset_right = -80.00003
+anchor_top = 0.75
+anchor_right = 0.35
+anchor_bottom = 0.95
 grow_vertical = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 14
+theme_override_constants/separation = 20
 
-[node name="TpBar" parent="PlayerPanelWrap" instance=ExtResource("2_tp")]
+[node name="TpBar" parent="PlayerPanelWrap" unique_id=1896832835 instance=ExtResource("2_tp")]
+custom_minimum_size = Vector2(4, 96)
 layout_mode = 2
 
 [node name="PlayerPanel" type="PanelContainer" parent="PlayerPanelWrap" unique_id=826925484]
@@ -223,28 +222,28 @@ allow_greater = true
 show_percentage = false
 
 [node name="SprintDisabledX" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow/StaminaBar" unique_id=999999999]
-layout_mode = 3
+visible = false
+layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 text = "✕"
 horizontal_alignment = 1
 vertical_alignment = 1
-visible = false
 
 [node name="ContextMenu" type="PanelContainer" parent="." unique_id=1216142140]
 anchors_preset = -1
 anchor_left = 0.1
-anchor_top = 0.4
+anchor_top = 0.35
 anchor_right = 0.35
-anchor_bottom = 0.8
-offset_left = 8.0
+anchor_bottom = 0.75
 grow_vertical = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ContextMenu" unique_id=1398842063]
@@ -273,14 +272,14 @@ theme_override_font_sizes/font_size = 15
 text = "↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR"
 
 [node name="AlliesPanel" type="VBoxContainer" parent="." unique_id=542984232]
-custom_minimum_size = Vector2(240, 0)
+custom_minimum_size = Vector2(256, 0)
 anchors_preset = -1
 anchor_left = 0.75
 anchor_top = 0.05
 anchor_right = 0.9
 anchor_bottom = 0.4
 grow_horizontal = 0
-theme_override_constants/separation = 4
+theme_override_constants/separation = 25
 script = ExtResource("5_allies")
 
 [node name="EffectStack" type="VBoxContainer" parent="." unique_id=1095291736]
@@ -313,8 +312,6 @@ alignment = 1
 script = ExtResource("7_abar")
 
 [node name="GameMenu" parent="." unique_id=14919595 instance=ExtResource("9_menu")]
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="DialogContainer" type="Control" parent="." unique_id=2025071401]
 layout_mode = 3
@@ -336,5 +333,8 @@ offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="EmoteBar" parent="." instance=ExtResource("11_emote")]
-visible = false
+[node name="EmoteBar" parent="." unique_id=2111846423 instance=ExtResource("11_emote")]
+layout_mode = 3
+anchors_preset = 7
+offset_top = -75.0
+offset_bottom = 0.0

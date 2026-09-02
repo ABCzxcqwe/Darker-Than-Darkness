@@ -16,6 +16,7 @@ signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
 signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
 signal dynamic_tp_cost_changed(slot_index: int, cost: float)
+signal ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int)
 
 signal slot_evolved(slot_index: int, stage: int)
 signal slot_devolved(slot_index: int)
@@ -233,6 +234,12 @@ func sync_tp_to_client(peer_id: int, current_tp: float, max_tp: float) -> void:
 @rpc("authority", "call_local", "reliable")
 func _rpc_dynamic_tp_cost(slot_index: int, cost: float) -> void:
 	dynamic_tp_cost_changed.emit(slot_index, cost)
+
+
+## Centralized ability slot update (evolution + TP + cooldown) from AbilityRouter
+@rpc("authority", "call_local", "reliable")
+func _rpc_ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int) -> void:
+	ability_slot_updated.emit(slot_index, tp_cost, cooldown, stage)
 
 
 ## Dialog Notifications

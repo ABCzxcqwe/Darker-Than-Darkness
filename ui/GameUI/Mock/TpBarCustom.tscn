@@ -16,50 +16,66 @@ bg_color = Color(0, 0, 0, 0)
 anti_aliasing = false
 
 [node name="TpBarCustom" type="Control" unique_id=900001]
-custom_minimum_size = Vector2(360, 96)
+custom_minimum_size = Vector2(430, 100)
 layout_mode = 3
 anchors_preset = 0
 size_flags_horizontal = 3
 size_flags_vertical = 4
 script = ExtResource("1_tp")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=900006]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1832416288]
+custom_minimum_size = Vector2(430, 50)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 10
-alignment = 1
 
-[node name="TpTag" type="Label" parent="HBoxContainer" unique_id=900007]
-custom_minimum_size = Vector2(36, 0)
+[node name="PointsLabel" type="Label" parent="VBoxContainer" unique_id=900008]
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
+text = "0/100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=900006]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TpTag" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=900007]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
 text = "TP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BgPanel" type="PanelContainer" parent="HBoxContainer" unique_id=900002]
+[node name="BgPanel" type="PanelContainer" parent="VBoxContainer/HBoxContainer" unique_id=900002]
 custom_minimum_size = Vector2(200, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_transparent")
 
-[node name="BarRoot" type="Control" parent="HBoxContainer/BgPanel" unique_id=900010]
+[node name="BarRoot" type="Control" parent="VBoxContainer/HBoxContainer/BgPanel" unique_id=900010]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="TpProgress" type="ProgressBar" parent="HBoxContainer/BgPanel/BarRoot" unique_id=900003]
-visible = false
-custom_minimum_size = Vector2(0, 20)
+[node name="TpProgress" type="ProgressBar" parent="VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=900003]
+custom_minimum_size = Vector2(200, 40)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -71,7 +87,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill_hidden")
 step = 1.0
 show_percentage = false
 
-[node name="SegmentOverlay" type="Control" parent="HBoxContainer/BgPanel/BarRoot" unique_id=900004]
+[node name="SegmentOverlay" type="Control" parent="VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=900004]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -80,7 +96,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="CostMarkers" type="Control" parent="HBoxContainer/BgPanel/BarRoot" unique_id=900005]
+[node name="CostMarkers" type="Control" parent="VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=900005]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -88,15 +104,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="PointsLabel" type="Label" parent="HBoxContainer" unique_id=900008]
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 22
-text = "0/100"
-horizontal_alignment = 1
-vertical_alignment = 1

@@ -7585,6 +7585,7 @@ position = Vector2(-2889, 6928)
 position = Vector2(3908, 5535)
 
 [node name="Colision" type="StaticBody2D" parent="." unique_id=1415743760]
+visible = false
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Colision" unique_id=1181285236]
 position = Vector2(251.11597, -4.599719)

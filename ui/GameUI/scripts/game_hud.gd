@@ -188,6 +188,9 @@ func setup(player_node: Node) -> void:
 			relay.rage_state_changed.connect(_on_rage_state_changed)
 		if relay.has_signal("rage_time_changed"):
 			relay.rage_time_changed.connect(_on_rage_time_changed)
+		if relay.has_signal("ability_slot_updated"):
+			if not relay.ability_slot_updated.is_connected(_on_ability_slot_updated):
+				relay.ability_slot_updated.connect(_on_ability_slot_updated)
 	_sync_rage_state()
 	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
 
@@ -338,6 +341,15 @@ func _on_rage_time_changed(_caster_id: int, remaining: float) -> void:
 		_stop_rage_timer_display()
 	if ability_bar and ability_bar.has_method("on_rage_time"):
 		ability_bar.on_rage_time(remaining)
+
+
+func _on_ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int) -> void:
+	if ability_bar and ability_bar.has_method("on_ability_slot_updated"):
+		ability_bar.on_ability_slot_updated(slot_index, tp_cost, cooldown, stage)
+	if ability_bar and ability_bar.has_method("on_slot_evolved") and stage > 0:
+		ability_bar.on_slot_evolved(slot_index, stage)
+	elif ability_bar and ability_bar.has_method("on_slot_devolved") and stage == 0:
+		ability_bar.on_slot_devolved(slot_index)
 
 
 func _start_rage_timer_display() -> void:
