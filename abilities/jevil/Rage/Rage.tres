@@ -15,5 +15,5 @@ defer_cooldown = true
 evolved_version = ExtResource("3_ragemode")
 rage_stun_resistance_base = 0.5
 rage_stun_resistance_decay = 0.1
-rage_stuns_required = 4
+rage_stuns_required = 10
 metadata/_custom_type_script = "uid://bodks86qovy6s"
