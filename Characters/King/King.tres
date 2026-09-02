@@ -23,7 +23,7 @@ ability_scene = ExtResource("4_hitbox")
 action_animation = "attack"
 cooldown = 1.5
 tp_reward = 5.0
-base_damage = 40
+base_damage = 30
 
 [resource]
 script = ExtResource("2_cd")

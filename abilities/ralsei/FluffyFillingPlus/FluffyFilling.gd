@@ -11,7 +11,7 @@ const CAST_BUFFER: float = 0.3
 const COOLDOWN_BASE: float = 12.0
 const COOLDOWN_PER_MINE: float = 1.5
 const SLOW_MAGNITUDE: float = 0.5
-const SLOW_DURATION: float = 5.0
+const SLOW_DURATION: float = 3.0
 
 static var _projectile_container: Node = null
 

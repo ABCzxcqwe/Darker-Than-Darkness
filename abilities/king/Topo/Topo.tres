@@ -18,5 +18,5 @@ move_restriction = 1
 defer_cooldown = true
 base_damage = 10
 range_ = 1200.0
-cast_duration = 7.0
+cast_duration = 1.6
 attack_type = "normal"

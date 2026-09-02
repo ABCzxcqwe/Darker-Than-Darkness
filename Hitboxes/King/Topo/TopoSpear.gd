@@ -49,7 +49,7 @@ var _caster: Node = null
 func setup_topo(ability: RefCounted, caster: Node, height_mult: float) -> void:
 	_ability = ability
 	_caster = caster
-	_target_height = TILE_SIZE * clampf(height_mult, 3.0, 8.0)
+	_target_height = TILE_SIZE * clampf(height_mult, 2.0, 5.0)
 
 
 func set_direction(_dir: Vector2) -> void:
