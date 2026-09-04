@@ -157,12 +157,18 @@ func _highlight(idx: int) -> void:
 	var dim: Color = pal.get("dim", Color(0,0.50196081,0,1))
 	for i in _field_nodes.size():
 		var c := _field_nodes[i]
+		var is_sel: bool = i == idx
 		if c is LineEdit:
-			c.modulate = sel if i == idx else dim
+			c.add_theme_color_override("font_color", sel if is_sel else dim)
+			c.modulate = Color(1,1,1,1)
 		elif c is Label:
-			c.modulate = sel if i == idx else dim
+			c.add_theme_color_override("font_color", sel if is_sel else dim)
+			c.modulate = Color(1,1,1,1)
 		elif c is Button:
-			c.modulate = sel if i == idx else dim
+			c.add_theme_color_override("font_color", sel if is_sel else dim)
+			c.modulate = Color(1,1,1,1)
+			if c.disabled:
+				c.modulate = Color(1,1,1,0.6)
 	if _hint:
 		match idx:
 			0:
@@ -363,6 +369,17 @@ func _apply_theme() -> void:
 		_game_mode_label.add_theme_color_override("font_color", pal_dim)
 	if _players_label:
 		_players_label.add_theme_color_override("font_color", pal_dim)
+	# Botones con estilo del tema (selected + box) — igual que server_browser
+	var theme_font2: FontFile = tm.get_font() if tm.has_method("get_font") else null
+	var sel2: Color = pal.get("selected", Color(0,1,0,1))
+	for btn_path in ["CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn", "CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn"]:
+		var b := get_node_or_null(btn_path) as Button
+		if b:
+			b.add_theme_color_override("font_color", sel2)
+			if theme_font2:
+				b.add_theme_font_override("font", theme_font2)
+			if tm.has_method("make_box_style"):
+				b.add_theme_stylebox_override("normal", tm.make_box_style())
 
 func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")

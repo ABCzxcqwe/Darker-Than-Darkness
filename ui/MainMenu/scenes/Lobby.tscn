@@ -153,7 +153,174 @@ theme_override_font_sizes/font_size = 12
 text = "[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00"
 horizontal_alignment = 1
 
+[node name="ActionMenu" type="PanelContainer" parent="." unique_id=9500100]
+visible = false
+z_index = 20
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -180.0
+offset_right = 220.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="MarginAction" type="MarginContainer" parent="ActionMenu" unique_id=9500101]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxAction" type="VBoxContainer" parent="ActionMenu/MarginAction" unique_id=9500102]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ActionTitle" type="Label" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500103]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "ACCIONES"
+horizontal_alignment = 1
+
+[node name="ActionSeparator" type="ColorRect" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500104]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 0.5019608, 0, 1)
+
+[node name="ActionTarget" type="Label" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500105]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Jugador: -"
+horizontal_alignment = 1
+
+[node name="BtnSpectator" type="Button" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500106]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "PONER ESPECTADOR"
+
+[node name="BtnSurvivor" type="Button" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500107]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "RESTAURAR SURVIVOR"
+
+[node name="BtnKiller" type="Button" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500108]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "FORZAR KILLER [99]"
+
+[node name="BtnKick" type="Button" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500109]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "QUITAR DE LA SALA"
+
+[node name="BtnCancel" type="Button" parent="ActionMenu/MarginAction/VBoxAction" unique_id=9500110]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "CANCELAR [X]"
+
+[node name="ConfirmOverlay" type="PanelContainer" parent="." unique_id=9500120]
+visible = false
+z_index = 25
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="MarginConfirm" type="MarginContainer" parent="ConfirmOverlay" unique_id=9500121]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxConfirm" type="VBoxContainer" parent="ConfirmOverlay/MarginConfirm" unique_id=9500122]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ConfirmLabel" type="Label" parent="ConfirmOverlay/MarginConfirm/VBoxConfirm" unique_id=9500123]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "¿Expulsar a este jugador?"
+horizontal_alignment = 1
+
+[node name="HBoxConfirm" type="HBoxContainer" parent="ConfirmOverlay/MarginConfirm/VBoxConfirm" unique_id=9500124]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ConfirmYes" type="Button" parent="ConfirmOverlay/MarginConfirm/VBoxConfirm/HBoxConfirm" unique_id=9500125]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "SI [Z]"
+
+[node name="ConfirmNo" type="Button" parent="ConfirmOverlay/MarginConfirm/VBoxConfirm/HBoxConfirm" unique_id=9500126]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("4_box")
+text = "NO [X]"
+
 [node name="SoulCursor" type="TextureRect" parent="." unique_id=9500021]
+visible = false
 z_index = 10
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1

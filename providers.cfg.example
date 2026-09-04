@@ -1,0 +1,17 @@
+# Ejemplo para configurar proveedores online visibles en Settings > GENERAL > PROVEEDOR ONLINE
+# Copiar este archivo a la carpeta de datos de usuario como `providers.cfg`
+# y editar. LAN es siempre disponible y no se lista aquí.
+# Formato ConfigFile (.cfg): sección [providers] con claves id = "Etiqueta visible"
+
+[providers]
+# Steam es privado (solo pruebas) — descomentar para pruebas locales
+#steam = "Steam (privado)"
+# GD-Sync aún no implementado
+#gdsync = "GD-Sync [Próximamente]"
+# Servidores dedicados futuros
+#dedicado = "Dedicado US-East"
+#dedicado_eu = "Dedicado EU"
+
+# Alternativa legacy: [servers] también es soportado
+# [servers]
+# steam = "Steam (privado)"
