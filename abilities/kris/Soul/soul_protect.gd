@@ -44,9 +44,14 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 
 			_combat.remove_root(player_node)
 
+			# Bidireccional: ambos comparten 50% y ambos tienen death shield
 			_combat.register_protection(_target_peer_id, _caster_id,
 				_combat.ProtectionType.DAMAGE_SHARE, { "share_pct": SHARE_PCT })
 			_combat.register_protection(_target_peer_id, _caster_id,
+				_combat.ProtectionType.DEATH_SHIELD, {})
+			_combat.register_protection(_caster_id, _target_peer_id,
+				_combat.ProtectionType.DAMAGE_SHARE, { "share_pct": SHARE_PCT })
+			_combat.register_protection(_caster_id, _target_peer_id,
 				_combat.ProtectionType.DEATH_SHIELD, {})
 
 			_spawn_shield()
@@ -64,6 +69,10 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 					_combat.ProtectionType.DAMAGE_SHARE)
 				_combat.unregister_protection(_target_peer_id, _caster_id,
 					_combat.ProtectionType.DEATH_SHIELD)
+				_combat.unregister_protection(_caster_id, _target_peer_id,
+					_combat.ProtectionType.DAMAGE_SHARE)
+				_combat.unregister_protection(_caster_id, _target_peer_id,
+					_combat.ProtectionType.DEATH_SHIELD)
 
 				break_shield()
 
@@ -75,7 +84,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 						cd_svc.release_lock(_caster_id, slot_index)
 					cd_svc.start(_caster_id, slot_index, data.cooldown)
 
-				print("[SoulProtect] Proteccion expirada para ", _target_peer_id)
+				print("[SoulProtect] Proteccion expirada para ", _target_peer_id, " <-> ", _caster_id)
 			)
 
 			player_node.rpc("_sync_cancel_ability")

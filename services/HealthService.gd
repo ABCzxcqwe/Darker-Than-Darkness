@@ -136,6 +136,25 @@ func execute(player_node: Node) -> void:
 	if player_node.character_data and not player_node.character_data.can_be_executed:
 		return
 
+	# Soul Protect / cualquier DEATH_SHIELD bloquea la ejecucion
+	var combat = _combat_mediator
+	if not combat:
+		combat = GameServiceLocator.combat_mediator
+	if combat and combat.has_method("has_death_shield") and combat.has_death_shield(peer_id):
+		var protectors: Array = combat.consume_death_shield(peer_id)
+		print("[HealthService] Execute bloqueado por DEATH_SHIELD para peer ", peer_id, " protectores: ", protectors)
+		# Romper FX visual en el objetivo y en sus protectores (Kris <-> aliado)
+		if is_instance_valid(player_node):
+			player_node.rpc("_rpc_soul_protect_break", peer_id)
+			for pid in protectors:
+				var protector_node: Node = PlayerRegistry.get_player(pid)
+				if is_instance_valid(protector_node):
+					protector_node.rpc("_rpc_soul_protect_break", pid)
+				else:
+					# fallback: pedir al nodo objetivo que rompa el del protector
+					player_node.rpc("_rpc_soul_protect_break", pid)
+		return
+
 	_cancel_bleed_timer(peer_id)
 	_kill(player_node)
 

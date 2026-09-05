@@ -454,6 +454,48 @@ func unregister_all_for_protector(protector_id: int) -> void:
 			_protection_timers.erase(key)
 
 
+func has_protection(protected_id: int, type: int) -> bool:
+	if not _protections.has(protected_id):
+		return false
+	for p in _protections[protected_id]:
+		if p.type == type:
+			return true
+	return false
+
+
+func has_death_shield(peer_id: int) -> bool:
+	return has_protection(peer_id, ProtectionType.DEATH_SHIELD)
+
+
+func get_protectors_for(protected_id: int, type: int) -> Array:
+	var result: Array = []
+	if not _protections.has(protected_id):
+		return result
+	for p in _protections[protected_id]:
+		if p.type == type:
+			result.append(p.protector_id)
+	return result
+
+
+## Consume el death shield del peer (solo el escudo, mantiene DAMAGE_SHARE).
+## Retorna lista de protector_ids afectados para poder romper FX.
+func consume_death_shield(protected_id: int) -> Array:
+	var protectors: Array = get_protectors_for(protected_id, ProtectionType.DEATH_SHIELD)
+	if protectors.is_empty():
+		return protectors
+	_protections[protected_id] = _protections[protected_id].filter(
+		func(p): return p.type != ProtectionType.DEATH_SHIELD
+	)
+	if _protections[protected_id].is_empty():
+		_protections.erase(protected_id)
+	for pid in protectors:
+		var key := "%d_%d_%d" % [protected_id, pid, ProtectionType.DEATH_SHIELD]
+		if _protection_timers.has(key) and is_instance_valid(_protection_timers[key]):
+			_protection_timers[key].stop()
+			_protection_timers.erase(key)
+	return protectors
+
+
 func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
 	if not _protections.has(peer_id):
 		return amount
