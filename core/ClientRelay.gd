@@ -16,6 +16,7 @@ signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
 signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
 signal dynamic_tp_cost_changed(slot_index: int, cost: float)
+signal ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int)
 
 signal slot_evolved(slot_index: int, stage: int)
 signal slot_devolved(slot_index: int)
@@ -37,9 +38,14 @@ signal game_state_changed(new_state: int, old_state: int)
 signal effect_applied(peer_id: int, effect_name: String, duration: float)
 signal effect_removed(peer_id: int, effect_name: String)
 
+signal rage_state_changed(charged: bool, progress: int, required: int)
+signal rage_time_changed(caster_id: int, remaining: float)
+
 signal dialog_notification(message: String, type: int)
 
 signal camera_shake(intensity: float, duration: float)
+
+signal stats_received(stats: Dictionary)
 
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
@@ -47,6 +53,7 @@ var time_left: float = 0.0
 var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
 var _escaped_players: Array[int] = []
 var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
+var _stats_cache: Dictionary = {}    # stats de este peer (menú de pausa)
 
 
 # ── RPCs ─────────────────────────────────────────────────────────────
@@ -185,6 +192,17 @@ func _rpc_effect_removed(peer_id: int, effect_name: String) -> void:
 	effect_removed.emit(peer_id, effect_name)
 
 
+## Rage (ultimate del killer) — llega solo al peer dueño vía rpc_id.
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_state(charged: bool, progress: int, required: int) -> void:
+	rage_state_changed.emit(charged, progress, required)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_rage_time(caster_id: int, remaining: float) -> void:
+	rage_time_changed.emit(caster_id, remaining)
+
+
 @rpc("authority", "reliable", "call_local")
 func _rpc_setup_map_audio(map_id: String) -> void:
 	AudioManager.setup_map_audio(map_id)
@@ -218,6 +236,12 @@ func _rpc_dynamic_tp_cost(slot_index: int, cost: float) -> void:
 	dynamic_tp_cost_changed.emit(slot_index, cost)
 
 
+## Centralized ability slot update (evolution + TP + cooldown) from AbilityRouter
+@rpc("authority", "call_local", "reliable")
+func _rpc_ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int) -> void:
+	ability_slot_updated.emit(slot_index, tp_cost, cooldown, stage)
+
+
 ## Dialog Notifications
 @rpc("authority", "call_local", "reliable")
 func _rpc_push_dialog(message: String, type: int = 0) -> void:
@@ -227,6 +251,13 @@ func _rpc_push_dialog(message: String, type: int = 0) -> void:
 @rpc("authority", "call_local", "reliable")
 func _rpc_camera_shake(intensity: float, duration: float) -> void:
 	camera_shake.emit(intensity, duration)
+
+
+## Stats del menú de pausa — respuesta a MatchStatsService.request_my_stats.
+@rpc("authority", "reliable")
+func _rpc_my_stats(stats: Dictionary) -> void:
+	_stats_cache = stats
+	stats_received.emit(stats)
 
 
 # ── Internos ──────────────────────────────────────────────────────────
@@ -268,8 +299,14 @@ func get_stamina(peer_id: int) -> Dictionary:
 	return _stamina_cache.get(peer_id, { "current": 0.0, "max": 0.0 })
 
 
+## Stats del peer local para el menú de pausa.
+func get_my_stats() -> Dictionary:
+	return _stats_cache
+
+
 func reset_state() -> void:
 	time_left = 0.0
 	_evolved_slots.clear()
 	_escaped_players.clear()
 	_stamina_cache.clear()
+	_stats_cache.clear()

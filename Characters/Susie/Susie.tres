@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_royjo"]
 [ext_resource type="SpriteFrames" uid="uid://qsxkpkuh7q3s" path="res://Characters/Susie/animations.tres" id="3_66qii"]
 [ext_resource type="Resource" uid="uid://b2crfnqna57t1" path="res://abilities/susie/RudeBuster/RudeBuster.tres" id="5_1w3rf"]
-[ext_resource type="Texture2D" uid="uid://bma25qygs8t1o" path="res://Characters/Susie/assets/Sprites/icon.png" id="6_23gak"]
+[ext_resource type="Texture2D" uid="uid://dewc4pci4l1c2" path="res://Characters/Susie/assets/Sprites/icon.png" id="6_23gak"]
 [ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal/UltimateHeal.tres" id="6_pssrv"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_wf0aq"]
 [ext_resource type="AudioStream" uid="uid://daa42slj1ra1k" path="res://Characters/Susie/assets/Music/Battle Against The Dragon  Deltarune UST.mp3" id="7_7ajh4"]

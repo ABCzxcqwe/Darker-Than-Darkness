@@ -1,72 +1,157 @@
-[gd_scene format=3 uid="uid://du07rrw0bna8l"]
+[gd_scene format=3 uid="uid://bxheqp8oqi0vu"]
 
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_a0cqk"]
-[ext_resource type="Script" uid="uid://dx3k368w0kkv6" path="res://ui/MainMenu/scripts/main_menu.gd" id="1_vjtqc"]
-[ext_resource type="Texture2D" uid="uid://ccp46vnthuvpg" path="res://sprites/dark2.png" id="3_yrfys"]
+[ext_resource type="Script" uid="uid://dngna4vflkjgb" path="res://ui/MainMenu/scripts/main_menu.gd" id="1_mock"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="3_4n6uu"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
+[ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="5_box"]
 
-[node name="MainMenu" type="Control" unique_id=2039280906]
+[node name="MainMenu" type="Control" unique_id=9000001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_a0cqk")
-script = ExtResource("1_vjtqc")
+script = ExtResource("1_mock")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1867195352]
+[node name="Background" type="ColorRect" parent="." unique_id=9000002]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 100
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 100
+color = Color(0, 0, 0, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1959855263]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_constants/separation = 20
-
-[node name="CreateRoomButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1562611053]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Host"
-
-[node name="JoinRoomButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=193804125]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Join"
-
-[node name="OptionsButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=550910203]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Opciones"
-
-[node name="QuitButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=151365772]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Salir"
-
-[node name="TextureRect" type="TextureRect" parent="." unique_id=1022760673]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=9000004]
+z_index = 10
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.3
-anchor_top = 0.05
-anchor_right = 0.7
-anchor_bottom = 0.3
-offset_left = -48.0
-offset_right = 48.0
-offset_bottom = 42.0
+anchor_right = 0.5
+anchor_bottom = 0.95
 grow_horizontal = 2
-texture = ExtResource("3_yrfys")
+grow_vertical = 2
+
+[node name="DeltaruneBox" type="PanelContainer" parent="CenterContainer" unique_id=9000005]
+custom_minimum_size = Vector2(512, 560)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("5_box")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/DeltaruneBox" unique_id=9000006]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin" unique_id=9000007]
+layout_mode = 2
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9000008]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_4n6uu")
+theme_override_font_sizes/font_size = 30
+text = "DARKER THAN DARKNESS"
+horizontal_alignment = 1
+
+[node name="Separator" type="ColorRect" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9000009]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 0.5019608, 0, 1)
+
+[node name="MenuList" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9000010]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Opt0" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000011]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "JUGAR"
+
+[node name="Opt1" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000012]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "OPCIONES"
+
+[node name="Opt2" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000013]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "EXTRAS"
+
+[node name="Opt3" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000014]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "SALIR"
+
+[node name="HintLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9000015]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "Jugar"
+horizontal_alignment = 1
+
+[node name="SoulCursor" type="TextureRect" parent="." unique_id=9000016]
+z_index = 10
+z_as_relative = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 1
+offset_left = 6.0
+offset_top = -34.0
+offset_right = 26.0
+offset_bottom = -14.0
+texture = ExtResource("3_soul")
+expand_mode = 1
 stretch_mode = 5
 
-[connection signal="pressed" from="MarginContainer/VBoxContainer/CreateRoomButton" to="." method="_on_create_room_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/JoinRoomButton" to="." method="_on_join_room_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/OptionsButton" to="." method="_on_options_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/QuitButton" to="." method="_on_quit_pressed"]
+[node name="Footer" type="Label" parent="." unique_id=9000017]
+z_index = 10
+z_as_relative = false
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.95
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER"
+horizontal_alignment = 1
+
+[node name="BackToOriginal" type="Button" parent="." unique_id=9000018]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 36.0
+grow_horizontal = 0
+text = "Volver al Original"
+
+[connection signal="pressed" from="BackToOriginal" to="." method="_on_back_to_original_pressed"]

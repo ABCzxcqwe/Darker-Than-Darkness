@@ -77,6 +77,7 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 			current_game_manager.start_game(char_map, data.get("map_id", ""))
 			call_deferred("_sync_spectator_audio", data.get("map_id", ""))
 		LobbyManager.GamePhase.ENDED:
+			AudioManager.reset_match_audio()
 			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
 
 
@@ -101,6 +102,10 @@ func cleanup_game_manager() -> void:
 func _go_to_stats_screen(stats_data: Dictionary) -> void:
 	last_match_results = stats_data
 
+	# Fix: silencio total en TODOS los peers (stats ya es call_local)
+	# Placeholder hasta nueva música de stats — evita que map/terror/chase/LMS queden sonando en clientes
+	AudioManager.reset_match_audio()
+
 	cleanup_game_manager()
 
 	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
@@ -113,11 +118,14 @@ func host_return_to_lobby_reconfigured() -> void:
 	if not LobbyManager.is_host:
 		return
 
+	LobbyManager.clear_forced_killer_state()
 	for pid in LobbyManager.players:
 		LobbyManager.players[pid]["character_id"] = -1
 		if LobbyManager.players[pid].get("is_spectator", false):
 			LobbyManager.players[pid]["assigned_role"] = "survivor"
 			LobbyManager.players[pid]["is_spectator"] = false
+		else:
+			LobbyManager.players[pid]["assigned_role"] = "survivor"
 
 	rpc("_back_to_lobby_scene", LobbyManager.players)
 
@@ -125,7 +133,10 @@ func host_return_to_lobby_reconfigured() -> void:
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.players = reseted_players
+	# Asegurar que el flag/bakcup del forzado no quede colgado si _calculate no corrió
+	LobbyManager.clear_forced_killer_state()
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
+	AudioManager.reset_match_audio()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 
@@ -134,12 +145,15 @@ func reset_to_menu() -> void:
 		return
 	_resetting = true
 	print("[MatchCoordinator] reset_to_menu")
+	AudioManager.reset_match_audio()
 	cleanup_game_manager()
 
 	NetworkManager.disconnect_from_server()
 	LobbyManager.reset_lobby_state()
 	LobbyManager.local_player_name = ""
 	LobbyManager.selected_map = ""
+	LobbyManager.room_name = ""
+	LobbyManager.game_mode = "Escape"
 	LobbyManager.is_host = false
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 

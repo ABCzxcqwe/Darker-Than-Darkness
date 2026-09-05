@@ -1,79 +1,268 @@
-[gd_scene format=3 uid="uid://bc8iwwguiwisp"]
+[gd_scene format=3 uid="uid://t0768logtfuu"]
 
-[ext_resource type="Script" uid="uid://6ftaq4i1ibhm" path="res://ui/MainMenu/scripts/create_room.gd" id="1_3nu6e"]
-[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/MainMenu/Styles/Tema.tres" id="1_urg57"]
+[ext_resource type="Script" uid="uid://cxt6emnqta3gv" path="res://ui/MainMenu/scripts/create_room.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
+[ext_resource type="StyleBox" uid="uid://cykkwk30k82ik" path="res://ui/MainMenu/theme/DeltaruneBox.tres" id="4_box"]
+[ext_resource type="StyleBox" uid="uid://ciakkn0ymljhk" path="res://ui/Old/Styles/line.tres" id="5_line"]
 
-[node name="CreateRoom" type="Control" unique_id=880270965]
+[node name="MockCreateRoom" type="Control" unique_id=9300001]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_urg57")
-script = ExtResource("1_3nu6e")
+script = ExtResource("1_script")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=974622813]
+[node name="Background" type="ColorRect" parent="." unique_id=9300002]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 100
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 100
+color = Color(0, 0, 0, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=235739947]
+[node name="CenterContainer" type="MarginContainer" parent="." unique_id=9300003]
+z_index = 10
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 60
+
+[node name="DeltaruneBox" type="PanelContainer" parent="CenterContainer" unique_id=9300004]
+self_modulate = Color(1, 1, 1, 0.5)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("4_box")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/DeltaruneBox" unique_id=9300005]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin" unique_id=9300006]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300007]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "CREAR SALA"
+horizontal_alignment = 1
+
+[node name="Separator" type="ColorRect" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300008]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0, 1, 0, 1)
+
+[node name="NameRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300009]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/NameRow" unique_id=9300010]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "NOMBRE"
+
+[node name="NameInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/NameRow" unique_id=9300011]
+custom_minimum_size = Vector2(360, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("5_line")
+placeholder_text = "Mi sala"
+
+[node name="ModeRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300012]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ModeLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ModeRow" unique_id=9300013]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "MODO"
+
+[node name="ModeValue" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ModeRow" unique_id=9300014]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "ONLINE"
+horizontal_alignment = 1
+
+[node name="MapRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300015]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MapText" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MapRow" unique_id=9300016]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "MAPA"
+
+[node name="MapLeft" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MapRow" unique_id=9300017]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "<"
+
+[node name="MapLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MapRow" unique_id=9300018]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "Card Castle"
+horizontal_alignment = 1
+
+[node name="MapRight" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MapRow" unique_id=9300019]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = ">"
+
+[node name="GameModeRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300030]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="GameModeText" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow" unique_id=9300031]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "MODO JUEGO"
+
+[node name="GameModeLeft" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow" unique_id=9300032]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "<"
+
+[node name="GameModeLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow" unique_id=9300033]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "Escape"
+horizontal_alignment = 1
+
+[node name="GameModeRight" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow" unique_id=9300034]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = ">"
+
+[node name="PlayersRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300035]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PlayersText" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow" unique_id=9300036]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "JUGADORES"
+
+[node name="PlayersLeft" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow" unique_id=9300037]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "<"
+
+[node name="PlayersLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow" unique_id=9300038]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "4"
+horizontal_alignment = 1
+
+[node name="PlayersRight" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow" unique_id=9300039]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = ">"
+
+[node name="HintLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300020]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Escribe nombre de sala"
+horizontal_alignment = 1
+
+[node name="Actions" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300021]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CreateBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9300022]
+custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_constants/separation = 20
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+text = "CREAR [Z]"
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=360488002]
+[node name="BackBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9300023]
+custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Crear Sala"
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+text = "VOLVER [X]"
+
+[node name="SoulCursor" type="TextureRect" parent="." unique_id=9300024]
+z_index = 10
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 1
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+texture = ExtResource("3_soul")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Footer" type="Label" parent="." unique_id=9300025]
+z_index = 10
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.95
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA"
 horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PlayerNameInput" type="LineEdit" parent="MarginContainer/VBoxContainer" unique_id=859245377]
-custom_minimum_size = Vector2(400, 40)
-layout_mode = 2
-placeholder_text = "Ingresar Nombre"
-max_length = 20
-
-[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1506388583]
-custom_minimum_size = Vector2(400, 40)
-layout_mode = 2
-text = "Seleccionar Mapa"
-vertical_alignment = 1
-
-[node name="MapOption" type="OptionButton" parent="MarginContainer/VBoxContainer" unique_id=515227290]
-custom_minimum_size = Vector2(400, 40)
-layout_mode = 2
-
-[node name="CreateButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=428278941]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Crear Servidor"
-
-[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=2102941696]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-text = "Volver"
-
-[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=557362192]
-modulate = Color(0.8804722, 0.8804717, 0, 1)
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="MapIcon" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=848298755]
-texture_filter = 1
-texture_repeat = 1
-custom_minimum_size = Vector2(200, 400)
-layout_mode = 2
-
-[connection signal="pressed" from="MarginContainer/VBoxContainer/CreateButton" to="." method="_on_create_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_pressed"]

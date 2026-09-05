@@ -14,3 +14,48 @@ func can_use_while_stunned() -> bool:
 
 func can_use_while_dead() -> bool:
 	return false
+
+## Virtuales para cancelación de habilidades canalizadas (ej: Lanza).
+## Default: no cancelable / cancel inmediato. Override en habilidades que necesitan grace period.
+func can_cancel_now() -> bool:
+	return true
+
+func cancel_early() -> void:
+	push_warning("[AbilityBase] cancel_early() no implementado en ", get_script().resource_path)
+
+# ── Registro central de instancias activas (genérico, evita hardcode LanzaAbility en Router) ──
+static var _active_registry: Dictionary = {} # "peer_slot" -> WeakRef
+
+static func _registry_key(peer_id: int, slot_index: int) -> String:
+	return "%d_%d" % [peer_id, slot_index]
+
+static func register_active(peer_id: int, slot_index: int, instance: AbilityBase) -> void:
+	_active_registry[_registry_key(peer_id, slot_index)] = weakref(instance)
+
+static func unregister_active(peer_id: int, slot_index: int) -> void:
+	_active_registry.erase(_registry_key(peer_id, slot_index))
+
+static func find_active_for(player_node: Node, slot_index: int) -> AbilityBase:
+	if not is_instance_valid(player_node):
+		return null
+	var peer_id: int = player_node.get_multiplayer_authority()
+	var key: String = _registry_key(peer_id, slot_index)
+	if not _active_registry.has(key):
+		return null
+	var ref = _active_registry[key]
+	var inst = ref.get_ref() if ref else null
+	if not is_instance_valid(inst):
+		_active_registry.erase(key)
+		return null
+	return inst
+
+static func find_active_for_peer(peer_id: int, slot_index: int) -> AbilityBase:
+	var key: String = _registry_key(peer_id, slot_index)
+	if not _active_registry.has(key):
+		return null
+	var ref = _active_registry[key]
+	var inst = ref.get_ref() if ref else null
+	if not is_instance_valid(inst):
+		_active_registry.erase(key)
+		return null
+	return inst

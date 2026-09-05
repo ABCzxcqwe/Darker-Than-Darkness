@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://dk3kav2q1p0a1"]
+
+[ext_resource type="Script" uid="uid://cyapvbcoaudlv" path="res://Hitboxes/Jevil/basic/JHitbox.gd" id="1_uioaq"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jevil_m1c"]
+radius = 225.0
+
+[node name="SlashHitbox" type="Area2D" unique_id=1229504789]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_uioaq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1658213536]
+position = Vector2(-112.5, 0)
+shape = SubResource("CircleShape2D_jevil_m1c")

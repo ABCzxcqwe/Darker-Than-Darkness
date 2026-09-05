@@ -58,8 +58,8 @@ func _build_button(slot: int) -> Control:
 	icon_rect.offset_right = -2
 	icon_rect.offset_bottom = -2
 	icon_rect.texture = data.icon if data.icon else null
-	icon_rect.expand_mode = 1
-	icon_rect.stretch_mode = 5
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE as TextureRect.ExpandMode
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED as TextureRect.StretchMode
 	panel.add_child(icon_rect)
 
 	# Tecla (1-4 / DPAD) en esquina superior derecha

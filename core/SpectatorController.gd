@@ -1,8 +1,8 @@
 class_name SpectatorController
 extends Node
 
-const SPECTATOR_PANEL_SCENE := preload("res://ui/GameUI/Scenes/SpectatorPanel.tscn")
-const GAME_MENU_SCENE := preload("res://ui/hud/GameMenu.tscn")
+const SPECTATOR_PANEL_SCENE := preload("uid://cd0mergb3r8er")
+const GAME_MENU_SCENE := preload("uid://50v1655uyic8")
 const SPECTATOR_ZOOM := 0.7
 
 var _active := false

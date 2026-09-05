@@ -1,0 +1,704 @@
+[gd_scene format=3 uid="uid://50v1655uyic8"]
+
+[ext_resource type="Script" uid="uid://dml8f36fdsnb" path="res://ui/InGameMenu/dark_game_menu.gd" id="1_hy1v0"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_highlighted"]
+bg_color = Color(1, 0.82, 0.3, 0.14)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.82, 0.3, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0, 0, 0, 0.5)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+
+[node name="DarkGameMenu" type="Control" unique_id=1048152264]
+z_index = 10
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hy1v0")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=946164104]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.25)
+
+[node name="Root" type="MarginContainer" parent="." unique_id=2129877805]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="VBox" type="VBoxContainer" parent="Root" unique_id=140473384]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TabBarWrap" type="Control" parent="Root/VBox" unique_id=151645479]
+custom_minimum_size = Vector2(0, 78)
+layout_mode = 2
+
+[node name="Center" type="CenterContainer" parent="Root/VBox/TabBarWrap" unique_id=600000030]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TabBar" type="HBoxContainer" parent="Root/VBox/TabBarWrap/Center" unique_id=1031354474]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TabStats" type="Panel" parent="Root/VBox/TabBarWrap/Center/TabBar" unique_id=2097341129]
+custom_minimum_size = Vector2(160, 74)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_highlighted")
+
+[node name="VBox" type="VBoxContainer" parent="Root/VBox/TabBarWrap/Center/TabBar/TabStats" unique_id=49210089]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Glyph" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabStats/VBox" unique_id=928299567]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "📊"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabStats/VBox" unique_id=1944561277]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "STATS"
+horizontal_alignment = 1
+
+[node name="TabAudio" type="Panel" parent="Root/VBox/TabBarWrap/Center/TabBar" unique_id=1660010344]
+custom_minimum_size = Vector2(160, 74)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="VBox" type="VBoxContainer" parent="Root/VBox/TabBarWrap/Center/TabBar/TabAudio" unique_id=372040884]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Glyph" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabAudio/VBox" unique_id=235080818]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🎵"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabAudio/VBox" unique_id=254265564]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "AUDIO"
+horizontal_alignment = 1
+
+[node name="TabVideo" type="Panel" parent="Root/VBox/TabBarWrap/Center/TabBar" unique_id=86961172]
+custom_minimum_size = Vector2(160, 74)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="VBox" type="VBoxContainer" parent="Root/VBox/TabBarWrap/Center/TabBar/TabVideo" unique_id=1173503240]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Glyph" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabVideo/VBox" unique_id=1761230613]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🖥"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabVideo/VBox" unique_id=601595481]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "VIDEO"
+horizontal_alignment = 1
+
+[node name="TabControles" type="Panel" parent="Root/VBox/TabBarWrap/Center/TabBar" unique_id=1660345330]
+custom_minimum_size = Vector2(160, 74)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="VBox" type="VBoxContainer" parent="Root/VBox/TabBarWrap/Center/TabBar/TabControles" unique_id=157526827]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Glyph" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabControles/VBox" unique_id=14638464]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🎮"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabControles/VBox" unique_id=934909113]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "CONTROLES"
+horizontal_alignment = 1
+
+[node name="TabSalir" type="Panel" parent="Root/VBox/TabBarWrap/Center/TabBar" unique_id=90856487]
+custom_minimum_size = Vector2(160, 74)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="VBox" type="VBoxContainer" parent="Root/VBox/TabBarWrap/Center/TabBar/TabSalir" unique_id=300768317]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Glyph" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabSalir/VBox" unique_id=1010926464]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🚪"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Root/VBox/TabBarWrap/Center/TabBar/TabSalir/VBox" unique_id=1875127680]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "SALIR"
+horizontal_alignment = 1
+
+[node name="ContentPanel" type="PanelContainer" parent="Root/VBox" unique_id=982804873]
+visible = false
+custom_minimum_size = Vector2(0, 320)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="ContentMargin" type="MarginContainer" parent="Root/VBox/ContentPanel" unique_id=376059576]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="StatsContent" type="VBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin" unique_id=190409484]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=232785385]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "STATS"
+
+[node name="Sep" type="HSeparator" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=195972361]
+layout_mode = 2
+
+[node name="RowKills" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=1164645873]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowKills" unique_id=73313184]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "💀"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowKills" unique_id=1372963799]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Muertes"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowKills" unique_id=938317847]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="RowDamageDealt" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=802739876]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageDealt" unique_id=1973383307]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⚔"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageDealt" unique_id=1986944060]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Daño infligido"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageDealt" unique_id=364237359]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="RowStunsReceived" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=1832792188]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsReceived" unique_id=85077929]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⚡"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsReceived" unique_id=1022676124]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Stuns recibidos"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsReceived" unique_id=1753381652]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="RowDanger" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=1358969655]
+visible = false
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDanger" unique_id=22315744]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⏱"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDanger" unique_id=1468511198]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Tiempo en peligro"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDanger" unique_id=651639832]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0.0s"
+
+[node name="RowDamageTaken" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=1419409524]
+visible = false
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageTaken" unique_id=409391265]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🩸"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageTaken" unique_id=1900942161]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Daño recibido"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageTaken" unique_id=2000646069]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="RowStunsApplied" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=482656587]
+visible = false
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsApplied" unique_id=1790413269]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⚡"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsApplied" unique_id=1667359547]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Stuns aplicados"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsApplied" unique_id=1817869145]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="RowRank" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent" unique_id=2044400921]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowRank" unique_id=1567873214]
+modulate = Color(0.6, 0.6, 0.6, 1)
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🏅"
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowRank" unique_id=1725799894]
+modulate = Color(0.6, 0.6, 0.6, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Rango"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/StatsContent/RowRank" unique_id=949335170]
+modulate = Color(0.6, 0.6, 0.6, 1)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Próximamente"
+
+[node name="AudioContent" type="VBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin" unique_id=689498895]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent" unique_id=1420325300]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "AUDIO"
+
+[node name="Sep" type="HSeparator" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent" unique_id=500873643]
+layout_mode = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent" unique_id=514398288]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent/MusicRow" unique_id=993503802]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Música"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent/MusicRow" unique_id=600000023]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "< IIIIIIIIII > 100%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent" unique_id=438516893]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent/SfxRow" unique_id=642894574]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "SFX"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/AudioContent/SfxRow" unique_id=600000024]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "< IIIIIIIIII > 100%"
+horizontal_alignment = 2
+
+[node name="VideoContent" type="VBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin" unique_id=1091133383]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent" unique_id=608433751]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "VIDEO"
+
+[node name="Sep" type="HSeparator" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent" unique_id=613280342]
+layout_mode = 2
+
+[node name="BrightnessRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent" unique_id=600000001]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/BrightnessRow" unique_id=600000002]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Brillo"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/BrightnessRow" unique_id=600000004]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "< IIIII..... > 100%"
+horizontal_alignment = 2
+
+[node name="DisplayRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent" unique_id=600000005]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/DisplayRow" unique_id=600000006]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Pantalla"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/DisplayRow" unique_id=600000007]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Completo"
+horizontal_alignment = 2
+
+[node name="VhsRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent" unique_id=600000008]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/VhsRow" unique_id=600000009]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "VHS"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/VideoContent/VhsRow" unique_id=600000010]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "[X]"
+horizontal_alignment = 2
+
+[node name="ControlesContent" type="VBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin" unique_id=1724778206]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent" unique_id=1503097184]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "CONTROLES"
+
+[node name="Sep" type="HSeparator" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent" unique_id=1835887449]
+layout_mode = 2
+
+[node name="DeadzoneRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent" unique_id=600000011]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent/DeadzoneRow" unique_id=600000012]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Zona muerta"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent/DeadzoneRow" unique_id=600000014]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "< III....... > 0.20"
+horizontal_alignment = 2
+
+[node name="ResetRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent" unique_id=600000015]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent/ResetRow" unique_id=600000016]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Restablecer"
+
+[node name="Value" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/ControlesContent/ResetRow" unique_id=600000017]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Mandos"
+horizontal_alignment = 2
+
+[node name="SalirContent" type="VBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin" unique_id=771473715]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Question" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent" unique_id=1868200576]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "¿Seguro que quieres salir del juego?"
+horizontal_alignment = 1
+
+[node name="OptionsRow" type="HBoxContainer" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent" unique_id=1188762748]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="OptSi" type="Panel" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow" unique_id=686688966]
+custom_minimum_size = Vector2(130, 52)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_normal")
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptSi" unique_id=963430194]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "SÍ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OptNo" type="Panel" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow" unique_id=327212598]
+custom_minimum_size = Vector2(130, 52)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_highlighted")
+
+[node name="Label" type="Label" parent="Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptNo" unique_id=1890308990]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "NO"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HintWrap" type="Control" parent="." unique_id=600000025]
+layout_mode = 1
+anchor_top = 0.85
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="HintCenter" type="CenterContainer" parent="HintWrap" unique_id=600000026]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HintBox" type="PanelContainer" parent="HintWrap/HintCenter" unique_id=600000020]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
+
+[node name="HintMargin" type="MarginContainer" parent="HintWrap/HintCenter/HintBox" unique_id=600000021]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 8
+
+[node name="Hint" type="Label" parent="HintWrap/HintCenter/HintBox/HintMargin" unique_id=600000022]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar"
+horizontal_alignment = 1

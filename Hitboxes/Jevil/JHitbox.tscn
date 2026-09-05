@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dtwhp2a1qhtwu"]
 
-[ext_resource type="Script" path="res://Hitboxes/Jevil/JHitbox.gd" id="1_uioaq"]
+[ext_resource type="Script" uid="uid://cyapvbcoaudlv" path="res://Hitboxes/Jevil/basic/JHitbox.gd" id="1_uioaq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wmosr"]
 size = Vector2(220, 150)

@@ -83,9 +83,9 @@ func _draw() -> void:
 
 
 @rpc("any_peer", "call_local", "reliable")
-func _sync_indicator(show: bool) -> void:
-	_show_indicator = show
-	if show:
+func _sync_indicator(should_show: bool) -> void:
+	_show_indicator = should_show
+	if should_show:
 		_indicator_time = 0.0
 	queue_redraw()
 

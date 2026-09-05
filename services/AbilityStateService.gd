@@ -295,6 +295,27 @@ func update_mode_data(peer_id: int, slot_index: int, key: String, value: Variant
 	_states[peer_id][slot_index]["mode_data"][key] = value
 
 
+# ── Helpers específicos Rage (desacopla StatusEffectService de AbilityData/PlayerRegistry) ──
+const RAGE_SLOT_INDEX: int = 4
+
+func get_rage_stun_resistance(peer_id: int) -> float:
+	if not is_mode_active(peer_id, RAGE_SLOT_INDEX):
+		return 0.0
+	var md: Dictionary = get_mode_data(peer_id, RAGE_SLOT_INDEX)
+	return md.get("stun_resistance", 0.0)
+
+func consume_rage_stun_hit(peer_id: int) -> void:
+	if not is_mode_active(peer_id, RAGE_SLOT_INDEX):
+		return
+	var md: Dictionary = get_mode_data(peer_id, RAGE_SLOT_INDEX)
+	var hits: int = md.get("stun_hits", 0) + 1
+	update_mode_data(peer_id, RAGE_SLOT_INDEX, "stun_hits", hits)
+	var base: float = md.get("base_resistance", 0.5)
+	var decay: float = md.get("decay_resistance", 0.1)
+	var resist: float = clampf(base - decay * hits, 0.0, 0.9)
+	update_mode_data(peer_id, RAGE_SLOT_INDEX, "stun_resistance", resist)
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # API — RESET
 # ════════════════════════════════════════════════════════════════════════════

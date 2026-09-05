@@ -40,6 +40,10 @@ func register_player(player_node: Node, peer_id: int, character_data: Resource) 
 	if tp and tp.has_method("register_player"):
 		tp.register_player(peer_id, character_data)
 
+	var ms_svc = GameServiceLocator.match_stats
+	if ms_svc and ms_svc.has_method("register_player"):
+		ms_svc.register_player(peer_id, character_data)
+
 
 ## Otorga visibilidad de sincronización en ambas direcciones:
 ## 1) El jugador recién registrado se hace visible para todos los peers ya conectados.
@@ -149,6 +153,10 @@ func unregister_player(peer_id: int, player_node: Node) -> void:
 	var stam_svc = GameServiceLocator.stamina
 	if stam_svc and stam_svc.has_method("unregister_player"):
 		stam_svc.unregister_player(peer_id)
+
+	var ms_svc = GameServiceLocator.match_stats
+	if ms_svc and ms_svc.has_method("unregister_player"):
+		ms_svc.unregister_player(peer_id)
 
 	var cd = GameServiceLocator.cooldown
 	if cd and cd.has_method("clear_player"):

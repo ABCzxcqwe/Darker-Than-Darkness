@@ -247,7 +247,7 @@ func _event_signature(event: InputEvent) -> String:
 func _device_of_event(event: InputEvent) -> int:
 	if event is InputEventKey or event is InputEventMouseButton or event is InputEventMouseMotion:
 		return InputDevice.MOUSE
-	if event is InputEventJoypadButton:
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		return InputDevice.GAMEPAD
 	return -1
 
@@ -269,15 +269,15 @@ func _decode_event(data: String) -> InputEvent:
 	match parts[0]:
 		"key":
 			var ke := InputEventKey.new()
-			ke.physical_keycode = int(parts[1])
+			ke.physical_keycode = int(parts[1]) as Key
 			return ke
 		"mouse":
 			var me := InputEventMouseButton.new()
-			me.button_index = int(parts[1])
+			me.button_index = int(parts[1]) as MouseButton
 			return me
 		"button":
 			var be := InputEventJoypadButton.new()
-			be.button_index = int(parts[1])
+			be.button_index = int(parts[1]) as JoyButton
 			return be
 	return null
 

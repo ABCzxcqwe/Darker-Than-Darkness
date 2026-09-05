@@ -72,7 +72,10 @@ func _physics_process(_delta: float) -> void:
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
 		var stam_svc = GameServiceLocator.stamina
-		var can_sprint = want_sprint and stam_svc.has_stamina(player.get_multiplayer_authority())
+		var status_svc = GameServiceLocator.status_effect
+		var pid = player.get_multiplayer_authority()
+		var sprint_blocked = status_svc and status_svc.is_sprint_disabled(pid)
+		var can_sprint = want_sprint and stam_svc.has_stamina(pid) and not sprint_blocked
 
 		if can_sprint != _is_sprinting:
 			_is_sprinting = can_sprint

@@ -91,7 +91,43 @@ func _setup_map_audio() -> void:
 
 
 func _cleanup_match_audio() -> void:
+	if multiplayer.is_server():
+		rpc("_rpc_cleanup_match_audio")
+	else:
+		_rpc_cleanup_match_audio()
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_cleanup_match_audio() -> void:
+	# Silencio total replicado a todos los peers (fix: antes solo servidor)
 	AudioManager.reset_match_audio()
+	# reset_match_audio ya detiene lms/rage y resetea prioridad, pero
+	# aseguramos desactivación sin rebote extra de RPC N^2
+	if AudioManager.has_method("_rpc_deactivate_rage_music"):
+		# llamada directa local: el rpc desde servidor ya llegó a todos via este _rpc_cleanup
+		if AudioManager._current_priority == AudioManager.PriorityLevel.SPECIAL:
+			AudioManager._current_priority = AudioManager.PriorityLevel.NONE
+			if AudioManager.lms_music_player:
+				if AudioManager.lms_music_player.playing:
+					AudioManager.lms_music_player.stop()
+				AudioManager.lms_music_player.stream = null
+	var timer = GameServiceLocator.timer
+	if timer:
+		timer.is_paused = false
+		if multiplayer.is_server():
+			timer.rpc("_rpc_set_paused", false)
+	var mec = GameServiceLocator.map_event_coordinator
+	if mec:
+		if multiplayer.is_server():
+			mec.rpc("_rpc_rage_exits_restore")
+		else:
+			mec._rage_active = false
+			mec._rage_closed_exits.clear()
+	if _client_relay:
+		if multiplayer.is_server():
+			_client_relay.rpc("_rpc_rage_time", -1, 0.0)
+		else:
+			_client_relay.rage_time_changed.emit(-1, 0.0)
 
 
 # ─── TIMER ───────────────────────────────────────────────
@@ -289,6 +325,10 @@ func _add_start_of_match_points() -> void:
 # ─── END MATCH ───────────────────────────────────────────
 
 func _calculate_killer_points(reason: String) -> void:
+	# El killer forzado tenía 99 solo para garantizar la selección; su verdadero
+	# valor previo se guarda en _prev_killer_points. Como _add_start ya reseteó
+	# al killer a 0, solo necesitamos limpiar el backup sin restaurar.
+	# Nota: si la partida no llegó a _add_start (aborto), clear restaurará el 99.
 	for pid in LobbyManager.players:
 		if not LobbyManager.players.has(pid):
 			continue
@@ -303,6 +343,15 @@ func _calculate_killer_points(reason: String) -> void:
 				LobbyManager.players[pid]["killer_points"] += 1
 			else:
 				LobbyManager.players[pid]["killer_points"] += 2
+	# Limpiar backup del forzado (si existía) y flag
+	if LobbyManager.forced_killer_peer != -1:
+		var fk: int = LobbyManager.forced_killer_peer
+		if LobbyManager.players.has(fk) and LobbyManager.players[fk].has("_prev_killer_points"):
+			# Si nunca se reseteó (partida abortada antes de PLAYING), el valor aún es 99
+			if LobbyManager.players[fk].get("killer_points", 0) == 99:
+				LobbyManager.players[fk]["killer_points"] = LobbyManager.players[fk]["_prev_killer_points"]
+			LobbyManager.players[fk].erase("_prev_killer_points")
+		LobbyManager.forced_killer_peer = -1
 
 
 func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
@@ -314,6 +363,9 @@ func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
 		"time_left": final_time,
 		"players_snapshot": LobbyManager.players.duplicate(true)
 	}
+	var stats_service = GameServiceLocator.match_stats
+	if stats_service:
+		stats_data["player_stats"] = stats_service.get_snapshot()
 	if not extra.is_empty():
 		stats_data.merge(extra)
 	MatchCoordinator.rpc("_go_to_stats_screen", stats_data)

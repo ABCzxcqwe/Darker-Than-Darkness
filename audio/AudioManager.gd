@@ -11,8 +11,9 @@ enum ChaseVariantType { NORMAL = 0, LAST_LIFE = 1 }
 # =======================================================================
 # ESTADOS
 # =======================================================================
-var current_global_state: String = "menu"
+var current_global_state: String = "boot"
 var lms_bloqueo_activo: bool = false
+const BOOT_SCENES: Array[String] = ["Boot", "TerminalLoader", "Intro", "FirstTime", "LegalNotice"]
 var _is_chasing: bool = false
 var _current_priority: int = PriorityLevel.NONE
 var _chase_variant: int = ChaseVariantType.NORMAL
@@ -22,10 +23,21 @@ var _chase_variant: int = ChaseVariantType.NORMAL
 @onready var terror_music_player: AudioStreamPlayer = $TerrorMusicPlayer
 @onready var chase_music_player: AudioStreamPlayer = $ChaseMusicPlayer
 @onready var lms_music_player: AudioStreamPlayer = $LMSMusicPlayer
+@onready var menu_music_player: AudioStreamPlayer = $MenuMusicPlayer
+
+var _last_menu_path: String = ""
 
 # Streams de chase (se intercambian según variante)
 var _chase_stream_normal: AudioStream = null
 var _chase_stream_last_life: AudioStream = null
+
+# Loop configurable (segundos). -1 = sin recorte.
+var _map_loop_start: float = 0.0
+var _map_loop_end: float = -1.0
+var _final_loop_start: float = 0.0
+var _final_loop_end: float = -1.0
+var _priority_before_special: int = PriorityLevel.NONE
+var _escape_was_active: bool = false
 
 # =======================================================================
 # RADIOS (se sobreescriben desde CharacterData del asesino)
@@ -179,9 +191,33 @@ func _ready() -> void:
 	_load_sfx_files()
 
 func _process(delta: float) -> void:
+	# Silencio total durante boot (Boot/Terminal/Intro/FirstTime/LegalNotice)
+	if current_global_state == "boot":
+		# Asegurar menú silenciado mientras carga
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		return
+	var cur_name: String = get_tree().current_scene.name if get_tree().current_scene else ""
+	if cur_name in BOOT_SCENES:
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		return
+	# Menu drone: canal dedicado Menu Music -> Master, aislado de Map Music.
+	if current_global_state == "menu" and multiplayer.multiplayer_peer == null:
+		if menu_music_player and (menu_music_player.stream == null or not menu_music_player.playing):
+			if cur_name != "CharacterSelect":
+				play_menu_drone()
+				return
+	if current_global_state == "menu_drone":
+		if menu_music_player and menu_music_player.stream and not menu_music_player.playing:
+			menu_music_player.volume_db = MAX_DB
+			menu_music_player.play()
+		return
 	if _is_disconnected_or_menu():
 		_silence_all_match_audio(delta)
 		return
+
+	_handle_loop_ends()
 
 	if cached_local_player_id == -1:
 		cached_local_player_id = multiplayer.get_unique_id()
@@ -191,10 +227,31 @@ func _process(delta: float) -> void:
 
 	_update_proximities(cached_local_player, delta)
 
+
+func _handle_loop_ends() -> void:
+	# Para MP3/Ogg nativo no tiene loop_end, recortamos silencio con seek manual.
+	# WAV ya loopea nativo via loop_begin/end, no necesita polling.
+	if _map_loop_end > 0.0 and map_music_player and map_music_player.playing and map_music_player.stream:
+		# Solo para streams que no son WAV (WAV ya corta nativo)
+		if not (map_music_player.stream is AudioStreamWAV):
+			var pos := map_music_player.get_playback_position()
+			if pos >= _map_loop_end:
+				map_music_player.seek(_map_loop_start)
+	if _final_loop_end > 0.0 and lms_music_player and lms_music_player.playing and lms_music_player.stream:
+		# final_phase_music comparte lms_music_player cuando prioridad ESCAPE
+		if _current_priority == PriorityLevel.ESCAPE and not (lms_music_player.stream is AudioStreamWAV):
+			var pos2 := lms_music_player.get_playback_position()
+			if pos2 >= _final_loop_end:
+				lms_music_player.seek(_final_loop_start)
+
 func _is_disconnected_or_menu() -> bool:
+	if current_global_state == "menu_drone":
+		return false
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		return true
 	if current_global_state == "menu" or current_global_state == "lobby":
+		return true
+	if LobbyManager and LobbyManager.current_phase == LobbyManager.GamePhase.ENDED:
 		return true
 	return false
 
@@ -309,18 +366,60 @@ func _check_occlusion(from: Vector2, to: Vector2) -> bool:
 # API PÚBLICA — INYECCIÓN
 # =======================================================================
 func _set_stream_loop(stream: AudioStream, loop: bool) -> void:
-	if stream and "loop" in stream:
+	# Legacy wrapper — ahora usa _configure_stream_loop con duplicate.
+	# Mantenido para compatibilidad con llamadas externas.
+	if stream == null:
+		return
+	var s := _configure_stream_loop(stream, 0.0, -1.0, loop)
+	# Nota: caller debe reasignar stream = s si quiere usar el duplicate.
+	# Para compat, si es WAV o tiene loop, mutamos original como fallback.
+	if s != stream and "loop" in stream:
 		stream.loop = loop
+
+
+func _duplicate_stream(stream: AudioStream) -> AudioStream:
+	if stream == null:
+		return null
+	# duplicate() crea instancia separada para no mutar el Resource de MapData
+	if stream.has_method("duplicate"):
+		return stream.duplicate() as AudioStream
+	return stream
+
+
+func _configure_stream_loop(stream: AudioStream, loop_start: float, loop_end: float, loop: bool = true) -> AudioStream:
+	if stream == null:
+		return null
+	var s := _duplicate_stream(stream)
+	if loop and s is AudioStreamWAV:
+		var wav := s as AudioStreamWAV
+		var orig := stream as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
+		if loop_start >= 0.0:
+			wav.loop_begin = int(loop_start * wav.mix_rate)
+		if loop_end >= 0.0:
+			wav.loop_end = int(loop_end * wav.mix_rate)
+		elif loop_end < 0:
+			# -1 = mantener loop_end original del import (96367 para AUDIO_DRONE).
+			# Forzar -1 rompe el loop en WAV importados con data_len fijo (se detiene a los 2 frames).
+			if orig:
+				wav.loop_end = orig.loop_end
+			# si orig no disponible, dejar -1 como fallback para streams procedurales
+		return wav
+	if "loop" in s:
+		s.loop = loop
+		if loop and "loop_offset" in s:
+			s.loop_offset = maxf(loop_start, 0.0)
+	return s
 
 
 func set_character_threat_audio(terror_stream: AudioStream, chase_stream: AudioStream) -> void:
 	if terror_music_player:
-		terror_music_player.stream = terror_stream
-		_set_stream_loop(terror_stream, true)
+		var s1 := _configure_stream_loop(terror_stream, 0.0, -1.0, true) if terror_stream else null
+		terror_music_player.stream = s1
 	if chase_music_player:
-		_chase_stream_normal = chase_stream
-		chase_music_player.stream = chase_stream
-		_set_stream_loop(chase_stream, true)
+		var s2 := _configure_stream_loop(chase_stream, 0.0, -1.0, true) if chase_stream else null
+		_chase_stream_normal = s2
+		chase_music_player.stream = s2
 
 func set_killer_config(terror_r: float, chase_r: float) -> void:
 	terror_radius = terror_r
@@ -328,19 +427,23 @@ func set_killer_config(terror_r: float, chase_r: float) -> void:
 	chase_radius_expanded = chase_r * 2.0
 
 func reset_match_audio() -> void:
-	if map_music_player.playing:
+	if map_music_player and map_music_player.playing:
 		map_music_player.stop()
-	if terror_music_player.playing:
+	if terror_music_player and terror_music_player.playing:
 		terror_music_player.stop()
-	if chase_music_player.playing:
+	if chase_music_player and chase_music_player.playing:
 		chase_music_player.stop()
-	if lms_music_player.playing:
+	if lms_music_player and lms_music_player.playing:
 		lms_music_player.stop()
 
-	map_music_player.stream = null
-	terror_music_player.stream = null
-	chase_music_player.stream = null
-	lms_music_player.stream = null
+	if map_music_player:
+		map_music_player.stream = null
+	if terror_music_player:
+		terror_music_player.stream = null
+	if chase_music_player:
+		chase_music_player.stream = null
+	if lms_music_player:
+		lms_music_player.stream = null
 
 	_chase_stream_normal = null
 	_chase_stream_last_life = null
@@ -349,9 +452,16 @@ func reset_match_audio() -> void:
 	cached_local_player_id = -1
 
 	_current_priority = PriorityLevel.NONE
+	_priority_before_special = PriorityLevel.NONE
+	_escape_was_active = false
 	lms_bloqueo_activo = false
 	_is_chasing = false
 	_chase_variant = ChaseVariantType.NORMAL
+
+	_map_loop_start = 0.0
+	_map_loop_end = -1.0
+	_final_loop_start = 0.0
+	_final_loop_end = -1.0
 
 	current_global_state = "menu"
 
@@ -363,9 +473,14 @@ func setup_map_audio(map_id: String) -> void:
 	var map_data = MapRegistry.get_map(map_id) as MapData
 	if not map_data:
 		return
-	if map_music_player:
-		map_music_player.stream = map_data.map_bgm
-		_set_stream_loop(map_data.map_bgm, true)
+	if map_music_player and map_data.map_bgm:
+		var s := _configure_stream_loop(map_data.map_bgm, map_data.map_bgm_loop_start, map_data.map_bgm_loop_end, true)
+		map_music_player.stream = s
+		_map_loop_start = maxf(map_data.map_bgm_loop_start, 0.0)
+		_map_loop_end = map_data.map_bgm_loop_end
+	else:
+		_map_loop_start = 0.0
+		_map_loop_end = -1.0
 	setup_map_audio_finish()
 
 func setup_map_audio_finish() -> void:
@@ -374,17 +489,25 @@ func setup_map_audio_finish() -> void:
 func register_match_character_music(killer_terror: AudioStream, killer_chase: AudioStream, survivor_lms: AudioStream) -> void:
 	set_character_threat_audio(killer_terror, killer_chase)
 	if lms_music_player and survivor_lms:
-		lms_music_player.stream = survivor_lms
-		_set_stream_loop(survivor_lms, false)
+		var s := _configure_stream_loop(survivor_lms, 0.0, -1.0, false)
+		lms_music_player.stream = s
 	if current_global_state == "ingame":
 		_restore_base()
 
 func change_audio_state(new_state: String) -> void:
 	current_global_state = new_state
-	if new_state == "ingame" and not lms_bloqueo_activo:
-		if map_music_player.stream and not map_music_player.playing:
-			map_music_player.volume_db = MAX_DB
-			map_music_player.play()
+	if new_state == "menu_drone":
+		if menu_music_player and menu_music_player.stream and not menu_music_player.playing:
+			menu_music_player.volume_db = MAX_DB
+			menu_music_player.play()
+		return
+	if new_state == "ingame":
+		if menu_music_player and menu_music_player.playing:
+			menu_music_player.stop()
+		if not lms_bloqueo_activo:
+			if map_music_player.stream and not map_music_player.playing:
+				map_music_player.volume_db = MAX_DB
+				map_music_player.play()
 
 # =======================================================================
 # PRIORIDAD: SPECIAL → ESCAPE → LMS
@@ -443,30 +566,37 @@ func _start_priority_stream(priority: int) -> void:
 	if lms_music_player:
 		var map_data = MapRegistry.get_map(GameData.selected_map if "selected_map" in GameData else "") as MapData
 		var stream: AudioStream = null
+		var loop_start: float = 0.0
+		var loop_end: float = -1.0
 		if priority == PriorityLevel.ESCAPE and map_data and map_data.final_phase_music:
 			stream = map_data.final_phase_music
+			loop_start = map_data.final_phase_loop_start
+			loop_end = map_data.final_phase_loop_end
 		if stream:
-			lms_music_player.stream = stream
-			_set_stream_loop(stream, true)
+			var s := _configure_stream_loop(stream, loop_start, loop_end, true)
+			lms_music_player.stream = s
+			_final_loop_start = maxf(loop_start, 0.0)
+			_final_loop_end = loop_end
 			lms_music_player.volume_db = MAX_DB
 			lms_music_player.play()
+		else:
+			_final_loop_start = 0.0
+			_final_loop_end = -1.0
 
 # =======================================================================
 # CHASE VARIANT
 # =======================================================================
 func set_last_life_chase_stream(stream: AudioStream) -> void:
-	_chase_stream_last_life = stream
-	_set_stream_loop(stream, true)
+	var s := _configure_stream_loop(stream, 0.0, -1.0, true) if stream else null
+	_chase_stream_last_life = s
 
 func set_chase_variant(variant: int) -> void:
 	_chase_variant = variant
 	if chase_music_player:
 		if variant == ChaseVariantType.LAST_LIFE and _chase_stream_last_life:
 			chase_music_player.stream = _chase_stream_last_life
-			_set_stream_loop(_chase_stream_last_life, true)
 		elif variant == ChaseVariantType.NORMAL and _chase_stream_normal:
 			chase_music_player.stream = _chase_stream_normal
-			_set_stream_loop(_chase_stream_normal, true)
 
 # =======================================================================
 # RPCs (LMS)
@@ -477,14 +607,15 @@ func _rpc_activate_lms_audio(survivor_peer_id: int) -> void:
 	if is_instance_valid(survivor_node) and "character_data" in survivor_node:
 		var char_data = survivor_node.character_data
 		if char_data and char_data.lms_music:
-			lms_music_player.stream = char_data.lms_music
-			_set_stream_loop(char_data.lms_music, false)
+			# LMS no loopea por diseño (false), configurar sin loop
+			var s := _configure_stream_loop(char_data.lms_music, 0.0, -1.0, false)
+			lms_music_player.stream = s
 	_current_priority = PriorityLevel.LMS
 	lms_bloqueo_activo = true
-	if terror_music_player.playing: terror_music_player.stop()
-	if chase_music_player.playing: chase_music_player.stop()
-	if map_music_player.playing: map_music_player.stop()
-	if lms_music_player.stream:
+	if terror_music_player and terror_music_player.playing: terror_music_player.stop()
+	if chase_music_player and chase_music_player.playing: chase_music_player.stop()
+	if map_music_player and map_music_player.playing: map_music_player.stop()
+	if lms_music_player and lms_music_player.stream:
 		lms_music_player.volume_db = MAX_DB
 		lms_music_player.play()
 
@@ -501,8 +632,108 @@ func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
 
 # =======================================================================
+# RPCs (RAGE — ultimate de Jevil)
+# Reutiliza lms_music_player con prioridad SPECIAL. El guard de
+# desactivación evita pisar la música del LMS si éste canceló el Rage.
+# =======================================================================
+## Tema del ultimate. Si cambias la música, ajusta también
+## RAGE_DURATION en abilities/jevil/Rage/Rage.gd.
+const RAGE_MUSIC_PATH := "res://Characters/Jevil/assets/Music/THE WORLD REVOLVING.mp3"
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_activate_rage_music() -> void:
+	var stream := load(RAGE_MUSIC_PATH) as AudioStream
+	if stream == null:
+		push_warning("[AudioManager] Música del Rage no encontrada: ", RAGE_MUSIC_PATH)
+		return
+	# Guardar si estábamos en ESCAPE para restaurar condicional (Rage no siempre en escape)
+	_priority_before_special = _current_priority
+	_escape_was_active = (_current_priority == PriorityLevel.ESCAPE)
+	var s := _configure_stream_loop(stream, 0.0, -1.0, false)
+	if map_music_player and map_music_player.playing:
+		map_music_player.stop()
+	if terror_music_player and terror_music_player.playing:
+		terror_music_player.stop()
+	if chase_music_player and chase_music_player.playing:
+		chase_music_player.stop()
+	if lms_music_player and lms_music_player.playing:
+		lms_music_player.stop()
+	lms_music_player.stream = s
+	lms_music_player.volume_db = MAX_DB
+	lms_music_player.play()
+	_current_priority = PriorityLevel.SPECIAL
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_deactivate_rage_music() -> void:
+	if _current_priority != PriorityLevel.SPECIAL:
+		return
+	var was_escape := _escape_was_active
+	_escape_was_active = false
+	_priority_before_special = PriorityLevel.NONE
+	_current_priority = PriorityLevel.NONE
+	if lms_music_player.playing:
+		lms_music_player.stop()
+	lms_music_player.stream = null
+	# Restore condicional: si la fase escape sigue activa al terminar Rage, volver a final_phase_music
+	# (Rage no siempre está en escape — respetar tu acotación: solo restaurar si final_phase_triggered)
+	var mec = GameServiceLocator.map_event_coordinator
+	var should_restore_escape: bool = was_escape or (mec != null and mec._final_phase_triggered)
+	if should_restore_escape and mec != null and mec._final_phase_triggered:
+		# LMS tiene prioridad mayor (3) que ESCAPE (1) — si queda 1 vivo, LMS debe sonar en vez de escape
+		var alive_count := 0
+		for s in get_tree().get_nodes_in_group("survivor"):
+			if "health_state" in s and s.health_state == "alive":
+				alive_count += 1
+		if alive_count <= 1 and lms_music_player and lms_music_player.stream:
+			_restore_base()
+			return
+		_start_priority_stream(PriorityLevel.ESCAPE)
+		if lms_music_player.stream and lms_music_player.playing:
+			return
+	# Caso normal (Rage en PLAYING o sin fase final): restaurar base (LMS si corresponde sino map_bgm)
+	_restore_base()
+
+# =======================================================================
 # HELPERS
 # =======================================================================
+func play_menu_drone(path: String = "") -> void:
+	if path == "":
+		var tm := get_node_or_null("/root/ThemeManager")
+		if tm and tm.has_method("get_music_path"):
+			path = tm.get_music_path()
+		else:
+			path = "res://ui/Boot/scenes/AUDIO_DRONE.wav"
+	# Idempotencia: no reiniciar si ya estamos en menu_drone con mismo path sonando
+	if current_global_state == "menu_drone" and menu_music_player and menu_music_player.playing and menu_music_player.stream != null and _last_menu_path == path and path != "":
+		return
+	if _last_menu_path == path and current_global_state == "menu_drone" and menu_music_player and menu_music_player.playing:
+		return
+	var s := load(path) as AudioStream
+	if s == null:
+		push_warning("[AudioManager] AUDIO_DRONE no encontrado: " + path)
+		return
+	s = _configure_stream_loop(s, 0.0, -1.0, true)
+	if menu_music_player:
+		if menu_music_player.playing:
+			menu_music_player.stop()
+		menu_music_player.stream = s
+		menu_music_player.volume_db = MAX_DB
+		var sm := get_node_or_null("/root/SettingsManager")
+		if sm and "music_volume" in sm:
+			var idx := AudioServer.get_bus_index(&"Menu Music")
+			if idx != -1:
+				AudioServer.set_bus_volume_db(idx, linear_to_db(float(sm.music_volume)))
+		menu_music_player.play()
+		_last_menu_path = path
+		change_audio_state("menu_drone")
+
+func stop_menu_drone() -> void:
+	if menu_music_player and menu_music_player.playing:
+		menu_music_player.stop()
+	if current_global_state == "menu_drone":
+		current_global_state = "menu"
+
 func _restore_base() -> void:
 	var alive_count := 0
 	for s in get_tree().get_nodes_in_group("survivor"):
@@ -520,11 +751,14 @@ func _restore_base() -> void:
 			map_music_player.volume_db = MAX_DB
 
 func _silence_all_match_audio(delta: float) -> void:
+	if current_global_state == "menu_drone":
+		return
 	lms_bloqueo_activo = false
 	_smooth_fade(map_music_player, MIN_DB, delta)
 	_smooth_fade(terror_music_player, MIN_DB, delta)
 	_smooth_fade(chase_music_player, MIN_DB, delta)
 	_smooth_fade(lms_music_player, MIN_DB, delta)
+	# Menu Music es canal dedicado -> nunca fadear aquí
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
 	for group_name in ["survivor", "killer"]:

@@ -24,6 +24,7 @@ const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
 
 const LANZA_TEX := preload("uid://ksj6jcxhc5yk")       # lanza.png
 const LANZA_CABEZA_TEX := preload("uid://c0s1t2np4oujg") # lanza_cabeza.png
+const HOOK_WALL_SHAPE_SIZE := Vector2(70, 70)            # tamaño colisión gancho (modular)
 
 enum Phase { EXTEND, GRAB, HOOK, RETURN, DONE }
 
@@ -61,10 +62,24 @@ func _ready() -> void:
 		set_physics_process(false)
 		return
 	set_multiplayer_authority(1)
+	_ensure_wall_collision()
 	var detector = $HurtboxDetector
 	detector.collision_mask = collision_mask
 	detector.area_entered.connect(_on_area_entered)
 	set_deferred("collision_mask", collision_mask | 1)  # layer 1 = mundo (paredes)
+
+
+func _ensure_wall_collision() -> void:
+	# Fallback modular: si la escena no trae BodyShape (ej. reimport), lo crea en runtime.
+	# Así el gancho no depende 100% del .tscn y mantiene la modularidad HitboxService -> Projectile.
+	if has_node("BodyShape"):
+		return
+	var shape_node := CollisionShape2D.new()
+	shape_node.name = "BodyShape"
+	var rect := RectangleShape2D.new()
+	rect.size = HOOK_WALL_SHAPE_SIZE
+	shape_node.shape = rect
+	add_child(shape_node)
 
 
 func _process(_delta: float) -> void:

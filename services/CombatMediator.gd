@@ -22,6 +22,9 @@ var _client_relay: Node = null
 
 signal damage_dealt(attacker_id: int, target_id: int, final_damage: int, attack_type: String)
 signal stun_applied(target_id: int, duration: float)
+## Variante de stun_applied que incluye al atacante (para estadísticas).
+## Solo se emite cuando apply_stun recibe el parámetro attacker.
+signal stun_applied_by(attacker_id: int, target_id: int, duration: float)
 signal heal_applied(caster_id: int, target_id: int, amount: int)
 
 func set_client_relay(relay: Node) -> void:
@@ -80,6 +83,14 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if not health_svc.is_alive(target_peer):
 		return 0
 
+	var now := Time.get_ticks_msec()
+	# Invencibilidad por habilidad (ej: King Topo): bloquea todo daño salvo special_defense_against.
+	# Debe evaluarse ANTES del early-return de killer para que King sea invencible durante Topo.
+	if now < target.invincible_until:
+		if target.character_data and \
+		   not attack_type in target.character_data.special_defense_against:
+			return 0
+
 	if target.character_data and target.character_data.team == "killer":
 		# Los killers actuales no tienen vida: solo se muestra el número visual del daño.
 		# Durante su invulnerabilidad (stun-immunity) los ataques lo atraviesan sin feedback.
@@ -91,12 +102,6 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if is_instance_valid(attacker) and status_svc and status_svc.has_method("get_blind_miss_chance"):
 		var miss_chance: float = status_svc.get_blind_miss_chance(attacker.get_multiplayer_authority())
 		if miss_chance > 0.0 and randf() < miss_chance:
-			return 0
-
-	var now := Time.get_ticks_msec()
-	if now < target.invincible_until:
-		if target.character_data and \
-		   not attack_type in target.character_data.special_defense_against:
 			return 0
 
 	final_damage = _apply_protections(target_peer, target, final_damage)
@@ -270,7 +275,7 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 	return false
 
 
-func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> void:
+func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0, attacker: Node = null) -> void:
 	if not multiplayer.is_server():
 		return
 
@@ -279,6 +284,10 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0) -> voi
 
 	var target_peer: int = target.get_multiplayer_authority() if target else -1
 	stun_applied.emit(target_peer, duration)
+
+	if attacker and is_instance_valid(attacker):
+		var attacker_peer: int = attacker.get_multiplayer_authority()
+		stun_applied_by.emit(attacker_peer, target_peer, duration)
 
 	var status = _status_effect_service
 	if status:
@@ -443,6 +452,48 @@ func unregister_all_for_protector(protector_id: int) -> void:
 			if is_instance_valid(_protection_timers[key]):
 				_protection_timers[key].stop()
 			_protection_timers.erase(key)
+
+
+func has_protection(protected_id: int, type: int) -> bool:
+	if not _protections.has(protected_id):
+		return false
+	for p in _protections[protected_id]:
+		if p.type == type:
+			return true
+	return false
+
+
+func has_death_shield(peer_id: int) -> bool:
+	return has_protection(peer_id, ProtectionType.DEATH_SHIELD)
+
+
+func get_protectors_for(protected_id: int, type: int) -> Array:
+	var result: Array = []
+	if not _protections.has(protected_id):
+		return result
+	for p in _protections[protected_id]:
+		if p.type == type:
+			result.append(p.protector_id)
+	return result
+
+
+## Consume el death shield del peer (solo el escudo, mantiene DAMAGE_SHARE).
+## Retorna lista de protector_ids afectados para poder romper FX.
+func consume_death_shield(protected_id: int) -> Array:
+	var protectors: Array = get_protectors_for(protected_id, ProtectionType.DEATH_SHIELD)
+	if protectors.is_empty():
+		return protectors
+	_protections[protected_id] = _protections[protected_id].filter(
+		func(p): return p.type != ProtectionType.DEATH_SHIELD
+	)
+	if _protections[protected_id].is_empty():
+		_protections.erase(protected_id)
+	for pid in protectors:
+		var key := "%d_%d_%d" % [protected_id, pid, ProtectionType.DEATH_SHIELD]
+		if _protection_timers.has(key) and is_instance_valid(_protection_timers[key]):
+			_protection_timers[key].stop()
+			_protection_timers.erase(key)
+	return protectors
 
 
 func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:

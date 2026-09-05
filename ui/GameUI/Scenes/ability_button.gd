@@ -15,6 +15,9 @@ const BORDER_COLOR_EVOLVED_A := Color(1.0, 0.9, 0.0, 1.0)
 const BORDER_COLOR_EVOLVED_B := Color(1.0, 1.0, 1.0, 1.0)
 const EVOLVED_FADE_DURATION   := 0.5
 
+const BORDER_COLOR_RAGE_A    := Color(0.586, 0.251, 1.0, 1.0)
+const BORDER_COLOR_RAGE_B    := Color(1.0, 1.0, 1.0, 1.0)
+
 const PANEL_BG_COLOR := Color(0, 0, 0, 0.47058824)
 const PANEL_CORNER_DETAIL := 1
 
@@ -36,6 +39,12 @@ var _dynamic_tp_cost:    float       = -1.0
 var _ratio_base:         float       = 0.0
 var _ratio_evo:          float       = 0.0
 var _fill_tween:         Tween       = null
+
+var _rage_charged:       bool        = false
+var _rage_progress:      int         = 0
+var _rage_required:      int         = 0
+var _rage_tween:         Tween       = null
+var _rage_time:          float       = 0.0
 
 
 func setup(data: AbilityData, index: int, key_name: String, peer_id: int = -1) -> void:
@@ -193,6 +202,81 @@ func set_evolution_stage(stage: int) -> void:
 ## escucha el TPService directo y calcula su propio estado.
 func set_tp_ready(_is_ready: bool) -> void:
 	pass
+
+
+# --- Carga del ultimate Rage (slot 5) ---
+
+## Estado de carga del ultimate: progreso "n/m" en el label con el slot
+## listo, y pulso morado en el borde cuando la carga está completa.
+func set_rage_state(charged: bool, progress: int, required: int) -> void:
+	_rage_charged = charged
+	_rage_progress = progress
+	_rage_required = required
+	_refresh_rage_visual()
+
+
+func _refresh_rage_visual() -> void:
+	if not ability_data:
+		return
+
+	if _rage_charged:
+		_start_rage_pulse()
+	else:
+		_stop_rage_pulse()
+	_refresh_rage_label()
+
+
+func set_rage_time(remaining: float) -> void:
+	_rage_time = remaining
+	_refresh_rage_label()
+
+
+func _refresh_rage_label() -> void:
+	if not cooldown_label:
+		return
+	if _rage_time > 0.0:
+		cooldown_label.visible = true
+		cooldown_label.text = "%d" % int(ceil(_rage_time))
+		return
+	if _state == State.READY and not _rage_charged and _rage_required > 0:
+		cooldown_label.visible = true
+		cooldown_label.text = "%d/%d" % [_rage_progress, _rage_required]
+	elif _state == State.READY:
+		cooldown_label.visible = false
+		cooldown_label.text = ""
+
+
+func _start_rage_pulse() -> void:
+	if _rage_tween and _rage_tween.is_valid():
+		return
+	if not base_fill_rect:
+		return
+	_rage_tween = create_tween()
+	_rage_tween.set_loops()
+	_rage_tween.set_ease(Tween.EASE_IN_OUT)
+	_rage_tween.set_trans(Tween.TRANS_SINE)
+	_rage_tween.tween_method(_set_base_border_color, BORDER_COLOR_RAGE_A, BORDER_COLOR_RAGE_B, EVOLVED_FADE_DURATION)
+	_rage_tween.tween_method(_set_base_border_color, BORDER_COLOR_RAGE_B, BORDER_COLOR_RAGE_A, EVOLVED_FADE_DURATION)
+
+
+func _stop_rage_pulse() -> void:
+	if _rage_tween and _rage_tween.is_valid():
+		_rage_tween.kill()
+	_rage_tween = null
+	if base_fill_rect:
+		var style = base_fill_rect.get_theme_stylebox("panel")
+		if style is StyleBoxFlat:
+			style.border_color = BORDER_COLOR_NORMAL
+
+
+func _set_base_border_color(color: Color) -> void:
+	if not base_fill_rect:
+		return
+	if not base_fill_rect.has_theme_stylebox_override("panel"):
+		return
+	var style = base_fill_rect.get_theme_stylebox("panel")
+	if style is StyleBoxFlat:
+		style.border_color = color
 
 
 # --- Relleno de borde por TP, en dos tramos (base -> evolución) ---
@@ -381,6 +465,7 @@ func _set_fill_border_color(color: Color) -> void:
 func _exit_tree() -> void:
 	_disconnect_tp_service()
 	_stop_fill_tween()
+	_stop_rage_pulse()
 
 
 func _apply_visual_state() -> void:
@@ -388,7 +473,7 @@ func _apply_visual_state() -> void:
 		State.READY:
 			if cooldown_overlay:
 				cooldown_overlay.visible = false
-			if cooldown_label:
+			if cooldown_label and _rage_time <= 0.0:
 				cooldown_label.visible = false
 				cooldown_label.text = ""
 			if lock_icon:
@@ -399,7 +484,7 @@ func _apply_visual_state() -> void:
 			if cooldown_overlay:
 				cooldown_overlay.visible = true
 				cooldown_overlay.color = Color(0.2, 0.2, 0.2, 0.6)
-			if cooldown_label:
+			if cooldown_label and _rage_time <= 0.0:
 				cooldown_label.visible = true
 			if lock_icon:
 				lock_icon.visible = false
@@ -409,9 +494,11 @@ func _apply_visual_state() -> void:
 			if cooldown_overlay:
 				cooldown_overlay.visible = true
 				cooldown_overlay.color = Color(0.15, 0.15, 0.2, 0.75)
-			if cooldown_label:
+			if cooldown_label and _rage_time <= 0.0:
 				cooldown_label.visible = false
 				cooldown_label.text = ""
 			if lock_icon:
 				lock_icon.visible = true
 			modulate = Color(0.5, 0.5, 0.55, 1.0)
+
+	_refresh_rage_label()

@@ -150,7 +150,7 @@ func _run_phase(center: Vector2) -> void:
 		)
 
 
-func _spawn_charge(pos: Vector2, fuse: float, center: Vector2) -> void:
+func _spawn_charge(pos: Vector2, fuse: float, _center: Vector2) -> void:
 	if not is_instance_valid(_player_node):
 		return
 

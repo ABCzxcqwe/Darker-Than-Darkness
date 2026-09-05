@@ -62,3 +62,29 @@ func on_tp_ready(slot_index: int, is_ready: bool) -> void:
 	if not _buttons.has(slot_index):
 		return
 	_buttons[slot_index].set_tp_ready(is_ready)
+
+
+func on_rage_ready(charged: bool, progress: int, required: int) -> void:
+	if not _buttons.has(4):
+		return
+	_buttons[4].set_rage_state(charged, progress, required)
+
+
+func on_rage_time(remaining: float) -> void:
+	if not _buttons.has(4):
+		return
+	var btn = _buttons[4]
+	if btn.has_method("set_rage_time"):
+		btn.set_rage_time(remaining)
+
+
+func on_ability_slot_updated(slot_index: int, tp_cost: float, cooldown: float, stage: int) -> void:
+	if not _buttons.has(slot_index):
+		return
+	var btn = _buttons[slot_index]
+	if btn.has_method("set_evolution_stage"):
+		btn.set_evolution_stage(stage)
+	# Cooldown and TP are handled via dynamic overrides in tp_bar / button _update_tp_fill
+	# Keep button visuals in sync (icon already swapped via evolution stage)
+	if btn.has_method("set_dynamic_cost"):
+		btn.set_dynamic_cost(tp_cost)

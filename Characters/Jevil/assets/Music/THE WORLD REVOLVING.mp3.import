@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ccdmxx73ki77k"
+path="res://.godot/imported/THE WORLD REVOLVING.mp3-52f65b9249753e2262d61a19e4e0e8b8.mp3str"
+
+[deps]
+
+source_file="res://Characters/Jevil/assets/Music/THE WORLD REVOLVING.mp3"
+dest_files=["res://.godot/imported/THE WORLD REVOLVING.mp3-52f65b9249753e2262d61a19e4e0e8b8.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

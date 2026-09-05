@@ -8,10 +8,10 @@
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="5_8ord7"]
 [ext_resource type="Script" uid="uid://rsig83ma5g01" path="res://ui/GameUI/Scenes/ability_bar.gd" id="6_8ord7"]
 [ext_resource type="Script" uid="uid://ddbgx01n1w0ut" path="res://ui/GameUI/Scenes/ability_panel.gd" id="6_s5e2t"]
-[ext_resource type="PackedScene" uid="uid://dqonbds1x4kgk" path="res://ui/hud/GameMenu.tscn" id="7_abcd"]
+[ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="7_abcd"]
 [ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
 [ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="9_emote"]
-[ext_resource type="Script" uid="uid://gjkq63hw7pribf" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
+[ext_resource type="Script" uid="uid://0ccneednndmd" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -277,6 +277,22 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_4ubg7")
 value = 50.0
 allow_greater = true
 show_percentage = false
+
+[node name="SprintDisabledX" type="Label" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/InfoColumn/StaminaRow/StaminaBar" unique_id=999999999]
+layout_mode = 3
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+text = "✕"
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
 
 [node name="ContextMenu" type="PanelContainer" parent="." unique_id=1216142140]
 anchors_preset = -1

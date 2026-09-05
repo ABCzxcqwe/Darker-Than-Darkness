@@ -18,7 +18,7 @@ spawn_limit = 7
 script = ExtResource("2_2dftf")
 
 [node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1428571428]
-_spawnable_scenes = PackedStringArray("uid://cwyvwtu4eg3cm", "uid://d0osfj5o7sa6u", "uid://dclh3afhrc5qs", "uid://c4f4ilt8pj623", "uid://d02d1vtbv0irv", "uid://bp13d3jfglp5h", "uid://050hare15k77", "uid://ndbs3mvoredu", "uid://cskem0y0l7mee", "res://Hitboxes/King/Rugido/RoarWave.tscn", "uid://drflgu7vsd6", "uid://q1minheart01", "uid://blnax3womlay0", "uid://bmosfg6r4siy1", "uid://bntvwj5g80sy2", "uid://boo4cnpq7pcy3", "uid://bq6h820w1sgy5", "uid://m2enki8cltpf")
+_spawnable_scenes = PackedStringArray("uid://cwyvwtu4eg3cm", "uid://d0osfj5o7sa6u", "uid://dclh3afhrc5qs", "uid://c4f4ilt8pj623", "uid://d02d1vtbv0irv", "uid://bp13d3jfglp5h", "uid://050hare15k77", "uid://ndbs3mvoredu", "uid://cskem0y0l7mee", "uid://drflgu7vsd6", "uid://q1minheart01", "uid://blnax3womlay0", "uid://bmosfg6r4siy1", "uid://bntvwj5g80sy2", "uid://boo4cnpq7pcy3", "uid://bq6h820w1sgy5", "uid://c105ahxmc03tv", "uid://fgjhi2gx4mmn", "uid://ditpbdnyukhdl")
 spawn_path = NodePath("../Projectiles")
 spawn_limit = 200
 script = ExtResource("6_pbmw8")

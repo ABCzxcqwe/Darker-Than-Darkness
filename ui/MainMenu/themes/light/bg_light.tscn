@@ -1,0 +1,90 @@
+[gd_scene format=3 uid="uid://c2nax8k1pqr7s"]
+
+[ext_resource type="Script" path="res://ui/MainMenu/themes/light/bg_light.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://xdradpkehtkc" path="res://ui/MainMenu/themes/light/frames/Button.png" id="2_60uvt"]
+[ext_resource type="Texture2D" uid="uid://c46e7t0g88cqr" path="res://ui/MainMenu/themes/light/frames/Backgroun_shader.png" id="3_r2jes"]
+[ext_resource type="Shader" uid="uid://3l31ohykvxd1" path="res://ui/MainMenu/themes/light/frames/bg_mareoinverso.gdshader" id="4_r2jes"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg1"]
+shader = ExtResource("4_r2jes")
+shader_parameter/strength = 0.02000000095
+shader_parameter/speed = 0.50000002375
+shader_parameter/frequency = 4.000000142499999
+shader_parameter/origin_y = 0.75
+shader_parameter/direction = Vector2(-1, 0.3)
+shader_parameter/alpha = 0.90000004275
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg2"]
+shader = ExtResource("4_r2jes")
+shader_parameter/strength = 0.02000000095
+shader_parameter/speed = 0.50000002375
+shader_parameter/frequency = 4.000000142499999
+shader_parameter/origin_y = 0.5
+shader_parameter/direction = Vector2(1, 0)
+shader_parameter/alpha = 0.90000004275
+
+[node name="BgLight" type="Control" unique_id=800001]
+z_index = -1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+delay_frames = 3
+
+[node name="BgRect" type="ColorRect" parent="." unique_id=800002]
+z_index = 6
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.25)
+
+[node name="Sprites" type="Control" parent="." unique_id=800003]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="Sprite2D" parent="." unique_id=2055928764]
+z_index = 2
+z_as_relative = false
+material = SubResource("ShaderMaterial_bg1")
+position = Vector2(720, 540)
+texture = ExtResource("3_r2jes")
+
+[node name="Background3" type="Sprite2D" parent="." unique_id=710155591]
+self_modulate = Color(1, 1, 1, 0.5)
+z_index = 3
+position = Vector2(720, 540)
+texture = ExtResource("3_r2jes")
+
+[node name="Background2" type="Sprite2D" parent="." unique_id=718616939]
+z_index = 1
+z_as_relative = false
+material = SubResource("ShaderMaterial_bg2")
+position = Vector2(720, 540)
+texture = ExtResource("3_r2jes")
+
+[node name="Button2" type="Sprite2D" parent="." unique_id=1845395873]
+self_modulate = Color(1, 1, 1, 0.5)
+z_index = 5
+position = Vector2(720, 922.5)
+texture = ExtResource("2_60uvt")
+hframes = 4
+
+[node name="Button" type="Sprite2D" parent="." unique_id=738135575]
+self_modulate = Color(1, 1, 1, 0.5)
+z_index = 4
+position = Vector2(720, 922.5)
+texture = ExtResource("2_60uvt")
+hframes = 4
+frame = 1

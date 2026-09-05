@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="MenuThemeData" load_steps=3 format=3 uid="uid://device_theme_001"]
+
+[ext_resource type="Script" uid="uid://Ndd4k3i6XFPzm" path="res://core/MenuThemeData.gd" id="1"]
+[ext_resource type="AudioStreamWAV" uid="uid://k0u888ksgyo3" path="res://ui/Boot/scenes/AUDIO_DRONE.wav" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "device"
+label = "DEVICE"
+bg_color = Color(0, 0, 0, 1)
+border_color = Color(0, 0.5019608, 0, 1)
+title_color = Color(0, 1, 0, 1)
+hint_color = Color(0, 1, 0, 1)
+dim_color = Color(0, 0.5019608, 0, 1)
+selected_color = Color(0, 1, 0, 1)
+separator_color = Color(0, 0.5019608, 0, 1)
+music = ExtResource("2")
+background_scene = null
+font = null
+soul_texture = null
+sfx_profile = "deltarune"

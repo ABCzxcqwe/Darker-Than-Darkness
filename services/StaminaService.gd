@@ -86,7 +86,7 @@ func _on_tick() -> void:
 		var new_val: float
 
 		if _sprinting.get(pid, false):
-			var drain = data.stamina_sprint_drain * 0.1
+			var drain = data.stamina_sprint_drain * 0.1 * _get_rage_drain_mult(pid)
 			new_val = clamp(current - drain, 0.0, data.stamina_max)
 			if new_val <= 0.0 and current > 0.0 and _exhausted.get(pid, -1.0) < 0.0:
 				_exhausted[pid] = now
@@ -116,3 +116,13 @@ func reset() -> void:
 	_exhausted.clear()
 	if _tick_timer:
 		_tick_timer.stop()
+
+
+## Multiplicador de drenaje por Rage Mode (slot 4 del ultimate).
+## El valor vive en mode_data de AbilityStateService, puesto ahí por Rage.gd.
+## Sin rage activo devuelve 1.0 (comportamiento normal).
+func _get_rage_drain_mult(pid: int) -> float:
+	var abs_svc = GameServiceLocator.ability_state
+	if abs_svc and abs_svc.is_mode_active(pid, 4):
+		return abs_svc.get_mode_data(pid, 4).get("stamina_drain_mult", 1.0)
+	return 1.0

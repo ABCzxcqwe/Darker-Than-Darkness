@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://cc7a12m1q5gh"]
+
+[ext_resource type="Theme" uid="uid://dtmgi5yxy133u" path="res://ui/Old/Styles/Tema.tres" id="1_theme"]
+[ext_resource type="Script" path="res://ui/Old/scripts/settings_controls.gd" id="2_script"]
+
+[node name="SettingsControls" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_theme")
+script = ExtResource("2_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230
+offset_top = -240
+offset_right = 230
+offset_bottom = 240
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "CONTROLES"
+horizontal_alignment = 1
+
+[node name="DeadzoneRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="DeadzoneLabel" type="Label" parent="VBox/DeadzoneRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Deadzone sticks"
+
+[node name="DeadzoneSlider" type="HSlider" parent="VBox/DeadzoneRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.05
+max_value = 0.5
+step = 0.05
+
+[node name="Tabs" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="TabKeyLabel" type="Label" parent="VBox/Tabs"]
+custom_minimum_size = Vector2(90, 30)
+layout_mode = 2
+text = "Teclado"
+horizontal_alignment = 1
+
+[node name="TabPadLabel" type="Label" parent="VBox/Tabs"]
+custom_minimum_size = Vector2(90, 30)
+layout_mode = 2
+text = "Mando"
+horizontal_alignment = 1
+
+[node name="RowsBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "◄ ► cambiar pestaña · Aceptar rebindear · Esc cancelar"
+horizontal_alignment = 1
+
+[node name="ActionsRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="ResetAllButton" type="Button" parent="VBox/ActionsRow"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+text = "Restablecer"
+
+[node name="BackButton" type="Button" parent="VBox/ActionsRow"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+text = "Volver"

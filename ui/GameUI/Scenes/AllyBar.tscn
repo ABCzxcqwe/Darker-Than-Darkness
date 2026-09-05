@@ -31,6 +31,75 @@ layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_l5k6c")
 
+[node name="TargetFrame" type="Control" parent="." unique_id=800001]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LabelObjetivo" type="Label" parent="TargetFrame" unique_id=800002]
+layout_mode = 1
+anchors_preset = 0
+offset_left = -10.0
+offset_top = -18.0
+offset_right = 96.0
+offset_bottom = 2.0
+theme_override_fonts/font = ExtResource("2_f5yb8")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+text = "OBJETIVO"
+horizontal_alignment = 0
+
+[node name="CornerTL_H" type="ColorRect" parent="TargetFrame" unique_id=800003]
+layout_mode = 1
+anchors_preset = 0
+offset_left = -10.0
+offset_top = -12.0
+offset_right = 30.0
+offset_bottom = -9.0
+color = Color(1, 1, 1, 1)
+
+[node name="CornerTL_V" type="ColorRect" parent="TargetFrame" unique_id=800004]
+layout_mode = 1
+anchors_preset = 0
+offset_left = -10.0
+offset_top = -12.0
+offset_right = -7.0
+offset_bottom = 18.0
+color = Color(1, 1, 1, 1)
+
+[node name="CornerBR_H" type="ColorRect" parent="TargetFrame" unique_id=800005]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -3.0
+offset_right = 10.0
+offset_bottom = 0.0
+color = Color(1, 1, 1, 1)
+
+[node name="CornerBR_V" type="ColorRect" parent="TargetFrame" unique_id=800006]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = -30.0
+offset_right = 10.0
+offset_bottom = 10.0
+color = Color(1, 1, 1, 1)
+
 [node name="BGPanel" type="Panel" parent="." unique_id=1791191486]
 layout_mode = 1
 anchors_preset = 15

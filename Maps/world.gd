@@ -2,7 +2,9 @@
 extends Node2D
 
 const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
+const GAME_HUD_MOCK_SCENE := preload("res://ui/GameUI/Mock/GameHUDMock.tscn")
 const PLAYER_SCENE := preload("uid://djw510qiudh6e")
+const USE_MOCK_HUD := true
 
 @export var services_config: GameServicesConfig = null
 
@@ -169,7 +171,11 @@ func _setup_hud() -> void:
 		push_warning("[World] character_data nunca llegó al jugador local.")
 		return
 
-	_hud = GAME_HUD_SCENE.instantiate()
+	if USE_MOCK_HUD and ResourceLoader.exists("res://ui/GameUI/Mock/GameHUDMock.tscn"):
+		_hud = GAME_HUD_MOCK_SCENE.instantiate()
+		print("[World] Usando GameHUDMock (TpBarCustom paralelogramo inline)")
+	else:
+		_hud = GAME_HUD_SCENE.instantiate()
 	add_child(_hud)
 	_hud.setup(my_player)
 

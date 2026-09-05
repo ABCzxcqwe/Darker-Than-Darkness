@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://mta9bt5r1cgw3"]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ad"]
+[ext_resource type="Script" uid="uid://c2bsny25qb7hx" path="res://abilities/king/Topo/Topo.gd" id="2_topo"]
+[ext_resource type="Texture2D" path="res://Characters/King/assets/Sprites/señal.png" id="3_icon"]
+
+[resource]
+script = ExtResource("1_ad")
+display_name = "Topo"
+icon = ExtResource("3_icon")
+ability_script = ExtResource("2_topo")
+ability_scene = null
+action_animation = "king_topo"
+can_cancel = false
+cooldown = 20.0
+tp_cost = 12.0
+move_restriction = 1
+defer_cooldown = true
+base_damage = 10
+range_ = 1200.0
+cast_duration = 1.6
+attack_type = "normal"

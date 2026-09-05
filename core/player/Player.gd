@@ -45,6 +45,10 @@ var aiming_slot: int = -1
 var _vision_scale: float = 1.0
 var _vision_scale_until: int = 0
 var _last_slot_request_time: Dictionary = {}
+var _rage_blink_next_at: int = 0
+var _rage_blink_hidden_until: int = 0
+var _rage_blink_fade_out_until: int = 0
+var _rage_blink_fade_in_until: int = 0
 
 var _emote_bar_open: bool = false
 var _active_emote_slot: int = -1
@@ -162,6 +166,10 @@ func _process(_delta: float) -> void:
 		if now < heal_flash_until:
 			var strength = float(heal_flash_until - now) / HEAL_FLASH_DURATION_MS
 			target_modulate *= Color(1.0, 1.0, 1.0).lerp(Color(0.5, 1.5, 0.5), strength)
+
+		if active_effects.has("rage_blink"):
+			var rage_alpha := _update_rage_blink(now)
+			target_modulate.a *= rage_alpha
 
 	if not animated_sprite.modulate.is_equal_approx(target_modulate):
 		animated_sprite.modulate = target_modulate
@@ -871,6 +879,68 @@ func _rpc_soul_protect_break(peer_id: int) -> void:
 	)
 
 
+# ── Rage FX (ultimate de Jevil) ───────────────────────────────────────
+
+const RAGE_FX_SCRIPT := preload("res://abilities/jevil/Rage/JevilRageFX.gd")
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_rage_vfx_show() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var existing: Node = get_node_or_null("RageFX")
+	if existing:
+		existing.queue_free()
+
+	var fx := RAGE_FX_SCRIPT.new()
+	fx.name = "RageFX"
+	add_child(fx)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_rage_vfx_hide() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var fx: Node = get_node_or_null("RageFX")
+	if fx:
+		fx.queue_free()
+
+
+# ── Jevil Ghost para TeleportRage (clon visual width-shrink) ──────────
+
+const GHOST_SCENE := preload("res://abilities/jevil/Teleport/JevilGhost.tscn")
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_jevil_ghost(pos: Vector2, dir: Vector2) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+
+	var ghost = GHOST_SCENE.instantiate()
+	if ghost.has_method("configure"):
+		ghost.configure(pos, dir)
+	else:
+		ghost.global_position = pos
+		ghost.set("shoot_dir", dir)
+	# Buscar contenedor Projectiles, fallback a World o root
+	var world = get_tree().root.find_child("World", true, false)
+	var container: Node = null
+	if world:
+		container = world.get_node_or_null("Projectiles")
+	if container:
+		container.add_child(ghost, true)
+		ghost.global_position = pos
+	else:
+		get_tree().root.add_child(ghost)
+		ghost.global_position = pos
+
+	# Ghost solo visual: JevilGhost ya programa su propio shrink (0.5s delay + width->0)
+	# Compat: no necesita notify_shoot externo
+
+
 # ── Sincronización desde el servidor ──────────────────────────────────
 
 @rpc("any_peer", "call_local", "reliable")
@@ -906,6 +976,11 @@ func _sync_invincibility(duration_ms: int) -> void:
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
 		active_effects[effect_name] = true
+		if effect_name == "rage_blink":
+			_rage_blink_next_at = Time.get_ticks_msec() + randi_range(500, 1600)
+			_rage_blink_hidden_until = 0
+			_rage_blink_fade_out_until = 0
+			_rage_blink_fade_in_until = 0
 		if effect_name == "stun":
 			state = AnimState.STUNNED
 			if animated_sprite.sprite_frames.has_animation("stun"):
@@ -914,11 +989,49 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 				animated_sprite.play("idle_horizontal")
 	else:
 		active_effects.erase(effect_name)
+		if effect_name == "rage_blink":
+			_rage_blink_next_at = 0
+			_rage_blink_hidden_until = 0
+			_rage_blink_fade_out_until = 0
+			_rage_blink_fade_in_until = 0
 		if effect_name == "stun" and state == AnimState.STUNNED:
 			if animated_sprite.sprite_frames.has_animation("stun_end"):
 				animated_sprite.play("stun_end")
 			else:
 				animation_component.end_stun()
+
+
+func _update_rage_blink(now: int) -> float:
+	const FADE_OUT_MS: int = 200
+	const HIDDEN_MS: int = 140
+	const FADE_IN_MS: int = 200
+	const MIN_INTERVAL_MS: int = 500
+	const MAX_INTERVAL_MS: int = 1600
+	if _rage_blink_next_at == 0:
+		_rage_blink_next_at = now + randi_range(MIN_INTERVAL_MS, MAX_INTERVAL_MS)
+	if _rage_blink_fade_out_until > 0:
+		if now < _rage_blink_fade_out_until:
+			var p := float(now - (_rage_blink_fade_out_until - FADE_OUT_MS)) / float(FADE_OUT_MS)
+			return lerpf(1.0, 0.0, clampf(p, 0.0, 1.0))
+		_rage_blink_fade_out_until = 0
+		_rage_blink_hidden_until = now + HIDDEN_MS
+		return 0.0
+	if _rage_blink_hidden_until > 0:
+		if now < _rage_blink_hidden_until:
+			return 0.0
+		_rage_blink_hidden_until = 0
+		_rage_blink_fade_in_until = now + FADE_IN_MS
+	if _rage_blink_fade_in_until > 0:
+		if now < _rage_blink_fade_in_until:
+			var p2 := float(now - (_rage_blink_fade_in_until - FADE_IN_MS)) / float(FADE_IN_MS)
+			return lerpf(0.0, 1.0, clampf(p2, 0.0, 1.0))
+		_rage_blink_fade_in_until = 0
+		_rage_blink_next_at = now + randi_range(MIN_INTERVAL_MS, MAX_INTERVAL_MS)
+		return 1.0
+	if now >= _rage_blink_next_at:
+		_rage_blink_fade_out_until = now + FADE_OUT_MS
+		return 1.0
+	return 1.0
 
 
 @rpc("any_peer", "call_local", "reliable")

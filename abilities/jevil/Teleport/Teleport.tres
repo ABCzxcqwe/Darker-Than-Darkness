@@ -3,10 +3,12 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
 [ext_resource type="Script" uid="uid://cr413hrxaom8s" path="res://abilities/jevil/Teleport/Teleport.gd" id="2_teleport"]
 [ext_resource type="PackedScene" uid="uid://cwyvwtu4eg3cm" path="res://Hitboxes/Jevil/Teleport/PikeHitbox.tscn" id="3_pike"]
+[ext_resource type="Resource" uid="uid://hkobgt6t0h4n1" path="res://abilities/jevil/Teleport/TeleportRage.tres" id="4_rage"]
 
 [resource]
 script = ExtResource("1_abilitydata")
 display_name = "Teleport"
+evolved_version = ExtResource("4_rage")
 ability_script = ExtResource("2_teleport")
 ability_scene = ExtResource("3_pike")
 action_animation = "jevil_tp"

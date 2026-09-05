@@ -6,11 +6,11 @@
 size = Vector2(220, 150)
 
 [node name="SlashHitbox" type="Area2D" unique_id=1229504788]
-position = Vector2(-30, 80)
 collision_layer = 4
 collision_mask = 2
 script = ExtResource("1_uioaq")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1658213535]
-position = Vector2(-15, 35)
+z_index = 5
+position = Vector2(0, 30)
 shape = SubResource("RectangleShape2D_wmosr")
