@@ -41,8 +41,6 @@ func _ready() -> void:
 	var mr := get_node_or_null("/root/MapRegistry")
 	if mr:
 		_available_maps = mr.get_all()
-		# Filtrar mapa Lobby fisico - no es seleccionable como mapa de partida
-		_available_maps = _available_maps.filter(func(m): return m.id != "Lobby")
 	if _available_maps.is_empty():
 		_map_label.text = "Sin mapas"
 	else:
@@ -302,7 +300,6 @@ func _on_server_created() -> void:
 	_busy = false
 	if not is_inside_tree():
 		return
-	# Lobby viejo activo: todos entran al lobby normal, el 3D es opcion con boton
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_create_failed() -> void:

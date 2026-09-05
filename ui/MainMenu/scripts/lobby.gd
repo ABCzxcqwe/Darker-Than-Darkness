@@ -20,7 +20,6 @@ var _confirm_index := 0 # 0 = SI, 1 = NO
 @onready var _empty_label: Label = $CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList/EmptyLabel
 @onready var _status_label: Label = $CenterContainer/DeltaruneBox/Margin/VBox/StatusLabel
 @onready var _start_btn: Button = $CenterContainer/DeltaruneBox/Margin/VBox/Actions/StartBtn
-@onready var _lobby3d_btn: Button = $CenterContainer/DeltaruneBox/Margin/VBox/Actions/Lobby3DBtn
 @onready var _leave_btn: Button = $CenterContainer/DeltaruneBox/Margin/VBox/Actions/LeaveBtn
 @onready var _hint: Label = $CenterContainer/DeltaruneBox/Margin/VBox/HintLabel
 @onready var _action_menu: PanelContainer = $ActionMenu
@@ -100,7 +99,7 @@ func _apply_theme() -> void:
 	var pal_btn: Dictionary = tm.get_palette() if tm.has_method("get_palette") else {}
 	var sel_btn: Color = pal_btn.get("selected", Color(0,1,0,1))
 	var theme_font_btn: FontFile = tm.get_font() if tm.has_method("get_font") else null
-	for btn in [_start_btn, _lobby3d_btn, _leave_btn, _btn_spectator, _btn_survivor, _btn_killer, _btn_kick, _btn_cancel, _confirm_yes, _confirm_no]:
+	for btn in [_start_btn, _leave_btn, _btn_spectator, _btn_survivor, _btn_killer, _btn_kick, _btn_cancel, _confirm_yes, _confirm_no]:
 		if btn == null:
 			continue
 		btn.add_theme_color_override("font_color", sel_btn)
@@ -163,8 +162,6 @@ func _rebuild_focus() -> void:
 				_player_ids.append(int(child.get_meta("peer_id")))
 	if is_host:
 		_focusables.append(_start_btn)
-	# LOBBY 3D visible para todos, entrada individual
-	_focusables.append(_lobby3d_btn)
 	_focusables.append(_leave_btn)
 	if is_host and lm:
 		var cnt: int = lm.players.size()
@@ -572,8 +569,6 @@ func _highlight(idx: int, instant: bool) -> void:
 						_hint.text = "Killer: %s (%d pts) — [Z] Iniciar" % [kname, kpts]
 			else:
 				_hint.text = "Inicia selección de personaje — requiere 2 jugadores"
-		elif cur == _lobby3d_btn:
-			_hint.text = "Entrar al LOBBY 3D — solo mapa y corazón [C] — [Z] Entrar"
 		elif cur == _leave_btn:
 			_hint.text = "Salir y volver al buscador — [Z] Confirmar"
 
@@ -705,8 +700,6 @@ func _confirm() -> void:
 		_open_action_menu(pid, pname)
 	elif cur == _start_btn:
 		_on_start_pressed()
-	elif cur == _lobby3d_btn:
-		_on_lobby3d_pressed()
 	elif cur == _leave_btn:
 		_on_leave_pressed()
 
@@ -908,14 +901,6 @@ func _on_start_pressed() -> void:
 			am.play_sfx_ui(SfxId.ERROR)
 		return
 	lm.host_start_character_selection()
-
-func _on_lobby3d_pressed() -> void:
-	var am := get_node_or_null("/root/AudioManager")
-	if am and am.has_method("play_sfx_ui"):
-		am.play_sfx_ui(SfxId.SELECT)
-	# Entrada individual: cada peer entra solo a su instancia del mapa 3D
-	get_tree().change_scene_to_file("res://Maps/LobbyWorld.tscn")
-
 
 func _on_leave_pressed() -> void:
 	if _action_visible:

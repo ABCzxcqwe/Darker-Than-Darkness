@@ -134,17 +134,6 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = ExtResource("4_box")
 text = "INICIAR PARTIDA [Z]"
 
-[node name="Lobby3DBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9500023]
-custom_minimum_size = Vector2(360, 40)
-layout_mode = 2
-size_flags_horizontal = 4
-focus_mode = 0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("4_box")
-text = "LOBBY 3D [C]"
-
 [node name="LeaveBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/Actions" unique_id=9500019]
 custom_minimum_size = Vector2(360, 40)
 layout_mode = 2
