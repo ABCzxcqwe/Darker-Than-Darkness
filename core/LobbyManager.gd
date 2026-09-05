@@ -9,7 +9,7 @@ signal kicked(reason: String)
 
 const MAX_PLAYERS := 10
 
-enum GamePhase { LOBBY, CHARACTER_SELECT, PLAYING, ENDED }
+enum GamePhase { LOBBY, CHARACTER_SELECT, PLAYING, ENDED, LOBBY_WORLD }
 
 var players: Dictionary = {}
 var local_player_name: String = ""
@@ -33,10 +33,37 @@ func is_spectator(peer_id: int) -> bool:
 
 # ── Peer management ──
 
+func _generate_random_lobby_color() -> Color:
+	# Color random vivo, evitar gris/muy oscuro
+	var c := Color(randf(), randf(), randf(), 1.0)
+	# Asegurar brillo minimo
+	if c.get_luminance() < 0.3:
+		c = c.lightened(0.4)
+	if c.get_luminance() > 0.95:
+		c = c.darkened(0.2)
+	return c
+
+
+func _assign_unique_lobby_color() -> Color:
+	var attempts := 0
+	while attempts < 20:
+		var col := _generate_random_lobby_color()
+		var dup := false
+		for pid in players:
+			var existing = players[pid].get("lobby_color", null)
+			if existing is Color and existing.is_equal_approx(col):
+				dup = true
+				break
+		if not dup:
+			return col
+		attempts += 1
+	return _generate_random_lobby_color()
+
+
 func _on_peer_connected(peer_id: int):
 	if not multiplayer.is_server():
 		return
-	if current_phase != GamePhase.LOBBY:
+	if current_phase != GamePhase.LOBBY and current_phase != GamePhase.LOBBY_WORLD:
 		rpc_id(peer_id, "_request_player_info")
 		return
 	rpc_id(peer_id, "_request_player_info")
@@ -53,14 +80,15 @@ func _send_player_info(player_name: String):
 	var sender = multiplayer.get_remote_sender_id()
 	if multiplayer.is_server():
 		var is_full := players.size() >= max_players
-		var is_late_join := current_phase != GamePhase.LOBBY or is_full
+		var is_late_join := current_phase != GamePhase.LOBBY and current_phase != GamePhase.LOBBY_WORLD or is_full
 		players[sender] = {
 			"name": player_name,
 			"is_host": false,
 			"character_id": -1,
 			"killer_points": 0,
 			"assigned_role": "spectator" if is_late_join else "survivor",
-			"is_spectator": is_late_join
+			"is_spectator": is_late_join,
+			"lobby_color": _assign_unique_lobby_color()
 		}
 		emit_signal("player_joined", sender, players[sender])
 
@@ -74,6 +102,8 @@ func _send_player_info(player_name: String):
 				if pid != self_id and pid != sender:
 					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
 			rpc_id(sender, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+			if current_phase == GamePhase.LOBBY_WORLD:
+				rpc_id(sender, "_go_to_lobby_world", players)
 			_send_spectator_join(sender)
 
 
@@ -362,12 +392,33 @@ func host_start_character_selection():
 	rpc("_go_to_character_selection", players)
 
 
+func host_enter_lobby_world() -> void:
+	if not is_host:
+		return
+	if players.size() < 1:
+		print("[LobbyManager] Se necesita al menos 1 jugador para entrar al lobby fisico")
+		return
+	rpc("_go_to_lobby_world", players)
+
+
+@rpc("authority", "call_local", "reliable")
+func _go_to_lobby_world(assigned_players: Dictionary):
+	current_phase = GamePhase.LOBBY_WORLD
+	players = assigned_players
+	for lobby in get_tree().get_nodes_in_group("lobby"):
+		lobby.queue_free()
+	get_tree().change_scene_to_file("res://Maps/LobbyWorld.tscn")
+
+
 @rpc("authority", "call_local", "reliable")
 func _go_to_character_selection(assigned_players: Dictionary):
 	current_phase = GamePhase.CHARACTER_SELECT
 	players = assigned_players
 	for lobby in get_tree().get_nodes_in_group("lobby"):
 		lobby.queue_free()
+	# Si estamos en LobbyWorld fisico, limpiarlo tambien
+	for lw in get_tree().get_nodes_in_group("lobby_world"):
+		lw.queue_free()
 	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
 
 
@@ -421,7 +472,8 @@ func register_local_player(peer_id: int, player_name: String) -> void:
 		"is_host": is_host,
 		"character_id": -1,
 		"killer_points": 0,
-		"assigned_role": "survivor"
+		"assigned_role": "survivor",
+		"lobby_color": _assign_unique_lobby_color()
 	}
 	emit_signal("player_joined", peer_id, players[peer_id])
 

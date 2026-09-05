@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://31t3nitdfvfs"]
+
+[ext_resource type="Script" path="res://Maps/LobbyWorld.gd" id="1"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lw"]
+
+[node name="LobbyWorld" type="Node2D"]
+script = ExtResource("1")
+
+[node name="MapContainer" type="Node2D" parent="."]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("..")
+spawn_limit = 10

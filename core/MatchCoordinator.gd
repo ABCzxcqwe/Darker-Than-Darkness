@@ -133,7 +133,6 @@ func host_return_to_lobby_reconfigured() -> void:
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.players = reseted_players
-	# Asegurar que el flag/bakcup del forzado no quede colgado si _calculate no corrió
 	LobbyManager.clear_forced_killer_state()
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 	AudioManager.reset_match_audio()
