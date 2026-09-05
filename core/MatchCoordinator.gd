@@ -118,11 +118,14 @@ func host_return_to_lobby_reconfigured() -> void:
 	if not LobbyManager.is_host:
 		return
 
+	LobbyManager.clear_forced_killer_state()
 	for pid in LobbyManager.players:
 		LobbyManager.players[pid]["character_id"] = -1
 		if LobbyManager.players[pid].get("is_spectator", false):
 			LobbyManager.players[pid]["assigned_role"] = "survivor"
 			LobbyManager.players[pid]["is_spectator"] = false
+		else:
+			LobbyManager.players[pid]["assigned_role"] = "survivor"
 
 	rpc("_back_to_lobby_scene", LobbyManager.players)
 
@@ -130,6 +133,8 @@ func host_return_to_lobby_reconfigured() -> void:
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.players = reseted_players
+	# Asegurar que el flag/bakcup del forzado no quede colgado si _calculate no corrió
+	LobbyManager.clear_forced_killer_state()
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 	AudioManager.reset_match_audio()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")

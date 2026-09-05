@@ -5,6 +5,7 @@ extends Node
 signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
+signal kicked(reason: String)
 
 const MAX_PLAYERS := 10
 
@@ -18,6 +19,7 @@ var game_mode: String = "Escape"
 var max_players: int = 4
 var is_host: bool = false
 var current_phase: int = GamePhase.LOBBY
+var forced_killer_peer: int = -1
 
 
 func _ready() -> void:
@@ -106,6 +108,8 @@ func _on_peer_disconnected(peer_id: int):
 		if players.has(peer_id):
 			abandoned_role = players[peer_id]["assigned_role"]
 			was_spectator = players[peer_id].get("is_spectator", false)
+			if forced_killer_peer == peer_id:
+				forced_killer_peer = -1
 
 		players.erase(peer_id)
 		emit_signal("player_left", peer_id)
@@ -167,6 +171,161 @@ func _sync_character(peer_id: int, char_id: int):
 			emit_signal("lobby_updated")
 
 
+# ── Host admin actions ──
+
+func _broadcast_lobby_state() -> void:
+	var self_id = multiplayer.get_unique_id()
+	for pid in players:
+		if pid != self_id:
+			rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+	emit_signal("lobby_updated")
+
+
+func admin_set_spectator(peer_id: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+	if not players.has(peer_id):
+		return false
+	if players[peer_id].get("is_spectator", false):
+		return false
+	# Si era el killer forzado, restaurar sus puntos antes
+	if forced_killer_peer == peer_id and players[peer_id].has("_prev_killer_points"):
+		players[peer_id]["killer_points"] = players[peer_id]["_prev_killer_points"]
+		players[peer_id].erase("_prev_killer_points")
+		forced_killer_peer = -1
+	players[peer_id]["is_spectator"] = true
+	players[peer_id]["assigned_role"] = "spectator"
+	_broadcast_lobby_state()
+	print("[LobbyManager] Peer %d puesto como espectador" % peer_id)
+	return true
+
+
+func admin_set_survivor(peer_id: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+	if not players.has(peer_id):
+		return false
+	var was_spectator: bool = players[peer_id].get("is_spectator", false)
+	var was_spectator_role: bool = players[peer_id].get("assigned_role", "") == "spectator"
+	if not was_spectator and not was_spectator_role:
+		return false
+	players[peer_id]["is_spectator"] = false
+	players[peer_id]["assigned_role"] = "survivor"
+	_broadcast_lobby_state()
+	print("[LobbyManager] Peer %d restaurado a survivor" % peer_id)
+	return true
+
+
+func admin_force_killer(peer_id: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+	if not players.has(peer_id):
+		return false
+	if players[peer_id].get("is_spectator", false):
+		# Quitar de espectador primero
+		players[peer_id]["is_spectator"] = false
+	# Restaurar puntos del anterior forzado si existe y es distinto
+	if forced_killer_peer != -1 and forced_killer_peer != peer_id and players.has(forced_killer_peer):
+		if players[forced_killer_peer].has("_prev_killer_points"):
+			players[forced_killer_peer]["killer_points"] = players[forced_killer_peer]["_prev_killer_points"]
+			players[forced_killer_peer].erase("_prev_killer_points")
+		# El anterior vuelve a survivor si sigue en sala
+		if players[forced_killer_peer].get("assigned_role", "") == "killer":
+			players[forced_killer_peer]["assigned_role"] = "survivor"
+	if forced_killer_peer == peer_id and players[peer_id].get("assigned_role", "") == "killer" and players[peer_id].get("killer_points", 0) == 99:
+		# Ya es el killer forzado
+		return false
+	# Guardar puntos previos del nuevo forzado si no estaban guardados
+	if not players[peer_id].has("_prev_killer_points"):
+		players[peer_id]["_prev_killer_points"] = players[peer_id].get("killer_points", 0)
+	players[peer_id]["killer_points"] = 99
+	players[peer_id]["assigned_role"] = "killer"
+	players[peer_id]["is_spectator"] = false
+	forced_killer_peer = peer_id
+	# Todos los demas no-espectadores pasan a survivor
+	for pid in players:
+		if pid == peer_id:
+			continue
+		if players[pid].get("is_spectator", false):
+			continue
+		players[pid]["assigned_role"] = "survivor"
+	_broadcast_lobby_state()
+	print("[LobbyManager] Peer %d forzado como KILLER (99 pts)" % peer_id)
+	return true
+
+
+func admin_kick_player(peer_id: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+	if not players.has(peer_id):
+		return false
+	var self_id = multiplayer.get_unique_id()
+	if peer_id == self_id:
+		return false
+	print("[LobbyManager] Expulsando peer %d" % peer_id)
+	rpc_id(peer_id, "_notify_kicked", "Expulsado por el host")
+	# Dar tiempo a que llegue el RPC antes de desconectar
+	_do_kick_after_notify(peer_id)
+	return true
+
+
+func _do_kick_after_notify(peer_id: int) -> void:
+	await get_tree().create_timer(0.35).timeout
+	if not players.has(peer_id):
+		return
+	if forced_killer_peer == peer_id:
+		forced_killer_peer = -1
+	var leaving_name: String = players[peer_id].get("name", str(peer_id))
+	players.erase(peer_id)
+	emit_signal("player_left", peer_id)
+	_broadcast_lobby_state()
+	var mp_peer = multiplayer.multiplayer_peer
+	if mp_peer and mp_peer.has_method("disconnect_peer"):
+		mp_peer.disconnect_peer(peer_id)
+	print("[LobbyManager] Peer %d (%s) expulsado" % [peer_id, leaving_name])
+
+
+@rpc("authority", "reliable")
+func _notify_kicked(reason: String) -> void:
+	if multiplayer.is_server():
+		return
+	print("[LobbyManager] Fuiste expulsado: ", reason)
+	kicked.emit(reason)
+	# Mostrar feedback rapido si hay lobby en escena
+	await get_tree().create_timer(0.4).timeout
+	var mc := get_node_or_null("/root/MatchCoordinator")
+	if mc and mc.has_method("reset_to_menu"):
+		mc.reset_to_menu()
+
+
+func clear_forced_killer_state() -> void:
+	# Restaura los puntos del jugador forzado al flujo normal (llamado al volver al lobby)
+	if forced_killer_peer != -1 and players.has(forced_killer_peer):
+		if players[forced_killer_peer].has("_prev_killer_points"):
+			# Si _calculate_killer_points ya restauró, este erase es no-op
+			var prev = players[forced_killer_peer]["_prev_killer_points"]
+			# Solo restaurar si aún está en 99 (no pasó por el cálculo de fin de partida)
+			if players[forced_killer_peer].get("killer_points", 0) == 99:
+				players[forced_killer_peer]["killer_points"] = prev
+			players[forced_killer_peer].erase("_prev_killer_points")
+	forced_killer_peer = -1
+
+
+func get_killer_candidates() -> Array[int]:
+	var highest_points: int = -1
+	var candidates: Array[int] = []
+	for pid in players:
+		if is_spectator(pid):
+			continue
+		var pts: int = int(players[pid].get("killer_points", 0))
+		if pts > highest_points:
+			highest_points = pts
+			candidates = [pid]
+		elif pts == highest_points:
+			candidates.append(pid)
+	return candidates
+
+
 # ── Character selection flow ──
 
 func host_start_character_selection():
@@ -179,22 +338,17 @@ func host_start_character_selection():
 
 	current_phase = GamePhase.CHARACTER_SELECT
 
-	randomize()
-
-	var highest_points: int = -1
-	var candidates: Array[int] = []
-
-	for pid in players:
-		if is_spectator(pid):
-			continue
-		var p_data = players[pid]
-		if p_data.killer_points > highest_points:
-			highest_points = p_data.killer_points
-			candidates = [pid]
-		elif p_data.killer_points == highest_points:
-			candidates.append(pid)
-
-	var killer_peer_id: int = candidates[randi() % candidates.size()]
+	var killer_peer_id: int = -1
+	# Si hay killer forzado (99 pts) respetar el override inmediato
+	if forced_killer_peer != -1 and players.has(forced_killer_peer) and not is_spectator(forced_killer_peer):
+		killer_peer_id = forced_killer_peer
+	else:
+		var candidates: Array[int] = get_killer_candidates()
+		if candidates.is_empty():
+			print("[LobbyManager] No hay jugadores elegibles para ser killer (todos espectadores).")
+			return
+		randomize()
+		killer_peer_id = candidates[randi() % candidates.size()]
 
 	for pid in players:
 		if is_spectator(pid):
@@ -275,3 +429,4 @@ func register_local_player(peer_id: int, player_name: String) -> void:
 func reset_lobby_state() -> void:
 	players.clear()
 	current_phase = GamePhase.LOBBY
+	forced_killer_peer = -1

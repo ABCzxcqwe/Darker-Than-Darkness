@@ -12,7 +12,7 @@ border_width_bottom = 3
 border_color = Color(1, 0.82, 0.3, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
-bg_color = Color(0, 0, 0, 0.95)
+bg_color = Color(0, 0, 0, 0.5)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -53,7 +53,7 @@ color = Color(0, 0, 0, 0.25)
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.9
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 60
@@ -668,12 +668,9 @@ vertical_alignment = 1
 
 [node name="HintWrap" type="Control" parent="." unique_id=600000025]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchor_top = 0.85
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -64.0
-offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2

@@ -325,6 +325,10 @@ func _add_start_of_match_points() -> void:
 # ─── END MATCH ───────────────────────────────────────────
 
 func _calculate_killer_points(reason: String) -> void:
+	# El killer forzado tenía 99 solo para garantizar la selección; su verdadero
+	# valor previo se guarda en _prev_killer_points. Como _add_start ya reseteó
+	# al killer a 0, solo necesitamos limpiar el backup sin restaurar.
+	# Nota: si la partida no llegó a _add_start (aborto), clear restaurará el 99.
 	for pid in LobbyManager.players:
 		if not LobbyManager.players.has(pid):
 			continue
@@ -339,6 +343,15 @@ func _calculate_killer_points(reason: String) -> void:
 				LobbyManager.players[pid]["killer_points"] += 1
 			else:
 				LobbyManager.players[pid]["killer_points"] += 2
+	# Limpiar backup del forzado (si existía) y flag
+	if LobbyManager.forced_killer_peer != -1:
+		var fk: int = LobbyManager.forced_killer_peer
+		if LobbyManager.players.has(fk) and LobbyManager.players[fk].has("_prev_killer_points"):
+			# Si nunca se reseteó (partida abortada antes de PLAYING), el valor aún es 99
+			if LobbyManager.players[fk].get("killer_points", 0) == 99:
+				LobbyManager.players[fk]["killer_points"] = LobbyManager.players[fk]["_prev_killer_points"]
+			LobbyManager.players[fk].erase("_prev_killer_points")
+		LobbyManager.forced_killer_peer = -1
 
 
 func _go_to_stats(reason: String, extra: Dictionary = {}) -> void:
