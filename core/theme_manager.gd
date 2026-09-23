@@ -19,6 +19,15 @@ var _fallback_themes: Dictionary = {
 		"music": "res://ui/Boot/scenes/AUDIO_DRONE.wav",
 		"sfx_profile": "deltarune",
 	},
+	"light": {
+		"label": "LIGHT",
+		"border_color": Color(0.85, 0.85, 0.85, 1),
+		"hint_color": Color(1, 1, 1, 1),
+		"dim_color": Color(0.69273853, 0.6927386, 0.6927384, 1),
+		"bg_color": Color(0, 0, 0, 0.5019608),
+		"music": "res://ui/MainMenu/themes/light/Before the Story.mp3",
+		"sfx_profile": "deltarune",
+	},
 }
 
 signal theme_changed(id: String)
@@ -65,36 +74,57 @@ func _load_themes() -> void:
 	var dir := DirAccess.open(base)
 	if dir == null:
 		push_warning("[ThemeManager] No se pudo abrir " + base)
-		return
-	dir.list_dir_begin()
-	var fname := dir.get_next()
-	while fname != "":
-		if not dir.current_is_dir() and fname.ends_with(".tres"):
-			var p := base + "/" + fname
-			var res = load(p)
-			if res and "id" in res and str(res.id) != "":
-				_themes[str(res.id).to_lower()] = res
-			elif res:
-				push_warning("[ThemeManager] .tres sin id: " + p)
-		elif dir.current_is_dir() and not fname.begins_with("."):
-			var sub := base + "/" + fname
-			var sd := DirAccess.open(sub)
-			if sd:
-				sd.list_dir_begin()
-				var sf := sd.get_next()
-				while sf != "":
-					if sf.ends_with(".tres"):
-						var p2 := sub + "/" + sf
-						var r2 = load(p2)
-						if r2 and "id" in r2 and str(r2.id) != "":
-							_themes[str(r2.id).to_lower()] = r2
-					sf = sd.get_next()
-				sd.list_dir_end()
-		fname = dir.get_next()
-	dir.list_dir_end()
+	else:
+		dir.list_dir_begin()
+		var fname := dir.get_next()
+		while fname != "":
+			if not dir.current_is_dir() and fname.ends_with(".tres"):
+				var p := base + "/" + fname
+				var res = load(p)
+				if res and "id" in res and str(res.id) != "":
+					_themes[str(res.id).to_lower()] = res
+				elif res:
+					push_warning("[ThemeManager] .tres sin id: " + p)
+				else:
+					push_warning("[ThemeManager] No se pudo cargar: " + p)
+			elif dir.current_is_dir() and not fname.begins_with("."):
+				var sub := base + "/" + fname
+				var sd := DirAccess.open(sub)
+				if sd:
+					sd.list_dir_begin()
+					var sf := sd.get_next()
+					while sf != "":
+						if sf.ends_with(".tres"):
+							var p2 := sub + "/" + sf
+							var r2 = load(p2)
+							if r2 and "id" in r2 and str(r2.id) != "":
+								_themes[str(r2.id).to_lower()] = r2
+							elif r2:
+								push_warning("[ThemeManager] .tres sin id: " + p2)
+							else:
+								push_warning("[ThemeManager] No se pudo cargar: " + p2)
+						sf = sd.get_next()
+					sd.list_dir_end()
+				else:
+					push_warning("[ThemeManager] No se pudo abrir subcarpeta: " + sub)
+			fname = dir.get_next()
+		dir.list_dir_end()
+	# Fallback robusto: intenta cargar rutas conocidas por si DirAccess falla en export (PCK)
+	var known := ["res://ui/MainMenu/themes/device/device.tres", "res://ui/MainMenu/themes/light/light.tres"]
+	for p in known:
+		if ResourceLoader.exists(p):
+			var rid := ""
+			var tmp = load(p)
+			if tmp and "id" in tmp:
+				rid = str(tmp.id).to_lower()
+			if rid != "" and not _themes.has(rid):
+				_themes[rid] = tmp
+				print("[ThemeManager] Carga directa fallback: ", p, " -> ", rid)
+			elif tmp == null:
+				push_warning("[ThemeManager] Fallo carga directa: " + p)
 	if _themes.is_empty():
 		push_warning("[ThemeManager] No se cargó ningún MenuThemeData, usando fallback")
-	print("[ThemeManager] Temas cargados: ", _themes.keys())
+	print("[ThemeManager] Temas cargados: ", _themes.keys(), " | fallback: ", _fallback_themes.keys())
 
 func _on_theme_changed_forward_audio(_id: String) -> void:
 	pass
@@ -185,25 +215,43 @@ func get_background_scene(id: String = current_theme_id) -> PackedScene:
 	return null
 
 func list_all_ids() -> PackedStringArray:
+	# Unión de _themes + _fallback, orden determinístico sin duplicados
+	var seen := {}
 	var arr := PackedStringArray()
 	for k in _themes.keys():
-		arr.append(k)
-	if arr.is_empty():
-		for k in _fallback_themes.keys():
-			arr.append(k)
-	return arr
+		var nk := str(k).to_lower()
+		if not seen.has(nk):
+			seen[nk] = true
+			arr.append(nk)
+	for k in _fallback_themes.keys():
+		var nk2 := str(k).to_lower()
+		if not seen.has(nk2):
+			seen[nk2] = true
+			arr.append(nk2)
+	# orden fijo device -> light -> resto alfabético para UI consistente
+	arr.sort()
+	# forzar device primero, light segundo si existen
+	var ordered := PackedStringArray()
+	for pref in ["device", "light"]:
+		if seen.has(pref):
+			ordered.append(pref)
+	for k in arr:
+		if k != "device" and k != "light":
+			ordered.append(k)
+	return ordered
 
 func list_all_labels() -> PackedStringArray:
+	var ids := list_all_ids()
 	var arr := PackedStringArray()
-	for k in _themes.keys():
-		var d = _themes[k]
+	for k in ids:
 		var lbl: String = str(k).to_upper()
-		if d != null and "label" in d and str(d.label) != "":
-			lbl = str(d.label)
+		if _themes.has(k):
+			var d = _themes[k]
+			if d != null and "label" in d and str(d.label) != "":
+				lbl = str(d.label)
+		elif _fallback_themes.has(k):
+			lbl = str(_fallback_themes[k].get("label", lbl))
 		arr.append(lbl)
-	if arr.is_empty():
-		for k in _fallback_themes.keys():
-			arr.append(str(_fallback_themes[k].get("label", str(k).to_upper())))
 	return arr
 
 func list_unlocked() -> PackedStringArray:
