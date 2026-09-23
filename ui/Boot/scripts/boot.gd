@@ -3,8 +3,13 @@ extends Node
 const THRESHOLD_MS := 0
 const MIN_DISPLAY_MS := 800
 const TERMINAL_SCENE := "res://ui/Boot/scenes/TerminalLoader.tscn"
+const SKIP_TO_NOTICE := true
+const NOTICE_SCENE := "res://ui/Boot/scenes/LegalNotice.tscn"
 
 func _ready() -> void:
+	if SKIP_TO_NOTICE:
+		get_tree().change_scene_to_file.call_deferred(NOTICE_SCENE)
+		return
 	var grouped: Dictionary = _collect_grouped()
 	var flat: Array[String] = _flatten_grouped(grouped)
 	for p in flat:
