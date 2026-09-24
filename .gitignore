@@ -4,7 +4,7 @@
 # Godot-specific ignores
 .import/
 export.cfg
-export_presets.cfg
+# export_presets.cfg  # <- Descomentado: necesitamos trackear el fix anti-TrapMine (embed_pck, VersionInfo, icono)
 
 # Imported translations (automatically generated from CSV files)
 *.translation
@@ -15,10 +15,12 @@ data_*/
 mono_crash.*.json
 
 # Addons y Dependencias
-addons/*/LICENSE
-addons/*/package.json
+# No ignorar todo addons/ porque rompe GodotSteam en colaboradores
+# Solo ignorar caches
 .addons/
-addons/
+addons/*/LICENSE
+addons/*/.git
+# addons/  <- NO descomentar, dejalo comentado
 
 # Sistema operativo
 .DS_Store
