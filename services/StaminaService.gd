@@ -10,6 +10,7 @@ var _sprinting: Dictionary = {}
 var _exhausted: Dictionary = {}
 var _tick_timer: Timer
 var _client_relay: Node
+var _status_effect_service: Node
 
 
 func set_client_relay(relay: Node) -> void:
@@ -85,7 +86,12 @@ func _on_tick() -> void:
 		var current = _stamina[pid]
 		var new_val: float
 
-		if _sprinting.get(pid, false):
+		var sprinting: bool = _sprinting.get(pid, false)
+		if sprinting and _is_sprint_suppressed(pid):
+			sprinting = false
+			_sprinting[pid] = false
+
+		if sprinting:
 			var drain = data.stamina_sprint_drain * 0.1 * _get_rage_drain_mult(pid)
 			new_val = clamp(current - drain, 0.0, data.stamina_max)
 			if new_val <= 0.0 and current > 0.0 and _exhausted.get(pid, -1.0) < 0.0:
@@ -116,6 +122,25 @@ func reset() -> void:
 	_exhausted.clear()
 	if _tick_timer:
 		_tick_timer.stop()
+
+
+## True si el jugador no debería estar drenando stamina aunque su flag de
+## sprint siga activo: stun, root, sprint deshabilitado o fuera de combate.
+func _is_sprint_suppressed(pid: int) -> bool:
+	var status = _status_effect_service if _status_effect_service else GameServiceLocator.status_effect
+	if status:
+		if status.has_method("is_stunned") and status.is_stunned(pid):
+			return true
+		if status.has_method("is_rooted") and status.is_rooted(pid):
+			return true
+		if status.has_method("is_sprint_disabled") and status.is_sprint_disabled(pid):
+			return true
+
+	var node = PlayerRegistry.get_player(pid)
+	if is_instance_valid(node) and node.get("health_state") != null and node.health_state != "alive":
+		return true
+
+	return false
 
 
 ## Multiplicador de drenaje por Rage Mode (slot 4 del ultimate).

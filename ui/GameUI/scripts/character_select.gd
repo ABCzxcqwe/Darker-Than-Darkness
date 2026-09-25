@@ -443,22 +443,5 @@ func _on_timeout_expired() -> void:
 		_layout_cylinder(true)
 		print("[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id)
 
-	await get_tree().create_timer(1.5).timeout
-	if not is_inside_tree():
-		return
-
-	if LobbyManager.is_host:
-		_host_resolve_missing_selections()
-		MatchCoordinator.host_launch_game()
-
-
-func _host_resolve_missing_selections() -> void:
-	for pid in LobbyManager.players:
-		if LobbyManager.players[pid]["character_id"] == -1:
-			var role = LobbyManager.players[pid]["assigned_role"]
-			var fallback_id := 0
-			for data in CharacterRegistry.get_all():
-				if data.team == role:
-					fallback_id = data.id
-					break
-			LobbyManager.players[pid]["character_id"] = fallback_id
+	# El lanzamiento de la partida lo controla el servidor (MatchCoordinator),
+	# no la UI, para que arranque aunque el host sea espectador.

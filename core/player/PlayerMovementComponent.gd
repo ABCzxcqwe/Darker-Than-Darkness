@@ -38,13 +38,17 @@ func _physics_process(_delta: float) -> void:
 	if not player.is_multiplayer_authority(): return
 
 	if player.interaction.is_spectator:
+		_force_stop_sprint()
 		return
 
-	if player.health_state == "dead": return
+	if player.health_state == "dead":
+		_force_stop_sprint()
+		return
 
 	# Menú de pausa abierto: el jugador queda parado (el mundo sigue).
 	if player.has_method("is_pause_menu_open") and player.is_pause_menu_open():
 		player.velocity = Vector2.ZERO
+		_force_stop_sprint()
 		return
 
 	# ── Si está emotando y se mueve, cancelar emote ──
@@ -74,15 +78,10 @@ func _physics_process(_delta: float) -> void:
 		var stam_svc = GameServiceLocator.stamina
 		var status_svc = GameServiceLocator.status_effect
 		var pid = player.get_multiplayer_authority()
-		var sprint_blocked = status_svc and status_svc.is_sprint_disabled(pid)
+		var sprint_blocked = status_svc and (status_svc.is_sprint_disabled(pid) or status_svc.is_rooted(pid) or status_svc.is_stunned(pid))
 		var can_sprint = want_sprint and stam_svc.has_stamina(pid) and not sprint_blocked
 
-		if can_sprint != _is_sprinting:
-			_is_sprinting = can_sprint
-			if player.multiplayer.is_server():
-				GameServiceLocator.stamina.set_sprinting(player.get_multiplayer_authority(), can_sprint)
-			else:
-				player.rpc_id(1, "_request_sprint", can_sprint)
+		_apply_sprinting(can_sprint)
 
 		var sprint_mult = 1.5 if can_sprint else 1.0
 		player.velocity = input_dir * speed * sprint_mult
@@ -99,6 +98,7 @@ func _physics_process(_delta: float) -> void:
 				player.last_animation = anim_name
 	else:
 		player.velocity = Vector2.ZERO
+		_force_stop_sprint()
 
 	if player.health_state == "alive":
 		if player.state == Player.AnimState.ABILITY:
@@ -107,6 +107,20 @@ func _physics_process(_delta: float) -> void:
 			var vel_len = player.velocity.length()
 			var is_moving = vel_len > IDLE_MOVE_THRESHOLD
 			player.animated_sprite.speed_scale = clamp(vel_len / speed, 0.5, 2.0) if is_moving and speed > 0 else 1.0
+
+
+func _apply_sprinting(value: bool) -> void:
+	if value == _is_sprinting:
+		return
+	_is_sprinting = value
+	if player.multiplayer.is_server():
+		GameServiceLocator.stamina.set_sprinting(player.get_multiplayer_authority(), value)
+	else:
+		player.rpc_id(1, "_request_sprint", value)
+
+
+func _force_stop_sprint() -> void:
+	_apply_sprinting(false)
 
 
 func update_facing_and_flip(dir: Vector2) -> void:

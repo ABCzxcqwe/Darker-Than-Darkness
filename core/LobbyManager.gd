@@ -360,6 +360,25 @@ func host_start_character_selection():
 			players[pid]["assigned_role"] = "survivor"
 
 	rpc("_go_to_character_selection", players)
+	MatchCoordinator.start_character_select_timer()
+
+
+## Rellena con un personaje por defecto a los jugadores no-espectador que no
+## eligieron nada. Lo ejecuta el servidor al agotarse el tiempo de selección.
+func host_resolve_missing_selections() -> void:
+	if not multiplayer.is_server():
+		return
+	for pid in players:
+		if is_spectator(pid):
+			continue
+		if players[pid].get("character_id", -1) == -1:
+			var role: String = players[pid].get("assigned_role", "survivor")
+			var fallback_id := 0
+			for data in CharacterRegistry.get_all():
+				if data.team == role:
+					fallback_id = data.id
+					break
+			players[pid]["character_id"] = fallback_id
 
 
 @rpc("authority", "call_local", "reliable")

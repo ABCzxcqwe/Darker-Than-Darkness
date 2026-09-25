@@ -5,8 +5,14 @@ extends Node
 var current_game_manager: Node = null
 var last_match_results: Dictionary = {}
 var _resetting := false
+var _match_starting := false
+var _character_select_timer: Timer = null
 
 const MAIN_SCENE := preload("uid://c4oma0j4cetoj")
+## Duración server-authoritative de la fase de selección de personaje.
+## Ligeramente mayor que el countdown visual (15s) para dar margen a que
+## lleguen las selecciones de los clientes antes de rellenar las faltantes.
+const CHARACTER_SELECT_DURATION := 16.5
 
 
 func _ready() -> void:
@@ -17,9 +23,41 @@ func _on_server_disconnected() -> void:
 	reset_to_menu()
 
 
+## Arranca el temporizador que lanza la partida al terminar la selección.
+## Vive en el servidor (host), independiente de la UI, para que la partida
+## arranque aunque el host sea espectador y su pantalla no muestre countdown.
+func start_character_select_timer() -> void:
+	if not multiplayer.is_server():
+		return
+	if _character_select_timer == null:
+		_character_select_timer = Timer.new()
+		_character_select_timer.one_shot = true
+		_character_select_timer.timeout.connect(_on_character_select_timeout)
+		add_child(_character_select_timer)
+	_character_select_timer.start(CHARACTER_SELECT_DURATION)
+
+
+func stop_character_select_timer() -> void:
+	if _character_select_timer:
+		_character_select_timer.stop()
+
+
+func _on_character_select_timeout() -> void:
+	if not LobbyManager.is_host:
+		return
+	if LobbyManager.current_phase != LobbyManager.GamePhase.CHARACTER_SELECT:
+		return
+	LobbyManager.host_resolve_missing_selections()
+	host_launch_game()
+
+
 func host_launch_game() -> void:
 	if not LobbyManager.is_host:
 		return
+	if _match_starting:
+		return
+	_match_starting = true
+	stop_character_select_timer()
 
 	var char_map = {}
 	for id in LobbyManager.players:
@@ -132,6 +170,8 @@ func host_return_to_lobby_reconfigured() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
+	_match_starting = false
+	stop_character_select_timer()
 	LobbyManager.players = reseted_players
 	# Asegurar que el flag/bakcup del forzado no quede colgado si _calculate no corrió
 	LobbyManager.clear_forced_killer_state()
@@ -147,6 +187,8 @@ func reset_to_menu() -> void:
 	print("[MatchCoordinator] reset_to_menu")
 	AudioManager.reset_match_audio()
 	cleanup_game_manager()
+	_match_starting = false
+	stop_character_select_timer()
 
 	NetworkManager.disconnect_from_server()
 	LobbyManager.reset_lobby_state()
