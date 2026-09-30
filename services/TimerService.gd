@@ -74,11 +74,3 @@ func modify_time(seconds: float) -> void:
 		return
 	time_left = maxf(time_left + seconds, 0.0)
 	print("[TimerService] Tiempo modificado en ", seconds, "s. Restante: ", time_left)
-
-
-@rpc("authority", "unreliable")
-func _sync_time_client(server_time: float) -> void:
-	if not multiplayer.is_server():
-		time_left = server_time
-		is_active = server_time > 0.0
-		timer_changed.emit(time_left)

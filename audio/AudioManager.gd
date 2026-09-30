@@ -38,6 +38,13 @@ var _final_loop_start: float = 0.0
 var _final_loop_end: float = -1.0
 var _priority_before_special: int = PriorityLevel.NONE
 var _escape_was_active: bool = false
+var _lms_peer_id: int = -1
+var _headless: bool = false
+var _music_resync_timer: Timer = null
+
+# Sincronizacion de musica prioritaria (SPECIAL / LMS / ESCAPE).
+const MUSIC_RESYNC_INTERVAL := 5.0
+const MUSIC_RESYNC_THRESHOLD := 0.2
 
 # =======================================================================
 # RADIOS (se sobreescriben desde CharacterData del asesino)
@@ -124,6 +131,8 @@ func _load_sfx_files() -> void:
 			_sfx_library[entry.id] = entry.stream
 
 func play_sfx(sfx_id: int, position: Vector2) -> void:
+	if _headless:
+		return
 	var stream = _sfx_library.get(sfx_id)
 	if not stream:
 		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
@@ -134,6 +143,8 @@ func play_sfx(sfx_id: int, position: Vector2) -> void:
 	player.play()
 
 func play_sfx_ui(sfx_id: int) -> void:
+	if _headless:
+		return
 	var stream = _sfx_library.get(sfx_id)
 	if not stream:
 		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
@@ -143,25 +154,27 @@ func play_sfx_ui(sfx_id: int) -> void:
 	player.play()
 
 func play_stream(stream: AudioStream) -> void:
-	if not stream:
+	if _headless or not stream:
 		return
 	var player := _acquire()
 	player.stream = stream
 	player.play()
 
 func play_stream_2d(stream: AudioStream, position: Vector2) -> void:
-	if not stream:
+	if _headless or not stream:
 		return
 	var player := _acquire_2d()
 	player.stream = stream
 	player.global_position = position
 	player.play()
 
-@rpc("any_peer", "reliable", "call_local")
+@rpc("authority", "reliable", "call_local")
 func play_sfx_networked(sfx_id: int, x: float, y: float) -> void:
 	play_sfx(sfx_id, Vector2(x, y))
 
 func play_sfx_global(sfx_id: int) -> void:
+	if _headless:
+		return
 	var stream = _sfx_library.get(sfx_id)
 	if not stream:
 		push_warning("[AudioManager] SFX no encontrado: ", sfx_id)
@@ -170,7 +183,7 @@ func play_sfx_global(sfx_id: int) -> void:
 	player.stream = stream
 	player.play()
 
-@rpc("any_peer", "reliable", "call_local")
+@rpc("authority", "reliable", "call_local")
 func play_sfx_global_networked(sfx_id: int) -> void:
 	play_sfx_global(sfx_id)
 
@@ -184,7 +197,15 @@ func play_stream_2d_rpc(path: String, x: float, y: float) -> void:
 # CICLO DE VIDA
 # =======================================================================
 func _ready() -> void:
-	if DisplayServer.get_name() == "headless":
+	_headless = DisplayServer.get_name() == "headless"
+	# Timer de resync de musica prioritaria (solo actua en el servidor).
+	_music_resync_timer = Timer.new()
+	_music_resync_timer.name = "MusicResyncTimer"
+	_music_resync_timer.wait_time = MUSIC_RESYNC_INTERVAL
+	_music_resync_timer.autostart = true
+	_music_resync_timer.timeout.connect(_on_music_resync_timeout)
+	add_child(_music_resync_timer)
+	if _headless:
 		set_process(false)
 		return
 	_init_sfx_pool()
@@ -426,6 +447,82 @@ func set_killer_config(terror_r: float, chase_r: float) -> void:
 	chase_radius_base = chase_r
 	chase_radius_expanded = chase_r * 2.0
 
+
+# =======================================================================
+# SINCRONIZACION DE MUSICA PRIORITARIA (SPECIAL / LMS / ESCAPE)
+# =======================================================================
+## Config completa de audio de partida (mapa + killer + streams de personajes).
+func setup_match_audio(map_id: String) -> void:
+	setup_map_audio(map_id)
+	var killer_node := _find_first_in_group("killer")
+	var survivor_node := _find_first_in_group("survivor")
+	var terror_r: float = killer_node.character_data.terror_radius if killer_node and killer_node.character_data else 400.0
+	var chase_r: float = killer_node.character_data.chase_radius if killer_node and killer_node.character_data else 200.0
+	set_killer_config(terror_r, chase_r)
+	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node and killer_node.character_data else null
+	var chase_stream: AudioStream = killer_node.character_data.chase_music if killer_node and killer_node.character_data else null
+	var lms_stream: AudioStream = survivor_node.character_data.lms_music if survivor_node and survivor_node.character_data else null
+	register_match_character_music(terror_stream, chase_stream, lms_stream)
+
+
+func _find_first_in_group(group_name: String) -> Node:
+	for n in get_tree().get_nodes_in_group(group_name):
+		if is_instance_valid(n):
+			return n
+	return null
+
+
+## Reproduce un player arrancando desde `position` (segundos).
+func _play_from(player: AudioStreamPlayer, position: float) -> void:
+	if player == null:
+		return
+	player.volume_db = MAX_DB
+	if position > 0.05:
+		player.play(position)
+	else:
+		player.play()
+
+
+## Datos del track prioritario activo (para el late-join y el resync).
+func get_priority_sync_data() -> Dictionary:
+	var position := 0.0
+	if lms_music_player and lms_music_player.playing:
+		position = lms_music_player.get_playback_position()
+	return { "priority": _current_priority, "position": position, "lms_peer": _lms_peer_id }
+
+
+## Aplica en un cliente el track prioritario que el servidor indica (late-join).
+func apply_synced_priority(priority: int, position: float, lms_peer: int = -1) -> void:
+	match priority:
+		PriorityLevel.ESCAPE:
+			_start_priority_stream(PriorityLevel.ESCAPE, position)
+		PriorityLevel.SPECIAL:
+			_rpc_activate_rage_music(position)
+		PriorityLevel.LMS:
+			if lms_peer != -1:
+				_rpc_activate_lms_audio(lms_peer, position)
+
+
+## Resync periodico (servidor -> clientes) de la posicion del track prioritario.
+func _on_music_resync_timeout() -> void:
+	if not multiplayer.is_server():
+		return
+	if _current_priority == PriorityLevel.NONE:
+		return
+	if lms_music_player == null or not lms_music_player.playing:
+		return
+	_rpc_priority_music_position.rpc(_current_priority, lms_music_player.get_playback_position())
+
+
+@rpc("authority", "unreliable")
+func _rpc_priority_music_position(priority: int, position: float) -> void:
+	if _current_priority != priority:
+		return
+	if lms_music_player == null or not lms_music_player.playing:
+		return
+	if absf(lms_music_player.get_playback_position() - position) > MUSIC_RESYNC_THRESHOLD:
+		lms_music_player.seek(position)
+
 func reset_match_audio() -> void:
 	if map_music_player and map_music_player.playing:
 		map_music_player.stop()
@@ -512,20 +609,9 @@ func change_audio_state(new_state: String) -> void:
 # =======================================================================
 # PRIORIDAD: SPECIAL → ESCAPE → LMS
 # =======================================================================
-func activate_special_music() -> void:
-	_start_priority_stream(PriorityLevel.SPECIAL)
-
-@rpc("authority", "reliable", "call_local")
-func _rpc_activate_special_music() -> void:
-	_current_priority = PriorityLevel.SPECIAL
-	if map_music_player: map_music_player.stop()
-	if terror_music_player: terror_music_player.stop()
-	if chase_music_player: chase_music_player.stop()
-	if lms_music_player: lms_music_player.stop()
-
 @rpc("authority", "call_local", "reliable")
-func activar_fase_final_del_mapa() -> void:
-	_start_priority_stream(PriorityLevel.ESCAPE)
+func activar_fase_final_del_mapa(position: float = 0.0) -> void:
+	_start_priority_stream(PriorityLevel.ESCAPE, position)
 
 func activate_lms_audio() -> void:
 	_current_priority = PriorityLevel.LMS
@@ -540,19 +626,7 @@ func activate_lms_audio() -> void:
 		lms_music_player.volume_db = MAX_DB
 		lms_music_player.play()
 
-func stop_priority_music() -> void:
-	_current_priority = PriorityLevel.NONE
-	lms_bloqueo_activo = false
-	if lms_music_player.playing:
-		lms_music_player.stop()
-	if not lms_bloqueo_activo:
-		_restore_base()
-
-@rpc("authority", "reliable", "call_local")
-func _rpc_stop_priority_music() -> void:
-	stop_priority_music()
-
-func _start_priority_stream(priority: int) -> void:
+func _start_priority_stream(priority: int, position: float = 0.0) -> void:
 	if priority <= _current_priority and _current_priority != PriorityLevel.NONE:
 		return
 	_current_priority = priority
@@ -577,32 +651,17 @@ func _start_priority_stream(priority: int) -> void:
 			lms_music_player.stream = s
 			_final_loop_start = maxf(loop_start, 0.0)
 			_final_loop_end = loop_end
-			lms_music_player.volume_db = MAX_DB
-			lms_music_player.play()
+			_play_from(lms_music_player, position)
 		else:
 			_final_loop_start = 0.0
 			_final_loop_end = -1.0
 
 # =======================================================================
-# CHASE VARIANT
-# =======================================================================
-func set_last_life_chase_stream(stream: AudioStream) -> void:
-	var s := _configure_stream_loop(stream, 0.0, -1.0, true) if stream else null
-	_chase_stream_last_life = s
-
-func set_chase_variant(variant: int) -> void:
-	_chase_variant = variant
-	if chase_music_player:
-		if variant == ChaseVariantType.LAST_LIFE and _chase_stream_last_life:
-			chase_music_player.stream = _chase_stream_last_life
-		elif variant == ChaseVariantType.NORMAL and _chase_stream_normal:
-			chase_music_player.stream = _chase_stream_normal
-
-# =======================================================================
 # RPCs (LMS)
 # =======================================================================
-@rpc("any_peer", "call_local", "reliable")
-func _rpc_activate_lms_audio(survivor_peer_id: int) -> void:
+@rpc("authority", "call_local", "reliable")
+func _rpc_activate_lms_audio(survivor_peer_id: int, position: float = 0.0) -> void:
+	_lms_peer_id = survivor_peer_id
 	var survivor_node = _find_player_node_by_peer_id(survivor_peer_id)
 	if is_instance_valid(survivor_node) and "character_data" in survivor_node:
 		var char_data = survivor_node.character_data
@@ -616,11 +675,11 @@ func _rpc_activate_lms_audio(survivor_peer_id: int) -> void:
 	if chase_music_player and chase_music_player.playing: chase_music_player.stop()
 	if map_music_player and map_music_player.playing: map_music_player.stop()
 	if lms_music_player and lms_music_player.stream:
-		lms_music_player.volume_db = MAX_DB
-		lms_music_player.play()
+		_play_from(lms_music_player, position)
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _rpc_deactivate_lms_audio() -> void:
+	_lms_peer_id = -1
 	_current_priority = PriorityLevel.NONE
 	lms_bloqueo_activo = false
 	if lms_music_player.playing:
@@ -640,8 +699,8 @@ func play_sfx_on_peer(sfx_id: int, x: float, y: float) -> void:
 ## RAGE_DURATION en abilities/jevil/Rage/Rage.gd.
 const RAGE_MUSIC_PATH := "res://Characters/Jevil/assets/Music/THE WORLD REVOLVING.mp3"
 
-@rpc("any_peer", "call_local", "reliable")
-func _rpc_activate_rage_music() -> void:
+@rpc("authority", "call_local", "reliable")
+func _rpc_activate_rage_music(position: float = 0.0) -> void:
 	var stream := load(RAGE_MUSIC_PATH) as AudioStream
 	if stream == null:
 		push_warning("[AudioManager] Música del Rage no encontrada: ", RAGE_MUSIC_PATH)
@@ -659,12 +718,11 @@ func _rpc_activate_rage_music() -> void:
 	if lms_music_player and lms_music_player.playing:
 		lms_music_player.stop()
 	lms_music_player.stream = s
-	lms_music_player.volume_db = MAX_DB
-	lms_music_player.play()
+	_play_from(lms_music_player, position)
 	_current_priority = PriorityLevel.SPECIAL
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _rpc_deactivate_rage_music() -> void:
 	if _current_priority != PriorityLevel.SPECIAL:
 		return
@@ -766,12 +824,3 @@ func _find_player_node_by_peer_id(peer_id: int) -> Node:
 			if player.name == str(peer_id):
 				return player
 	return null
-
-func update_proximities(_d = null) -> void:
-	if is_instance_valid(cached_local_player):
-		_update_proximities(cached_local_player, 0.016)
-
-func _set_lms_stream(stream: AudioStream) -> void:
-	lms_music_player.stream = stream
-	if stream and "loop" in stream:
-		stream.loop = false

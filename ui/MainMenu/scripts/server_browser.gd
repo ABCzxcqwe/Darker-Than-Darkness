@@ -14,6 +14,8 @@ const GAME_MODES := ["Escape", "Juggernaut"]
 var _mock_rooms: Array[Dictionary] = []
 var _master_rooms: Array[Dictionary] = []
 var _steam_lobbies: Array = []
+var _fallback_attempted := false
+var _join_serial := 0
 
 @onready var _soul: TextureRect = $SoulCursor
 @onready var _title: Label = $CenterContainer/DeltaruneBox/Margin/VBox/Title
@@ -25,7 +27,10 @@ var _steam_lobbies: Array = []
 @onready var _controls_container: VBoxContainer = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer
 @onready var _ip_edit: LineEdit = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPInput
 
+var _header: HBoxContainer = null
+
 func _ready() -> void:
+	_relocate_header()
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
@@ -113,6 +118,15 @@ func _on_ip_submitted(_text: String) -> void:
 func _on_ip_focus_exited() -> void:
 	grab_focus.call_deferred()
 
+func _relocate_header() -> void:
+	_header = get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Header") as HBoxContainer
+	var vbox_list := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ListBox/MarginList/VBoxList") as VBoxContainer
+	if _header and vbox_list:
+		_header.get_parent().remove_child(_header)
+		vbox_list.add_child(_header)
+		vbox_list.move_child(_header, 0)
+
+
 func _configure_search_row() -> void:
 	if _ip_edit == null:
 		return
@@ -123,7 +137,7 @@ func _configure_search_row() -> void:
 		if connect_btn:
 			connect_btn.text = "BUSCAR"
 	else:
-		_ip_edit.placeholder_text = "192.168.1.10"
+		_ip_edit.placeholder_text = "IP del servidor"
 		_ip_edit.text = "127.0.0.1"
 		if connect_btn:
 			connect_btn.text = "CONECTAR"
@@ -392,6 +406,10 @@ func _confirm() -> void:
 
 	if cur.name == "CreateBtn":
 		if am and am.has_method("play_sfx_ui"): am.play_sfx_ui(SfxId.SELECT)
+		if _mode == MODE_LAN:
+			var info := _parse_server_field()
+			if not info.is_empty():
+				_apply_server_base(str(info["base"]))
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/CreateRoom.tscn")
 		return
 
@@ -435,11 +453,95 @@ func _confirm() -> void:
 
 # --- Red / Conexión ---
 
+func _parse_server_field() -> Dictionary:
+	var raw := _ip_edit.text.strip_edges()
+	if raw == "":
+		return {}
+	var host := raw
+	var cport := 8080
+	if raw.contains(":"):
+		var parts := raw.rsplit(":", true, 1)
+		if parts.size() == 2 and parts[1].is_valid_int():
+			host = parts[0]
+			cport = int(parts[1])
+	return {"host": host, "port": cport, "base": "http://%s:%d" % [host, cport]}
+
+
+func _apply_server_base(base: String) -> void:
+	if base.strip_edges() == "":
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.coordinator_url = base
+		sm.save_settings()
+
+
+func _list_server_rooms() -> void:
+	var info := _parse_server_field()
+	if info.is_empty():
+		_hint.text = "Ingresa la IP del servidor."
+		return
+	var host: String = info["host"]
+	var base: String = info["base"]
+	_apply_server_base(base)
+	var cc := get_node_or_null("/root/CoordinatorClient")
+	if cc == null:
+		_hint.text = "Coordinador no disponible."
+		return
+	_busy = true
+	_hint.text = "Buscando salas en %s..." % base
+	_master_rooms.clear()
+	_mock_rooms.clear()
+	_populate_rooms()
+	_rebuild_focusables()
+	_refresh_empty_state()
+	var rooms: Array = await cc.list_rooms_from(base)
+	_busy = false
+	var mr := get_node_or_null("/root/MapRegistry")
+	for room in rooms:
+		if typeof(room) != TYPE_DICTIONARY:
+			continue
+		var status := str(room.get("status", ""))
+		if status == "stale":
+			continue
+		var map_id := str(room.get("map", ""))
+		var map_name := map_id
+		if mr and mr.has_method("has_map") and mr.has_map(map_id):
+			var md = mr.get_map(map_id)
+			if md:
+				map_name = md.display_name
+		var room_name := str(room.get("name", ""))
+		if status != "" and status != "ready":
+			room_name = "(%s) %s" % [status, room_name]
+		_master_rooms.append({
+			"nombre": room_name,
+			"host": str(room.get("owner", "")),
+			"mapa": map_name,
+			"jugadores": "%d/%d" % [int(room.get("players", 0)), int(room.get("max", 0))],
+			"modo": str(room.get("mode", "")),
+			"estado": status,
+			"ip": "%s:%d" % [host, int(room.get("port", 0))],
+		})
+	_mock_rooms = _master_rooms.duplicate()
+	_populate_rooms()
+	_rebuild_focusables()
+	_refresh_empty_state()
+	if _mock_rooms.is_empty():
+		_hint.text = "No se encontraron salas"
+	else:
+		_hint.text = "%d salas encontradas" % _mock_rooms.size()
+
+
 func _try_join_lan_with_ip(ip: String) -> void:
 	if ip.is_empty():
 		_hint.text = "Ingresa una IP."
 		return
-	if not ip.is_valid_ip_address():
+	var host := ip
+	if ip.contains(":"):
+		var parts := ip.rsplit(":", true, 1)
+		if parts.size() == 2:
+			host = parts[0]
+	if not host.is_valid_ip_address():
 		_hint.text = "IP inválida: " + ip
 		return
 	var sm2 := get_node_or_null("/root/SettingsManager")
@@ -465,7 +567,11 @@ func _try_join_steam(lobby_id: int) -> void:
 		return
 	_begin_join("Conectando a sala online...", nm, player_name, lobby_id)
 
-func _begin_join(msg: String, nm, player_name: String, target) -> void:
+func _begin_join(msg: String, nm, player_name: String, target, reset_fallback: bool = true) -> void:
+	if reset_fallback:
+		_fallback_attempted = false
+	_join_serial += 1
+	var serial := _join_serial
 	_hint.text = msg
 	_joining = true
 	_busy = true
@@ -481,16 +587,22 @@ func _begin_join(msg: String, nm, player_name: String, target) -> void:
 		return
 
 	await get_tree().create_timer(JOIN_TIMEOUT).timeout
+	if serial != _join_serial:
+		return  # intento viejo: ya hay otro join en curso
 	if _joining:
+		var fell_back: bool = await _try_fallback_normal_room()
+		if fell_back:
+			return
 		_end_join("No se pudo conectar — servidor no responde")
 
 func _end_join(msg: String) -> void:
 	_joining = false
 	_busy = false
-	_hint.text = msg
 	for c in _focusables:
 		if c is Button: c.disabled = false
 	_highlight(_index, false)
+	# El mensaje se escribe DESPUES de _highlight para que no lo pise el hint genérico.
+	_hint.text = msg
 
 func _cancel_join() -> void:
 	if not _joining: return
@@ -505,7 +617,76 @@ func _on_connection_succeeded() -> void:
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 func _on_connection_failed() -> void:
+	if _mode == MODE_LAN:
+		if _fallback_attempted:
+			# Ya estamos en el intento de fallback: dejamos que su propio
+			# timeout/success lo resuelva (evita cancelarlo por una falla vieja).
+			return
+		var fell_back: bool = await _try_fallback_normal_room()
+		if fell_back:
+			return
 	_end_join("No se encontró servidor activo en la IP/Lobby")
+
+
+## Fallback "sala normal": si el join directo no responde, lista las salas del
+## coordinador configurado y se une automaticamente a la primera disponible.
+## Se intenta una sola vez por join (guard _fallback_attempted).
+func _try_fallback_normal_room() -> bool:
+	if _fallback_attempted or _mode != MODE_LAN:
+		return false
+	_fallback_attempted = true
+
+	var cc := get_node_or_null("/root/CoordinatorClient")
+	if cc == null:
+		return false
+
+	_hint.text = "No respondió; buscando sala normal..."
+	var rooms: Array = await cc.list_rooms(3.0)
+	if rooms.is_empty():
+		return false
+
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm == null:
+		return false
+	var sm := get_node_or_null("/root/SettingsManager")
+	var pname: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
+
+	var coord_host := _coordinator_host()
+	for room in rooms:
+		if typeof(room) != TYPE_DICTIONARY:
+			continue
+		if str(room.get("status", "")) == "stale":
+			continue
+		var port := int(room.get("port", 0))
+		if port <= 0:
+			continue
+		# El coordinador expone 'host' = public_host (direccion a la que conectan los clientes).
+		var room_host := String(room.get("host", "")).strip_edges()
+		if room_host == "":
+			room_host = coord_host
+		var target := "%s:%d" % [room_host, port]
+		print("[ServerBrowser] Fallback a sala normal: ", target)
+		# reset_fallback=false: no reiniciar el guard (evita loops de fallback).
+		_begin_join("Uniéndose a la sala normal...", nm, pname, target, false)
+		return true
+	return false
+
+
+## Host del coordinador (para armar host:puerto de una sala normal).
+func _coordinator_host() -> String:
+	var base := ""
+	var cc := get_node_or_null("/root/CoordinatorClient")
+	if cc and "base_url" in cc:
+		base = String(cc.base_url)
+	if base.strip_edges() == "":
+		var sm := get_node_or_null("/root/SettingsManager")
+		if sm:
+			base = String(sm.coordinator_url)
+	base = base.replace("https://", "").replace("http://", "")
+	var host := base.split("/")[0]
+	if host.contains(":"):
+		host = host.split(":")[0]
+	return host if host != "" else "127.0.0.1"
 
 func _on_server_disconnected() -> void:
 	_end_join("Servidor desconectado")
@@ -526,7 +707,7 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 			if m != "": mode_text = m
 			var mp_str: String = str(usteam.getLobbyData(lobby_id, "max_players"))
 			if mp_str != "": maxp = int(mp_str)
-		var d := {"nombre": name_text, "host": name_text, "mapa": map_text, "jugadores": "%d/%d" % [members, maxp], "modo": mode_text, "ping": "-", "ip": name_text}
+		var d := {"nombre": name_text, "host": name_text, "mapa": map_text, "jugadores": "%d/%d" % [members, maxp], "modo": mode_text, "estado": "online", "ip": name_text}
 		_master_rooms.append(d)
 	_mock_rooms = _master_rooms.duplicate()
 	_populate_rooms()
@@ -555,7 +736,10 @@ func _do_refresh() -> void:
 			_hint.text = "No se encontraron salas Online"
 		return
 
-	_hint.text = "Ingresa IP y presiona CONECTAR"
+	if _ip_edit and not _ip_edit.text.strip_edges().is_empty():
+		_list_server_rooms()
+		return
+	_hint.text = "Ingresa la IP del servidor y presiona VER SALAS"
 	_master_rooms.clear()
 	_mock_rooms.clear()
 	_populate_rooms()
@@ -583,7 +767,7 @@ func _populate_rooms() -> void:
 	for r in _mock_rooms:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
-		var cols := ["nombre", "host", "mapa", "jugadores", "modo", "ping"]
+		var cols := ["nombre", "host", "mapa", "jugadores", "modo", "estado"]
 		var widths := [170, 130, 145, 70, 85, 80]
 		for i in cols.size():
 			var lbl := Label.new()
@@ -592,6 +776,7 @@ func _populate_rooms() -> void:
 			lbl.add_theme_font_size_override("font_size", 18)
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			lbl.custom_minimum_size = Vector2(widths[i], 22)
+			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(lbl)
 		_list_container.add_child(row)
 
@@ -648,9 +833,10 @@ func _apply_theme() -> void:
 			_title.add_theme_font_override("font", theme_font)
 
 	# headers NOMBRE|HOST|MAPA|JUG.|MODO|PING
-	var header := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Header") as HBoxContainer
-	if header:
-		for ch in header.get_children():
+	if _header == null:
+		_header = get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Header") as HBoxContainer
+	if _header:
+		for ch in _header.get_children():
 			if ch is Label:
 				ch.add_theme_color_override("font_color", dim_col)
 				if theme_font:

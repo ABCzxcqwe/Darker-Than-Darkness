@@ -66,6 +66,15 @@ custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 color = Color(0, 0.5019608, 0, 1)
 
+[node name="AddressLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500023]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+
 [node name="MapLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9500009]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)

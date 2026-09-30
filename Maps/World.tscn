@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://dy3ln7lsee4qh"]
 
 [ext_resource type="Script" uid="uid://daa4836toaqm3" path="res://Maps/world.gd" id="1_eu7l1"]
-[ext_resource type="Script" uid="uid://y6flghru20pp" path="res://game/MultiplayerSpawner.gd" id="2_2dftf"]
 [ext_resource type="Resource" uid="uid://opc3oct12aw7" path="res://services/GameServices.tres" id="5_eu7l1"]
 [ext_resource type="Script" uid="uid://c7gifijfjtay" path="res://game/ProjectileSpawner.gd" id="6_pbmw8"]
 [ext_resource type="Script" uid="uid://c0l6j73n13123" path="res://core/SpectatorController.gd" id="7_spectator"]
@@ -11,11 +10,6 @@
 [node name="World" type="Node2D" unique_id=63554335]
 script = ExtResource("1_eu7l1")
 services_config = ExtResource("5_eu7l1")
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=905528505]
-spawn_path = NodePath("..")
-spawn_limit = 7
-script = ExtResource("2_2dftf")
 
 [node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1428571428]
 _spawnable_scenes = PackedStringArray("uid://cwyvwtu4eg3cm", "uid://d0osfj5o7sa6u", "uid://dclh3afhrc5qs", "uid://c4f4ilt8pj623", "uid://d02d1vtbv0irv", "uid://bp13d3jfglp5h", "uid://050hare15k77", "uid://ndbs3mvoredu", "uid://cskem0y0l7mee", "uid://drflgu7vsd6", "uid://q1minheart01", "uid://blnax3womlay0", "uid://bmosfg6r4siy1", "uid://bntvwj5g80sy2", "uid://boo4cnpq7pcy3", "uid://bq6h820w1sgy5", "uid://c105ahxmc03tv", "uid://fgjhi2gx4mmn", "uid://ditpbdnyukhdl")

@@ -130,7 +130,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 24
-text = "PING"
+text = "ESTADO"
 horizontal_alignment = 1
 
 [node name="ListBox" type="PanelContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9200009]

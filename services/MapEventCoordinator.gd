@@ -198,7 +198,7 @@ func _scan_children(node: Node) -> void:
 	for child in node.get_children():
 		if child is MapExit:
 			_exits[child.exit_id] = child
-			child.deactivate()
+			child.deactivate(true)  # silent: evita el burst de SFX al cargar el mapa
 			child.body_entered.connect(_on_player_entered_exit.bind(child.exit_id))
 		elif child is MapTrigger:
 			_triggers[child.trigger_id] = child

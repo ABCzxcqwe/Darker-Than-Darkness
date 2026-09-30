@@ -6,6 +6,10 @@ var _focusables: Array[Control] = []
 var _index := 0
 var _player_ids: Array[int] = []
 
+var _countdown_active := false
+var _countdown_left := 0.0
+var _countdown_timer: Timer = null
+
 var _action_visible := false
 var _action_index := 0
 var _selected_target_id: int = -1
@@ -22,6 +26,7 @@ var _confirm_index := 0 # 0 = SI, 1 = NO
 @onready var _start_btn: Button = $CenterContainer/DeltaruneBox/Margin/VBox/Actions/StartBtn
 @onready var _leave_btn: Button = $CenterContainer/DeltaruneBox/Margin/VBox/Actions/LeaveBtn
 @onready var _hint: Label = $CenterContainer/DeltaruneBox/Margin/VBox/HintLabel
+@onready var _address_label: Label = $CenterContainer/DeltaruneBox/Margin/VBox/AddressLabel
 @onready var _action_menu: PanelContainer = $ActionMenu
 @onready var _action_target: Label = $ActionMenu/MarginAction/VBoxAction/ActionTarget
 @onready var _btn_spectator: Button = $ActionMenu/MarginAction/VBoxAction/BtnSpectator
@@ -41,10 +46,28 @@ func _ready() -> void:
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
 	_apply_theme()
+	_update_address_label()
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
 	add_to_group("lobby")
+
+
+## Muestra arriba la IP:puerto de la partida SOLO cuando somos el host LOCAL
+## (servidor de escucha). En dedicado no se muestra (el proceso dedicado no
+## tiene UI, y el creador entra como cliente -> is_host = false).
+func _update_address_label() -> void:
+	if _address_label == null:
+		return
+	var is_local_host := LobbyManager.is_host and not _is_dedicated()
+	_address_label.visible = is_local_host
+	if is_local_host:
+		_address_label.text = "IP PARTIDA: %s" % NetworkManager.get_lan_address()
+
+
+func _is_dedicated() -> bool:
+	var ds := get_node_or_null("/root/DedicatedServer")
+	return ds != null and ds.is_dedicated
 
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
@@ -84,6 +107,12 @@ func _apply_theme() -> void:
 		players_header.add_theme_color_override("font_color", pal.get("dim", Color(0,0.5,0,1)))
 	if _status_label:
 		_status_label.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
+	if _address_label:
+		_address_label.add_theme_color_override("font_color", pal.get("selected", Color(1,1,0,1)))
+		if tm.has_method("get_font"):
+			var af: FontFile = tm.get_font()
+			if af:
+				_address_label.add_theme_font_override("font", af)
 	if _empty_label:
 		_empty_label.add_theme_color_override("font_color", pal.get("hint", Color(0,1,0,1)))
 	if _soul and tm.has_method("get_soul_texture"):
@@ -143,6 +172,12 @@ func _apply_theme() -> void:
 			lm.kicked.connect(_on_kicked)
 	if nm and not nm.server_disconnected.is_connected(_on_server_disconnected):
 		nm.server_disconnected.connect(_on_server_disconnected)
+	var mc := get_node_or_null("/root/MatchCoordinator")
+	if mc:
+		if mc.has_signal("start_countdown_started") and not mc.start_countdown_started.is_connected(_on_start_countdown_started):
+			mc.start_countdown_started.connect(_on_start_countdown_started)
+		if mc.has_signal("start_countdown_cancelled") and not mc.start_countdown_cancelled.is_connected(_on_start_countdown_cancelled):
+			mc.start_countdown_cancelled.connect(_on_start_countdown_cancelled)
 	_rebuild_focus()
 	_highlight(_index, true)
 	_position_soul(_index, true)
@@ -153,17 +188,19 @@ func _rebuild_focus() -> void:
 	_player_ids.clear()
 	var lm := get_node_or_null("/root/LobbyManager")
 	var is_host: bool = lm.is_host if lm else false
-	_start_btn.visible = is_host
+	var is_room_host: bool = (lm.is_room_host() if lm and lm.has_method("is_room_host") else false)
+	var can_manage: bool = is_host or is_room_host
+	_start_btn.visible = can_manage
 	# Recolectar player rows ya creados: están en _player_container
-	if is_host and _player_container:
+	if can_manage and _player_container:
 		for child in _player_container.get_children():
 			if child.has_meta("peer_id"):
 				_focusables.append(child)
 				_player_ids.append(int(child.get_meta("peer_id")))
-	if is_host:
+	if can_manage:
 		_focusables.append(_start_btn)
 	_focusables.append(_leave_btn)
-	if is_host and lm:
+	if can_manage and lm:
 		var cnt: int = lm.players.size()
 		var cands: Array = lm.get_killer_candidates() if lm.has_method("get_killer_candidates") else []
 		_start_btn.disabled = cnt < 2 or cands.is_empty()
@@ -248,10 +285,7 @@ func _update_player_list() -> void:
 	# Si el target del menú ya no existe, cerrarlo
 	if _action_visible and not _player_exists(_selected_target_id):
 		_close_action_menu()
-	var lm2 := get_node_or_null("/root/LobbyManager")
-	if _status_label and lm2:
-		var maxp: int = lm2.max_players if "max_players" in lm2 else lm2.MAX_PLAYERS
-		_status_label.text = "Jugadores: %d/%d" % [lm2.players.size(), maxp]
+	_update_status()
 	_rebuild_focus()
 	# Si el índice quedó fuera del rango de focusables tras rebuild, clampear
 	_highlight(_index, false)
@@ -323,6 +357,9 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	var name_lbl := Label.new()
 	var display_name := name_str
 	if is_host:
+		display_name += " (HOST)"
+	var lm_host := get_node_or_null("/root/LobbyManager")
+	if lm_host and int(lm_host.room_host_peer) == peer_id and not is_host:
 		display_name += " (HOST)"
 	if is_me:
 		display_name += " (TÚ)"
@@ -778,8 +815,8 @@ func _confirm_action() -> void:
 
 func _execute_spectator() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("admin_set_spectator"):
-		var ok: bool = lm.admin_set_spectator(_selected_target_id)
+	if lm and lm.has_method("host_set_spectator"):
+		var ok: bool = lm.host_set_spectator(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -787,8 +824,8 @@ func _execute_spectator() -> void:
 
 func _execute_survivor() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("admin_set_survivor"):
-		var ok: bool = lm.admin_set_survivor(_selected_target_id)
+	if lm and lm.has_method("host_set_survivor"):
+		var ok: bool = lm.host_set_survivor(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -796,8 +833,8 @@ func _execute_survivor() -> void:
 
 func _execute_killer() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("admin_force_killer"):
-		var ok: bool = lm.admin_force_killer(_selected_target_id)
+	if lm and lm.has_method("host_force_killer"):
+		var ok: bool = lm.host_force_killer(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -835,8 +872,8 @@ func _confirm_confirm() -> void:
 
 func _execute_kick() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("admin_kick_player"):
-		var ok: bool = lm.admin_kick_player(_selected_target_id)
+	if lm and lm.has_method("host_kick_player"):
+		var ok: bool = lm.host_kick_player(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -878,12 +915,57 @@ func _on_server_disconnected() -> void:
 	else:
 		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/ServerBrowser.tscn")
 
+func _on_start_countdown_started(seconds: float) -> void:
+	_countdown_active = true
+	_countdown_left = seconds
+	if _countdown_timer == null:
+		_countdown_timer = Timer.new()
+		_countdown_timer.wait_time = 0.1
+		_countdown_timer.timeout.connect(_tick_countdown)
+		add_child(_countdown_timer)
+	_countdown_timer.start()
+	_update_status()
+
+
+func _on_start_countdown_cancelled() -> void:
+	_countdown_active = false
+	if _countdown_timer:
+		_countdown_timer.stop()
+	_update_status()
+
+
+func _tick_countdown() -> void:
+	_countdown_left -= 0.1
+	if _countdown_left <= 0.0:
+		_countdown_left = 0.0
+		_countdown_timer.stop()
+	_update_status()
+
+
+func _update_status() -> void:
+	if _status_label == null:
+		return
+	if _countdown_active:
+		_status_label.text = "Iniciando en %d..." % int(ceil(_countdown_left))
+		_status_label.modulate = Color(1, 0.8, 0.2, 1)
+		return
+	var lm := get_node_or_null("/root/LobbyManager")
+	if lm:
+		var maxp: int = lm.max_players if "max_players" in lm else lm.MAX_PLAYERS
+		_status_label.text = "Jugadores: %d/%d" % [lm.players.size(), maxp]
+	_status_label.modulate = Color(0, 1, 0, 1)
+
+
 func _on_start_pressed() -> void:
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.SELECT)
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm == null or not lm.is_host:
+	if lm == null:
+		return
+	var is_host: bool = lm.is_host
+	var is_room_host: bool = lm.has_method("is_room_host") and lm.is_room_host()
+	if not is_host and not is_room_host:
 		return
 	if lm.players.size() < 2:
 		if _status_label:
@@ -900,7 +982,10 @@ func _on_start_pressed() -> void:
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 		return
-	lm.host_start_character_selection()
+	if is_host:
+		lm.host_start_character_selection()
+	else:
+		lm.rpc_id(1, "request_start_match")
 
 func _on_leave_pressed() -> void:
 	if _action_visible:
@@ -937,3 +1022,9 @@ func _exit_tree() -> void:
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm and nm.server_disconnected.is_connected(_on_server_disconnected):
 		nm.server_disconnected.disconnect(_on_server_disconnected)
+	var mc := get_node_or_null("/root/MatchCoordinator")
+	if mc:
+		if mc.has_signal("start_countdown_started") and mc.start_countdown_started.is_connected(_on_start_countdown_started):
+			mc.start_countdown_started.disconnect(_on_start_countdown_started)
+		if mc.has_signal("start_countdown_cancelled") and mc.start_countdown_cancelled.is_connected(_on_start_countdown_cancelled):
+			mc.start_countdown_cancelled.disconnect(_on_start_countdown_cancelled)

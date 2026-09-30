@@ -11,6 +11,7 @@ const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const INVISIBILITY_ALPHA_SELF: float = 0.5
 @onready var synchronizer      = $Synchronizer
+@onready var synchronizer_anim = $SynchronizerAnim
 @onready var animated_sprite   = $AnimatedSprite2D
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var world_c           = $CollisionShape2D
@@ -33,6 +34,18 @@ var heal_flash_until: int    = 0
 var _original_modulate: Color
 
 var facing: Vector2 = Vector2.RIGHT
+
+## Estado de movimiento replicado por el servidor (0 idle / 1 walk / 2 run).
+var move_state: int = 0
+## Posicion autoritativa del servidor; los remotos interpolan hacia aca.
+var net_position: Vector2 = Vector2.ZERO
+
+## Input de red: el servidor guarda aca el ultimo movimiento recibido del dueño
+## de este nodo. La simulacion autoritativa del servidor lo consume.
+var net_move_input: Vector2 = Vector2.ZERO
+var net_sprint: bool = false
+## Ultima secuencia de input aplicada por el servidor (para reconciliar al dueño).
+var net_last_input_seq: int = 0
 
 var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
@@ -67,6 +80,7 @@ func _ready() -> void:
 
 	if not synchronizer:
 		push_error("[Player] No se encontró 'Synchronizer'. Revisa player.tscn")
+	_setup_synchronizer_authority()
 
 	if character_data:
 		add_to_group(character_data.team)
@@ -105,6 +119,65 @@ func _ready() -> void:
 	var relay = GameServiceLocator.get_client_relay()
 	if relay:
 		relay.camera_shake.connect(_on_camera_shake)
+
+
+## La posicion/salud las replica el SERVIDOR; la animacion/apuntado los sigue
+## calculando el DUEÑO. Se separan en dos MultiplayerSynchronizer con autoridades
+## distintas (ver player.tscn) para no tener que cambiar la autoridad del nodo
+## (que se usa como identidad en todo el proyecto).
+func _setup_synchronizer_authority() -> void:
+	var owner_peer := get_multiplayer_authority()
+	if synchronizer:
+		synchronizer.set_multiplayer_authority(1)
+	if synchronizer_anim:
+		synchronizer_anim.set_multiplayer_authority(owner_peer)
+	# El dueño predice su posicion localmente: no le reenviamos su propia
+	# posicion autoritativa (evita rubber-banding). El resto de peers si la recibe.
+	if multiplayer.is_server() and synchronizer and owner_peer != 1:
+		synchronizer.set_visibility_for(owner_peer, false)
+
+
+func _physics_process(_delta: float) -> void:
+	if not multiplayer.multiplayer_peer:
+		return
+	if multiplayer.is_server():
+		# El servidor publica su posicion autoritativa para que la replique el Synchronizer.
+		net_position = global_position
+		return
+	if is_multiplayer_authority():
+		return
+	_apply_networked_anim()
+
+
+## Aplica en remotos la animacion de movimiento segun `move_state` y el `facing`.
+## No pisa animaciones de habilidad/stun/emote (solo aplica en state IDLE).
+func _apply_networked_anim() -> void:
+	if state != AnimState.IDLE:
+		return
+	if health_state != "alive":
+		return
+	if not animated_sprite:
+		return
+	var is_moving: bool = move_state == 1 or move_state == 2
+	var is_running: bool = move_state == 2
+	var anim_name: String = animation_component.select_movement_anim(
+			is_moving, is_running, animation_component.should_use_hurt_sprite())
+	if anim_name != "default" and animated_sprite.animation != anim_name:
+		animated_sprite.play(anim_name)
+		last_animation = anim_name
+	animated_sprite.flip_h = not facing_right
+
+
+## El dueño avisa el cambio de facing al servidor (que lo replica por el Synchronizer).
+@rpc("any_peer", "unreliable")
+func _submit_facing(right: bool) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	facing_right = right
+	facing = Vector2.RIGHT if right else Vector2.LEFT
 
 
 func _on_camera_shake(intensity: float, duration: float) -> void:
@@ -767,6 +840,38 @@ func _sync_aim_dir(dir: Vector2) -> void:
 		_latest_aim_dir = dir
 
 
+## Input del dueño hacia el servidor. El servidor lo guarda y lo aplica en su
+## simulacion autoritativa (PlayerMovementComponent). Solo movimiento; el
+## apuntado sigue siendo 100% del cliente.
+@rpc("any_peer", "unreliable_ordered")
+func _submit_input(seq: int, move: Vector2, sprint: bool) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != get_multiplayer_authority():
+		return
+	if seq <= net_last_input_seq:
+		return  # paquete viejo/duplicado
+	net_move_input = move
+	net_sprint = sprint
+	net_last_input_seq = seq
+
+
+## Estado autoritativo que el servidor manda SOLO al dueño para reconciliar su
+## prediccion local (esta excluido de la sync normal de posicion).
+@rpc("any_peer", "unreliable")
+func _reconcile_state(server_pos: Vector2, ack_seq: int) -> void:
+	if multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if not is_multiplayer_authority():
+		return
+	if movement_component:
+		movement_component.reconcile(server_pos, ack_seq)
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func _request_secret_heal() -> void:
 	if not multiplayer.is_server():
@@ -1074,6 +1179,8 @@ func _sync_state(new_state: String, new_health: int) -> void:
 				last_animation = anim
 				if synchronizer:
 					synchronizer.queue_free()
+				if synchronizer_anim:
+					synchronizer_anim.queue_free()
 				animated_sprite.reparent(interaction.get_corpse_container(), true)
 				animated_sprite.z_index = 2
 			interaction.disable_corpse()
@@ -1109,6 +1216,7 @@ func _request_sprint(sprinting: bool) -> void:
 @rpc("authority", "call_local", "reliable")
 func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:
 	global_position = new_pos
+	net_position = new_pos
 	if locked:
 		state = AnimState.ABILITY
 		active_ability_slot = -1  # sin slot específico, solo bloqueo
@@ -1123,6 +1231,7 @@ func _sync_server_position(pos: Vector2) -> void:
 	if sender != 0 and sender != 1:
 		return
 	global_position = pos
+	net_position = pos
 
 
 @rpc("any_peer", "call_local", "reliable")

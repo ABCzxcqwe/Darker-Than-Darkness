@@ -100,6 +100,11 @@ var dedicated_server_ip: String = "":
 		dedicated_server_ip = v
 		setting_changed.emit("dedicated_server_ip", v)
 
+var coordinator_url: String = "http://127.0.0.1:8080":
+	set(v):
+		coordinator_url = v
+		setting_changed.emit("coordinator_url", v)
+
 var online_provider: String = "steam":
 	set(v):
 		online_provider = v.to_lower()
@@ -149,6 +154,7 @@ func load_settings() -> void:
 	network_mode = cfg.get_value("network", "network_mode", 0)
 	lan_server_ip = cfg.get_value("network", "lan_server_ip", "127.0.0.1")
 	dedicated_server_ip = cfg.get_value("network", "dedicated_server_ip", "")
+	coordinator_url = cfg.get_value("network", "coordinator_url", "http://127.0.0.1:8080")
 	online_provider = str(cfg.get_value("network", "online_provider", "steam")).to_lower()
 	if online_provider == "":
 		online_provider = "steam"
@@ -197,6 +203,7 @@ func save_settings() -> void:
 	cfg.set_value("network", "network_mode", network_mode)
 	cfg.set_value("network", "lan_server_ip", lan_server_ip)
 	cfg.set_value("network", "dedicated_server_ip", dedicated_server_ip)
+	cfg.set_value("network", "coordinator_url", coordinator_url)
 	cfg.set_value("network", "online_provider", online_provider)
 	cfg.set_value("video", "vhs_enabled", vhs_enabled)
 	cfg.set_value("video", "brightness", brightness)

@@ -205,16 +205,15 @@ func _rpc_rage_time(caster_id: int, remaining: float) -> void:
 
 @rpc("authority", "reliable", "call_local")
 func _rpc_setup_map_audio(map_id: String) -> void:
-	AudioManager.setup_map_audio(map_id)
-	var killer_node: Node2D = _find_killer_node()
-	var survivor_node: Node2D = _find_any_survivor_node()
-	var terror_r: float = killer_node.character_data.terror_radius if killer_node and killer_node.character_data else 400.0
-	var chase_r: float  = killer_node.character_data.chase_radius  if killer_node and killer_node.character_data else 200.0
-	AudioManager.set_killer_config(terror_r, chase_r)
-	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node else null
-	var chase_stream: AudioStream  = killer_node.character_data.chase_music  if killer_node else null
-	var lms_stream: AudioStream    = survivor_node.character_data.lms_music if survivor_node else null
-	AudioManager.register_match_character_music(terror_stream, chase_stream, lms_stream)
+	AudioManager.setup_match_audio(map_id)
+
+
+## Late-join: el servidor manda al espectador la config completa + el track
+## prioritario activo (LMS/escape/rage) con su posicion.
+@rpc("authority", "reliable")
+func _rpc_sync_spectator_audio(map_id: String, priority: int, position: float, lms_peer: int) -> void:
+	AudioManager.setup_match_audio(map_id)
+	AudioManager.apply_synced_priority(priority, position, lms_peer)
 
 
 ## Stamina

@@ -7,6 +7,10 @@ const SKIP_TO_NOTICE := true
 const NOTICE_SCENE := "res://ui/Boot/scenes/LegalNotice.tscn"
 
 func _ready() -> void:
+	var ds := get_node_or_null("/root/DedicatedServer")
+	if ds and ds.is_dedicated:
+		print("[Boot] Modo servidor dedicado: se omite la UI.")
+		return
 	if SKIP_TO_NOTICE:
 		get_tree().change_scene_to_file.call_deferred(NOTICE_SCENE)
 		return

@@ -30,3 +30,10 @@ Thumbs.db
 steam_appid.txt
 
 /addons
+
+# Coordinator (Go) build artifacts / deploy
+/coordinator/coordinator
+/coordinator/coordinator.exe
+/coordinator/*.exe
+/coordinator/darker-coordinator
+/server-dist/

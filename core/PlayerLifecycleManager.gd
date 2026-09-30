@@ -76,9 +76,9 @@ func _grant_synchronizer_visibility(new_player_node: Node, new_peer_id: int) -> 
 
 
 ## API pública: otorga (o quita) la visibilidad del Synchronizer de 'player_node' hacia 'viewer_peer_id'.
-## Despacha la llamada a la máquina que realmente es la autoridad de 'player_node' (server-side call
-## si el dueño es el servidor, RPC dirigido si el dueño es un cliente remoto), porque
-## MultiplayerSynchronizer.set_visibility_for solo tiene efecto si corre en esa máquina.
+## El Synchronizer de posicion/salud es autoritativo del SERVIDOR (autoridad 1),
+## asi que la visibilidad se ajusta localmente en el servidor sin importar quien
+## sea el dueño logico del nodo. La animacion (SynchronizerAnim) va por public_visibility.
 ## Usado también por World.gd para el catch-up de espectadores que se unen tarde.
 func grant_player_visibility_to_peer(player_node: Node, viewer_peer_id: int, is_visible: bool = true) -> void:
 	if not multiplayer.is_server():
@@ -90,20 +90,13 @@ func grant_player_visibility_to_peer(player_node: Node, viewer_peer_id: int, is_
 	if owner_peer_id == viewer_peer_id:
 		return  # no tiene sentido volverse visible a uno mismo
 
-	if owner_peer_id == multiplayer.get_unique_id():
-		var sync := player_node.get_node_or_null("Synchronizer") as MultiplayerSynchronizer
-		if sync:
-			sync.set_visibility_for(viewer_peer_id, is_visible)
-			if is_visible:
-				sync.update_visibility(viewer_peer_id)
-		else:
-			push_warning("[PlayerLifecycleManager] Jugador ", owner_peer_id, " sin nodo 'Synchronizer'.")
-		return
-
-	if player_node.has_method("_rpc_set_synchronizer_visibility"):
-		player_node.rpc_id(owner_peer_id, "_rpc_set_synchronizer_visibility", viewer_peer_id, is_visible)
+	var sync := player_node.get_node_or_null("Synchronizer") as MultiplayerSynchronizer
+	if sync:
+		sync.set_visibility_for(viewer_peer_id, is_visible)
+		if is_visible:
+			sync.update_visibility(viewer_peer_id)
 	else:
-		push_warning("[PlayerLifecycleManager] Jugador ", owner_peer_id, " no tiene el RPC de visibilidad (actualizá Player.gd).")
+		push_warning("[PlayerLifecycleManager] Jugador ", owner_peer_id, " sin nodo 'Synchronizer'.")
 
 
 ## Llamado por el propio cliente dueño de un jugador, una vez que su copia local

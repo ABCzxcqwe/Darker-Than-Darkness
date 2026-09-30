@@ -2,14 +2,20 @@ extends Control
 ## CreateRoom — funcional, crea lobby real, soul rojo, datos sala + modo juego
 
 const GAME_MODES := ["Escape"] # Juggernaut bloqueado
+const SERVER_LOCAL := "Local"
+const SERVER_DEDICATED := "Dedicado"
 
 var _map_idx := 0
 var _game_mode_idx := 0
 var _max_players: int = 4
-var _focus_idx := 0 # 0=Nombre, 1=Mapa, 2=Modo juego (bloqueado), 3=Jugadores, 4=Crear, 5=Volver
+var _focus_idx := 0 # 0=Nombre, 1=Mapa, 2=Modo juego, 3=Jugadores, 4=Servidor, 5=Crear, 6=Volver
 var _field_nodes: Array[Control] = []
 var _busy := false
 var _available_maps: Array = []
+var _server_modes: Array[String] = [SERVER_LOCAL]
+var _server_mode_idx := 0
+var _server_label: Label = null
+var _server_arrows: Array[Label] = []
 
 @onready var _soul: TextureRect = $SoulCursor
 @onready var _title: Label = $CenterContainer/DeltaruneBox/Margin/VBox/Title
@@ -51,7 +57,8 @@ func _ready() -> void:
 		_players_label.text = str(_max_players)
 	_name_edit.text = ""
 	_name_edit.placeholder_text = "Mi sala"
-	_field_nodes = [_name_edit, _map_label, _game_mode_label, _players_label, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn]
+	_build_server_row()
+	_field_nodes = [_name_edit, _map_label, _game_mode_label, _players_label, _server_label, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn]
 	if has_node("/root/NetworkManager"):
 		var nmm := get_node_or_null("/root/NetworkManager")
 		if nmm and not nmm.connection_succeeded.is_connected(_on_server_created):
@@ -66,6 +73,70 @@ func _ready() -> void:
 		_name_edit.text_submitted.connect(_on_name_submitted)
 	if _name_edit and not _name_edit.focus_exited.is_connected(_on_name_focus_exited):
 		_name_edit.focus_exited.connect(_on_name_focus_exited)
+
+func _coordinator_available() -> bool:
+	var cc := get_node_or_null("/root/CoordinatorClient")
+	return cc != null and cc.has_method("is_available") and cc.is_available()
+
+func _build_server_row() -> void:
+	var vbox := $CenterContainer/DeltaruneBox/Margin/VBox
+	var hint := vbox.get_node_or_null("HintLabel") as Control
+	_server_modes = [SERVER_LOCAL]
+	if _coordinator_available():
+		_server_modes.append(SERVER_DEDICATED)
+	var row := HBoxContainer.new()
+	row.name = "ServerRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var text := Label.new()
+	text.name = "ServerText"
+	text.text = "SERVIDOR"
+	var left := Label.new()
+	left.name = "ServerLeft"
+	left.text = "<"
+	_server_label = Label.new()
+	_server_label.name = "ServerLabel"
+	_server_label.text = _server_modes[_server_mode_idx]
+	var right := Label.new()
+	right.name = "ServerRight"
+	right.text = ">"
+	row.add_child(text)
+	row.add_child(left)
+	row.add_child(_server_label)
+	row.add_child(right)
+	vbox.add_child(row)
+	if hint:
+		vbox.move_child(row, hint.get_index())
+	_server_arrows = [left, right]
+	_theme_server_row()
+	if _server_modes.size() <= 1:
+		left.visible = false
+		right.visible = false
+
+func _theme_server_row() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null:
+		return
+	var pal: Dictionary = tm.get_palette() if tm.has_method("get_palette") else {}
+	var dim: Color = pal.get("dim", Color(0,0.5,0,1))
+	var server_text := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ServerRow/ServerText") as Label
+	if server_text:
+		server_text.add_theme_color_override("font_color", dim)
+	for a in _server_arrows:
+		if is_instance_valid(a):
+			a.add_theme_color_override("font_color", dim)
+
+func _change_server_mode(dir: int) -> void:
+	if _server_modes.size() <= 1:
+		var am0 := get_node_or_null("/root/AudioManager")
+		if am0 and am0.has_method("play_sfx_ui"):
+			am0.play_sfx_ui(SfxId.ERROR)
+		return
+	_server_mode_idx = clampi(_server_mode_idx + dir, 0, _server_modes.size() - 1)
+	if _server_label:
+		_server_label.text = _server_modes[_server_mode_idx]
+	var am := get_node_or_null("/root/AudioManager")
+	if am and am.has_method("play_sfx_ui"):
+		am.play_sfx_ui(SfxId.MENU_MOVE)
 
 func _on_name_submitted(_text: String) -> void:
 	_name_edit.release_focus()
@@ -113,6 +184,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif _focus_idx == 3:
 			_change_max_players(-1)
 			vp.set_input_as_handled()
+		elif _focus_idx == 4:
+			_change_server_mode(-1)
+			vp.set_input_as_handled()
 	elif event.is_action_pressed("menu_right"):
 		if _focus_idx == 1:
 			_change_map(1)
@@ -122,6 +196,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp.set_input_as_handled()
 		elif _focus_idx == 3:
 			_change_max_players(1)
+			vp.set_input_as_handled()
+		elif _focus_idx == 4:
+			_change_server_mode(1)
 			vp.set_input_as_handled()
 	elif event.is_action_pressed("menu_accept") or event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and event.keycode == KEY_Z):
 		if editing and (event is InputEventKey and event.keycode == KEY_Z and event.unicode != 0):
@@ -179,8 +256,9 @@ func _highlight(idx: int) -> void:
 				_hint.text = "Mapa — %s (%d/%d)" % [cur_map, _map_idx + 1, maxi(_available_maps.size(), 1)]
 			2: _hint.text = "Modo juego — Escape supervivencia"
 			3: _hint.text = "Máximo %d en sala" % _max_players
-			4: _hint.text = "Crea y entra al lobby"
-			5: _hint.text = "Volver al buscador"
+			4: _hint.text = "Servidor — %s" % _server_modes[_server_mode_idx]
+			5: _hint.text = "Crea y entra al lobby"
+			6: _hint.text = "Volver al buscador"
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _field_nodes.is_empty():
@@ -258,9 +336,12 @@ func _confirm() -> void:
 		_move_vert(1)
 		return
 	if _focus_idx == 4:
-		_try_create()
+		_move_vert(1)
 		return
 	if _focus_idx == 5:
+		_try_create()
+		return
+	if _focus_idx == 6:
 		_go_back()
 
 func _try_create() -> void:
@@ -287,12 +368,47 @@ func _try_create() -> void:
 	if nm == null:
 		_hint.text = "NetworkManager no encontrado"
 		return
+	if _server_mode_idx == 1 and _server_modes.size() > 1:
+		_try_create_dedicated(am, sala_name, map_data.id, game_mode, player_name)
+		return
 	_busy = true
 	_hint.text = "Creando sala..."
 	var success: bool = nm.create_server(player_name, map_data.id, sala_name, game_mode, _max_players)
 	if not success:
 		_busy = false
 		_hint.text = "Error al crear el servidor."
+		if am and am.has_method("play_sfx_ui"):
+			am.play_sfx_ui(SfxId.ERROR)
+
+
+func _try_create_dedicated(am: Node, sala_name: String, map_id: String, game_mode: String, player_name: String) -> void:
+	var cc := get_node_or_null("/root/CoordinatorClient")
+	if cc == null:
+		_hint.text = "Coordinador no disponible."
+		if am and am.has_method("play_sfx_ui"):
+			am.play_sfx_ui(SfxId.ERROR)
+		return
+	_busy = true
+	_hint.text = "Creando sala en servidor..."
+	var room: Dictionary = await cc.create_room(sala_name, map_id, game_mode, _max_players, player_name)
+	if room.is_empty() or not room.has("port"):
+		_busy = false
+		_hint.text = "No se pudo crear la sala en el servidor."
+		if am and am.has_method("play_sfx_ui"):
+			am.play_sfx_ui(SfxId.ERROR)
+		return
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm == null:
+		_busy = false
+		_hint.text = "NetworkManager no encontrado"
+		return
+	nm.set_lan_mode()
+	var target := "%s:%d" % [str(room.get("host", "127.0.0.1")), int(room.get("port", 4242))]
+	_hint.text = "Conectando a %s..." % target
+	var ok: bool = nm.join_server(player_name, target)
+	if not ok:
+		_busy = false
+		_hint.text = "Error al conectar a la sala."
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 
@@ -380,6 +496,8 @@ func _apply_theme() -> void:
 				b.add_theme_font_override("font", theme_font2)
 			if tm.has_method("make_box_style"):
 				b.add_theme_stylebox_override("normal", tm.make_box_style())
+	if _server_label:
+		_theme_server_row()
 
 func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")

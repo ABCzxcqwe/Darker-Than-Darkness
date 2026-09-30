@@ -20,6 +20,7 @@ var max_players: int = 4
 var is_host: bool = false
 var current_phase: int = GamePhase.LOBBY
 var forced_killer_peer: int = -1
+var room_host_peer: int = -1
 
 
 func _ready() -> void:
@@ -29,6 +30,10 @@ func _ready() -> void:
 
 func is_spectator(peer_id: int) -> bool:
 	return players.has(peer_id) and players[peer_id].get("is_spectator", false)
+
+
+func is_room_host() -> bool:
+	return room_host_peer != -1 and room_host_peer == multiplayer.get_unique_id()
 
 
 # ── Peer management ──
@@ -62,28 +67,31 @@ func _send_player_info(player_name: String):
 			"assigned_role": "spectator" if is_late_join else "survivor",
 			"is_spectator": is_late_join
 		}
+		if not is_late_join and room_host_peer == -1:
+			room_host_peer = sender
 		emit_signal("player_joined", sender, players[sender])
 
 		var self_id = multiplayer.get_unique_id()
 		if not is_late_join:
 			for pid in players:
 				if pid != self_id:
-					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players, room_host_peer)
 		else:
 			for pid in players:
 				if pid != self_id and pid != sender:
-					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
-			rpc_id(sender, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+					rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players, room_host_peer)
+			rpc_id(sender, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players, room_host_peer)
 			_send_spectator_join(sender)
 
 
 @rpc("authority", "reliable")
-func _sync_lobby_state(all_players: Dictionary, map_id: String, p_room_name: String = "", p_game_mode: String = "Escape", p_max_players: int = 4):
+func _sync_lobby_state(all_players: Dictionary, map_id: String, p_room_name: String = "", p_game_mode: String = "Escape", p_max_players: int = 4, p_room_host: int = -1):
 	players = all_players
 	selected_map = map_id
 	room_name = p_room_name
 	game_mode = p_game_mode
 	max_players = clampi(p_max_players, 2, MAX_PLAYERS)
+	room_host_peer = p_room_host
 	emit_signal("lobby_updated")
 
 
@@ -114,6 +122,11 @@ func _on_peer_disconnected(peer_id: int):
 		players.erase(peer_id)
 		emit_signal("player_left", peer_id)
 
+		if room_host_peer == peer_id:
+			room_host_peer = -1
+			MatchCoordinator.stop_match_countdown()
+			_reassign_room_host()
+
 		if not was_spectator:
 			var game_state = GameServiceLocator.game_state if GameServiceLocator.has_service(ServiceNames.GAME_STATE) else null
 			if game_state and game_state.is_in_game():
@@ -122,7 +135,38 @@ func _on_peer_disconnected(peer_id: int):
 		var self_id = multiplayer.get_unique_id()
 		for pid in players:
 			if pid != self_id:
-				rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+				rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players, room_host_peer)
+
+
+func _reassign_room_host() -> void:
+	if not multiplayer.is_server():
+		return
+	var candidates: Array[int] = []
+	for pid in players:
+		if not is_spectator(pid):
+			candidates.append(pid)
+	candidates.sort()
+	room_host_peer = candidates[0] if not candidates.is_empty() else -1
+
+
+@rpc("any_peer", "reliable")
+func request_start_match() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != room_host_peer:
+		return
+	MatchCoordinator.start_match_countdown()
+
+
+@rpc("any_peer", "reliable")
+func request_cancel_start() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != room_host_peer:
+		return
+	MatchCoordinator.stop_match_countdown()
 
 
 # ── Player list management ──
@@ -171,17 +215,17 @@ func _sync_character(peer_id: int, char_id: int):
 			emit_signal("lobby_updated")
 
 
-# ── Host admin actions ──
+# ── Host actions ──
 
 func _broadcast_lobby_state() -> void:
 	var self_id = multiplayer.get_unique_id()
 	for pid in players:
 		if pid != self_id:
-			rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players)
+			rpc_id(pid, "_sync_lobby_state", players, selected_map, room_name, game_mode, max_players, room_host_peer)
 	emit_signal("lobby_updated")
 
 
-func admin_set_spectator(peer_id: int) -> bool:
+func host_set_spectator(peer_id: int) -> bool:
 	if not multiplayer.is_server():
 		return false
 	if not players.has(peer_id):
@@ -200,7 +244,7 @@ func admin_set_spectator(peer_id: int) -> bool:
 	return true
 
 
-func admin_set_survivor(peer_id: int) -> bool:
+func host_set_survivor(peer_id: int) -> bool:
 	if not multiplayer.is_server():
 		return false
 	if not players.has(peer_id):
@@ -216,7 +260,7 @@ func admin_set_survivor(peer_id: int) -> bool:
 	return true
 
 
-func admin_force_killer(peer_id: int) -> bool:
+func host_force_killer(peer_id: int) -> bool:
 	if not multiplayer.is_server():
 		return false
 	if not players.has(peer_id):
@@ -254,7 +298,7 @@ func admin_force_killer(peer_id: int) -> bool:
 	return true
 
 
-func admin_kick_player(peer_id: int) -> bool:
+func host_kick_player(peer_id: int) -> bool:
 	if not multiplayer.is_server():
 		return false
 	if not players.has(peer_id):
@@ -329,7 +373,7 @@ func get_killer_candidates() -> Array[int]:
 # ── Character selection flow ──
 
 func host_start_character_selection():
-	if not is_host:
+	if not multiplayer.is_server():
 		return
 
 	if players.size() < 2:
@@ -387,7 +431,9 @@ func _go_to_character_selection(assigned_players: Dictionary):
 	players = assigned_players
 	for lobby in get_tree().get_nodes_in_group("lobby"):
 		lobby.queue_free()
-	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
+	var ds := get_node_or_null("/root/DedicatedServer")
+	if not (ds and ds.is_dedicated):
+		get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -421,9 +467,20 @@ func _sync_screen_selection(peer_id: int, char_id: int):
 func setup_as_host(player_name: String, map_name: String, p_room_name: String = "", p_game_mode: String = "Escape", p_max_players: int = 4) -> void:
 	reset_lobby_state()
 	is_host = true
+	room_host_peer = 1
 	local_player_name = player_name
 	selected_map = map_name
 	room_name = p_room_name if p_room_name != "" else player_name
+	game_mode = p_game_mode if p_game_mode != "" else "Escape"
+	max_players = clampi(p_max_players, 2, MAX_PLAYERS)
+
+
+func setup_as_dedicated(p_room_name: String, map_name: String, p_game_mode: String = "Escape", p_max_players: int = 4) -> void:
+	reset_lobby_state()
+	is_host = true
+	local_player_name = ""
+	selected_map = map_name
+	room_name = p_room_name if p_room_name != "" else "Servidor Dedicado"
 	game_mode = p_game_mode if p_game_mode != "" else "Escape"
 	max_players = clampi(p_max_players, 2, MAX_PLAYERS)
 
@@ -449,3 +506,4 @@ func reset_lobby_state() -> void:
 	players.clear()
 	current_phase = GamePhase.LOBBY
 	forced_killer_peer = -1
+	room_host_peer = -1

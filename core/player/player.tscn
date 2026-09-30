@@ -25,25 +25,33 @@ size = Vector2(54, 60)
 radius = 31.0
 height = 112.0
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sweqy"]
-properties/0/path = NodePath(".:position")
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sync"]
+properties/0/path = NodePath(".:net_position")
 properties/0/spawn = true
 properties/0/replication_mode = 2
-properties/1/path = NodePath("AnimatedSprite2D:animation")
+properties/1/path = NodePath(".:health")
 properties/1/spawn = true
 properties/1/replication_mode = 2
-properties/2/path = NodePath("AnimatedSprite2D:flip_h")
+properties/2/path = NodePath(".:health_state")
 properties/2/spawn = true
 properties/2/replication_mode = 2
-properties/3/path = NodePath("AnimatedSprite2D:frame")
+properties/3/path = NodePath(".:move_state")
 properties/3/spawn = true
 properties/3/replication_mode = 2
-properties/4/path = NodePath(".:health")
+properties/4/path = NodePath(".:facing_right")
 properties/4/spawn = true
 properties/4/replication_mode = 2
-properties/5/path = NodePath(".:health_state")
-properties/5/spawn = true
-properties/5/replication_mode = 2
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_anim"]
+properties/0/path = NodePath("AnimatedSprite2D:animation")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath("AnimatedSprite2D:flip_h")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath("AnimatedSprite2D:frame")
+properties/2/spawn = true
+properties/2/replication_mode = 2
 
 [node name="CharacterBody2D" type="CharacterBody2D" unique_id=156327789]
 collision_layer = 2
@@ -97,8 +105,12 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
-replication_config = SubResource("SceneReplicationConfig_sweqy")
+replication_config = SubResource("SceneReplicationConfig_sync")
 public_visibility = false
+
+[node name="SynchronizerAnim" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_anim")
+public_visibility = true
 
 [node name="PlayerInteractionComponent" type="Node" parent="." unique_id=1178568243]
 script = ExtResource("5_interaction")

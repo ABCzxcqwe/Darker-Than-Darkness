@@ -28,6 +28,7 @@ buses/default_bus_layout="uid://b7gh8nqwcdau4"
 GameData="*uid://dposrf30fiusm"
 CharacterRegistry="*uid://i0qs00kcritb"
 NetworkManager="*uid://bk85boo6f7ln5"
+DedicatedServer="*uid://dswqh56ful5bo"
 AbilityRouter="*uid://ryphqnurjury"
 GameServiceLocator="*uid://btt4agmfoo7rx"
 PlayerLifecycleManager="*res://core/PlayerLifecycleManager.gd"
@@ -42,6 +43,7 @@ PlayerRegistry="*res://core/PlayerRegistry.gd"
 LobbyManager="*res://core/LobbyManager.gd"
 ChatService="*res://core/ChatService.gd"
 ThemeManager="*res://core/theme_manager.gd"
+CoordinatorClient="*res://core/CoordinatorClient.gd"
 
 [display]
 
@@ -260,6 +262,7 @@ pause={
 [physics]
 
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [plugins]
 

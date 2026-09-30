@@ -7,6 +7,8 @@ const ONLINE = NetworkMode.STEAM
 const PORT := 4242
 const MAX_LOBBIES := 16
 const GAME_ID_FILTER := "darker_than_darkness"
+## Frecuencia de replicacion de red (Hz), desacoplada del render (max_fps=30).
+const NETWORK_TICK_HZ := 45.0
 
 signal connection_succeeded()
 signal connection_failed()
@@ -17,6 +19,7 @@ var peer: MultiplayerPeer
 var network_mode: NetworkMode = NetworkMode.LAN
 var steam_lobby_id: int = 0
 var _disconnecting := false
+var _net_poll_accum := 0.0
 
 var _steam: Variant = null
 var current_online_provider: String = "steam"
@@ -30,7 +33,20 @@ func _process(_delta: float):
 		_steam.run_callbacks()
 
 
+func _physics_process(delta: float) -> void:
+	if get_tree() == null or get_tree().multiplayer_poll:
+		return
+	_net_poll_accum += delta
+	var step := 1.0 / NETWORK_TICK_HZ
+	while _net_poll_accum >= step:
+		_net_poll_accum -= step
+		if multiplayer.multiplayer_peer:
+			multiplayer.poll()
+
+
 func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().multiplayer_poll = false
 	multiplayer.connected_to_server.connect(_on_connected_ok)
 	multiplayer.connection_failed.connect(_on_connect_fail)
 	multiplayer.server_disconnected.connect(_on_internal_server_disconnected)
@@ -104,6 +120,37 @@ func set_lan_mode():
 	network_mode = NetworkMode.LAN
 
 
+## IP local preferida (LAN) del equipo. Filtra IPv6, loopback y link-local,
+## y prioriza rangos privados (192.168.x / 10.x / 172.16-31.x).
+func get_local_ip() -> String:
+	var candidates: Array[String] = []
+	for addr in IP.get_local_addresses():
+		if addr.contains(":"):  # IPv6
+			continue
+		if addr.begins_with("127.") or addr.begins_with("169.254."):
+			continue
+		candidates.append(addr)
+	for addr in candidates:
+		if addr.begins_with("192.168.") or addr.begins_with("10.") or _is_private_172(addr):
+			return addr
+	return candidates[0] if not candidates.is_empty() else "127.0.0.1"
+
+
+func _is_private_172(addr: String) -> bool:
+	if not addr.begins_with("172."):
+		return false
+	var parts := addr.split(".")
+	if parts.size() < 2 or not parts[1].is_valid_int():
+		return false
+	var n := int(parts[1])
+	return n >= 16 and n <= 31
+
+
+## Direccion "host:puerto" que un cliente debe tipear para unirse a esta partida local.
+func get_lan_address() -> String:
+	return "%s:%d" % [get_local_ip(), PORT]
+
+
 func _on_internal_server_disconnected():
 	if _disconnecting:
 		return
@@ -141,13 +188,37 @@ func create_server(player_name: String, map_name: String, room_name: String = ""
 	return true
 
 
+func start_dedicated_server(room_name: String, map_name: String, game_mode: String = "Escape", p_max_players: int = 4, port: int = PORT) -> bool:
+	_disconnecting = false
+	network_mode = NetworkMode.LAN
+	LobbyManager.setup_as_dedicated(room_name, map_name, game_mode, p_max_players)
+
+	peer = ENetMultiplayerPeer.new()
+	var err = peer.create_server(port, clampi(p_max_players, 2, LobbyManager.MAX_PLAYERS))
+	if err != OK:
+		push_error("[NetworkManager] No se pudo crear el servidor dedicado (error %d). ¿Puerto %d en uso?" % [err, port])
+		LobbyManager.reset_lobby_state()
+		return false
+
+	multiplayer.multiplayer_peer = peer
+	print("[NetworkManager] Servidor dedicado escuchando en el puerto ", port, " (max ", p_max_players, ")")
+	return true
+
+
 func join_server(player_name: String, ip_or_lobby_id = "127.0.0.1") -> bool:
 	_disconnecting = false
 	LobbyManager.setup_as_client(player_name)
 
 	if network_mode == NetworkMode.LAN:
+		var host := String(ip_or_lobby_id)
+		var port := PORT
+		if host.contains(":"):
+			var parts := host.rsplit(":", true, 1)
+			if parts.size() == 2 and parts[1].is_valid_int():
+				host = parts[0]
+				port = int(parts[1])
 		peer = ENetMultiplayerPeer.new()
-		var err = peer.create_client(ip_or_lobby_id as String, PORT)
+		var err = peer.create_client(host, port)
 		if err != OK:
 			print("Error al conectar: ", err)
 			return false

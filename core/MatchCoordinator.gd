@@ -7,8 +7,13 @@ var last_match_results: Dictionary = {}
 var _resetting := false
 var _match_starting := false
 var _character_select_timer: Timer = null
+var _start_countdown_timer: Timer = null
+
+signal start_countdown_started(seconds: float)
+signal start_countdown_cancelled()
 
 const MAIN_SCENE := preload("uid://c4oma0j4cetoj")
+const MATCH_START_COUNTDOWN := 10.0
 ## Duración server-authoritative de la fase de selección de personaje.
 ## Ligeramente mayor que el countdown visual (15s) para dar margen a que
 ## lleguen las selecciones de los clientes antes de rellenar las faltantes.
@@ -21,6 +26,58 @@ func _ready() -> void:
 
 func _on_server_disconnected() -> void:
 	reset_to_menu()
+
+
+func _is_dedicated_server() -> bool:
+	var ds := get_node_or_null("/root/DedicatedServer")
+	return ds != null and ds.is_dedicated
+
+
+func start_match_countdown() -> void:
+	if not multiplayer.is_server():
+		return
+	if LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY:
+		return
+	if is_start_countdown_active():
+		return
+	if LobbyManager.players.size() < 2:
+		return
+	if _start_countdown_timer == null:
+		_start_countdown_timer = Timer.new()
+		_start_countdown_timer.one_shot = true
+		_start_countdown_timer.timeout.connect(_on_start_countdown_timeout)
+		add_child(_start_countdown_timer)
+	_start_countdown_timer.start(MATCH_START_COUNTDOWN)
+	rpc("_sync_start_countdown", MATCH_START_COUNTDOWN)
+
+
+func stop_match_countdown() -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_start_countdown_active():
+		return
+	_start_countdown_timer.stop()
+	rpc("_sync_start_countdown_cancelled")
+
+
+func is_start_countdown_active() -> bool:
+	return _start_countdown_timer != null and not _start_countdown_timer.is_stopped()
+
+
+func _on_start_countdown_timeout() -> void:
+	if not multiplayer.is_server():
+		return
+	LobbyManager.host_start_character_selection()
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_start_countdown(seconds: float) -> void:
+	start_countdown_started.emit(seconds)
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_start_countdown_cancelled() -> void:
+	start_countdown_cancelled.emit()
 
 
 ## Arranca el temporizador que lanza la partida al terminar la selección.
@@ -43,7 +100,7 @@ func stop_character_select_timer() -> void:
 
 
 func _on_character_select_timeout() -> void:
-	if not LobbyManager.is_host:
+	if not multiplayer.is_server():
 		return
 	if LobbyManager.current_phase != LobbyManager.GamePhase.CHARACTER_SELECT:
 		return
@@ -52,7 +109,7 @@ func _on_character_select_timeout() -> void:
 
 
 func host_launch_game() -> void:
-	if not LobbyManager.is_host:
+	if not multiplayer.is_server():
 		return
 	if _match_starting:
 		return
@@ -119,11 +176,12 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
 
 
-func _sync_spectator_audio(map_id: String) -> void:
+func _sync_spectator_audio(_map_id: String) -> void:
 	var game_state = GameServiceLocator.game_state
 	if game_state and game_state.current_state != 1:
 		game_state.current_state = 1
-	AudioManager.setup_map_audio(map_id)
+	# La musica la sincroniza el servidor via ClientRelay._rpc_sync_spectator_audio
+	# (mapa + personajes + track prioritario/LMS a mitad).
 
 
 func cleanup_game_manager() -> void:
@@ -146,7 +204,8 @@ func _go_to_stats_screen(stats_data: Dictionary) -> void:
 
 	cleanup_game_manager()
 
-	get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
+	if not _is_dedicated_server():
+		get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
 
 	LobbyManager.current_phase = LobbyManager.GamePhase.ENDED
 
@@ -177,7 +236,8 @@ func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	LobbyManager.clear_forced_killer_state()
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 	AudioManager.reset_match_audio()
-	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+	if not _is_dedicated_server():
+		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
 
 
 func reset_to_menu() -> void:
