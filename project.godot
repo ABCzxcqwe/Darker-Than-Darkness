@@ -259,6 +259,10 @@ pause={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://ln/ln.es.translation", "res://ln/ln.en.translation", "res://ln/ln.pt.translation", "res://ln/ln.ru.translation", "res://ln/ln.ko.translation", "res://ln/ln.ja.translation")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

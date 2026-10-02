@@ -65,6 +65,10 @@ func _ready() -> void:
 	add_to_group(GroupNames.GAME_HUD)
 	if context_menu:
 		context_menu.visible = false
+	if context_title:
+		context_title.text = tr("HUD_TARGET_SELECT")
+	if context_hint:
+		context_hint.text = tr("HUD_TARGET_HINT")
 	if killer_hp_public:
 		killer_hp_public.visible = false
 	_connect_dialog_relay()
@@ -77,7 +81,7 @@ func _on_input_device_changed(_device: int) -> void:
 
 
 func _revive_label_text() -> String:
-	return "REVIVIR [%s]" % InputService.get_action_label("interact")
+	return tr("HUD_REVIVE") % InputService.get_action_label("interact")
 
 
 func _refresh_revive_labels() -> void:
@@ -682,8 +686,17 @@ func _process(_delta: float) -> void:
 
 # ── Diálogos de notificación ──────────────────────────────────────────
 
+# IDs de diálogo del servidor -> keys de traducción. Texto libre se muestra tal cual.
+const DIALOG_KEYS := {
+	"dialog_exits_open": "HUD_DIALOG_EXITS",
+	"dialog_lms": "HUD_DIALOG_LMS",
+}
+
 func _on_dialog_notification(message: String, type: int) -> void:
-	_dialog_queue.append({"text": message, "type": type})
+	var text := message
+	if message in DIALOG_KEYS:
+		text = tr(str(DIALOG_KEYS[message]))
+	_dialog_queue.append({"text": text, "type": type})
 	if not _current_dialog:
 		_show_next_dialog()
 

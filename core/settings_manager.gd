@@ -65,10 +65,12 @@ var fog_enabled: bool = true:
 
 var language: String = "es":
 	set(v):
-		# Idioma bloqueado a es hasta tener traducciones
-		language = "es"
-		TranslationServer.set_locale("es")
-		setting_changed.emit("language", "es")
+		var nid := str(v).to_lower()
+		if nid not in ["es", "en", "pt", "ru", "ko", "ja"]:
+			nid = "es"
+		language = nid
+		TranslationServer.set_locale(nid)
+		setting_changed.emit("language", nid)
 
 var first_launch_done: bool = false:
 	set(v):

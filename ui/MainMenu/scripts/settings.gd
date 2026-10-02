@@ -4,7 +4,21 @@ extends Control
 ## Derecha lista única scroll, teclado-only Z/X/C, soul rojo, #008000/#00FF00
 
 const TABS := ["GENERAL", "AUDIO", "VIDEO", "CONTROLES", "VOLVER"]
+const TAB_KEYS := ["SET_TAB_GENERAL", "SET_TAB_AUDIO", "SET_TAB_VIDEO", "SET_TAB_CONTROLS", "SET_TAB_BACK"]
+const TAB_HINT_KEYS := ["SET_TABHINT_GENERAL", "SET_TABHINT_AUDIO", "SET_TABHINT_VIDEO", "SET_TABHINT_CONTROLS", "SET_TABHINT_BACK"]
+# TAB_HINTS se mantiene por compatibilidad; el texto visible sale de TAB_HINT_KEYS via tr().
 const TAB_HINTS := ["Nombre, idioma y tema", "Música y efectos", "Brillo, pantalla y VHS", "Zona muerta y restablecer", "Volver al menú"]
+
+const LANG_IDS := ["es", "en", "pt", "ru", "ko", "ja"]
+const LANG_NAMES := ["Español", "English", "Português", "Русский", "한국어", "日本語"]
+const PCT_IDS := ["music", "sfx", "brightness", "deadzone"]
+
+# Object.get() solo acepta 1 argumento; este helper lee props de SettingsManager con fallback.
+func _sm_str(sm: Node, key: String, fallback: String) -> String:
+	if sm == null or not (key in sm):
+		return fallback
+	var v: Variant = sm.get(key)
+	return str(v) if v != null else fallback
 
 var _tab_idx := 0
 var _content_idx := 0
@@ -12,26 +26,26 @@ var _in_tabs := true
 var _busy := false
 var _soul_tween: Tween
 
-# Definición de filas por pestaña: cada fila {label, type, ...}
+# Definición de filas por pestaña: cada fila {id estable, label_key para tr(), type, ...}
 var _tab_rows := {
 	"GENERAL": [
-		{"label": "IDIOMA", "type": "option", "options": ["Español [Bloqueado]"], "value": 0},
-		{"label": "NOMBRE JUGADOR", "type": "input", "value": ""},
-		{"label": "PROVEEDOR ONLINE", "type": "option", "options": ["LAN"], "value": 0},
-		{"label": "TEMA", "type": "theme_option", "value": 0, "theme_ids": PackedStringArray(["device"])},
+		{"id": "language", "label": "IDIOMA", "label_key": "SET_LANGUAGE", "type": "option", "options": ["Español", "English", "Português", "Русский", "한국어", "日本語"], "value": 0},
+		{"id": "player_name", "label": "NOMBRE JUGADOR", "label_key": "SET_PLAYER_NAME", "type": "input", "value": ""},
+		{"id": "online_provider", "label": "PROVEEDOR ONLINE", "label_key": "SET_ONLINE_PROVIDER", "type": "option", "options": ["LAN"], "value": 0},
+		{"id": "theme", "label": "TEMA", "label_key": "SET_THEME", "type": "theme_option", "value": 0, "theme_ids": PackedStringArray(["device"])},
 	],
 	"AUDIO": [
-		{"label": "MUSICA", "type": "slider", "min": 0.0, "max": 1.0, "step": 0.05, "value": 1.0},
-		{"label": "SFX", "type": "slider", "min": 0.0, "max": 1.0, "step": 0.05, "value": 1.0},
+		{"id": "music", "label": "MUSICA", "label_key": "SET_MUSIC", "type": "slider", "min": 0.0, "max": 1.0, "step": 0.05, "value": 1.0},
+		{"id": "sfx", "label": "SFX", "label_key": "SET_SFX", "type": "slider", "min": 0.0, "max": 1.0, "step": 0.05, "value": 1.0},
 	],
 	"VIDEO": [
-		{"label": "BRILLO", "type": "slider", "min": 0.5, "max": 1.5, "step": 0.1, "value": 1.0},
-		{"label": "PANTALLA", "type": "option", "options": ["Ventana", "Completo"], "value": 0},
-		{"label": "VHS", "type": "check", "value": true},
+		{"id": "brightness", "label": "BRILLO", "label_key": "SET_BRIGHTNESS", "type": "slider", "min": 0.5, "max": 1.5, "step": 0.1, "value": 1.0},
+		{"id": "screen", "label": "PANTALLA", "label_key": "SET_SCREEN", "type": "option", "options": ["Ventana", "Completo"], "value": 0},
+		{"id": "vhs", "label": "VHS", "label_key": "SET_VHS", "type": "check", "value": true},
 	],
 	"CONTROLES": [
-		{"label": "DEADZONE", "type": "slider", "min": 0.05, "max": 0.5, "step": 0.05, "value": 0.2},
-		{"label": "RESTABLECER", "type": "button"},
+		{"id": "deadzone", "label": "DEADZONE", "label_key": "SET_DEADZONE", "type": "slider", "min": 0.05, "max": 0.5, "step": 0.05, "value": 0.2},
+		{"id": "reset_controls", "label": "RESTABLECER", "label_key": "SET_RESET", "type": "button"},
 	],
 }
 
@@ -51,6 +65,7 @@ func _ready() -> void:
 			_left_labels.append(c)
 
 	_sync_from_settings()
+	_refresh_static_texts()
 	_build_content(_tab_idx)
 	_highlight_tabs()
 	_position_soul_tabs(_tab_idx, true)
@@ -61,12 +76,43 @@ func _ready() -> void:
 		if not tm.theme_changed.is_connected(_on_theme_changed):
 			tm.theme_changed.connect(_on_theme_changed)
 
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed"):
+		if not sm.setting_changed.is_connected(_on_setting_changed):
+			sm.setting_changed.connect(_on_setting_changed)
+
 	grab_focus()
 
 func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.disconnect(_on_setting_changed)
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language":
+		return
+	# Reconstruir opciones dependientes del idioma y repintar todo.
+	_sync_from_settings()
+	_refresh_static_texts()
+	_build_content(_tab_idx)
+	_highlight_tabs()
+	if not _in_tabs:
+		_highlight_content()
+
+
+func _refresh_static_texts() -> void:
+	var title_left := get_node_or_null("LeftPanel/Margin/LeftVBox/Title") as Label
+	if title_left:
+		title_left.text = tr("SET_TITLE")
+	var footer := get_node_or_null("Footer") as Label
+	if footer:
+		footer.text = tr("SET_FOOTER")
+	if _hint and _in_tabs:
+		_hint.text = tr(TAB_HINT_KEYS[_tab_idx])
 
 func _setup_audio() -> void:
 	var am0 := get_node_or_null("/root/AudioManager")
@@ -140,11 +186,13 @@ func _sync_from_settings() -> void:
 	var isrv := get_node_or_null("/root/InputService")
 
 	if sm:
-		_tab_rows["GENERAL"][0]["value"] = 0
+		_tab_rows["GENERAL"][0]["options"] = LANG_NAMES.duplicate()
+		_tab_rows["GENERAL"][0]["value"] = maxi(LANG_IDS.find(_sm_str(sm, "language", "es")), 0)
 		_tab_rows["GENERAL"][1]["value"] = sm.get("player_name") if "player_name" in sm else ""
 		_tab_rows["AUDIO"][0]["value"] = sm.get("music_volume") if "music_volume" in sm else 1.0
 		_tab_rows["AUDIO"][1]["value"] = sm.get("sfx_volume") if "sfx_volume" in sm else 1.0
 		_tab_rows["VIDEO"][0]["value"] = sm.get("brightness") if "brightness" in sm else 1.0
+		_tab_rows["VIDEO"][1]["options"] = [tr("SET_OPT_WINDOW"), tr("SET_OPT_FULL")]
 		_tab_rows["VIDEO"][1]["value"] = 1 if sm.get("display_mode") == 3 else 0
 		_tab_rows["VIDEO"][2]["value"] = sm.get("vhs_enabled") if "vhs_enabled" in sm else true
 		var nm := get_node_or_null("/root/NetworkManager")
@@ -157,7 +205,7 @@ func _sync_from_settings() -> void:
 			_tab_rows["GENERAL"][2]["options"] = ["LAN", "ONLINE"]
 			_tab_rows["GENERAL"][2]["value"] = 1 if sm.get("network_mode") == 1 else 0
 		else:
-			_tab_rows["GENERAL"][2]["options"] = ["LAN", "ONLINE — No disponible"]
+			_tab_rows["GENERAL"][2]["options"] = ["LAN", tr("SET_OPT_ONLINE_NA")]
 			_tab_rows["GENERAL"][2]["value"] = 0
 
 		if tm and tm.has_method("list_all_ids"):
@@ -177,7 +225,7 @@ func _sync_from_settings() -> void:
 
 				var is_unlocked: bool = sm.has_method("is_theme_unlocked") and sm.is_theme_unlocked(str(tid))
 				if not is_unlocked:
-					label += " [BLOQUEADO]"
+					label += " " + tr("SET_LOCKED")
 				opts.append(label)
 
 			theme_row["options"] = opts
@@ -345,14 +393,20 @@ func _persist_row(tab_name: String, idx: int) -> void:
 		return
 
 	var data: Dictionary = _tab_rows[tab_name][idx]
-	var label: String = str(data.get("label", ""))
+	var row_id: String = str(data.get("id", data.get("label", "")))
 
 	match tab_name:
 		"GENERAL":
-			if label == "NOMBRE JUGADOR":
+			if row_id == "player_name":
 				sm.set("player_name", str(data["value"]).strip_edges())
 				if sm.has_method("save_settings"): sm.save_settings()
-			elif label == "PROVEEDOR ONLINE":
+			elif row_id == "language":
+				var lang_idx: int = clampi(int(data.get("value", 0)), 0, LANG_IDS.size() - 1)
+				sm.set("language", LANG_IDS[lang_idx])
+				if sm.has_method("save_settings"): sm.save_settings()
+				if _hint:
+					_hint.text = tr("SET_CH_LANGUAGE") % LANG_NAMES[lang_idx]
+			elif row_id == "online_provider":
 				var nm2 := get_node_or_null("/root/NetworkManager")
 				var online_avail2 := false
 				if nm2 and nm2.has_method("is_online_available"):
@@ -363,7 +417,7 @@ func _persist_row(tab_name: String, idx: int) -> void:
 				if cur2 == 1 and not online_avail2:
 					_play_sfx(SfxId.ERROR)
 					if _hint:
-						_hint.text = "ONLINE no disponible"
+						_hint.text = tr("SET_MSG_ONLINE_NA")
 					return
 				var want_mode := 1 if cur2 == 1 else 0
 				sm.set("network_mode", want_mode)
@@ -371,8 +425,8 @@ func _persist_row(tab_name: String, idx: int) -> void:
 					sm.online_provider = "steam"
 				if sm.has_method("save_settings"): sm.save_settings()
 				if _hint:
-					_hint.text = "Modo red: " + ("ONLINE" if want_mode == 1 else "LAN")
-			elif label == "TEMA":
+					_hint.text = tr("SET_MSG_NETMODE") % ("ONLINE" if want_mode == 1 else "LAN")
+			elif row_id == "theme":
 				var tids: PackedStringArray = data.get("theme_ids", PackedStringArray())
 				var cur: int = int(data.get("value", 0))
 				if cur < 0 or cur >= tids.size():
@@ -382,27 +436,27 @@ func _persist_row(tab_name: String, idx: int) -> void:
 				if not unlocked:
 					_play_sfx(SfxId.ERROR)
 					if _hint:
-						_hint.text = "Tema bloqueado: gana con todos los personajes para desbloquear LIGHT"
+						_hint.text = tr("SET_MSG_THEME_LOCKED")
 					return
 				if sm.has_method("try_set_theme") and sm.try_set_theme(want):
 					if _hint:
-						_hint.text = "Tema cambiado a " + want.to_upper()
+						_hint.text = tr("SET_MSG_THEME_CHANGED") % want.to_upper()
 		"AUDIO":
-			if label == "MUSICA":
+			if row_id == "music":
 				sm.set("music_volume", float(data["value"]))
-			elif label == "SFX":
+			elif row_id == "sfx":
 				sm.set("sfx_volume", float(data["value"]))
 			if sm.has_method("save_settings"): sm.save_settings()
 		"VIDEO":
-			if label == "BRILLO":
+			if row_id == "brightness":
 				sm.set("brightness", float(data["value"]))
-			elif label == "PANTALLA":
+			elif row_id == "screen":
 				sm.set("display_mode", 3 if int(data["value"]) == 1 else 0)
-			elif label == "VHS":
+			elif row_id == "vhs":
 				sm.set("vhs_enabled", bool(data["value"]))
 			if sm.has_method("save_settings"): sm.save_settings()
 		"CONTROLES":
-			if label == "DEADZONE" and isrv and isrv.has_method("set_stick_deadzone"):
+			if row_id == "deadzone" and isrv and isrv.has_method("set_stick_deadzone"):
 				isrv.set_stick_deadzone(float(data["value"]))
 
 func _update_row_value(row: HBoxContainer, data: Dictionary) -> void:
@@ -427,7 +481,7 @@ func _update_row_value(row: HBoxContainer, data: Dictionary) -> void:
 		var bar := ""
 		for i in 10:
 			bar += "I" if i < pct else "."
-		val_label.text = "< %s > %d%%" % [bar, int(v * 100)] if str(data.get("label")) in ["MUSICA", "SFX", "BRILLO", "DEADZONE"] else "< %s >" % bar
+		val_label.text = "< %s > %d%%" % [bar, int(v * 100)] if str(data.get("id", "")) in PCT_IDS else "< %s >" % bar
 	elif t == "option" or t == "theme_option":
 		var opts: Array = data.get("options", [])
 		var cur: int = clampi(int(data.get("value", 0)), 0, max(0, opts.size() - 1))
@@ -474,7 +528,7 @@ func _confirm() -> void:
 		elif t == "check":
 			_adjust_content(0)
 		elif t == "button":
-			if str(data.get("label", "")) == "RESTABLECER":
+			if str(data.get("id", "")) == "reset_controls":
 				var isrv2 := get_node_or_null("/root/InputService")
 				if isrv2 and isrv2.has_method("reset_all"):
 					isrv2.reset_all()
@@ -483,7 +537,7 @@ func _confirm() -> void:
 					_highlight_content()
 					_position_soul_content(_content_idx, false)
 				_play_sfx(SfxId.SELECT)
-				if _hint: _hint.text = "Controles restablecidos"
+				if _hint: _hint.text = tr("SET_MSG_CONTROLS_RESET")
 
 func _cancel() -> void:
 	_play_sfx(SfxId.SELECT)
@@ -506,9 +560,9 @@ func _reset_current_row() -> void:
 	var t: String = str(data.get("type", ""))
 
 	if t == "slider":
-		match str(data.get("label")):
-			"BRILLO": data["value"] = 1.0
-			"DEADZONE": data["value"] = 0.2
+		match str(data.get("id", "")):
+			"brightness": data["value"] = 1.0
+			"deadzone": data["value"] = 0.2
 			_: data["value"] = 0.8
 	elif t == "option":
 		data["value"] = 0
@@ -524,7 +578,7 @@ func _reset_current_row() -> void:
 func _build_content(tab_idx: int) -> void:
 	var tab_name: String = TABS[tab_idx]
 	if _right_title:
-		_right_title.text = tab_name
+		_right_title.text = tr(TAB_KEYS[tab_idx])
 
 	for c in _content_list.get_children():
 		_content_list.remove_child(c)
@@ -540,7 +594,7 @@ func _build_content(tab_idx: int) -> void:
 
 		var lbl := Label.new()
 		lbl.name = "Label"
-		lbl.text = str(data.get("label", ""))
+		lbl.text = tr(str(data.get("label_key", data.get("label", ""))))
 		lbl.custom_minimum_size = Vector2(180, 0)
 		lbl.add_theme_font_override("font", font_res)
 		lbl.add_theme_font_size_override("font_size", 18)
@@ -555,7 +609,7 @@ func _build_content(tab_idx: int) -> void:
 			edit.alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			edit.add_theme_font_override("font", font_res)
 			edit.add_theme_font_size_override("font_size", 16)
-			edit.placeholder_text = "Nombre"
+			edit.placeholder_text = tr("SET_NAME_PH")
 			edit.text = str(data.get("value", ""))
 			edit.focus_mode = Control.FOCUS_ALL
 			edit.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -589,7 +643,7 @@ func _highlight_tabs() -> void:
 
 	for i in _left_labels.size():
 		var lbl: Label = _left_labels[i]
-		lbl.text = TABS[i]
+		lbl.text = tr(TAB_KEYS[i])
 		if _in_tabs:
 			lbl.modulate = sel if i == _tab_idx else dim
 		else:
@@ -610,7 +664,7 @@ func _highlight_tabs() -> void:
 					c.modulate = Color(dim.r, dim.g, dim.b, 0.5)
 
 	if _hint and _in_tabs:
-		_hint.text = TAB_HINTS[_tab_idx]
+		_hint.text = tr(TAB_HINT_KEYS[_tab_idx])
 
 func _get_content_hint(tab_name: String, row_idx: int) -> String:
 	if tab_name not in _tab_rows:
@@ -618,30 +672,33 @@ func _get_content_hint(tab_name: String, row_idx: int) -> String:
 	var rows: Array = _tab_rows[tab_name]
 	if row_idx < 0 or row_idx >= rows.size():
 		return ""
-	var label: String = str(rows[row_idx].get("label", ""))
-	match label:
-		"IDIOMA": return "Idioma bloqueado en español"
-		"NOMBRE JUGADOR":
+	var row_id: String = str(rows[row_idx].get("id", rows[row_idx].get("label", "")))
+	match row_id:
+		"language":
+			var lang_opts: Array = rows[row_idx].get("options", [])
+			var lang_cur: int = clampi(int(rows[row_idx].get("value", 0)), 0, maxi(lang_opts.size() - 1, 0))
+			return tr("SET_CH_LANGUAGE") % str(lang_opts[lang_cur] if lang_cur < lang_opts.size() else "")
+		"player_name":
 			var pn: String = str(rows[row_idx].get("value", "")).strip_edges()
-			return "Tu alias en lobbies — %s" % (pn if pn != "" else "vacío")
-		"PROVEEDOR ONLINE": return "LAN / Online — elige red"
-		"TEMA":
+			return tr("SET_CH_PLAYER") % (pn if pn != "" else tr("SET_CH_EMPTY"))
+		"online_provider": return tr("SET_CH_PROVIDER")
+		"theme":
 			var opts: Array = rows[row_idx].get("options", [])
 			var cur: int = int(rows[row_idx].get("value", 0))
 			var cur_lbl: String = str(opts[cur]) if cur < opts.size() else ""
-			return "Tema — %s" % cur_lbl
-		"MUSICA": return "Volumen música — %d%%" % int(float(rows[row_idx].get("value", 1.0)) * 100)
-		"SFX": return "Efectos — %d%%" % int(float(rows[row_idx].get("value", 1.0)) * 100)
-		"BRILLO": return "Luminosidad — %d%%" % int(float(rows[row_idx].get("value", 1.0)) * 100)
-		"PANTALLA":
+			return tr("SET_CH_THEME") % cur_lbl
+		"music": return tr("SET_CH_MUSIC") % int(float(rows[row_idx].get("value", 1.0)) * 100)
+		"sfx": return tr("SET_CH_SFX") % int(float(rows[row_idx].get("value", 1.0)) * 100)
+		"brightness": return tr("SET_CH_BRIGHT") % int(float(rows[row_idx].get("value", 1.0)) * 100)
+		"screen":
 			var v: int = int(rows[row_idx].get("value", 0))
-			return "Pantalla — %s" % ("Completo" if v == 1 else "Ventana")
-		"VHS":
+			return tr("SET_CH_SCREEN") % (tr("SET_OPT_FULL") if v == 1 else tr("SET_OPT_WINDOW"))
+		"vhs":
 			var b: bool = bool(rows[row_idx].get("value", true))
-			return "Filtro analógico — %s" % ("ON" if b else "OFF")
-		"DEADZONE": return "Zona muerta — %.2f respuesta del stick" % float(rows[row_idx].get("value", 0.2))
-		"RESTABLECER": return "Restaura mandos por defecto"
-		_: return label
+			return tr("SET_CH_VHS") % ("ON" if b else "OFF")
+		"deadzone": return tr("SET_CH_DEADZONE") % float(rows[row_idx].get("value", 0.2))
+		"reset_controls": return tr("SET_CH_RESET")
+		_: return tr(str(rows[row_idx].get("label_key", row_id)))
 
 func _highlight_content() -> void:
 	if _in_tabs:

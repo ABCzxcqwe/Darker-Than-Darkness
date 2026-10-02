@@ -23,6 +23,13 @@ var _tween_chase: Tween = null
 var _form_a: bool = true
 
 
+func _ready() -> void:
+	if _label_objetivo:
+		_label_objetivo.text = tr("HUD_ALLY_TARGET")
+	if name_label and name_label.text == "NOMBRE":
+		name_label.text = tr("HUD_ALLY_NAME")
+
+
 func setup(player_node: Node) -> void:
 	if not player_node.character_data:
 		push_warning("[AllyBar] Player sin character_data.")

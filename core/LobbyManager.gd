@@ -307,7 +307,8 @@ func host_kick_player(peer_id: int) -> bool:
 	if peer_id == self_id:
 		return false
 	print("[LobbyManager] Expulsando peer %d" % peer_id)
-	rpc_id(peer_id, "_notify_kicked", "Expulsado por el host")
+	# Se envía código, cada cliente lo traduce a su idioma al recibirlo.
+	rpc_id(peer_id, "_notify_kicked", "host_kick")
 	# Dar tiempo a que llegue el RPC antes de desconectar
 	_do_kick_after_notify(peer_id)
 	return true
@@ -333,8 +334,11 @@ func _do_kick_after_notify(peer_id: int) -> void:
 func _notify_kicked(reason: String) -> void:
 	if multiplayer.is_server():
 		return
-	print("[LobbyManager] Fuiste expulsado: ", reason)
-	kicked.emit(reason)
+	var text := reason
+	if reason == "host_kick":
+		text = tr("LOBBY_KICK_REASON")
+	print("[LobbyManager] Fuiste expulsado: ", text)
+	kicked.emit(text)
 	# Mostrar feedback rapido si hay lobby en escena
 	await get_tree().create_timer(0.4).timeout
 	var mc := get_node_or_null("/root/MatchCoordinator")

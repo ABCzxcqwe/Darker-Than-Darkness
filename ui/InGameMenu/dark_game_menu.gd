@@ -39,9 +39,9 @@ const ROW_NODE_NAMES := {
 	"reset": "ResetRow",
 }
 
-const HINT_TABS := "←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar"
-const HINT_PANEL := "↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver"
-const HINT_EXIT := "←→ elegir   ·   Z/Enter confirmar"
+const HINT_TABS := "PAUSE_HINT_TABS"
+const HINT_PANEL := "PAUSE_HINT_PANEL"
+const HINT_EXIT := "PAUSE_HINT_EXIT"
 
 const COLOR_GOLD := Color(1, 0.82, 0.3, 1)
 
@@ -75,6 +75,7 @@ const COLOR_GOLD := Color(1, 0.82, 0.3, 1)
 @onready var stats_row_danger: HBoxContainer = $Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDanger
 @onready var stats_row_damage_taken: HBoxContainer = $Root/VBox/ContentPanel/ContentMargin/StatsContent/RowDamageTaken
 @onready var stats_row_stuns_applied: HBoxContainer = $Root/VBox/ContentPanel/ContentMargin/StatsContent/RowStunsApplied
+@onready var stats_row_rank: HBoxContainer = $Root/VBox/ContentPanel/ContentMargin/StatsContent/RowRank
 @onready var stats_title: Label = $Root/VBox/ContentPanel/ContentMargin/StatsContent/Title
 
 # ── Nodos: contenido de Audio ──────────────────────────────────────────
@@ -110,12 +111,28 @@ func _ready() -> void:
 	add_to_group(GroupNames.GAME_MENU)
 	_cache_styles()
 	_close(true)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.connect(_on_setting_changed)
 
 
 func _exit_tree() -> void:
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.disconnect(_on_setting_changed)
 	var relay := GameServiceLocator.get_client_relay()
 	if relay and relay.has_signal("stats_received") and relay.stats_received.is_connected(_on_stats_received):
 		relay.stats_received.disconnect(_on_stats_received)
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language" or not _is_open:
+		return
+	_refresh_static_texts()
+	_update_value_labels()
+	_update_hint()
+	if not _in_tabs and _current_tab() == "stats":
+		_refresh_stats_content()
 
 
 ## Copia los estilos definidos como sub-recursos en la escena para
@@ -278,10 +295,81 @@ func _open() -> void:
 	hint_center.visible = true
 	content_panel.visible = false
 	_sync_from_settings()
+	_refresh_static_texts()
 	_refresh_tab_highlight()
 	_update_hint()
 	_animate_tabbar_in()
 	AudioManager.play_sfx_ui(SfxId.SELECT)
+
+
+func _set_text(path: String, key: String) -> void:
+	var lbl := content_panel.get_node_or_null(path) as Label
+	if lbl:
+		lbl.text = tr(key)
+
+
+func _set_row_text(row: Control, key: String) -> void:
+	if row == null:
+		return
+	var lbl := row.get_node_or_null("Label") as Label
+	if lbl:
+		lbl.text = tr(key)
+
+
+func _refresh_static_texts() -> void:
+	# Nombres de pestañas (STATS/AUDIO/VIDEO universales, se dejan).
+	_set_tab_text(0, "")
+	var tab_audio := tab_nodes[1].get_node_or_null("VBox/NameLabel") as Label
+	if tab_audio:
+		tab_audio.text = "AUDIO"
+	var tab_video := tab_nodes[2].get_node_or_null("VBox/NameLabel") as Label
+	if tab_video:
+		tab_video.text = "VIDEO"
+	_set_tab_text(3, "SET_TAB_CONTROLS")
+	_set_tab_text(4, "MENU_EXIT")
+	# Títulos de panel.
+	_set_text("ContentMargin/StatsContent/Title", "STATS")
+	_set_text("ContentMargin/AudioContent/Title", "AUDIO")
+	_set_text("ContentMargin/VideoContent/Title", "VIDEO")
+	_set_text("ContentMargin/ControlesContent/Title", "SET_TAB_CONTROLS")
+	# Filas de stats.
+	_set_row_text(stats_row_kills, "PAUSE_KILLS")
+	_set_row_text(stats_row_damage_dealt, "PAUSE_DMG_DEALT")
+	_set_row_text(stats_row_stuns_received, "PAUSE_STUNS_RECV")
+	_set_row_text(stats_row_danger, "PAUSE_DANGER")
+	_set_row_text(stats_row_damage_taken, "PAUSE_DMG_TAKEN")
+	_set_row_text(stats_row_stuns_applied, "PAUSE_STUNS_APPL")
+	_set_row_text(stats_row_rank, "PAUSE_RANK")
+	_set_row_value(stats_row_rank, tr("PAUSE_SOON"))
+	# Filas de audio/video/controles.
+	_set_row_text($Root/VBox/ContentPanel/ContentMargin/AudioContent/MusicRow, "PAUSE_MUSIC")
+	_set_row_text($Root/VBox/ContentPanel/ContentMargin/VideoContent/BrightnessRow, "PAUSE_BRIGHT")
+	_set_row_text($Root/VBox/ContentPanel/ContentMargin/VideoContent/DisplayRow, "PAUSE_SCREEN")
+	_set_row_text($Root/VBox/ContentPanel/ContentMargin/ControlesContent/DeadzoneRow, "PAUSE_DEADZONE")
+	_set_row_text($Root/VBox/ContentPanel/ContentMargin/ControlesContent/ResetRow, "PAUSE_RESET")
+	var reset_val := $Root/VBox/ContentPanel/ContentMargin/ControlesContent/ResetRow.get_node_or_null("Value") as Label
+	if reset_val:
+		reset_val.text = tr("PAUSE_GAMEPADS")
+	# Salir.
+	var quit_q := $Root/VBox/ContentPanel/ContentMargin/SalirContent/Question as Label
+	if quit_q:
+		quit_q.text = tr("PAUSE_QUIT_Q")
+	var opt_si := $Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptSi.get_node_or_null("Label") as Label
+	if opt_si:
+		opt_si.text = tr("PAUSE_YES")
+	var opt_no := $Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptNo.get_node_or_null("Label") as Label
+	if opt_no:
+		opt_no.text = "NO"
+
+
+func _set_tab_text(idx: int, key: String) -> void:
+	if idx < 0 or idx >= tab_nodes.size():
+		return
+	if key == "":
+		return
+	var lbl := tab_nodes[idx].get_node_or_null("VBox/NameLabel") as Label
+	if lbl:
+		lbl.text = tr(key)
 
 
 func _close(instant := false) -> void:
@@ -483,7 +571,7 @@ func _update_value_labels() -> void:
 	music_value.text = _slider_label(SettingsManager.music_volume, 0.0, 1.0, true)
 	sfx_value.text = _slider_label(SettingsManager.sfx_volume, 0.0, 1.0, true)
 	brightness_value.text = _slider_label(SettingsManager.brightness, 0.5, 1.5, true)
-	display_value.text = "Completo" if SettingsManager.display_mode == 3 else "Ventana"
+	display_value.text = tr("SET_OPT_FULL") if SettingsManager.display_mode == 3 else tr("SET_OPT_WINDOW")
 	vhs_value.text = "[X]" if SettingsManager.vhs_enabled else "[ ]"
 	deadzone_value.text = _slider_label(InputService.stick_deadzone, 0.05, 0.5, false)
 
@@ -525,7 +613,7 @@ func _set_deadzone(v: float) -> void:
 
 func _toggle_display() -> void:
 	SettingsManager.display_mode = 0 if SettingsManager.display_mode == 3 else 3
-	display_value.text = "Completo" if SettingsManager.display_mode == 3 else "Ventana"
+	display_value.text = tr("SET_OPT_FULL") if SettingsManager.display_mode == 3 else tr("SET_OPT_WINDOW")
 	SettingsManager.save_settings()
 
 
@@ -545,21 +633,21 @@ func _reset_controls() -> void:
 
 func _update_hint() -> void:
 	if not _is_open:
-		hint_label.text = HINT_TABS
+		hint_label.text = tr(HINT_TABS)
 		return
 	if _in_tabs:
-		hint_label.text = HINT_TABS
+		hint_label.text = tr(HINT_TABS)
 	elif _current_tab() == "salir":
-		hint_label.text = HINT_EXIT
+		hint_label.text = tr(HINT_EXIT)
 	else:
-		hint_label.text = HINT_PANEL
+		hint_label.text = tr(HINT_PANEL)
 
 
 # ── Stats ────────────────────────────────────────────────────────────
 
 func _refresh_stats_content() -> void:
 	var role := _get_local_role()
-	stats_title.text = "STATS — %s" % ("KILLER" if role == "killer" else "SURVIVOR")
+	stats_title.text = tr("PAUSE_STATS_TITLE") % ("KILLER" if role == "killer" else "SURVIVOR")
 
 	var is_killer := role == "killer"
 	stats_row_kills.visible = is_killer

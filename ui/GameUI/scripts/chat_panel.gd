@@ -25,7 +25,7 @@ func _ready() -> void:
 
 	input_box.visible = false
 	separator.visible = false
-	input_box.placeholder_text = "Escribe un mensaje..."
+	input_box.placeholder_text = tr("HUD_CHAT_PH")
 	history_label.meta_underlined = false
 
 	input_box.focus_exited.connect(_close_input)

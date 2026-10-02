@@ -8,8 +8,34 @@ extends Control
 
 
 func _ready() -> void:
-	text_label.text = notice_text
+	_refresh_texts()
 	accept_btn.grab_focus()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and not sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.connect(_on_setting_changed)
+
+
+func _exit_tree() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.disconnect(_on_setting_changed)
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key == "language":
+		_refresh_texts()
+
+
+func _refresh_texts() -> void:
+	var body := tr("LEGAL_BODY")
+	if body == "" or body == "LEGAL_BODY":
+		text_label.text = notice_text
+	else:
+		text_label.text = tr("LEGAL_TITLE") + "\n\n" + body
+	var accept_t := tr("LEGAL_ACCEPT")
+	accept_btn.text = accept_t if accept_t != "" and accept_t != "LEGAL_ACCEPT" else "Aceptar"
+	var quit_t := tr("LEGAL_QUIT")
+	quit_btn.text = quit_t if quit_t != "" and quit_t != "LEGAL_QUIT" else "Salir"
 
 
 func _on_accept_pressed() -> void:

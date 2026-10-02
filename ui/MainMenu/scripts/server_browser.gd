@@ -11,6 +11,14 @@ var _index := 0
 var _busy := false
 var _joining := false
 const GAME_MODES := ["Escape", "Juggernaut"]
+const HEADER_KEYS := {
+	"H_Nombre": "BROWSE_H_NAME",
+	"H_Host": "BROWSE_H_HOST",
+	"H_Mapa": "BROWSE_H_MAP",
+	"H_Jug": "BROWSE_H_PLAYERS",
+	"H_Modo": "BROWSE_H_MODE",
+	"H_Ping": "BROWSE_H_STATUS",
+}
 var _mock_rooms: Array[Dictionary] = []
 var _master_rooms: Array[Dictionary] = []
 var _steam_lobbies: Array = []
@@ -39,11 +47,14 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.connect(_on_setting_changed)
 	
 	_mode = _load_mode()
-	if _title:
-		_title.text = "BUSCAR PARTIDA — " + _mode
+	_set_title()
 	_configure_search_row()
+	_refresh_static_texts()
 
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
@@ -62,8 +73,7 @@ func _ready() -> void:
 			if not ok or not nm.is_steam_ready():
 				print("[ServerBrowser] Online no disponible, forzando LAN")
 				_mode = MODE_LAN
-				if _title:
-					_title.text = "BUSCAR PARTIDA — " + _mode
+				_set_title()
 				_configure_search_row()
 				var cfg2 := ConfigFile.new()
 				cfg2.load("user://mock_playmode.cfg")
@@ -127,20 +137,68 @@ func _relocate_header() -> void:
 		vbox_list.move_child(_header, 0)
 
 
-func _configure_search_row() -> void:
+func _set_title() -> void:
+	if _title:
+		_title.text = tr("BROWSE_TITLE") % _mode
+
+
+func _refresh_static_texts() -> void:
+	_set_title()
+	if _header:
+		for ch in _header.get_children():
+			if ch is Label and str(ch.name) in HEADER_KEYS:
+				(ch as Label).text = tr(str(HEADER_KEYS[str(ch.name)]))
+	if _list_empty:
+		_list_empty.text = tr("BROWSE_EMPTY")
+	var footer := get_node_or_null("Footer") as Label
+	if footer:
+		footer.text = tr("BROWSE_FOOTER")
+	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPLabel") as Label
+	if ip_label:
+		ip_label.text = tr("BROWSE_IP_LABEL")
+	_refresh_buttons()
+
+
+func _refresh_buttons() -> void:
+	var cc := $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer
+	var refresh_btn := cc.get_node_or_null("ActionRow/RefreshBtn") as Button
+	if refresh_btn:
+		refresh_btn.text = tr("BROWSE_REFRESH")
+	var create_btn := cc.get_node_or_null("ActionRow/CreateBtn") as Button
+	if create_btn:
+		create_btn.text = tr("BROWSE_CREATE")
+	var back_btn := cc.get_node_or_null("ActionRow/BackBtn") as Button
+	if back_btn:
+		back_btn.text = tr("BROWSE_BACK")
+	var connect_btn := cc.get_node_or_null("IPRow/ConnectBtn") as Button
+	if connect_btn:
+		connect_btn.text = tr("BROWSE_SEARCH") if _mode == MODE_ONLINE else tr("BROWSE_CONNECT")
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language":
+		return
+	_configure_search_row(true)
+	_refresh_static_texts()
+	_highlight(_index, false)
+
+
+func _configure_search_row(preserve_text: bool = false) -> void:
 	if _ip_edit == null:
 		return
 	var connect_btn := $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/ConnectBtn as Button
 	if _mode == MODE_ONLINE:
-		_ip_edit.placeholder_text = "Buscar sala o host..."
-		_ip_edit.text = ""
+		_ip_edit.placeholder_text = tr("BROWSE_PH_SEARCH")
+		if not preserve_text:
+			_ip_edit.text = ""
 		if connect_btn:
-			connect_btn.text = "BUSCAR"
+			connect_btn.text = tr("BROWSE_SEARCH")
 	else:
-		_ip_edit.placeholder_text = "IP del servidor"
-		_ip_edit.text = "127.0.0.1"
+		_ip_edit.placeholder_text = tr("BROWSE_PH_IP")
+		if not preserve_text:
+			_ip_edit.text = "127.0.0.1"
 		if connect_btn:
-			connect_btn.text = "CONECTAR"
+			connect_btn.text = tr("BROWSE_CONNECT")
 
 func _load_mode() -> String:
 	var sm := get_node_or_null("/root/SettingsManager")
@@ -296,21 +354,21 @@ func _highlight(idx: int, instant: bool) -> void:
 	if _hint and not _joining:
 		var cur := _focusables[idx]
 		if cur.name == "RefreshBtn":
-			_hint.text = "Recargar lista — %d salas" % _mock_rooms.size()
+			_hint.text = tr("BROWSE_HINT_RELOAD") % _mock_rooms.size()
 		elif cur.name == "CreateBtn":
-			_hint.text = "Abre crear sala"
+			_hint.text = tr("BROWSE_HINT_CREATE")
 		elif cur.name == "ConnectBtn":
 			if _mode == MODE_ONLINE:
-				_hint.text = "Conectar a la sala filtrada"
+				_hint.text = tr("BROWSE_HINT_CONNECT_FILTERED")
 			else:
-				_hint.text = "Conectar a la IP ingresada"
+				_hint.text = tr("BROWSE_HINT_CONNECT_IP")
 		elif cur.name == "BackBtn":
-			_hint.text = "Volver a modo de red"
+			_hint.text = tr("BROWSE_HINT_BACK")
 		elif cur is LineEdit:
 			if _mode == MODE_ONLINE:
-				_hint.text = "Filtra por nombre o pega IP"
+				_hint.text = tr("BROWSE_HINT_FILTER")
 			else:
-				_hint.text = "Pega la IP del host"
+				_hint.text = tr("BROWSE_HINT_PASTE_IP")
 		else:
 			# Row HBoxContainer → mostrar detalle de la sala enfocada
 			var row_idx := -1
@@ -325,7 +383,7 @@ func _highlight(idx: int, instant: bool) -> void:
 				var r: Dictionary = _mock_rooms[row_idx]
 				_hint.text = "%s — %s — %s %s" % [str(r.get("nombre","")), str(r.get("mapa","")), str(r.get("jugadores","")), str(r.get("ping",""))]
 			else:
-				_hint.text = "Sala disponible — detalles"
+				_hint.text = tr("BROWSE_HINT_ROOM_DETAIL")
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _focusables.is_empty():
@@ -479,17 +537,17 @@ func _apply_server_base(base: String) -> void:
 func _list_server_rooms() -> void:
 	var info := _parse_server_field()
 	if info.is_empty():
-		_hint.text = "Ingresa la IP del servidor."
+		_hint.text = tr("BROWSE_MSG_ENTER_IP")
 		return
 	var host: String = info["host"]
 	var base: String = info["base"]
 	_apply_server_base(base)
 	var cc := get_node_or_null("/root/CoordinatorClient")
 	if cc == null:
-		_hint.text = "Coordinador no disponible."
+		_hint.text = tr("BROWSE_MSG_NO_COORD")
 		return
 	_busy = true
-	_hint.text = "Buscando salas en %s..." % base
+	_hint.text = tr("BROWSE_MSG_SEARCHING") % base
 	_master_rooms.clear()
 	_mock_rooms.clear()
 	_populate_rooms()
@@ -527,14 +585,14 @@ func _list_server_rooms() -> void:
 	_rebuild_focusables()
 	_refresh_empty_state()
 	if _mock_rooms.is_empty():
-		_hint.text = "No se encontraron salas"
+		_hint.text = tr("BROWSE_MSG_NO_ROOMS")
 	else:
-		_hint.text = "%d salas encontradas" % _mock_rooms.size()
+		_hint.text = tr("BROWSE_MSG_ROOMS_FOUND") % _mock_rooms.size()
 
 
 func _try_join_lan_with_ip(ip: String) -> void:
 	if ip.is_empty():
-		_hint.text = "Ingresa una IP."
+		_hint.text = tr("BROWSE_MSG_ENTER_AN_IP")
 		return
 	var host := ip
 	if ip.contains(":"):
@@ -542,17 +600,17 @@ func _try_join_lan_with_ip(ip: String) -> void:
 		if parts.size() == 2:
 			host = parts[0]
 	if not host.is_valid_ip_address():
-		_hint.text = "IP inválida: " + ip
+		_hint.text = tr("BROWSE_MSG_BAD_IP") % ip
 		return
 	var sm2 := get_node_or_null("/root/SettingsManager")
-	var player_name2: String = sm2.player_name if sm2 and sm2.player_name != "" else "Jugador"
+	var player_name2: String = sm2.player_name if sm2 and sm2.player_name != "" else tr("BROWSE_DEFAULT_NAME")
 	var nm2 := get_node_or_null("/root/NetworkManager")
 	if nm2 == null:
-		_hint.text = "NetworkManager no encontrado"
+		_hint.text = tr("BROWSE_MSG_NO_NM")
 		return
 	if nm2.network_mode != nm2.NetworkMode.LAN:
 		nm2.set_lan_mode()
-	_begin_join("Conectando a " + ip + "...", nm2, player_name2, ip)
+	_begin_join(tr("BROWSE_MSG_CONNECTING") % ip, nm2, player_name2, ip)
 
 func _try_join_lan() -> void:
 	var ip := _ip_edit.text.strip_edges()
@@ -560,12 +618,12 @@ func _try_join_lan() -> void:
 
 func _try_join_steam(lobby_id: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
-	var player_name: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
+	var player_name: String = sm.player_name if sm and sm.player_name != "" else tr("BROWSE_DEFAULT_NAME")
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm == null or not nm.is_steam_ready():
-		_hint.text = "Online no disponible"
+		_hint.text = tr("BROWSE_MSG_ONLINE_NA")
 		return
-	_begin_join("Conectando a sala online...", nm, player_name, lobby_id)
+	_begin_join(tr("BROWSE_MSG_CONNECTING_ONLINE"), nm, player_name, lobby_id)
 
 func _begin_join(msg: String, nm, player_name: String, target, reset_fallback: bool = true) -> void:
 	if reset_fallback:
@@ -583,7 +641,7 @@ func _begin_join(msg: String, nm, player_name: String, target, reset_fallback: b
 	
 	var ok: bool = nm.join_server(player_name, target)
 	if not ok:
-		_end_join("Error al iniciar conexión")
+		_end_join(tr("BROWSE_MSG_START_FAIL"))
 		return
 
 	await get_tree().create_timer(JOIN_TIMEOUT).timeout
@@ -593,7 +651,7 @@ func _begin_join(msg: String, nm, player_name: String, target, reset_fallback: b
 		var fell_back: bool = await _try_fallback_normal_room()
 		if fell_back:
 			return
-		_end_join("No se pudo conectar — servidor no responde")
+		_end_join(tr("BROWSE_MSG_NO_RESPONSE"))
 
 func _end_join(msg: String) -> void:
 	_joining = false
@@ -608,7 +666,7 @@ func _cancel_join() -> void:
 	if not _joining: return
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm: nm.disconnect_from_server()
-	_end_join("Cancelado [X]")
+	_end_join(tr("BROWSE_MSG_CANCELLED"))
 
 func _on_connection_succeeded() -> void:
 	_joining = false
@@ -625,7 +683,7 @@ func _on_connection_failed() -> void:
 		var fell_back: bool = await _try_fallback_normal_room()
 		if fell_back:
 			return
-	_end_join("No se encontró servidor activo en la IP/Lobby")
+	_end_join(tr("BROWSE_MSG_NO_SERVER"))
 
 
 ## Fallback "sala normal": si el join directo no responde, lista las salas del
@@ -640,7 +698,7 @@ func _try_fallback_normal_room() -> bool:
 	if cc == null:
 		return false
 
-	_hint.text = "No respondió; buscando sala normal..."
+	_hint.text = tr("BROWSE_MSG_FALLBACK")
 	var rooms: Array = await cc.list_rooms(3.0)
 	if rooms.is_empty():
 		return false
@@ -649,7 +707,7 @@ func _try_fallback_normal_room() -> bool:
 	if nm == null:
 		return false
 	var sm := get_node_or_null("/root/SettingsManager")
-	var pname: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
+	var pname: String = sm.player_name if sm and sm.player_name != "" else tr("BROWSE_DEFAULT_NAME")
 
 	var coord_host := _coordinator_host()
 	for room in rooms:
@@ -667,7 +725,7 @@ func _try_fallback_normal_room() -> bool:
 		var target := "%s:%d" % [room_host, port]
 		print("[ServerBrowser] Fallback a sala normal: ", target)
 		# reset_fallback=false: no reiniciar el guard (evita loops de fallback).
-		_begin_join("Uniéndose a la sala normal...", nm, pname, target, false)
+		_begin_join(tr("BROWSE_MSG_JOINING_NORMAL"), nm, pname, target, false)
 		return true
 	return false
 
@@ -689,7 +747,7 @@ func _coordinator_host() -> String:
 	return host if host != "" else "127.0.0.1"
 
 func _on_server_disconnected() -> void:
-	_end_join("Servidor desconectado")
+	_end_join(tr("BROWSE_MSG_DISCONNECTED"))
 
 func _on_steam_lobby_list(lobbies: Array) -> void:
 	_steam_lobbies = lobbies
@@ -714,16 +772,16 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 	_rebuild_focusables()
 	_refresh_empty_state()
 	_busy = false
-	_hint.text = "%d salas encontradas" % _mock_rooms.size() if not _mock_rooms.is_empty() else "No se encontraron salas"
+	_hint.text = tr("BROWSE_MSG_ROOMS_FOUND") % _mock_rooms.size() if not _mock_rooms.is_empty() else tr("BROWSE_MSG_NO_ROOMS")
 
 func _do_refresh() -> void:
 	if _mode == MODE_ONLINE:
 		var nm := get_node_or_null("/root/NetworkManager")
 		if nm == null or not nm.is_steam_ready():
-			_hint.text = "Online no disponible"
+			_hint.text = tr("BROWSE_MSG_ONLINE_NA")
 			return
 		_busy = true
-		_hint.text = "Buscando salas online..."
+		_hint.text = tr("BROWSE_MSG_SEARCHING_ONLINE")
 		_master_rooms.clear()
 		_mock_rooms.clear()
 		_populate_rooms()
@@ -733,13 +791,13 @@ func _do_refresh() -> void:
 		await get_tree().create_timer(JOIN_TIMEOUT).timeout
 		if _busy and _master_rooms.is_empty():
 			_busy = false
-			_hint.text = "No se encontraron salas Online"
+			_hint.text = tr("BROWSE_MSG_NO_ONLINE_ROOMS")
 		return
 
 	if _ip_edit and not _ip_edit.text.strip_edges().is_empty():
 		_list_server_rooms()
 		return
-	_hint.text = "Ingresa la IP del servidor y presiona VER SALAS"
+	_hint.text = tr("BROWSE_MSG_ENTER_IP_FIRST")
 	_master_rooms.clear()
 	_mock_rooms.clear()
 	_populate_rooms()
@@ -888,6 +946,9 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.disconnect(_on_setting_changed)
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if nm.connection_succeeded.is_connected(_on_connection_succeeded):

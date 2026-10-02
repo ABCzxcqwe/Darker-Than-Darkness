@@ -5,15 +5,16 @@ const MIN_DISPLAY_MS := 800
 const TERMINAL_SCENE := "res://ui/Boot/scenes/TerminalLoader.tscn"
 const SKIP_TO_NOTICE := true
 const NOTICE_SCENE := "res://ui/Boot/scenes/LegalNotice.tscn"
+const LANGUAGE_SCENE := "res://ui/Boot/scenes/LanguageSelect.tscn"
 
 func _ready() -> void:
 	var ds := get_node_or_null("/root/DedicatedServer")
 	if ds and ds.is_dedicated:
 		print("[Boot] Modo servidor dedicado: se omite la UI.")
 		return
-	if SKIP_TO_NOTICE:
-		get_tree().change_scene_to_file.call_deferred(NOTICE_SCENE)
-		return
+	# Selector de idioma antes que todo (salvo servidor dedicado).
+	get_tree().change_scene_to_file.call_deferred(LANGUAGE_SCENE)
+	return
 	var grouped: Dictionary = _collect_grouped()
 	var flat: Array[String] = _flatten_grouped(grouped)
 	for p in flat:

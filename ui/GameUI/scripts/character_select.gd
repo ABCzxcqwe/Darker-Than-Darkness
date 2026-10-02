@@ -36,13 +36,13 @@ func _ready() -> void:
 
 	var my_id := multiplayer.get_unique_id()
 	if LobbyManager.is_spectator(my_id):
-		role_label.text = "ROL: ESPECTADOR"
+		role_label.text = tr("HUD_ROLE_SPEC")
 		role_label.modulate = Color.GRAY
 		timer_label.text = "--"
 		if timer_sub_label:
-			timer_sub_label.text = "ESPERANDO INICIO DE PARTIDA..."
+			timer_sub_label.text = tr("HUD_WAIT_START")
 		if hint_label:
-			hint_label.text = "MODO ESPECTADOR"
+			hint_label.text = tr("HUD_MODE_SPEC")
 		timer_active = false
 		countdown_timer.stop()
 		return
@@ -51,11 +51,13 @@ func _ready() -> void:
 		local_role = LobbyManager.players[my_id]["assigned_role"]
 
 	if local_role == "killer":
-		role_label.text = "ROL: KILLER (CAZADOR)"
+		role_label.text = tr("HUD_ROLE_KILLER")
 		role_label.modulate = Color.MAGENTA
 	else:
-		role_label.text = "ROL: SURVIVOR (EQUIPO)"
+		role_label.text = tr("HUD_ROLE_SURV")
 		role_label.modulate = Color.CYAN
+	if hint_label:
+		hint_label.text = tr("HUD_CHAR_HINT")
 
 	_build_character_options()
 	_on_lobby_updated()
@@ -355,7 +357,7 @@ func _confirm_selection(char_id: int) -> void:
 			vbox.modulate.a = 0.32
 	_update_name_labels()
 	if hint_label:
-		hint_label.text = "¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES..."
+		hint_label.text = tr("HUD_CONFIRMED")
 
 
 func _on_lobby_updated() -> void:
@@ -363,8 +365,8 @@ func _on_lobby_updated() -> void:
 	for p in LobbyManager.get_player_list():
 		var text = p.name
 		if p.id == multiplayer.get_unique_id():
-			text += " (Tú)"
-		var char_name = "Eligiendo..."
+			text += tr("HUD_YOU_SHORT")
+		var char_name = tr("HUD_CHOOSING")
 		var dot_color := Color.GRAY
 		if p.character_id != -1:
 			var data: CharacterData = CharacterRegistry.get_character(p.character_id)
@@ -415,13 +417,13 @@ func _update_timer_label() -> void:
 			timer_label.modulate = Color.WHITE
 	if timer_sub_label:
 		if time_left > 3:
-			timer_sub_label.text = "ELIGE TU DESTINO"
+			timer_sub_label.text = tr("HUD_CHOOSE_DESTINY")
 			timer_sub_label.modulate = Color(0.8, 0.8, 0.8, 1)
 		elif time_left > 0:
-			timer_sub_label.text = "¡TIEMPO SE AGOTA!"
+			timer_sub_label.text = tr("HUD_TIME_WARN")
 			timer_sub_label.modulate = Color(1, 0.5, 0.5, 1)
 		else:
-			timer_sub_label.text = "TIEMPO TERMINADO"
+			timer_sub_label.text = tr("HUD_TIME_UP")
 			timer_sub_label.modulate = Color.GRAY
 
 
@@ -431,7 +433,7 @@ func _on_timeout_expired() -> void:
 		return
 	timer_label.text = "0"
 	if timer_sub_label:
-		timer_sub_label.text = "¡TIEMPO TERMINADO!"
+		timer_sub_label.text = tr("HUD_TIME_UP")
 		timer_sub_label.modulate = Color.GRAY
 
 	if selected_char_id == -1 and available_char_ids.size() > 0:

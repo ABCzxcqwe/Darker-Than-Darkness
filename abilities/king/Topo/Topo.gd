@@ -3,7 +3,7 @@ class_name TopoAbility
 
 const WAVE_COUNT: int = 5
 const WAVE_INTERVAL: float = 1.5
-const WARNING_TIME: float = 1.0
+const WARNING_TIME: float = 0.5
 const SPEAR_HOLD: float = 1.5
 const SPEARS_PER_SURVIVOR: int = 12
 const WARNING_RADIUS: float = 110.0

@@ -2,8 +2,8 @@ extends Control
 ## CreateRoom — funcional, crea lobby real, soul rojo, datos sala + modo juego
 
 const GAME_MODES := ["Escape"] # Juggernaut bloqueado
-const SERVER_LOCAL := "Local"
-const SERVER_DEDICATED := "Dedicado"
+const SERVER_LOCAL := "local"
+const SERVER_DEDICATED := "dedicated"
 
 var _map_idx := 0
 var _game_mode_idx := 0
@@ -34,6 +34,9 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.connect(_on_setting_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	var nm := get_node_or_null("/root/NetworkManager")
 	# Mostrar modo red actual desde SettingsManager (no  cfg)
@@ -48,7 +51,7 @@ func _ready() -> void:
 	if mr:
 		_available_maps = mr.get_all()
 	if _available_maps.is_empty():
-		_map_label.text = "Sin mapas"
+		_map_label.text = tr("CREATE_NO_MAPS")
 	else:
 		_map_idx = 0
 		_map_label.text = _available_maps[0].display_name
@@ -56,8 +59,9 @@ func _ready() -> void:
 	if _players_label:
 		_players_label.text = str(_max_players)
 	_name_edit.text = ""
-	_name_edit.placeholder_text = "Mi sala"
+	_name_edit.placeholder_text = tr("CREATE_NAME_PH")
 	_build_server_row()
+	_refresh_static_texts()
 	_field_nodes = [_name_edit, _map_label, _game_mode_label, _players_label, _server_label, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn]
 	if has_node("/root/NetworkManager"):
 		var nmm := get_node_or_null("/root/NetworkManager")
@@ -74,6 +78,49 @@ func _ready() -> void:
 	if _name_edit and not _name_edit.focus_exited.is_connected(_on_name_focus_exited):
 		_name_edit.focus_exited.connect(_on_name_focus_exited)
 
+func _server_mode_name(mode_id: String) -> String:
+	if mode_id == SERVER_DEDICATED:
+		return tr("CREATE_SERVER_DEDICATED")
+	return tr("CREATE_SERVER_LOCAL")
+
+
+func _refresh_static_texts() -> void:
+	if _title:
+		_title.text = tr("CREATE_TITLE")
+	_name_edit.placeholder_text = tr("CREATE_NAME_PH")
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/NameRow/NameLabel", tr("CREATE_NAME"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/ModeRow/ModeLabel", tr("CREATE_MODE"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/MapRow/MapText", tr("CREATE_MAP"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow/GameModeText", tr("CREATE_GAMEMODE"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow/PlayersText", tr("CREATE_PLAYERS"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn", tr("CREATE_BTN"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn", tr("BROWSE_BACK"))
+	var footer := get_node_or_null("Footer") as Label
+	if footer:
+		footer.text = tr("CREATE_FOOTER")
+	var server_text := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ServerRow/ServerText") as Label
+	if server_text:
+		server_text.text = tr("CREATE_SERVER")
+	if _server_label and _server_mode_idx < _server_modes.size():
+		_server_label.text = _server_mode_name(_server_modes[_server_mode_idx])
+
+
+func _set_text(path: String, value: String) -> void:
+	var lbl := get_node_or_null(path) as Label
+	if lbl == null:
+		var btn := get_node_or_null(path) as Button
+		if btn:
+			btn.text = value
+		return
+	lbl.text = value
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language":
+		return
+	_refresh_static_texts()
+	_highlight(_focus_idx)
+
 func _coordinator_available() -> bool:
 	var cc := get_node_or_null("/root/CoordinatorClient")
 	return cc != null and cc.has_method("is_available") and cc.is_available()
@@ -89,13 +136,13 @@ func _build_server_row() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var text := Label.new()
 	text.name = "ServerText"
-	text.text = "SERVIDOR"
+	text.text = tr("CREATE_SERVER")
 	var left := Label.new()
 	left.name = "ServerLeft"
 	left.text = "<"
 	_server_label = Label.new()
 	_server_label.name = "ServerLabel"
-	_server_label.text = _server_modes[_server_mode_idx]
+	_server_label.text = _server_mode_name(_server_modes[_server_mode_idx])
 	var right := Label.new()
 	right.name = "ServerRight"
 	right.text = ">"
@@ -133,7 +180,7 @@ func _change_server_mode(dir: int) -> void:
 		return
 	_server_mode_idx = clampi(_server_mode_idx + dir, 0, _server_modes.size() - 1)
 	if _server_label:
-		_server_label.text = _server_modes[_server_mode_idx]
+		_server_label.text = _server_mode_name(_server_modes[_server_mode_idx])
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.MENU_MOVE)
@@ -250,15 +297,15 @@ func _highlight(idx: int) -> void:
 		match idx:
 			0:
 				var cur_name: String = _name_edit.text.strip_edges()
-				_hint.text = "Título visible en el buscador — %s" % (cur_name if cur_name != "" else "vacío")
+				_hint.text = tr("CREATE_HINT_TITLE") % (cur_name if cur_name != "" else tr("SET_CH_EMPTY"))
 			1:
 				var cur_map: String = _map_label.text if _map_label else ""
-				_hint.text = "Mapa — %s (%d/%d)" % [cur_map, _map_idx + 1, maxi(_available_maps.size(), 1)]
-			2: _hint.text = "Modo juego — Escape supervivencia"
-			3: _hint.text = "Máximo %d en sala" % _max_players
-			4: _hint.text = "Servidor — %s" % _server_modes[_server_mode_idx]
-			5: _hint.text = "Crea y entra al lobby"
-			6: _hint.text = "Volver al buscador"
+				_hint.text = tr("CREATE_HINT_MAP") % [cur_map, _map_idx + 1, maxi(_available_maps.size(), 1)]
+			2: _hint.text = tr("CREATE_HINT_GAMEMODE")
+			3: _hint.text = tr("CREATE_HINT_MAX") % _max_players
+			4: _hint.text = tr("CREATE_HINT_SERVER") % _server_mode_name(_server_modes[_server_mode_idx])
+			5: _hint.text = tr("CREATE_HINT_CREATE")
+			6: _hint.text = tr("CREATE_HINT_BACK")
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _field_nodes.is_empty():
@@ -288,7 +335,7 @@ func _change_map(dir: int) -> void:
 		return
 	_map_idx = clampi(_map_idx + dir, 0, _available_maps.size() - 1)
 	var m = _available_maps[_map_idx]
-	_map_label.text = m.display_name if m else "Sin mapa"
+	_map_label.text = m.display_name if m else tr("CREATE_NO_MAP")
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.MENU_MOVE)
@@ -299,7 +346,7 @@ func _change_game_mode(dir: int) -> void:
 		if am0 and am0.has_method("play_sfx_ui"):
 			am0.play_sfx_ui(SfxId.ERROR)
 		if _hint:
-			_hint.text = "Modo Juggernaut no disponible"
+			_hint.text = tr("CREATE_MSG_JUGGERNAUT_NA")
 		return
 	_game_mode_idx = clampi(_game_mode_idx + dir, 0, GAME_MODES.size() - 1)
 	_game_mode_label.text = GAME_MODES[_game_mode_idx]
@@ -350,33 +397,33 @@ func _try_create() -> void:
 		am.play_sfx_ui(SfxId.SELECT)
 	var sala_name: String = _name_edit.text.strip_edges()
 	if sala_name.is_empty():
-		_hint.text = "Ingresa nombre de sala."
+		_hint.text = tr("CREATE_MSG_NEED_NAME")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 		return
 	if _available_maps.is_empty():
-		_hint.text = "No hay mapas."
+		_hint.text = tr("CREATE_MSG_NO_MAPS")
 		return
 	var idx: int = clampi(_map_idx, 0, _available_maps.size() - 1)
 	var map_data = _available_maps[idx]
 	var sm := get_node_or_null("/root/SettingsManager")
-	var player_name: String = sm.player_name if sm and sm.player_name != "" else "Jugador"
+	var player_name: String = sm.player_name if sm and sm.player_name != "" else tr("BROWSE_DEFAULT_NAME")
 	if player_name.strip_edges() == "":
-		player_name = "Jugador"
+		player_name = tr("BROWSE_DEFAULT_NAME")
 	var game_mode: String = GAME_MODES[_game_mode_idx]
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm == null:
-		_hint.text = "NetworkManager no encontrado"
+		_hint.text = tr("BROWSE_MSG_NO_NM")
 		return
 	if _server_mode_idx == 1 and _server_modes.size() > 1:
 		_try_create_dedicated(am, sala_name, map_data.id, game_mode, player_name)
 		return
 	_busy = true
-	_hint.text = "Creando sala..."
+	_hint.text = tr("CREATE_MSG_CREATING")
 	var success: bool = nm.create_server(player_name, map_data.id, sala_name, game_mode, _max_players)
 	if not success:
 		_busy = false
-		_hint.text = "Error al crear el servidor."
+		_hint.text = tr("CREATE_MSG_CREATE_FAIL")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 
@@ -384,31 +431,31 @@ func _try_create() -> void:
 func _try_create_dedicated(am: Node, sala_name: String, map_id: String, game_mode: String, player_name: String) -> void:
 	var cc := get_node_or_null("/root/CoordinatorClient")
 	if cc == null:
-		_hint.text = "Coordinador no disponible."
+		_hint.text = tr("BROWSE_MSG_NO_COORD")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 		return
 	_busy = true
-	_hint.text = "Creando sala en servidor..."
+	_hint.text = tr("CREATE_MSG_CREATING_DED")
 	var room: Dictionary = await cc.create_room(sala_name, map_id, game_mode, _max_players, player_name)
 	if room.is_empty() or not room.has("port"):
 		_busy = false
-		_hint.text = "No se pudo crear la sala en el servidor."
+		_hint.text = tr("CREATE_MSG_CREATE_DED_FAIL")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 		return
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm == null:
 		_busy = false
-		_hint.text = "NetworkManager no encontrado"
+		_hint.text = tr("BROWSE_MSG_NO_NM")
 		return
 	nm.set_lan_mode()
 	var target := "%s:%d" % [str(room.get("host", "127.0.0.1")), int(room.get("port", 4242))]
-	_hint.text = "Conectando a %s..." % target
+	_hint.text = tr("BROWSE_MSG_CONNECTING") % target
 	var ok: bool = nm.join_server(player_name, target)
 	if not ok:
 		_busy = false
-		_hint.text = "Error al conectar a la sala."
+		_hint.text = tr("CREATE_MSG_CONNECT_FAIL")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
 
@@ -420,7 +467,7 @@ func _on_server_created() -> void:
 
 func _on_create_failed() -> void:
 	_busy = false
-	_hint.text = "Error al crear lobby (Online no disponible?)"
+	_hint.text = tr("CREATE_MSG_LOBBY_FAIL")
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
 		am.play_sfx_ui(SfxId.ERROR)
@@ -503,6 +550,9 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.disconnect(_on_setting_changed)
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if nm.connection_succeeded.is_connected(_on_server_created):

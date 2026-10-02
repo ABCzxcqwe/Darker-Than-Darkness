@@ -21,34 +21,34 @@ func _ready() -> void:
 
 	# 2. EVALUACIÓN DEFENSIVA (Si no encuentra claves, no crashea)
 	if reason_code == "killer_disconnected":
-		result_label.text = "¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida."
+		result_label.text = tr("HUD_END_KILLER_LEFT")
 		result_label.modulate = Color.CYAN
 	elif winner_team == "killer" or reason_code == "killer_elimination":
-		result_label.text = "¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar."
+		result_label.text = tr("HUD_END_KILLER_WIN")
 		result_label.modulate = Color.MAGENTA
 	elif reason_code == "survivors_escaped":
 		var escaped = results.get("escaped_count", 0)
 		var total = results.get("total_survivors", 0)
 		var not_escaped = total - escaped
 		if escaped > 0:
-			result_label.text = "¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron." % [escaped, not_escaped]
+			result_label.text = tr("HUD_END_SURV_ESCAPED") % [escaped, not_escaped]
 		else:
-			result_label.text = "¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate."
+			result_label.text = tr("HUD_END_SURV_TIME")
 		result_label.modulate = Color.CYAN
 	else:
 		# Fallback por si el cliente se desconectó de golpe y el diccionario se rompió
-		result_label.text = "Partida concluida.\nUn jugador abandonó el juego."
+		result_label.text = tr("HUD_END_OVER")
 		result_label.modulate = Color.YELLOW
 
 	# 3. Configuración asimétrica de la UI de cierre
 	if LobbyManager.is_host:
-		host_status_label.text = "Eres el Host. Reconfigura la sala cuando estés listo."
+		host_status_label.text = tr("HUD_END_HOST")
 		reset_room_button.visible = true
-		reset_room_button.text = "Crear nueva sala (Volver al Lobby)"
+		reset_room_button.text = tr("HUD_END_NEW_ROOM")
 		if not reset_room_button.pressed.is_connected(_on_reset_room_pressed):
 			reset_room_button.pressed.connect(_on_reset_room_pressed)
 	else:
-		host_status_label.text = "Esperando a que el host cree una nueva sala..."
+		host_status_label.text = tr("HUD_END_WAIT")
 		reset_room_button.visible = false
 
 

@@ -15,6 +15,12 @@ var _spectating_peer_id: int = -1
 func _ready() -> void:
 	prev_btn.pressed.connect(func(): prev_requested.emit())
 	next_btn.pressed.connect(func(): next_requested.emit())
+	var title := $VBoxContainer/TitleLabel as Label
+	if title:
+		title.text = tr("HUD_SPEC_TITLE")
+	var hint := $VBoxContainer/HintLabel as Label
+	if hint:
+		hint.text = tr("HUD_SPEC_TOGGLE")
 
 
 func set_target(peer_id: int, display_name: String, player_name: String, frames: SpriteFrames = null, fallback_tex: Texture2D = null) -> void:

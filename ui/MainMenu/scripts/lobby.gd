@@ -47,10 +47,75 @@ func _ready() -> void:
 		am0.play_menu_drone()
 	_apply_theme()
 	_update_address_label()
+	_refresh_static_texts()
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.connect(_on_setting_changed)
 	add_to_group("lobby")
+
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language":
+		return
+	_refresh_static_texts()
+	_update_address_label()
+	_update_from_lobby()
+	if _action_visible:
+		_refresh_action_menu_texts()
+	if _confirm_visible:
+		_refresh_confirm_texts()
+
+
+func _refresh_static_texts() -> void:
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/Title", "LOBBY")
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/PlayersHeader", tr("LOBBY_PLAYERS_HDR"))
+	_set_text("CenterContainer/DeltaruneBox/Margin/VBox/HintLabel", tr("LOBBY_HINT_BAR"))
+	var footer := get_node_or_null("Footer") as Label
+	if footer:
+		footer.text = tr("MENU_FOOTER")
+	if _start_btn:
+		_start_btn.text = tr("LOBBY_START")
+	if _leave_btn:
+		_leave_btn.text = tr("LOBBY_LEAVE")
+	_refresh_action_menu_texts()
+	_refresh_confirm_texts()
+
+
+func _set_text(path: String, value: String) -> void:
+	var lbl := get_node_or_null(path) as Label
+	if lbl:
+		lbl.text = value
+
+
+func _refresh_action_menu_texts() -> void:
+	_set_text("ActionMenu/MarginAction/VBoxAction/ActionTitle", tr("LOBBY_ACTIONS"))
+	if _action_target and _selected_target_name != "":
+		_action_target.text = tr("LOBBY_PLAYER_T") % _selected_target_name
+	if _btn_spectator:
+		_btn_spectator.text = tr("LOBBY_BTN_SPEC")
+	if _btn_survivor:
+		_btn_survivor.text = tr("LOBBY_BTN_SURV")
+	if _btn_killer:
+		_btn_killer.text = tr("LOBBY_BTN_KILLER")
+	if _btn_kick:
+		_btn_kick.text = tr("LOBBY_BTN_KICK")
+	if _btn_cancel:
+		_btn_cancel.text = tr("LOBBY_BTN_CANCEL")
+
+
+func _refresh_confirm_texts() -> void:
+	if _confirm_label:
+		if _selected_target_name != "":
+			_confirm_label.text = tr("LOBBY_KICK_Q_NAMED") % _selected_target_name
+		else:
+			_confirm_label.text = tr("LOBBY_KICK_Q")
+	if _confirm_yes:
+		_confirm_yes.text = tr("LOBBY_YES")
+	if _confirm_no:
+		_confirm_no.text = tr("LOBBY_NO")
 
 
 ## Muestra arriba la IP:puerto de la partida SOLO cuando somos el host LOCAL
@@ -62,7 +127,7 @@ func _update_address_label() -> void:
 	var is_local_host := LobbyManager.is_host and not _is_dedicated()
 	_address_label.visible = is_local_host
 	if is_local_host:
-		_address_label.text = "IP PARTIDA: %s" % NetworkManager.get_lan_address()
+		_address_label.text = tr("LOBBY_IP") % NetworkManager.get_lan_address()
 
 
 func _is_dedicated() -> bool:
@@ -233,7 +298,7 @@ func _update_from_lobby() -> void:
 		var prefix := ""
 		if room_name != "":
 			prefix = room_name + " | "
-		_map_label.text = prefix + "MAPA: " + (map_name if map_name != "" else "Cargando...") + " | MODO: " + game_mode
+		_map_label.text = tr("LOBBY_MAPLINE") % [prefix, map_name if map_name != "" else tr("LOBBY_LOADING"), game_mode]
 		var tm2 := get_node_or_null("/root/ThemeManager")
 		var pal2: Dictionary = tm2.get_palette() if tm2 and tm2.has_method("get_palette") else {}
 		_map_label.add_theme_color_override("font_color", pal2.get("hint", Color(0, 1, 0, 1)))
@@ -362,7 +427,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	if lm_host and int(lm_host.room_host_peer) == peer_id and not is_host:
 		display_name += " (HOST)"
 	if is_me:
-		display_name += " (TÚ)"
+		display_name += tr("LOBBY_YOU")
 	name_lbl.text = display_name
 	name_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
 	name_lbl.add_theme_font_size_override("font_size", 16)
@@ -387,7 +452,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	hbox.add_child(pts_lbl)
 
 	var spec_lbl := Label.new()
-	spec_lbl.text = "ESP: " + ("SI" if is_spec else "NO")
+	spec_lbl.text = tr("LOBBY_SPEC_FMT") % (tr("LOBBY_YES_WORD") if is_spec else tr("LOBBY_NO_WORD"))
 	spec_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
 	spec_lbl.add_theme_font_size_override("font_size", 13)
 	spec_lbl.custom_minimum_size = Vector2(70, 0)
@@ -411,7 +476,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 		tag_lbl.add_theme_color_override("font_color", sel_c)
 		tag_lbl.set_meta("base_color", sel_c)
 	elif tag == "candidate":
-		tag_lbl.text = "★ CANDIDATO"
+		tag_lbl.text = tr("LOBBY_TAG_CANDIDATE")
 		tag_lbl.add_theme_color_override("font_color", sel_c)
 		tag_lbl.set_meta("base_color", sel_c)
 	else:
@@ -426,7 +491,7 @@ func _refresh_empty(is_empty: bool) -> void:
 	if _empty_label:
 		_empty_label.visible = is_empty
 		if is_empty:
-			_empty_label.text = "Esperando jugadores..."
+			_empty_label.text = tr("LOBBY_WAITING")
 			var tm4 := get_node_or_null("/root/ThemeManager")
 			var pal4: Dictionary = tm4.get_palette() if tm4 and tm4.has_method("get_palette") else {}
 			_empty_label.modulate = pal4.get("hint", Color(0,1,0,1))
@@ -581,33 +646,33 @@ func _highlight(idx: int, instant: bool) -> void:
 			var pid: int = int(cur.get_meta("peer_id"))
 			var info: Dictionary = lm.players.get(pid, {}) if lm else {}
 			var nm: String = str(info.get("name", "?"))
-			_hint.text = "Jugador: %s — [Z] Acciones  [↑↓] Mover" % nm
+			_hint.text = tr("LOBBY_H_PLAYER") % nm
 			if is_host and pid == LobbyManager.forced_killer_peer:
-				_hint.text += " (KILLER FORZADO 99)"
+				_hint.text += tr("LOBBY_H_FORCED")
 		elif cur == _start_btn:
 			if lm:
 				var cnt: int = lm.players.size() if "players" in lm else 0
 				var maxp: int = lm.max_players if "max_players" in lm else 4
 				if cnt < 2:
-					_hint.text = "Inicia selección de personaje — %d/%d falta 1 jugador" % [cnt, maxp]
+					_hint.text = tr("LOBBY_H_START_NEED") % [cnt, maxp]
 				else:
 					var cands: Array = lm.get_killer_candidates() if lm.has_method("get_killer_candidates") else []
 					if cands.is_empty():
-						_hint.text = "No hay jugador para ser killer — quita espectadores"
+						_hint.text = tr("LOBBY_H_NO_KILLER")
 					elif lm.forced_killer_peer != -1 and lm.players.has(lm.forced_killer_peer) and not lm.is_spectator(lm.forced_killer_peer):
 						var fname: String = str(lm.players[lm.forced_killer_peer].get("name", "?"))
-						_hint.text = "Killer forzado: %s (99) — [Z] Iniciar" % fname
+						_hint.text = tr("LOBBY_H_FORCED_N") % fname
 					elif cands.size() > 1:
 						var top_pts: int = int(lm.players[cands[0]].get("killer_points", 0)) if lm.players.has(cands[0]) else 0
-						_hint.text = "%d empatan (%d pts) — Killer aleatorio — [Z]" % [cands.size(), top_pts]
+						_hint.text = tr("LOBBY_H_TIE") % [cands.size(), top_pts]
 					else:
 						var kname: String = str(lm.players[cands[0]].get("name", "?")) if lm.players.has(cands[0]) else "?"
 						var kpts: int = int(lm.players[cands[0]].get("killer_points", 0)) if lm.players.has(cands[0]) else 0
-						_hint.text = "Killer: %s (%d pts) — [Z] Iniciar" % [kname, kpts]
+						_hint.text = tr("LOBBY_H_KILLER") % [kname, kpts]
 			else:
-				_hint.text = "Inicia selección de personaje — requiere 2 jugadores"
+				_hint.text = tr("LOBBY_H_START_REQ")
 		elif cur == _leave_btn:
-			_hint.text = "Salir y volver al buscador — [Z] Confirmar"
+			_hint.text = tr("LOBBY_H_LEAVE")
 
 func _highlight_action(idx: int, instant: bool) -> void:
 	if _action_focusables.is_empty():
@@ -627,15 +692,15 @@ func _highlight_action(idx: int, instant: bool) -> void:
 	if _hint:
 		var cur := _action_focusables[idx]
 		if cur == _btn_spectator:
-			_hint.text = "Poner a %s como ESPECTADOR" % _selected_target_name
+			_hint.text = tr("LOBBY_H_MAKE_SPEC") % _selected_target_name
 		elif cur == _btn_survivor:
-			_hint.text = "Restaurar a %s como SURVIVOR" % _selected_target_name
+			_hint.text = tr("LOBBY_H_MAKE_SURV") % _selected_target_name
 		elif cur == _btn_killer:
-			_hint.text = "Forzar a %s como KILLER (99 pts)" % _selected_target_name
+			_hint.text = tr("LOBBY_H_FORCE") % _selected_target_name
 		elif cur == _btn_kick:
-			_hint.text = "Expulsar a %s de la sala" % _selected_target_name
+			_hint.text = tr("LOBBY_H_KICK") % _selected_target_name
 		elif cur == _btn_cancel:
-			_hint.text = "Cerrar menú — [X] Volver"
+			_hint.text = tr("LOBBY_H_CLOSE")
 
 func _highlight_confirm(idx: int, instant: bool) -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -652,9 +717,9 @@ func _highlight_confirm(idx: int, instant: bool) -> void:
 			c.modulate = Color(dim.r, dim.g, dim.b, 0.5)
 	if _hint:
 		if idx == 0:
-			_hint.text = "Confirmar expulsión de %s — [Z] Sí" % _selected_target_name
+			_hint.text = tr("LOBBY_H_CONFIRM_KICK") % _selected_target_name
 		else:
-			_hint.text = "Cancelar expulsión — [X] No"
+			_hint.text = tr("LOBBY_H_CANCEL_KICK")
 
 func _position_soul(idx: int, instant: bool) -> void:
 	if _soul == null or _focusables.is_empty():
@@ -748,7 +813,7 @@ func _open_action_menu(peer_id: int, pname: String) -> void:
 	_selected_target_name = pname
 	_action_visible = true
 	if _action_target:
-		_action_target.text = "JUGADOR: %s" % pname
+		_action_target.text = tr("LOBBY_PLAYER_T") % pname
 	_update_action_menu_state()
 	_rebuild_action_focus()
 	# Saltar a primer botón habilitado
@@ -844,7 +909,7 @@ func _open_confirm_kick() -> void:
 	_confirm_visible = true
 	_confirm_index = 1 # por defecto NO para evitar accidentes
 	if _confirm_label:
-		_confirm_label.text = "¿Expulsar a %s?" % _selected_target_name
+		_confirm_label.text = tr("LOBBY_KICK_Q_NAMED") % _selected_target_name
 	if _confirm_overlay:
 		_confirm_overlay.visible = true
 	_highlight_confirm(_confirm_index, true)
@@ -892,7 +957,7 @@ func _on_kicked(reason: String) -> void:
 	if not is_inside_tree():
 		return
 	if _status_label:
-		_status_label.text = "Expulsado: %s" % reason
+		_status_label.text = tr("LOBBY_ST_KICKED") % reason
 		_status_label.modulate = Color(1, 0.3, 0.3, 1)
 	var am := get_node_or_null("/root/AudioManager")
 	if am and am.has_method("play_sfx_ui"):
@@ -904,7 +969,7 @@ func _on_server_disconnected() -> void:
 	if _confirm_visible or _action_visible:
 		return # No pisar el mensaje de expulsión
 	if _status_label:
-		_status_label.text = "Host desconectado. Volviendo al menú..."
+		_status_label.text = tr("LOBBY_ST_HOST_DC")
 		_status_label.modulate = Color(0, 1, 0, 1)
 	await get_tree().create_timer(1.5).timeout
 	if not is_inside_tree():
@@ -946,13 +1011,13 @@ func _update_status() -> void:
 	if _status_label == null:
 		return
 	if _countdown_active:
-		_status_label.text = "Iniciando en %d..." % int(ceil(_countdown_left))
+		_status_label.text = tr("LOBBY_ST_COUNTDOWN") % int(ceil(_countdown_left))
 		_status_label.modulate = Color(1, 0.8, 0.2, 1)
 		return
 	var lm := get_node_or_null("/root/LobbyManager")
 	if lm:
 		var maxp: int = lm.max_players if "max_players" in lm else lm.MAX_PLAYERS
-		_status_label.text = "Jugadores: %d/%d" % [lm.players.size(), maxp]
+		_status_label.text = tr("LOBBY_COUNT") % [lm.players.size(), maxp]
 	_status_label.modulate = Color(0, 1, 0, 1)
 
 
@@ -969,7 +1034,7 @@ func _on_start_pressed() -> void:
 		return
 	if lm.players.size() < 2:
 		if _status_label:
-			_status_label.text = "No hay suficientes jugadores."
+			_status_label.text = tr("LOBBY_ST_NOT_ENOUGH")
 			_status_label.modulate = Color(0, 1, 0, 1)
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
@@ -977,7 +1042,7 @@ func _on_start_pressed() -> void:
 	var cands: Array = lm.get_killer_candidates() if lm.has_method("get_killer_candidates") else []
 	if cands.is_empty():
 		if _status_label:
-			_status_label.text = "No hay jugador para ser killer — quita espectadores."
+			_status_label.text = tr("LOBBY_ST_NO_KILLER")
 			_status_label.modulate = Color(1, 0.6, 0.2, 1)
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.ERROR)
@@ -1009,6 +1074,9 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var slm := get_node_or_null("/root/SettingsManager")
+	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
+		slm.setting_changed.disconnect(_on_setting_changed)
 	var lm := get_node_or_null("/root/LobbyManager")
 	if lm:
 		if lm.lobby_updated.is_connected(_update_player_list):

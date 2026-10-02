@@ -2,11 +2,13 @@ extends Control
 ## PlayMode — ONLINE / LAN — Deltarune, ONLINE oculto si no disponible.
 
 const ALL_OPTIONS := ["LAN", "ONLINE"]
-const ALL_HINTS := ["Red local — conecta por IP directa", "Online — salas públicas"]
+const ALL_HINT_KEYS := ["NET_HINT_LAN", "NET_HINT_ONLINE"]
 
 @onready var _labels: Array[Label] = []
 @onready var _soul: TextureRect = $SoulCursor
 @onready var _hint: Label = $CenterContainer/DeltaruneBox/Margin/VBox/HintLabel
+@onready var _title: Label = $CenterContainer/DeltaruneBox/Margin/VBox/Title
+@onready var _footer: Label = $Footer
 
 var _visible_options: Array[String] = []
 var _visible_hints: Array[String] = []
@@ -30,9 +32,13 @@ func _ready() -> void:
 			_labels[i].visible = false
 	_index = 0
 	_apply_theme()
+	_refresh_texts()
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and not sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.connect(_on_setting_changed)
 	_highlight(_index)
 	_position_soul(_index, true)
 	grab_focus()
@@ -41,6 +47,23 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.disconnect(_on_setting_changed)
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key != "language":
+		return
+	_rebuild_options()
+	_index = clampi(_index, 0, maxi(_visible_options.size() - 1, 0))
+	_refresh_texts()
+	_highlight(_index)
+
+func _refresh_texts() -> void:
+	if _title:
+		_title.text = tr("NET_TITLE")
+	if _footer:
+		_footer.text = tr("MENU_FOOTER")
 
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
@@ -86,10 +109,10 @@ func _rebuild_options() -> void:
 		online_available = nm.is_steam_ready()
 	if online_available:
 		_visible_options = ["LAN", "ONLINE"]
-		_visible_hints = ["Red local — conecta por IP directa", "Online — salas públicas"]
+		_visible_hints = [tr("NET_HINT_LAN"), tr("NET_HINT_ONLINE")]
 	else:
 		_visible_options = ["LAN"]
-		_visible_hints = ["Red local — conecta por IP directa (Online no disponible)"]
+		_visible_hints = [tr("NET_HINT_LAN_ONLY")]
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy:
@@ -209,7 +232,7 @@ func _open_browser(mode: String) -> void:
 				if am2 and am2.has_method("play_sfx_ui"):
 					am2.play_sfx_ui(SfxId.ERROR)
 				if _hint:
-					_hint.text = "Online no disponible — usa LAN"
+					_hint.text = tr("NET_ONLINE_NA")
 				return
 		else:
 			nm.set_lan_mode()

@@ -1,0 +1,262 @@
+keys;es;en;pt;ru;ko;ja
+HELLO;Hola;Hello;Olá;Привет;안녕;こんにちは
+PLAY;Jugar;Play;Jogar;Играть;플레이;プレイ
+EXIT;Salir;Exit;Sair;Выход;종료;終了
+SELECT_LANGUAGE;ELIGE TU IDIOMA;SELECT YOUR LANGUAGE;ESCOLHE O TEU IDIOMA;ВЫБЕРИ ЯЗЫК;언어를 선택하세요;言語を選択
+MENU_PLAY;JUGAR;PLAY;JUGAR;JUGAR;JUGAR;JUGAR
+MENU_OPTIONS;OPCIONES;OPTIONS;OPCIONES;OPCIONES;OPCIONES;OPCIONES
+MENU_EXTRAS;EXTRAS;EXTRAS;EXTRAS;EXTRAS;EXTRAS;EXTRAS
+MENU_EXIT;SALIR;EXIT;SALIR;SALIR;SALIR;SALIR
+MENU_HINT_PLAY;Busca o crea partida — LAN y Online;Find or create a match — LAN and Online;Busca o crea partida — LAN y Online;Busca o crea partida — LAN y Online;Busca o crea partida — LAN y Online;Busca o crea partida — LAN y Online
+MENU_HINT_OPTIONS;Perfil, audio, video y mando;Profile, audio, video and gamepad;Perfil, audio, video y mando;Perfil, audio, video y mando;Perfil, audio, video y mando;Perfil, audio, video y mando
+MENU_HINT_EXTRAS;Galería y créditos — Próximamente;Gallery and credits — Coming soon;Galería y créditos — Próximamente;Galería y créditos — Próximamente;Galería y créditos — Próximamente;Galería y créditos — Próximamente
+MENU_HINT_EXIT;Cerrar a escritorio;Quit to desktop;Cerrar a escritorio;Cerrar a escritorio;Cerrar a escritorio;Cerrar a escritorio
+MENU_FOOTER;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVE   [Z] CONFIRM   [X] BACK;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER
+MENU_EXTRAS_SOON;EXTRAS — Próximamente;EXTRAS — Coming soon;EXTRAS — Próximamente;EXTRAS — Próximamente;EXTRAS — Próximamente;EXTRAS — Próximamente
+SET_TITLE;OPCIONES;OPTIONS;OPCIONES;OPCIONES;OPCIONES;OPCIONES
+SET_TAB_GENERAL;GENERAL;GENERAL;GENERAL;GENERAL;GENERAL;GENERAL
+SET_TAB_AUDIO;AUDIO;AUDIO;AUDIO;AUDIO;AUDIO;AUDIO
+SET_TAB_VIDEO;VIDEO;VIDEO;VIDEO;VIDEO;VIDEO;VIDEO
+SET_TAB_CONTROLS;CONTROLES;CONTROLS;CONTROLES;CONTROLES;CONTROLES;CONTROLES
+SET_TAB_BACK;VOLVER;BACK;VOLVER;VOLVER;VOLVER;VOLVER
+SET_TABHINT_GENERAL;Nombre, idioma y tema;Name, language and theme;Nombre, idioma y tema;Nombre, idioma y tema;Nombre, idioma y tema;Nombre, idioma y tema
+SET_TABHINT_AUDIO;Música y efectos;Music and effects;Música y efectos;Música y efectos;Música y efectos;Música y efectos
+SET_TABHINT_VIDEO;Brillo, pantalla y VHS;Brightness, screen and VHS;Brillo, pantalla y VHS;Brillo, pantalla y VHS;Brillo, pantalla y VHS;Brillo, pantalla y VHS
+SET_TABHINT_CONTROLS;Zona muerta y restablecer;Deadzone and reset;Zona muerta y restablecer;Zona muerta y restablecer;Zona muerta y restablecer;Zona muerta y restablecer
+SET_TABHINT_BACK;Volver al menú;Back to menu;Volver al menú;Volver al menú;Volver al menú;Volver al menú
+SET_LANGUAGE;IDIOMA;LANGUAGE;IDIOMA;IDIOMA;IDIOMA;IDIOMA
+SET_PLAYER_NAME;NOMBRE JUGADOR;PLAYER NAME;NOMBRE JUGADOR;NOMBRE JUGADOR;NOMBRE JUGADOR;NOMBRE JUGADOR
+SET_ONLINE_PROVIDER;PROVEEDOR ONLINE;ONLINE PROVIDER;PROVEEDOR ONLINE;PROVEEDOR ONLINE;PROVEEDOR ONLINE;PROVEEDOR ONLINE
+SET_THEME;TEMA;THEME;TEMA;TEMA;TEMA;TEMA
+SET_MUSIC;MUSICA;MUSIC;MUSICA;MUSICA;MUSICA;MUSICA
+SET_SFX;SFX;SFX;SFX;SFX;SFX;SFX
+SET_BRIGHTNESS;BRILLO;BRIGHTNESS;BRILLO;BRILLO;BRILLO;BRILLO
+SET_SCREEN;PANTALLA;SCREEN;PANTALLA;PANTALLA;PANTALLA;PANTALLA
+SET_VHS;VHS;VHS;VHS;VHS;VHS;VHS
+SET_DEADZONE;DEADZONE;DEADZONE;DEADZONE;DEADZONE;DEADZONE;DEADZONE
+SET_RESET;RESTABLECER;RESET;RESTABLECER;RESTABLECER;RESTABLECER;RESTABLECER
+SET_FOOTER;[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVE   [←][→] ADJUST   [Z] CONFIRM   [X] BACK;[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER;[↑][↓] MOVER   [←][→] AJUSTAR   [Z] CONFIRMAR   [X] VOLVER
+SET_HINT_BAR;↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset;↑↓ select  ←→ adjust  Z confirm  X back  C reset;↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset;↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset;↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset;↑↓ elegir  ←→ ajustar  Z confirmar  X volver  C reset
+SET_NAME_PH;Nombre;Name;Nombre;Nombre;Nombre;Nombre
+SET_OPT_WINDOW;Ventana;Window;Ventana;Ventana;Ventana;Ventana
+SET_OPT_FULL;Completo;Fullscreen;Completo;Completo;Completo;Completo
+SET_LOCKED;[BLOQUEADO];[LOCKED];[BLOQUEADO];[BLOQUEADO];[BLOQUEADO];[BLOQUEADO]
+SET_OPT_ONLINE_NA;ONLINE — No disponible;ONLINE — Unavailable;ONLINE — No disponible;ONLINE — No disponible;ONLINE — No disponible;ONLINE — No disponible
+SET_CH_LANGUAGE;Idioma — %s;Language — %s;Idioma — %s;Idioma — %s;Idioma — %s;Idioma — %s
+SET_CH_PLAYER;Tu alias en lobbies — %s;Your lobby alias — %s;Tu alias en lobbies — %s;Tu alias en lobbies — %s;Tu alias en lobbies — %s;Tu alias en lobbies — %s
+SET_CH_EMPTY;vacío;empty;vacío;vacío;vacío;vacío
+SET_CH_PROVIDER;LAN / Online — elige red;LAN / Online — choose network;LAN / Online — elige red;LAN / Online — elige red;LAN / Online — elige red;LAN / Online — elige red
+SET_CH_THEME;Tema — %s;Theme — %s;Tema — %s;Tema — %s;Tema — %s;Tema — %s
+SET_CH_MUSIC;Volumen música — %d%%;Music volume — %d%%;Volumen música — %d%%;Volumen música — %d%%;Volumen música — %d%%;Volumen música — %d%%
+SET_CH_SFX;Efectos — %d%%;Effects — %d%%;Efectos — %d%%;Efectos — %d%%;Efectos — %d%%;Efectos — %d%%
+SET_CH_BRIGHT;Luminosidad — %d%%;Brightness — %d%%;Luminosidad — %d%%;Luminosidad — %d%%;Luminosidad — %d%%;Luminosidad — %d%%
+SET_CH_SCREEN;Pantalla — %s;Screen — %s;Pantalla — %s;Pantalla — %s;Pantalla — %s;Pantalla — %s
+SET_CH_VHS;Filtro analógico — %s;Analog filter — %s;Filtro analógico — %s;Filtro analógico — %s;Filtro analógico — %s;Filtro analógico — %s
+SET_CH_DEADZONE;Zona muerta — %.2f respuesta del stick;Deadzone — %.2f stick response;Zona muerta — %.2f respuesta del stick;Zona muerta — %.2f respuesta del stick;Zona muerta — %.2f respuesta del stick;Zona muerta — %.2f respuesta del stick
+SET_CH_RESET;Restaura mandos por defecto;Restore default controls;Restaura mandos por defecto;Restaura mandos por defecto;Restaura mandos por defecto;Restaura mandos por defecto
+SET_MSG_ONLINE_NA;ONLINE no disponible;ONLINE unavailable;ONLINE no disponible;ONLINE no disponible;ONLINE no disponible;ONLINE no disponible
+SET_MSG_NETMODE;Modo red: %s;Network mode: %s;Modo red: %s;Modo red: %s;Modo red: %s;Modo red: %s
+SET_MSG_THEME_LOCKED;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Theme locked: win with all characters to unlock LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT
+SET_MSG_THEME_CHANGED;Tema cambiado a %s;Theme changed to %s;Tema cambiado a %s;Tema cambiado a %s;Tema cambiado a %s;Tema cambiado a %s
+SET_MSG_CONTROLS_RESET;Controles restablecidos;Controls reset;Controles restablecidos;Controles restablecidos;Controles restablecidos;Controles restablecidos
+NET_TITLE;MODO DE RED;NETWORK MODE;MODO DE RED;MODO DE RED;MODO DE RED;MODO DE RED
+NET_HINT_LAN;Red local — conecta por IP directa;Local network — connect via direct IP;Red local — conecta por IP directa;Red local — conecta por IP directa;Red local — conecta por IP directa;Red local — conecta por IP directa
+NET_HINT_ONLINE;Online — salas públicas;Online — public lobbies;Online — salas públicas;Online — salas públicas;Online — salas públicas;Online — salas públicas
+NET_HINT_LAN_ONLY;Red local — conecta por IP directa (Online no disponible);Local network — connect via direct IP (Online unavailable);Red local — conecta por IP directa (Online no disponible);Red local — conecta por IP directa (Online no disponible);Red local — conecta por IP directa (Online no disponible);Red local — conecta por IP directa (Online no disponible)
+NET_HINT_DEFAULT;Partidas por Internet;Internet matches;Partidas por Internet;Partidas por Internet;Partidas por Internet;Partidas por Internet
+NET_ONLINE_NA;Online no disponible — usa LAN;Online unavailable — use LAN;Online no disponible — usa LAN;Online no disponible — usa LAN;Online no disponible — usa LAN;Online no disponible — usa LAN
+LEGAL_TITLE;AVISO LEGAL;LEGAL NOTICE;AVISO LEGAL;AVISO LEGAL;AVISO LEGAL;AVISO LEGAL
+LEGAL_BODY;Darker Than Darkness es un juego no oficial creado por fans. No está afiliado a ningún estudio ni empresa. Al continuar aceptas las reglas del juego y entiendes que el contenido puede cambiar durante el desarrollo. Este aviso se muestra en cada apertura.;Darker Than Darkness is an unofficial fan-made game. It is not affiliated with any studio or company. By continuing you accept the game rules and understand that content may change during development. This notice is shown on every launch.;Darker Than Darkness es un juego no oficial creado por fans. No está afiliado a ningún estudio ni empresa. Al continuar aceptas las reglas del juego y entiendes que el contenido puede cambiar durante el desarrollo. Este aviso se muestra en cada apertura.;Darker Than Darkness es un juego no oficial creado por fans. No está afiliado a ningún estudio ni empresa. Al continuar aceptas las reglas del juego y entiendes que el contenido puede cambiar durante el desarrollo. Este aviso se muestra en cada apertura.;Darker Than Darkness es un juego no oficial creado por fans. No está afiliado a ningún estudio ni empresa. Al continuar aceptas las reglas del juego y entiendes que el contenido puede cambiar durante el desarrollo. Este aviso se muestra en cada apertura.;Darker Than Darkness es un juego no oficial creado por fans. No está afiliado a ningún estudio ni empresa. Al continuar aceptas las reglas del juego y entiendes que el contenido puede cambiar durante el desarrollo. Este aviso se muestra en cada apertura.
+LEGAL_ACCEPT;Aceptar;Accept;Aceptar;Aceptar;Aceptar;Aceptar
+LEGAL_QUIT;Salir;Exit;Salir;Salir;Salir;Salir
+BROWSE_TITLE;BUSCAR PARTIDA — %s;FIND MATCH — %s;BUSCAR PARTIDA — %s;BUSCAR PARTIDA — %s;BUSCAR PARTIDA — %s;BUSCAR PARTIDA — %s
+BROWSE_H_NAME;NOMBRE;NAME;NOMBRE;NOMBRE;NOMBRE;NOMBRE
+BROWSE_H_HOST;HOST;HOST;HOST;HOST;HOST;HOST
+BROWSE_H_MAP;MAPA;MAP;MAPA;MAPA;MAPA;MAPA
+BROWSE_H_PLAYERS;JUG.;PLAY.;JUG.;JUG.;JUG.;JUG.
+BROWSE_H_MODE;MODO;MODE;MODO;MODO;MODO;MODO
+BROWSE_H_STATUS;ESTADO;STATUS;ESTADO;ESTADO;ESTADO;ESTADO
+BROWSE_EMPTY;* NO SE ENCONTRARON PARTIDAS;* NO MATCHES FOUND;* NO SE ENCONTRARON PARTIDAS;* NO SE ENCONTRARON PARTIDAS;* NO SE ENCONTRARON PARTIDAS;* NO SE ENCONTRARON PARTIDAS
+BROWSE_HINT_DEFAULT;Pulsa C para refrescar la lista;Press C to refresh the list;Pulsa C para refrescar la lista;Pulsa C para refrescar la lista;Pulsa C para refrescar la lista;Pulsa C para refrescar la lista
+BROWSE_REFRESH;ACTUALIZAR [C];REFRESH [C];ACTUALIZAR [C];ACTUALIZAR [C];ACTUALIZAR [C];ACTUALIZAR [C]
+BROWSE_CREATE;CREAR SALA;CREATE ROOM;CREAR SALA;CREAR SALA;CREAR SALA;CREAR SALA
+BROWSE_BACK;VOLVER [X];BACK [X];VOLVER [X];VOLVER [X];VOLVER [X];VOLVER [X]
+BROWSE_CONNECT;CONECTAR;CONNECT;CONECTAR;CONECTAR;CONECTAR;CONECTAR
+BROWSE_SEARCH;BUSCAR;SEARCH;BUSCAR;BUSCAR;BUSCAR;BUSCAR
+BROWSE_IP_LABEL;DIRECCIÓN IP:;IP ADDRESS:;DIRECCIÓN IP:;DIRECCIÓN IP:;DIRECCIÓN IP:;DIRECCIÓN IP:
+BROWSE_PH_SEARCH;Buscar sala o host...;Search room or host...;Buscar sala o host...;Buscar sala o host...;Buscar sala o host...;Buscar sala o host...
+BROWSE_PH_IP;IP del servidor;Server IP;IP del servidor;IP del servidor;IP del servidor;IP del servidor
+BROWSE_FOOTER;[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR;[↑][↓][←][→] NAVIGATE    [Z] CONFIRM    [X] BACK    [C] REFRESH;[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR;[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR;[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR;[↑][↓][←][→] NAVEGAR    [Z] CONFIRMAR    [X] VOLVER    [C] REFRESCAR
+BROWSE_HINT_RELOAD;Recargar lista — %d salas;Reload list — %d rooms;Recargar lista — %d salas;Recargar lista — %d salas;Recargar lista — %d salas;Recargar lista — %d salas
+BROWSE_HINT_CREATE;Abre crear sala;Open create room;Abre crear sala;Abre crear sala;Abre crear sala;Abre crear sala
+BROWSE_HINT_CONNECT_FILTERED;Conectar a la sala filtrada;Connect to the filtered room;Conectar a la sala filtrada;Conectar a la sala filtrada;Conectar a la sala filtrada;Conectar a la sala filtrada
+BROWSE_HINT_CONNECT_IP;Conectar a la IP ingresada;Connect to the entered IP;Conectar a la IP ingresada;Conectar a la IP ingresada;Conectar a la IP ingresada;Conectar a la IP ingresada
+BROWSE_HINT_BACK;Volver a modo de red;Back to network mode;Volver a modo de red;Volver a modo de red;Volver a modo de red;Volver a modo de red
+BROWSE_HINT_FILTER;Filtra por nombre o pega IP;Filter by name or paste IP;Filtra por nombre o pega IP;Filtra por nombre o pega IP;Filtra por nombre o pega IP;Filtra por nombre o pega IP
+BROWSE_HINT_PASTE_IP;Pega la IP del host;Paste the host IP;Pega la IP del host;Pega la IP del host;Pega la IP del host;Pega la IP del host
+BROWSE_HINT_ROOM_DETAIL;Sala disponible — detalles;Available room — details;Sala disponible — detalles;Sala disponible — detalles;Sala disponible — detalles;Sala disponible — detalles
+BROWSE_MSG_ENTER_IP;Ingresa la IP del servidor.;Enter the server IP.;Ingresa la IP del servidor.;Ingresa la IP del servidor.;Ingresa la IP del servidor.;Ingresa la IP del servidor.
+BROWSE_MSG_NO_COORD;Coordinador no disponible.;Coordinator unavailable.;Coordinador no disponible.;Coordinador no disponible.;Coordinador no disponible.;Coordinador no disponible.
+BROWSE_MSG_SEARCHING;Buscando salas en %s...;Searching rooms at %s...;Buscando salas en %s...;Buscando salas en %s...;Buscando salas en %s...;Buscando salas en %s...
+BROWSE_MSG_NO_ROOMS;No se encontraron salas;No rooms found;No se encontraron salas;No se encontraron salas;No se encontraron salas;No se encontraron salas
+BROWSE_MSG_ROOMS_FOUND;%d salas encontradas;%d rooms found;%d salas encontradas;%d salas encontradas;%d salas encontradas;%d salas encontradas
+BROWSE_MSG_ENTER_AN_IP;Ingresa una IP.;Enter an IP.;Ingresa una IP.;Ingresa una IP.;Ingresa una IP.;Ingresa una IP.
+BROWSE_MSG_BAD_IP;IP inválida: %s;Invalid IP: %s;IP inválida: %s;IP inválida: %s;IP inválida: %s;IP inválida: %s
+BROWSE_MSG_NO_NM;NetworkManager no encontrado;NetworkManager not found;NetworkManager no encontrado;NetworkManager no encontrado;NetworkManager no encontrado;NetworkManager no encontrado
+BROWSE_MSG_CONNECTING;Conectando a %s...;Connecting to %s...;Conectando a %s...;Conectando a %s...;Conectando a %s...;Conectando a %s...
+BROWSE_MSG_CONNECTING_ONLINE;Conectando a sala online...;Connecting to online room...;Conectando a sala online...;Conectando a sala online...;Conectando a sala online...;Conectando a sala online...
+BROWSE_MSG_START_FAIL;Error al iniciar conexión;Failed to start connection;Error al iniciar conexión;Error al iniciar conexión;Error al iniciar conexión;Error al iniciar conexión
+BROWSE_MSG_NO_RESPONSE;No se pudo conectar — servidor no responde;Could not connect — server not responding;No se pudo conectar — servidor no responde;No se pudo conectar — servidor no responde;No se pudo conectar — servidor no responde;No se pudo conectar — servidor no responde
+BROWSE_MSG_NO_SERVER;No se encontró servidor activo en la IP/Lobby;No active server found at IP/Lobby;No se encontró servidor activo en la IP/Lobby;No se encontró servidor activo en la IP/Lobby;No se encontró servidor activo en la IP/Lobby;No se encontró servidor activo en la IP/Lobby
+BROWSE_MSG_FALLBACK;No respondió, buscando sala normal...;No response, searching normal room...;No respondió, buscando sala normal...;No respondió, buscando sala normal...;No respondió, buscando sala normal...;No respondió, buscando sala normal...
+BROWSE_MSG_JOINING_NORMAL;Uniéndose a la sala normal...;Joining normal room...;Uniéndose a la sala normal...;Uniéndose a la sala normal...;Uniéndose a la sala normal...;Uniéndose a la sala normal...
+BROWSE_MSG_DISCONNECTED;Servidor desconectado;Server disconnected;Servidor desconectado;Servidor desconectado;Servidor desconectado;Servidor desconectado
+BROWSE_MSG_CANCELLED;Cancelado [X];Cancelled [X];Cancelado [X];Cancelado [X];Cancelado [X];Cancelado [X]
+BROWSE_MSG_ONLINE_NA;Online no disponible;Online unavailable;Online no disponible;Online no disponible;Online no disponible;Online no disponible
+BROWSE_MSG_SEARCHING_ONLINE;Buscando salas online...;Searching online rooms...;Buscando salas online...;Buscando salas online...;Buscando salas online...;Buscando salas online...
+BROWSE_MSG_NO_ONLINE_ROOMS;No se encontraron salas Online;No Online rooms found;No se encontraron salas Online;No se encontraron salas Online;No se encontraron salas Online;No se encontraron salas Online
+BROWSE_MSG_ENTER_IP_FIRST;Ingresa la IP del servidor y presiona VER SALAS;Enter the server IP and press SHOW ROOMS;Ingresa la IP del servidor y presiona VER SALAS;Ingresa la IP del servidor y presiona VER SALAS;Ingresa la IP del servidor y presiona VER SALAS;Ingresa la IP del servidor y presiona VER SALAS
+BROWSE_DEFAULT_NAME;Jugador;Player;Jugador;Jugador;Jugador;Jugador
+CREATE_TITLE;CREAR SALA;CREATE ROOM;CREAR SALA;CREAR SALA;CREAR SALA;CREAR SALA
+CREATE_NAME;NOMBRE;NAME;NOMBRE;NOMBRE;NOMBRE;NOMBRE
+CREATE_NAME_PH;Mi sala;My room;Mi sala;Mi sala;Mi sala;Mi sala
+CREATE_MODE;MODO;MODE;MODO;MODO;MODO;MODO
+CREATE_MAP;MAPA;MAP;MAPA;MAPA;MAPA;MAPA
+CREATE_NO_MAPS;Sin mapas;No maps;Sin mapas;Sin mapas;Sin mapas;Sin mapas
+CREATE_NO_MAP;Sin mapa;No map;Sin mapa;Sin mapa;Sin mapa;Sin mapa
+CREATE_GAMEMODE;MODO JUEGO;GAME MODE;MODO JUEGO;MODO JUEGO;MODO JUEGO;MODO JUEGO
+CREATE_PLAYERS;JUGADORES;PLAYERS;JUGADORES;JUGADORES;JUGADORES;JUGADORES
+CREATE_HINT_DEFAULT;Escribe nombre de sala;Type a room name;Escribe nombre de sala;Escribe nombre de sala;Escribe nombre de sala;Escribe nombre de sala
+CREATE_BTN;CREAR [Z];CREATE [Z];CREAR [Z];CREAR [Z];CREAR [Z];CREAR [Z]
+CREATE_FOOTER;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA;[↑][↓] MOVE   [Z] CONFIRM   [X] BACK   [<][>] CHANGE MAP;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA;[↑][↓] MOVER   [Z] CONFIRMAR   [X] VOLVER   [<][>] CAMBIAR MAPA
+CREATE_SERVER;SERVIDOR;SERVER;SERVIDOR;SERVIDOR;SERVIDOR;SERVIDOR
+CREATE_SERVER_LOCAL;Local;Local;Local;Local;Local;Local
+CREATE_SERVER_DEDICATED;Dedicado;Dedicated;Dedicado;Dedicado;Dedicado;Dedicado
+CREATE_HINT_TITLE;Título visible en el buscador — %s;Title shown in browser — %s;Título visible en el buscador — %s;Título visible en el buscador — %s;Título visible en el buscador — %s;Título visible en el buscador — %s
+CREATE_HINT_MAP;Mapa — %s (%d/%d);Map — %s (%d/%d);Mapa — %s (%d/%d);Mapa — %s (%d/%d);Mapa — %s (%d/%d);Mapa — %s (%d/%d)
+CREATE_HINT_GAMEMODE;Modo juego — Escape supervivencia;Game mode — Survival escape;Modo juego — Escape supervivencia;Modo juego — Escape supervivencia;Modo juego — Escape supervivencia;Modo juego — Escape supervivencia
+CREATE_HINT_MAX;Máximo %d en sala;Max %d in room;Máximo %d en sala;Máximo %d en sala;Máximo %d en sala;Máximo %d en sala
+CREATE_HINT_SERVER;Servidor — %s;Server — %s;Servidor — %s;Servidor — %s;Servidor — %s;Servidor — %s
+CREATE_HINT_CREATE;Crea y entra al lobby;Create and join lobby;Crea y entra al lobby;Crea y entra al lobby;Crea y entra al lobby;Crea y entra al lobby
+CREATE_HINT_BACK;Volver al buscador;Back to browser;Volver al buscador;Volver al buscador;Volver al buscador;Volver al buscador
+CREATE_MSG_NEED_NAME;Ingresa nombre de sala.;Enter a room name.;Ingresa nombre de sala.;Ingresa nombre de sala.;Ingresa nombre de sala.;Ingresa nombre de sala.
+CREATE_MSG_NO_MAPS;No hay mapas.;No maps.;No hay mapas.;No hay mapas.;No hay mapas.;No hay mapas.
+CREATE_MSG_CREATING;Creando sala...;Creating room...;Creando sala...;Creando sala...;Creando sala...;Creando sala...
+CREATE_MSG_CREATE_FAIL;Error al crear el servidor.;Failed to create the server.;Error al crear el servidor.;Error al crear el servidor.;Error al crear el servidor.;Error al crear el servidor.
+CREATE_MSG_CREATING_DED;Creando sala en servidor...;Creating room on server...;Creando sala en servidor...;Creando sala en servidor...;Creando sala en servidor...;Creando sala en servidor...
+CREATE_MSG_CREATE_DED_FAIL;No se pudo crear la sala en el servidor.;Could not create the room on the server.;No se pudo crear la sala en el servidor.;No se pudo crear la sala en el servidor.;No se pudo crear la sala en el servidor.;No se pudo crear la sala en el servidor.
+CREATE_MSG_CONNECT_FAIL;Error al conectar a la sala.;Failed to connect to the room.;Error al conectar a la sala.;Error al conectar a la sala.;Error al conectar a la sala.;Error al conectar a la sala.
+CREATE_MSG_LOBBY_FAIL;Error al crear lobby (Online no disponible?);Failed to create lobby (Online unavailable?);Error al crear lobby (Online no disponible?);Error al crear lobby (Online no disponible?);Error al crear lobby (Online no disponible?);Error al crear lobby (Online no disponible?)
+CREATE_MSG_JUGGERNAUT_NA;Modo Juggernaut no disponible;Juggernaut mode unavailable;Modo Juggernaut no disponible;Modo Juggernaut no disponible;Modo Juggernaut no disponible;Modo Juggernaut no disponible
+LOBBY_MAPLINE;%sMAPA: %s | MODO: %s;%sMAP: %s | MODE: %s;%sMAPA: %s | MODO: %s;%sMAPA: %s | MODO: %s;%sMAPA: %s | MODO: %s;%sMAPA: %s | MODO: %s
+LOBBY_LOADING;Cargando...;Loading...;Cargando...;Cargando...;Cargando...;Cargando...
+LOBBY_PLAYERS_HDR;JUGADORES CONECTADOS:;CONNECTED PLAYERS:;JUGADORES CONECTADOS:;JUGADORES CONECTADOS:;JUGADORES CONECTADOS:;JUGADORES CONECTADOS:
+LOBBY_WAITING;Esperando jugadores...;Waiting for players...;Esperando jugadores...;Esperando jugadores...;Esperando jugadores...;Esperando jugadores...
+LOBBY_COUNT;Jugadores: %d/%d;Players: %d/%d;Jugadores: %d/%d;Jugadores: %d/%d;Jugadores: %d/%d;Jugadores: %d/%d
+LOBBY_START;INICIAR PARTIDA [Z];START MATCH [Z];INICIAR PARTIDA [Z];INICIAR PARTIDA [Z];INICIAR PARTIDA [Z];INICIAR PARTIDA [Z]
+LOBBY_LEAVE;SALIR DEL LOBBY [X];LEAVE LOBBY [X];SALIR DEL LOBBY [X];SALIR DEL LOBBY [X];SALIR DEL LOBBY [X];SALIR DEL LOBBY [X]
+LOBBY_HINT_BAR;[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00;[Z] CONFIRM  [X] LEAVE  — Red soul #008000/#00FF00;[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00;[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00;[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00;[Z] CONFIRMAR  [X] SALIR  — Soul rojo #008000/#00FF00
+LOBBY_IP;IP PARTIDA: %s;MATCH IP: %s;IP PARTIDA: %s;IP PARTIDA: %s;IP PARTIDA: %s;IP PARTIDA: %s
+LOBBY_ACTIONS;ACCIONES;ACTIONS;ACCIONES;ACCIONES;ACCIONES;ACCIONES
+LOBBY_PLAYER_T;JUGADOR: %s;PLAYER: %s;JUGADOR: %s;JUGADOR: %s;JUGADOR: %s;JUGADOR: %s
+LOBBY_BTN_SPEC;PONER ESPECTADOR;MAKE SPECTATOR;PONER ESPECTADOR;PONER ESPECTADOR;PONER ESPECTADOR;PONER ESPECTADOR
+LOBBY_BTN_SURV;RESTAURAR SURVIVOR;RESTORE SURVIVOR;RESTAURAR SURVIVOR;RESTAURAR SURVIVOR;RESTAURAR SURVIVOR;RESTAURAR SURVIVOR
+LOBBY_BTN_KILLER;FORZAR KILLER [99];FORCE KILLER [99];FORZAR KILLER [99];FORZAR KILLER [99];FORZAR KILLER [99];FORZAR KILLER [99]
+LOBBY_BTN_KICK;QUITAR DE LA SALA;REMOVE FROM ROOM;QUITAR DE LA SALA;QUITAR DE LA SALA;QUITAR DE LA SALA;QUITAR DE LA SALA
+LOBBY_BTN_CANCEL;CANCELAR [X];CANCEL [X];CANCELAR [X];CANCELAR [X];CANCELAR [X];CANCELAR [X]
+LOBBY_KICK_Q;¿Expulsar a este jugador?;Kick this player?;¿Expulsar a este jugador?;¿Expulsar a este jugador?;¿Expulsar a este jugador?;¿Expulsar a este jugador?
+LOBBY_KICK_Q_NAMED;¿Expulsar a %s?;Kick %s?;¿Expulsar a %s?;¿Expulsar a %s?;¿Expulsar a %s?;¿Expulsar a %s?
+LOBBY_YES;SI [Z];YES [Z];SI [Z];SI [Z];SI [Z];SI [Z]
+LOBBY_NO;NO [X];NO [X];NO [X];NO [X];NO [X];NO [X]
+LOBBY_H_PLAYER;Jugador: %s — [Z] Acciones  [↑↓] Mover;Player: %s — [Z] Actions  [↑↓] Move;Jugador: %s — [Z] Acciones  [↑↓] Mover;Jugador: %s — [Z] Acciones  [↑↓] Mover;Jugador: %s — [Z] Acciones  [↑↓] Mover;Jugador: %s — [Z] Acciones  [↑↓] Mover
+LOBBY_H_FORCED; (KILLER FORZADO 99); (FORCED KILLER 99); (KILLER FORZADO 99); (KILLER FORZADO 99); (KILLER FORZADO 99); (KILLER FORZADO 99)
+LOBBY_H_START_NEED;Inicia selección de personaje — %d/%d falta 1 jugador;Start character select — %d/%d need 1 more player;Inicia selección de personaje — %d/%d falta 1 jugador;Inicia selección de personaje — %d/%d falta 1 jugador;Inicia selección de personaje — %d/%d falta 1 jugador;Inicia selección de personaje — %d/%d falta 1 jugador
+LOBBY_H_NO_KILLER;No hay jugador para ser killer — quita espectadores;No player can be killer — remove spectators;No hay jugador para ser killer — quita espectadores;No hay jugador para ser killer — quita espectadores;No hay jugador para ser killer — quita espectadores;No hay jugador para ser killer — quita espectadores
+LOBBY_H_FORCED_N;Killer forzado: %s (99) — [Z] Iniciar;Forced killer: %s (99) — [Z] Start;Killer forzado: %s (99) — [Z] Iniciar;Killer forzado: %s (99) — [Z] Iniciar;Killer forzado: %s (99) — [Z] Iniciar;Killer forzado: %s (99) — [Z] Iniciar
+LOBBY_H_TIE;%d empatan (%d pts) — Killer aleatorio — [Z];%d tied (%d pts) — Random killer — [Z];%d empatan (%d pts) — Killer aleatorio — [Z];%d empatan (%d pts) — Killer aleatorio — [Z];%d empatan (%d pts) — Killer aleatorio — [Z];%d empatan (%d pts) — Killer aleatorio — [Z]
+LOBBY_H_KILLER;Killer: %s (%d pts) — [Z] Iniciar;Killer: %s (%d pts) — [Z] Start;Killer: %s (%d pts) — [Z] Iniciar;Killer: %s (%d pts) — [Z] Iniciar;Killer: %s (%d pts) — [Z] Iniciar;Killer: %s (%d pts) — [Z] Iniciar
+LOBBY_H_START_REQ;Inicia selección de personaje — requiere 2 jugadores;Start character select — requires 2 players;Inicia selección de personaje — requiere 2 jugadores;Inicia selección de personaje — requiere 2 jugadores;Inicia selección de personaje — requiere 2 jugadores;Inicia selección de personaje — requiere 2 jugadores
+LOBBY_H_LEAVE;Salir y volver al buscador — [Z] Confirmar;Leave to browser — [Z] Confirm;Salir y volver al buscador — [Z] Confirmar;Salir y volver al buscador — [Z] Confirmar;Salir y volver al buscador — [Z] Confirmar;Salir y volver al buscador — [Z] Confirmar
+LOBBY_H_MAKE_SPEC;Poner a %s como ESPECTADOR;Make %s SPECTATOR;Poner a %s como ESPECTADOR;Poner a %s como ESPECTADOR;Poner a %s como ESPECTADOR;Poner a %s como ESPECTADOR
+LOBBY_H_MAKE_SURV;Restaurar a %s como SURVIVOR;Restore %s as SURVIVOR;Restaurar a %s como SURVIVOR;Restaurar a %s como SURVIVOR;Restaurar a %s como SURVIVOR;Restaurar a %s como SURVIVOR
+LOBBY_H_FORCE;Forzar a %s como KILLER (99 pts);Force %s as KILLER (99 pts);Forzar a %s como KILLER (99 pts);Forzar a %s como KILLER (99 pts);Forzar a %s como KILLER (99 pts);Forzar a %s como KILLER (99 pts)
+LOBBY_H_KICK;Expulsar a %s de la sala;Kick %s from the room;Expulsar a %s de la sala;Expulsar a %s de la sala;Expulsar a %s de la sala;Expulsar a %s de la sala
+LOBBY_H_CLOSE;Cerrar menú — [X] Volver;Close menu — [X] Back;Cerrar menú — [X] Volver;Cerrar menú — [X] Volver;Cerrar menú — [X] Volver;Cerrar menú — [X] Volver
+LOBBY_H_CONFIRM_KICK;Confirmar expulsión de %s — [Z] Sí;Confirm kick of %s — [Z] Yes;Confirmar expulsión de %s — [Z] Sí;Confirmar expulsión de %s — [Z] Sí;Confirmar expulsión de %s — [Z] Sí;Confirmar expulsión de %s — [Z] Sí
+LOBBY_H_CANCEL_KICK;Cancelar expulsión — [X] No;Cancel kick — [X] No;Cancelar expulsión — [X] No;Cancelar expulsión — [X] No;Cancelar expulsión — [X] No;Cancelar expulsión — [X] No
+LOBBY_ST_COUNTDOWN;Iniciando en %d...;Starting in %d...;Iniciando en %d...;Iniciando en %d...;Iniciando en %d...;Iniciando en %d...
+LOBBY_ST_KICKED;Expulsado: %s;Kicked: %s;Expulsado: %s;Expulsado: %s;Expulsado: %s;Expulsado: %s
+LOBBY_ST_HOST_DC;Host desconectado. Volviendo al menú...;Host disconnected. Returning to menu...;Host desconectado. Volviendo al menú...;Host desconectado. Volviendo al menú...;Host desconectado. Volviendo al menú...;Host desconectado. Volviendo al menú...
+LOBBY_ST_NOT_ENOUGH;No hay suficientes jugadores.;Not enough players.;No hay suficientes jugadores.;No hay suficientes jugadores.;No hay suficientes jugadores.;No hay suficientes jugadores.
+LOBBY_ST_NO_KILLER;No hay jugador para ser killer — quita espectadores.;No player can be killer — remove spectators.;No hay jugador para ser killer — quita espectadores.;No hay jugador para ser killer — quita espectadores.;No hay jugador para ser killer — quita espectadores.;No hay jugador para ser killer — quita espectadores.
+LOBBY_TAG_CANDIDATE;★ CANDIDATO;★ CANDIDATE;★ CANDIDATO;★ CANDIDATO;★ CANDIDATO;★ CANDIDATO
+LOBBY_YOU; (TÚ); (YOU); (TÚ); (TÚ); (TÚ); (TÚ)
+LOBBY_SPEC_FMT;ESP: %s;SPEC: %s;ESP: %s;ESP: %s;ESP: %s;ESP: %s
+LOBBY_YES_WORD;Sí;Yes;Sí;Sí;Sí;Sí
+LOBBY_NO_WORD;No;No;No;No;No;No
+PAUSE_KILLS;Muertes;Kills;Muertes;Muertes;Muertes;Muertes
+PAUSE_DMG_DEALT;Daño infligido;Damage dealt;Daño infligido;Daño infligido;Daño infligido;Daño infligido
+PAUSE_STUNS_RECV;Stuns recibidos;Stuns received;Stuns recibidos;Stuns recibidos;Stuns recibidos;Stuns recibidos
+PAUSE_DANGER;Tiempo en peligro;Time in danger;Tiempo en peligro;Tiempo en peligro;Tiempo en peligro;Tiempo en peligro
+PAUSE_DMG_TAKEN;Daño recibido;Damage taken;Daño recibido;Daño recibido;Daño recibido;Daño recibido
+PAUSE_STUNS_APPL;Stuns aplicados;Stuns applied;Stuns aplicados;Stuns aplicados;Stuns aplicados;Stuns aplicados
+PAUSE_RANK;Rango;Rank;Rango;Rango;Rango;Rango
+PAUSE_SOON;Próximamente;Coming soon;Próximamente;Próximamente;Próximamente;Próximamente
+PAUSE_MUSIC;Música;Music;Música;Música;Música;Música
+PAUSE_BRIGHT;Brillo;Brightness;Brillo;Brillo;Brillo;Brillo
+PAUSE_SCREEN;Pantalla;Screen;Pantalla;Pantalla;Pantalla;Pantalla
+PAUSE_DEADZONE;Zona muerta;Deadzone;Zona muerta;Zona muerta;Zona muerta;Zona muerta
+PAUSE_RESET;Restablecer;Reset;Restablecer;Restablecer;Restablecer;Restablecer
+PAUSE_GAMEPADS;Mandos;Gamepad;Mandos;Mandos;Mandos;Mandos
+PAUSE_QUIT_Q;¿Seguro que quieres salir del juego?;Are you sure you want to quit?;¿Seguro que quieres salir del juego?;¿Seguro que quieres salir del juego?;¿Seguro que quieres salir del juego?;¿Seguro que quieres salir del juego?
+PAUSE_YES;SÍ;YES;SÍ;SÍ;SÍ;SÍ
+PAUSE_HINT_TABS;←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar;←→ move tab   ·   Z/Enter open   ·   X/Esc close;←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar;←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar;←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar;←→ mover pestaña   ·   Z/Enter entrar   ·   X/Esc cerrar
+PAUSE_HINT_PANEL;↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver;↑↓ row   ·   ←→ adjust   ·   Z/Enter confirm   ·   X/Esc back;↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver;↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver;↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver;↑↓ fila   ·   ←→ ajustar   ·   Z/Enter confirmar   ·   X/Esc volver
+PAUSE_HINT_EXIT;←→ elegir   ·   Z/Enter confirmar;←→ choose   ·   Z/Enter confirm;←→ elegir   ·   Z/Enter confirmar;←→ elegir   ·   Z/Enter confirmar;←→ elegir   ·   Z/Enter confirmar;←→ elegir   ·   Z/Enter confirmar
+PAUSE_STATS_TITLE;STATS — %s;STATS — %s;STATS — %s;STATS — %s;STATS — %s;STATS — %s
+PAUSE_LEGACY_TITLE;MENÚ;MENU;MENÚ;MENÚ;MENÚ;MENÚ
+PAUSE_LEGACY_VOL;VOLUMEN;VOLUME;VOLUMEN;VOLUMEN;VOLUMEN;VOLUMEN
+PAUSE_LEGACY_QUIT;SALIR DEL JUEGO;QUIT GAME;SALIR DEL JUEGO;SALIR DEL JUEGO;SALIR DEL JUEGO;SALIR DEL JUEGO
+HUD_ROLE_SPEC;ROL: ESPECTADOR;ROLE: SPECTATOR;ROL: ESPECTADOR;ROL: ESPECTADOR;ROL: ESPECTADOR;ROL: ESPECTADOR
+HUD_ROLE_KILLER;ROL: KILLER (CAZADOR);ROLE: KILLER (HUNTER);ROL: KILLER (CAZADOR);ROL: KILLER (CAZADOR);ROL: KILLER (CAZADOR);ROL: KILLER (CAZADOR)
+HUD_ROLE_SURV;ROL: SURVIVOR (EQUIPO);ROLE: SURVIVOR (TEAM);ROL: SURVIVOR (EQUIPO);ROL: SURVIVOR (EQUIPO);ROL: SURVIVOR (EQUIPO);ROL: SURVIVOR (EQUIPO)
+HUD_WAIT_START;ESPERANDO INICIO DE PARTIDA...;WAITING FOR MATCH TO START...;ESPERANDO INICIO DE PARTIDA...;ESPERANDO INICIO DE PARTIDA...;ESPERANDO INICIO DE PARTIDA...;ESPERANDO INICIO DE PARTIDA...
+HUD_MODE_SPEC;MODO ESPECTADOR;SPECTATOR MODE;MODO ESPECTADOR;MODO ESPECTADOR;MODO ESPECTADOR;MODO ESPECTADOR
+HUD_CHOOSE_DESTINY;ELIGE TU DESTINO;CHOOSE YOUR DESTINY;ELIGE TU DESTINO;ELIGE TU DESTINO;ELIGE TU DESTINO;ELIGE TU DESTINO
+HUD_TIME_WARN;¡TIEMPO SE AGOTA!;TIME RUNNING OUT!;¡TIEMPO SE AGOTA!;¡TIEMPO SE AGOTA!;¡TIEMPO SE AGOTA!;¡TIEMPO SE AGOTA!
+HUD_TIME_UP;TIEMPO TERMINADO;TIME'S UP;TIEMPO TERMINADO;TIEMPO TERMINADO;TIEMPO TERMINADO;TIEMPO TERMINADO
+HUD_CONFIRMED;¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES...;SELECTION CONFIRMED! WAITING FOR PLAYERS...;¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES...;¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES...;¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES...;¡SELECCIÓN CONFIRMADA! ESPERANDO JUGADORES...
+HUD_CHAR_HINT;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR;[A/D] ROTATE  •  [ENTER / SPACE] CONFIRM;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR
+HUD_YOU_SHORT; (Tú); (You); (Tú); (Tú); (Tú); (Tú)
+HUD_CHOOSING;Eligiendo...;Choosing...;Eligiendo...;Eligiendo...;Eligiendo...;Eligiendo...
+HUD_TARGET_SELECT;SELECCIONAR OBJETIVO;SELECT TARGET;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO
+HUD_TARGET_HINT;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVIGATE · ENTER CONFIRM · ESC CANCEL;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR
+HUD_REVIVE;REVIVIR [%s];REVIVE [%s];REVIVIR [%s];REVIVIR [%s];REVIVIR [%s];REVIVIR [%s]
+HUD_ALLY_TARGET;OBJETIVO;OBJECTIVE;OBJETIVO;OBJETIVO;OBJETIVO;OBJETIVO
+HUD_ALLY_NAME;NOMBRE;NAME;NOMBRE;NOMBRE;NOMBRE;NOMBRE
+HUD_CHAT_PH;Escribe un mensaje...;Type a message...;Escribe un mensaje...;Escribe un mensaje...;Escribe un mensaje...;Escribe un mensaje...
+HUD_FX_STUN;ATURDIDO;STUNNED;ATURDIDO;ATURDIDO;ATURDIDO;ATURDIDO
+HUD_FX_SLOW;RALLENTIZADO;SLOWED;RALLENTIZADO;RALLENTIZADO;RALLENTIZADO;RALLENTIZADO
+HUD_FX_ROOT;ENRAIZADO;ROOTED;ENRAIZADO;ENRAIZADO;ENRAIZADO;ENRAIZADO
+HUD_FX_SILENCE;SILENCIADO;SILENCED;SILENCIADO;SILENCIADO;SILENCIADO;SILENCIADO
+HUD_FX_BLIND;CEGADO;BLINDED;CEGADO;CEGADO;CEGADO;CEGADO
+HUD_FX_SPEED;VELOCIDAD;SPEED;VELOCIDAD;VELOCIDAD;VELOCIDAD;VELOCIDAD
+HUD_FX_STAMINA;RESISTENCIA;STAMINA;RESISTENCIA;RESISTENCIA;RESISTENCIA;RESISTENCIA
+HUD_FX_PROT;PROTECCION;PROTECTION;PROTECCION;PROTECCION;PROTECCION;PROTECCION
+HUD_FX_BLEED;SANGRADO;BLEED;SANGRADO;SANGRADO;SANGRADO;SANGRADO
+HUD_FX_DMGBOOST;DAÑO+;DMG+;DAÑO+;DAÑO+;DAÑO+;DAÑO+
+HUD_FX_DEF;DEFENSA;DEFENSE;DEFENSA;DEFENSA;DEFENSA;DEFENSA
+HUD_FX_INVIS;INVISIBILIDAD;INVISIBILITY;INVISIBILIDAD;INVISIBILIDAD;INVISIBILIDAD;INVISIBILIDAD
+HUD_END_KILLER_LEFT;¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida.;THE SURVIVORS WIN!\nThe Killer left the match.;¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida.;¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida.;¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida.;¡LOS SURVIVORS GANAN!\nEl Killer abandonó la partida.
+HUD_END_KILLER_WIN;¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar.;KILLER VICTORY!\nTime ran out. Nobody escaped.;¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar.;¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar.;¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar.;¡VICTORIA DEL KILLER!\nEl tiempo se agotó. Nadie logró escapar.
+HUD_END_SURV_ESCAPED;¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron.;THE SURVIVORS WIN!\n%d escaped, %d didn't make it.;¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron.;¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron.;¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron.;¡LOS SURVIVORS GANAN!\n%d escaparon, %d no lo lograron.
+HUD_END_SURV_TIME;¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate.;THE SURVIVORS WIN!\nTime ran out before the rescue.;¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate.;¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate.;¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate.;¡LOS SURVIVORS GANAN!\nEl tiempo se acabó antes del rescate.
+HUD_END_OVER;Partida concluida.\nUn jugador abandonó el juego.;Match over.\nA player left the game.;Partida concluida.\nUn jugador abandonó el juego.;Partida concluida.\nUn jugador abandonó el juego.;Partida concluida.\nUn jugador abandonó el juego.;Partida concluida.\nUn jugador abandonó el juego.
+HUD_END_HOST;Eres el Host. Reconfigura la sala cuando estés listo.;You are the Host. Reconfigure the room when ready.;Eres el Host. Reconfigura la sala cuando estés listo.;Eres el Host. Reconfigura la sala cuando estés listo.;Eres el Host. Reconfigura la sala cuando estés listo.;Eres el Host. Reconfigura la sala cuando estés listo.
+HUD_END_NEW_ROOM;Crear nueva sala (Volver al Lobby);Create new room (Back to Lobby);Crear nueva sala (Volver al Lobby);Crear nueva sala (Volver al Lobby);Crear nueva sala (Volver al Lobby);Crear nueva sala (Volver al Lobby)
+HUD_END_WAIT;Esperando a que el host cree una nueva sala...;Waiting for the host to create a new room...;Esperando a que el host cree una nueva sala...;Esperando a que el host cree una nueva sala...;Esperando a que el host cree una nueva sala...;Esperando a que el host cree una nueva sala...
+HUD_SPEC_TITLE;— MODO ESPECTADOR —;— SPECTATOR MODE —;— MODO ESPECTADOR —;— MODO ESPECTADOR —;— MODO ESPECTADOR —;— MODO ESPECTADOR —
+HUD_SPEC_TOGGLE;[Espacio] Alternar modo;[Space] Toggle mode;[Espacio] Alternar modo;[Espacio] Alternar modo;[Espacio] Alternar modo;[Espacio] Alternar modo
+HUD_DIALOG_EXITS;¡LAS SALIDAS SE HAN ABIERTO!;THE EXITS ARE OPEN!;¡LAS SALIDAS SE HAN ABIERTO!;¡LAS SALIDAS SE HAN ABIERTO!;¡LAS SALIDAS SE HAN ABIERTO!;¡LAS SALIDAS SE HAN ABIERTO!
+HUD_DIALOG_LMS;¡MODO ÚLTIMO SUPERVIVIENTE!;LAST SURVIVOR STANDING!;¡MODO ÚLTIMO SUPERVIVIENTE!;¡MODO ÚLTIMO SUPERVIVIENTE!;¡MODO ÚLTIMO SUPERVIVIENTE!;¡MODO ÚLTIMO SUPERVIVIENTE!
+LOBBY_KICK_REASON;Expulsado por el host;Kicked by the host;Expulsado por el host;Expulsado por el host;Expulsado por el host;Expulsado por el host

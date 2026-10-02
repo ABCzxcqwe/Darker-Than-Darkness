@@ -2,7 +2,7 @@ extends AbilityBase
 class_name LanzaAbility
 
 # ── Constantes de la mecánica de la lanza ────────────────────────────
-const LANZA_SPEED: float      = 2200.0   # avance de la cabeza (px/s)
+const LANZA_SPEED: float      = 4400.0   # avance de la cabeza (px/s)
 const ROOT_DURATION: float    = 20.0    # root durante toda la habilidad (se libera al resolver)
 const IFRAME_DURATION: float  = 2.5     # invencibilidad al inicio de la habilidad (seg)
 const CANCEL_GRACE_SEC: float = 1.5     # ventana donde E no cancela (anti doble-press)

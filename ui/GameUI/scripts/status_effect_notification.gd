@@ -46,16 +46,16 @@ func _process(delta: float) -> void:
 
 func _get_display_name(effect: String) -> String:
 	match effect:
-		"stun":        return "ATURDIDO"
-		"slow":        return "RALLENTIZADO"
-		"root":        return "ENRAIZADO"
-		"silence":     return "SILENCIADO"
-		"blind":       return "CEGADO"
-		"speed_boost":       return "VELOCIDAD"
-		"stamina_reduction": return "RESISTENCIA"
-		"protection":        return "PROTECCION"
-		"bleed":             return "SANGRADO"
-		"damage_boost":      return "DAÑO+"
-		"damage_reduction":  return "DEFENSA"
-		"invisibility":      return "INVISIBILIDAD"
+		"stun":        return tr("HUD_FX_STUN")
+		"slow":        return tr("HUD_FX_SLOW")
+		"root":        return tr("HUD_FX_ROOT")
+		"silence":     return tr("HUD_FX_SILENCE")
+		"blind":       return tr("HUD_FX_BLIND")
+		"speed_boost":       return tr("HUD_FX_SPEED")
+		"stamina_reduction": return tr("HUD_FX_STAMINA")
+		"protection":        return tr("HUD_FX_PROT")
+		"bleed":             return tr("HUD_FX_BLEED")
+		"damage_boost":      return tr("HUD_FX_DMGBOOST")
+		"damage_reduction":  return tr("HUD_FX_DEF")
+		"invisibility":      return tr("HUD_FX_INVIS")
 		_:                   return effect.to_upper()

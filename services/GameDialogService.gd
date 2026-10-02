@@ -20,10 +20,11 @@ func _on_exit_activated(_exit_id: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if _client_relay and _client_relay.has_method("_rpc_push_dialog"):
-		_client_relay.rpc("_rpc_push_dialog", "¡LAS SALIDAS SE HAN ABIERTO!", 0)
+		# Se envía ID, cada cliente lo traduce a su idioma al recibirlo.
+		_client_relay.rpc("_rpc_push_dialog", "dialog_exits_open", 0)
 
 func _on_lms_activated(_survivor_node: Node, _killer_node: Node, _duration: float) -> void:
 	if not multiplayer.is_server():
 		return
 	if _client_relay and _client_relay.has_method("_rpc_push_dialog"):
-		_client_relay.rpc("_rpc_push_dialog", "¡MODO ÚLTIMO SUPERVIVIENTE!", 0)
+		_client_relay.rpc("_rpc_push_dialog", "dialog_lms", 0)

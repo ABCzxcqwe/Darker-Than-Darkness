@@ -7,8 +7,8 @@ extends Control
 const FONT_MAIN := preload("uid://dvelfumepo3c0")
 const SOUL_TEX := preload("uid://cn3fwx46ofue5")
 
-const OPTIONS := ["JUGAR", "OPCIONES", "EXTRAS", "SALIR"]
-const OPTION_HINT := ["Busca o crea partida — LAN y Online", "Perfil, audio, video y mando", "Galería y créditos — Próximamente", "Cerrar a escritorio"]
+const OPTION_KEYS := ["MENU_PLAY", "MENU_OPTIONS", "MENU_EXTRAS", "MENU_EXIT"]
+const OPTION_HINT_KEYS := ["MENU_HINT_PLAY", "MENU_HINT_OPTIONS", "MENU_HINT_EXTRAS", "MENU_HINT_EXIT"]
 
 @onready var _labels: Array[Label] = []
 @onready var _soul: TextureRect = $SoulCursor
@@ -42,6 +42,12 @@ func _ready() -> void:
 		if not tm.theme_changed.is_connected(_on_theme_changed):
 			tm.theme_changed.connect(_on_theme_changed)
 
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed"):
+		if not sm.setting_changed.is_connected(_on_setting_changed):
+			sm.setting_changed.connect(_on_setting_changed)
+
+	_refresh_texts()
 	_highlight(_index, true)
 	_position_soul(_index, true)
 	_update_footer()
@@ -53,6 +59,9 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
+		sm.setting_changed.disconnect(_on_setting_changed)
 
 func _setup_audio() -> void:
 	var am := get_node_or_null("/root/AudioManager")
@@ -76,6 +85,19 @@ func _setup_audio() -> void:
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
 	_highlight(_index, true)
+
+func _on_setting_changed(key: String, _value: Variant) -> void:
+	if key == "language":
+		_refresh_texts()
+		_highlight(_index, true)
+		_update_footer()
+
+func _refresh_texts() -> void:
+	for j in _labels.size():
+		if j < OPTION_KEYS.size():
+			_labels[j].text = tr(OPTION_KEYS[j])
+	if _hint and _index < OPTION_HINT_KEYS.size():
+		_hint.text = tr(OPTION_HINT_KEYS[_index])
 
 func _apply_theme() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -154,7 +176,7 @@ func _set_index(i: int) -> void:
 	_highlight(_index, false)
 	_position_soul(_index, false)
 	if _hint:
-		_hint.text = OPTION_HINT[_index]
+		_hint.text = tr(OPTION_HINT_KEYS[_index])
 
 func _highlight(idx: int, _instant: bool) -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -164,7 +186,7 @@ func _highlight(idx: int, _instant: bool) -> void:
 
 	for j in _labels.size():
 		var lbl: Label = _labels[j]
-		lbl.text = OPTIONS[j]
+		lbl.text = tr(OPTION_KEYS[j])
 		lbl.modulate = sel if j == idx else dim
 
 func _position_soul(idx: int, instant: bool) -> void:
@@ -212,7 +234,7 @@ func _update_footer() -> void:
 	if sm and "player_name" in sm and sm.player_name != "":
 		user = sm.player_name
 
-	_footer.text = "DARKER:\\Users\\%s> v%s [LAN]    [↑][↓] MOVER  [Z] CONFIRMAR  [X] VOLVER" % [user, version]
+	_footer.text = "DARKER:\\Users\\%s> v%s [LAN]    %s" % [user, version, tr("MENU_FOOTER")]
 
 func _confirm() -> void:
 	var am2 := get_node_or_null("/root/AudioManager")
@@ -241,7 +263,7 @@ func _confirm() -> void:
 			var am_err := get_node_or_null("/root/AudioManager")
 			if am_err and am_err.has_method("play_sfx_ui"):
 				am_err.play_sfx_ui(SfxId.ERROR)
-			_hint.text = "EXTRAS — Próximamente"
+			_hint.text = tr("MENU_EXTRAS_SOON")
 		3:
 			get_tree().quit()
 

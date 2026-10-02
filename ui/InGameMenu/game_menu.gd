@@ -80,20 +80,20 @@ func _build_ui() -> void:
 
 	var title := Label.new()
 	title.name = "Title"
-	title.text = "MENÚ"
+	title.text = tr("PAUSE_LEGACY_TITLE")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", FONT)
 	title.add_theme_font_size_override("font_size", 32)
 	vbox.add_child(title)
 
-	music_slider = _make_row(vbox, "Music", "VOLUMEN", FONT)
+	music_slider = _make_row(vbox, "Music", tr("PAUSE_LEGACY_VOL"), FONT)
 	sfx_slider = _make_row(vbox, "SFX", "SFX", FONT)
 
 	vbox.add_spacer(true)
 
 	exit_button = Button.new()
 	exit_button.name = "ExitButton"
-	exit_button.text = "SALIR DEL JUEGO"
+	exit_button.text = tr("PAUSE_LEGACY_QUIT")
 	exit_button.add_theme_font_override("font", FONT)
 	exit_button.add_theme_font_size_override("font_size", 22)
 	exit_button.add_theme_stylebox_override("normal", exit_style)
