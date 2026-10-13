@@ -9,6 +9,10 @@ extends CanvasLayer
 @onready var timer_numbers:    Label          = $TimerPanel/VBoxContainer/TimerNumbers
 
 @onready var tp_bar:           Control        = get_node_or_null("TpBar") if has_node("TpBar") else get_node_or_null("PlayerPanelWrap/TpBar")
+@onready var tp_bar_classic:  Control        = get_node_or_null("TpBarClassic")
+
+## Compatibilidad: true = barra vertical clásica en vez de la horizontal con estrellas.
+@export var use_classic_tp_bar: bool = false
 
 @onready var killer_hp_public: PanelContainer = $KillerHpPublic
 @onready var killer_name_lbl:  Label          = $KillerHpPublic/HBoxContainer/KillerNameLabel
@@ -43,6 +47,7 @@ const DIALOG_SCENE := preload("res://ui/GameUI/Scenes/GameDialogNotification.tsc
 
 # ── Estado ─────────────────────────────────────────────────────────────
 var _player_node:      Node     = null
+var _active_tp_bar:    Control  = null
 var _my_team:          String   = "survivor"
 var _theme_color:      Color    = COLOR_SURVIVOR
 var _menu_open:        bool     = false
@@ -129,10 +134,15 @@ func setup(player_node: Node) -> void:
 	if emote_bar and emote_bar.has_method("setup"):
 		emote_bar.setup(player_node)
 
-	# 2. TpBar
-	if tp_bar and tp_bar.has_method("setup"):
+	# 2. TpBar (horizontal con estrellas por defecto, clásica como compatibilidad)
+	_active_tp_bar = tp_bar_classic if (use_classic_tp_bar and tp_bar_classic) else tp_bar
+	if tp_bar:
+		tp_bar.visible = tp_bar == _active_tp_bar
+	if tp_bar_classic:
+		tp_bar_classic.visible = tp_bar_classic == _active_tp_bar
+	if _active_tp_bar and _active_tp_bar.has_method("setup"):
 		var max_tp: float = player_node.character_data.tp_max if player_node.character_data else 100.0
-		tp_bar.setup(my_id, max_tp)
+		_active_tp_bar.setup(my_id, max_tp)
 
 	# 3. AlliesPanel
 	if allies_panel and allies_panel.has_method("setup"):
@@ -733,7 +743,9 @@ func set_spectator_ui_active(active: bool) -> void:
 		player_panel_wrap.visible = not active
 	if allies_panel:
 		allies_panel.visible = not active
-	if tp_bar:
+	if _active_tp_bar:
+		_active_tp_bar.visible = not active
+	elif tp_bar:
 		tp_bar.visible = not active
 	if context_menu:
 		context_menu.visible = not active

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://du4ejaq1p8a67" path="res://ui/GameUI/scripts/game_hud.gd" id="1_o4xvh"]
 [ext_resource type="Script" uid="uid://chqhmp7n0y4i2" path="res://ui/GameUI/Scenes/tp_bar.gd" id="2_ecre4"]
+[ext_resource type="Script" uid="uid://bbgehkhjtrlf" path="res://ui/GameUI/Scenes/tp_bar_custom.gd" id="2_tpcustom"]
 [ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_kqcow"]
 [ext_resource type="Script" uid="uid://j6u1gk2tpbns" path="res://ui/GameUI/scripts/player_panel.gd" id="2_mfo51"]
 [ext_resource type="Script" uid="uid://cqc7rt3jmdt41" path="res://ui/GameUI/Scenes/allies_panel.gd" id="4_su3ou"]
@@ -65,6 +66,18 @@ border_color = Color(0.21176471, 0.48235294, 0.8745098, 1)
 corner_radius_top_right = 80
 corner_radius_bottom_left = 80
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tp_transparent"]
+bg_color = Color(0, 0, 0, 0)
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tp_progress_bg"]
+bg_color = Color(0, 0, 0, 0)
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tp_progress_fill"]
+bg_color = Color(0, 0, 0, 0)
+anti_aliasing = false
+
 [node name="GameHud" type="CanvasLayer" unique_id=1755802739]
 layer = 100
 script = ExtResource("1_o4xvh")
@@ -95,7 +108,7 @@ theme_override_font_sizes/font_size = 25
 text = "01:00"
 horizontal_alignment = 1
 
-[node name="TpBar" type="Control" parent="." unique_id=1504409030]
+[node name="TpBarClassic" type="Control" parent="." unique_id=1504409030]
 layout_mode = 3
 anchor_left = 0.04
 anchor_top = 0.25
@@ -105,9 +118,10 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+visible = false
 script = ExtResource("2_ecre4")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TpBar" unique_id=1182673139]
+[node name="HBoxContainer" type="HBoxContainer" parent="TpBarClassic" unique_id=1182673139]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -117,12 +131,12 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TpBar/HBoxContainer" unique_id=711126216]
+[node name="VBoxContainer" type="VBoxContainer" parent="TpBarClassic/HBoxContainer" unique_id=711126216]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 alignment = 1
 
-[node name="TpLetters" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=167869725]
+[node name="TpLetters" type="Label" parent="TpBarClassic/HBoxContainer/VBoxContainer" unique_id=167869725]
 layout_mode = 2
 theme_override_constants/line_spacing = -21
 theme_override_fonts/font = ExtResource("5_8ord7")
@@ -131,14 +145,14 @@ text = "TP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TpPercent" type="Label" parent="TpBar/HBoxContainer/VBoxContainer" unique_id=1310723264]
+[node name="TpPercent" type="Label" parent="TpBarClassic/HBoxContainer/VBoxContainer" unique_id=1310723264]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ord7")
 theme_override_font_sizes/font_size = 15
 text = "0%"
 horizontal_alignment = 1
 
-[node name="TpTrack" type="PanelContainer" parent="TpBar/HBoxContainer" unique_id=1188802328]
+[node name="TpTrack" type="PanelContainer" parent="TpBarClassic/HBoxContainer" unique_id=1188802328]
 clip_children = 2
 custom_minimum_size = Vector2(30, 360)
 layout_mode = 2
@@ -146,7 +160,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_y1uvi")
 
-[node name="TpFill" type="ColorRect" parent="TpBar/HBoxContainer/TpTrack" unique_id=1159643669]
+[node name="TpFill" type="ColorRect" parent="TpBarClassic/HBoxContainer/TpTrack" unique_id=1159643669]
 texture_filter = 1
 layout_mode = 2
 color = Color(0, 0, 0, 0)
@@ -394,3 +408,96 @@ grow_vertical = 2
 
 [node name="EmoteBar" parent="." instance=ExtResource("9_emote")]
 visible = false
+
+[node name="TpBar" type="Control" parent="." unique_id=82100100]
+layout_mode = 3
+anchors_preset = -1
+anchor_left = 0.30
+anchor_top = 0.86
+anchor_right = 0.62
+anchor_bottom = 0.98
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_tpcustom")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TpBar" unique_id=82100101]
+custom_minimum_size = Vector2(430, 50)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PointsLabel" type="Label" parent="TpBar/VBoxContainer" unique_id=82100102]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 20
+text = "0/100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TpBar/VBoxContainer" unique_id=82100103]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TpTag" type="Label" parent="TpBar/VBoxContainer/HBoxContainer" unique_id=82100104]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("5_8ord7")
+theme_override_font_sizes/font_size = 18
+text = "TP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BgPanel" type="PanelContainer" parent="TpBar/VBoxContainer/HBoxContainer" unique_id=82100105]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_tp_transparent")
+
+[node name="BarRoot" type="Control" parent="TpBar/VBoxContainer/HBoxContainer/BgPanel" unique_id=82100106]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TpProgress" type="ProgressBar" parent="TpBar/VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=82100107]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_tp_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_tp_progress_fill")
+step = 1.0
+show_percentage = false
+
+[node name="SegmentOverlay" type="Control" parent="TpBar/VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=82100108]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CostMarkers" type="Control" parent="TpBar/VBoxContainer/HBoxContainer/BgPanel/BarRoot" unique_id=82100109]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

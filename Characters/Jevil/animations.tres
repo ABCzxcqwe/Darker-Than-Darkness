@@ -363,7 +363,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_n10w5")
 }],
-"loop": false,
+"loop": 0,
 "name": &"attack",
 "speed": 16.0
 }, {
@@ -392,7 +392,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kdjr5")
 }],
-"loop": true,
+"loop": 1,
 "name": &"emote_1",
 "speed": 10.0
 }, {
@@ -400,7 +400,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("7_icon")
 }],
-"loop": true,
+"loop": 1,
 "name": &"icon",
 "speed": 5.0
 }, {
@@ -408,7 +408,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("2_u2w8t")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_horizontal",
 "speed": 10.0
 }, {
@@ -437,7 +437,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_jbkeg")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_r",
 "speed": 10.0
 }, {
@@ -448,7 +448,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nhohh")
 }],
-"loop": false,
+"loop": 0,
 "name": &"jevil_tp",
 "speed": 6.0
 }, {
@@ -477,7 +477,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_1yfju")
 }],
-"loop": true,
+"loop": 1,
 "name": &"run_horizontal",
 "speed": 5.0
 }, {
@@ -590,7 +590,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_7566h")
 }],
-"loop": true,
+"loop": 1,
 "name": &"stun",
 "speed": 7.2
 }, {
@@ -619,7 +619,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kdjr5")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_down",
 "speed": 16.0
 }, {
@@ -660,7 +660,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_k5r2e")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_horizontal",
 "speed": 9.0
 }, {
@@ -689,7 +689,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kdjr5")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_up",
 "speed": 16.0
 }]

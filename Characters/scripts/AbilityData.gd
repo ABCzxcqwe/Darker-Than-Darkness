@@ -365,7 +365,59 @@ const PROJECTILE_ONLY := [
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# GRUPO 12 — MECÁNICAS FUTURAS (Reservado)
+# GRUPO 12 — FASE 2 (habilidades en dos fases: apuntado o selección)
+# La fase 1 entra en modo fase2 (M1 = disparar/confirmar, X = cancelar).
+# La fase 2 ejecuta el efecto. El TP se gasta SOLO en la fase 2.
+# ════════════════════════════════════════════════════════════════════════════
+
+## Kind de la fase 2.
+## NONE           → sin fase 2 (habilidad directa).
+## AIM            → apuntado libre (M1 dispara hacia el cursor, X cancela).
+## TARGET_SELECT  → selección de objetivo con menú (M1 confirma, X cancela).
+enum Fase2Kind { NONE, AIM, TARGET_SELECT }
+
+@export_group("Fase 2")
+
+## Si true, activar la habilidad entra en fase 2 en vez de ejecutarse directo.
+## Ejemplo: Rude Buster, Red Buster, Heal Prayer, Ultimate Heal.
+@export var has_fase2: bool = false
+
+## Define si la fase 2 es apuntado libre o selección de objetivo.
+@export var fase2_kind: Fase2Kind = Fase2Kind.NONE
+
+## Si true, recibir daño durante la fase 2 la cancela y revierte a fase 1.
+## Ejemplo: curas canalizadas (Heal Prayer) → true. Rude Buster → false.
+@export var fase2_cancel_on_damage: bool = false
+
+## Si true, recibir stun durante la fase 2 la cancela y revierte a fase 1.
+## Casi siempre true; si false, el stun bloquea el disparo pero la fase 2
+## se mantiene hasta el timeout (el Router ya bloquea por stun igualmente).
+@export var fase2_cancel_on_stun: bool = true
+
+## Segundos máximos en fase 2 sin disparar/confirmar ni cancelar.
+## Al agotarse se limpia solo (sin coste de TP).
+@export var fase2_timeout: float = 12.0
+
+## Cooldown aplicado al slot original al cancelar la fase 2 (X, timeout o
+## interrupción). Evita spam de entrar/salir del apuntado.
+@export var fase2_cancel_cd: float = 2.0
+
+## TP que gasta la fase 2 al disparar/confirmar. La fase 1 siempre cuesta 0.
+@export var fase2_fire_tp_cost: float = 0.0
+
+## Cooldown del slot original cuando la fase 2 conecta.
+@export var fase2_fire_cooldown: float = 1.0
+
+## Cooldown alternativo cuando la fase 2 falla (ej: proyectil sin impactos).
+## 0.0 = usa fase2_fire_cooldown también al fallar.
+@export var fase2_fire_cooldown_fail: float = 0.0
+
+## Animación del disparo/confirmación de la fase 2 (vacío = sin animación).
+@export var fase2_fire_animation: String = ""
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# GRUPO 13 — MECÁNICAS FUTURAS (Reservado)
 # Estos flags no tienen lógica activa todavía. Sirven para declarar la intención
 # en el inspector sin romper nada al implementarlos después.
 # ════════════════════════════════════════════════════════════════════════════

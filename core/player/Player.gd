@@ -387,9 +387,9 @@ func _input(event: InputEvent) -> void:
 			_last_slot_request_time[slot] = now
 
 			if aiming_slot >= 0:
-				print("[Player] En aim mode | action: ", action, " | slot presionado: ", slot, " | aiming_slot: ", aiming_slot)
-				if action == "ability_0":
-					print("[Player] M1 detectado en aim mode → disparando slot ", aiming_slot)
+				print("[Player] En fase2 | action: ", action, " | slot presionado: ", slot, " | entry_slot: ", aiming_slot)
+				if action == "ability_0" or action == "confirm":
+					print("[Player] M1 detectado en fase2 → fase 2 del slot ", aiming_slot)
 					mouse_dir = input_component.get_aim_direction(global_position)
 					if multiplayer.is_server():
 						AbilityRouter.request_ability(aiming_slot, mouse_dir)
@@ -398,8 +398,8 @@ func _input(event: InputEvent) -> void:
 					aiming_slot = -1
 					print("[Player] aiming_slot reseteado a -1, retornando")
 					return
-				elif slot == aiming_slot:
-					print("[Player] Misma tecla detectada en aim mode → cancelando slot ", aiming_slot)
+				elif action == "ability_3":
+					print("[Player] X detectada en fase2 → cancelando slot ", aiming_slot)
 					var peer_id = get_multiplayer_authority()
 					if multiplayer.is_server():
 						AbilityRouter.cancel_aim(peer_id, aiming_slot)
@@ -409,7 +409,7 @@ func _input(event: InputEvent) -> void:
 					print("[Player] Cancelación enviada, aiming_slot reseteado")
 					return
 				else:
-					print("[Player] Otra tecla en aim mode, ignorando")
+					print("[Player] Otra tecla en fase2, ignorando")
 					return
 
 			if _pending_selection_slot == slot:
@@ -1069,6 +1069,17 @@ func _sync_speed(new_speed: float) -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _sync_aiming_mode(slot: int, active: bool) -> void:
+	aiming_slot = slot if active else -1
+
+
+## Sincronización de fase2 (M1 dispara / X cancela). Versión any_peer de
+## _sync_aiming_mode: el servidor NO es autoridad del nodo del dueño, así que
+## el RPC authority lo descarta el motor en clientes remotos.
+@rpc("any_peer", "call_local", "reliable")
+func _sync_fase2(slot: int, active: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
 	aiming_slot = slot if active else -1
 
 
