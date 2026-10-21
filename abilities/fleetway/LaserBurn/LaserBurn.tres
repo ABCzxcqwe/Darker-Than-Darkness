@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="AbilityData" format=3]
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://ctvplwbdwesph"]
 
-[ext_resource type="Script" path="res://Characters/scripts/AbilityData.gd" id="1_ability"]
-[ext_resource type="Script" path="res://abilities/fleetway/LaserBurn/LaserBurn.gd" id="2_laser"]
-[ext_resource type="Texture2D" path="res://abilities/fleetway/LaserBurn/icon.png" id="3_icon"]
-[ext_resource type="PackedScene" path="res://Hitboxes/Fleetway/Laser/FleetwayLaser.tscn" id="4_scene"]
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ability"]
+[ext_resource type="Script" uid="uid://0ts87simt6lm" path="res://abilities/fleetway/LaserBurn/LaserBurn.gd" id="2_laser"]
+[ext_resource type="Texture2D" uid="uid://d0nmso2hjjqca" path="res://abilities/fleetway/LaserBurn/icon.png" id="3_icon"]
+[ext_resource type="PackedScene" uid="uid://d01p7vqgfm1q0" path="res://Hitboxes/Fleetway/Laser/FleetwayLaser.tscn" id="4_scene"]
 
 [resource]
 script = ExtResource("1_ability")
@@ -18,30 +18,18 @@ cooldown = 20.0
 cooldown_fail = 20.0
 cooldown_cancel = 8.0
 tp_cost = 30.0
-consume_tp_on_use = true
 move_restriction = 1
-attack_type = "burn"
-base_damage = 0
 range_ = 1200.0
 cast_duration = 6.0
-burn_dps = 8.0
-burn_duration = 5.0
+attack_type = "burn"
 burn_tick_interval = 0.35
 burn_tick_damage = 1
-burn_reapply_interval = 1.0
-burn_max_stacks = 3
 has_fase2 = true
 fase2_kind = 1
 fase2_charge_time = 2.0
 fase2_cancel_lockout = 0.5
-fase2_mobility = 2
 fase2_mobility_scale = 0.0
 fase2_move_animation = "lazer"
-fase2_cancel_on_player = true
-fase2_cancel_on_damage = false
-fase2_cancel_on_stun = true
-fase2_cancel_on_timeout = true
-fase2_timeout = 12.0
 fase2_cancel_cd = 8.0
 fase2_interrupt_cd = 8.0
 fase2_timeout_cd = 8.0
@@ -49,15 +37,10 @@ fase2_fire_tp_cost = 30.0
 fase2_fire_cooldown = 20.0
 fase2_fire_cooldown_fail = 20.0
 fase2_fire_animation = "lazer"
-fase2_fire_iframes_mode = 0
 fase2_channel_enabled = true
 fase2_channel_time = 4.0
 fase2_channel_animation = "lazer"
 fase2_channel_mobility = 1
 fase2_channel_mobility_scale = 0.4
-fase2_channel_damage_reduction = 0.0
-fase2_channel_cancel_on_player = true
-fase2_channel_cancel_on_damage = true
-fase2_channel_cancel_on_stun = true
 fase2_channel_cd = 20.0
 fase2_channel_cancel_cd = 8.0
