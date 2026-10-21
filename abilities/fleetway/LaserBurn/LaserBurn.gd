@@ -98,14 +98,24 @@ func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot:
 		"hitbox_max_range": data.range_,
 		"detect_walls": true,
 		"impact_lifetime": 0.0,
-		"on_hit": Callable(self, "_on_beam_hit").bind(data),
-		"on_end": Callable(self, "_on_beam_end"),
+		# Lambdas (no Callable.bind): capturan `self` y mantienen viva esta
+		# instancia RefCounted durante toda la vida del rayo.
+		"on_hit": func(target_node: Node) -> void:
+			_on_beam_hit(target_node, data),
+		"on_end": func(burn_count: int, reason: String) -> void:
+			_on_beam_end(burn_count, reason),
 	})
 
 	if not beam:
 		push_error("[LaserBurn] No se pudo crear el rayo.")
 		AbilityRouter.abort_fase2(caster_id, entry_slot)
 		return
+
+	# Referencia fuerte a esta habilidad dentro del hitbox (patrón
+	# LanzaProjectile/TopoSpear): mantiene viva la instancia RefCounted
+	# mientras el rayo exista y permite recibir on_fase2_channel_stop().
+	if beam.has_method("setup_laser"):
+		beam.setup_laser(self, player_node, aim_dir, data.burn_reapply_interval)
 
 	# Refuerzo: HitboxService ya asigna estos campos antes de add_child(), pero
 	# si el rayo entró al árbol por otra vía (replicación/auto-spawn), nos
@@ -154,6 +164,8 @@ func _on_beam_hit(target: Node, data: AbilityData) -> void:
 		"duration": data.burn_duration,
 		"dps": data.burn_dps,
 		"tick_interval": data.burn_tick_interval,
+		"tick_damage": data.burn_tick_damage,
+		"max_stacks": data.burn_max_stacks,
 	})
 	print("[LaserBurn] Burn aplicado | target: ", target.get_multiplayer_authority(),
 			" | dps: ", data.burn_dps, " | dur: ", data.burn_duration)

@@ -13,6 +13,7 @@ var _fase2_entry_slot: int = -1
 var _fase2_fire_btn: Node = null
 var _fase2_cancel_btn: Node = null
 var _fase2_last_phase: String = ""
+var _fase2_charge_total: float = 0.0
 
 
 func setup(player_node: Node) -> void:
@@ -56,6 +57,21 @@ func _process(_delta: float) -> void:
 		if phase != _fase2_last_phase:
 			_fase2_last_phase = phase
 			_apply_fase2_phase_visibility(phase)
+		_update_fase2_charge(phase)
+
+
+## Muestra en el botón M1 el tiempo que falta para poder disparar (carga AIM).
+func _update_fase2_charge(phase: String) -> void:
+	if phase != "aim" or _fase2_charge_total <= 0.0:
+		return
+	if not is_instance_valid(_fase2_fire_btn):
+		return
+	if not _fase2_fire_btn.has_method("set_charge_state"):
+		return
+	var remaining: float = 0.0
+	if _player_node.has_method("get_fase2_charge_remaining"):
+		remaining = _player_node.get_fase2_charge_remaining()
+	_fase2_fire_btn.set_charge_state(remaining)
 
 
 ## Fase 2 activa: oculta la barra real y muestra solo
@@ -74,6 +90,7 @@ func enter_fase2_mode(entry_slot: int) -> void:
 	if entry_slot >= 0 and entry_slot < slots.size():
 		entry_data = slots[entry_slot]
 	if entry_data:
+		_fase2_charge_total = entry_data.fase2_charge_time
 		var fire_btn := ABILITY_BUTTON_SCENE.instantiate()
 		add_child(fire_btn)
 		fire_btn.setup(entry_data, 0, "M1", peer_id)
@@ -120,6 +137,7 @@ func exit_fase2_mode() -> void:
 	_fase2_fire_btn = null
 	_fase2_cancel_btn = null
 	_fase2_last_phase = ""
+	_fase2_charge_total = 0.0
 	for tmp in _fase2_temps:
 		if is_instance_valid(tmp):
 			tmp.queue_free()

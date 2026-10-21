@@ -21,7 +21,7 @@ const BORDER_COLOR_RAGE_B    := Color(1.0, 1.0, 1.0, 1.0)
 const PANEL_BG_COLOR := Color(0, 0, 0, 0.47058824)
 const PANEL_CORNER_DETAIL := 1
 
-enum State { READY, COOLDOWN, LOCKED }
+enum State { READY, COOLDOWN, LOCKED, CHARGE }
 
 var ability_data:        AbilityData = null
 var slot_index:          int         = 0
@@ -129,7 +129,7 @@ func _process(delta: float) -> void:
 		var relay: Node = GameServiceLocator.get_client_relay()
 		if relay and relay.has_signal("tp_changed"):
 			_setup_tp_tracking()
-	if _state != State.COOLDOWN:
+	if _state != State.COOLDOWN and _state != State.CHARGE:
 		return
 
 	_cooldown_remaining -= delta
@@ -142,6 +142,24 @@ func _process(delta: float) -> void:
 
 	if cooldown_label:
 		cooldown_label.text = "%.1f" % _cooldown_remaining
+
+
+## Cuenta atrás de la carga de fase 2 (AIM). No es un cooldown real: indica
+## cuánto falta para poder disparar/confirmar la habilidad.
+func set_charge_state(remaining: float) -> void:
+	if not ability_data:
+		return
+	if remaining > 0.0:
+		_cooldown_remaining = remaining
+		if _state != State.CHARGE:
+			_state = State.CHARGE
+			_apply_visual_state()
+		elif cooldown_label:
+			cooldown_label.text = "%.1f" % remaining
+	elif _state == State.CHARGE:
+		_cooldown_remaining = 0.0
+		_state = State.READY
+		_apply_visual_state()
 
 
 func set_cooldown_state(duration: float) -> void:
@@ -531,5 +549,18 @@ func _apply_visual_state() -> void:
 			if lock_icon:
 				lock_icon.visible = true
 			modulate = Color(0.5, 0.5, 0.55, 1.0)
+
+		State.CHARGE:
+			# Misma apariencia que un cooldown real: overlay oscuro, icono
+			# atenuado y cuenta atrás en el mismo label/formato.
+			if cooldown_overlay:
+				cooldown_overlay.visible = true
+				cooldown_overlay.color = Color(0.2, 0.2, 0.2, 0.6)
+			if cooldown_label and _rage_time <= 0.0:
+				cooldown_label.visible = true
+				cooldown_label.text = "%.1f" % _cooldown_remaining
+			if lock_icon:
+				lock_icon.visible = false
+			modulate = Color(0.55, 0.55, 0.55, 1.0)
 
 	_refresh_rage_label()

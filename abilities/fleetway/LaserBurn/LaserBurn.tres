@@ -3,12 +3,12 @@
 [ext_resource type="Script" path="res://Characters/scripts/AbilityData.gd" id="1_ability"]
 [ext_resource type="Script" path="res://abilities/fleetway/LaserBurn/LaserBurn.gd" id="2_laser"]
 [ext_resource type="Texture2D" path="res://abilities/fleetway/LaserBurn/icon.png" id="3_icon"]
-[ext_resource type="PackedScene" path="res://abilities/fleetway/LaserBurn/FleetwayLaser.tscn" id="4_scene"]
+[ext_resource type="PackedScene" path="res://Hitboxes/Fleetway/Laser/FleetwayLaser.tscn" id="4_scene"]
 
 [resource]
 script = ExtResource("1_ability")
 display_name = "Láser Ígneo"
-description = "Carga durante 2 s apuntando con el ratón. Al disparar (M1) canaliza un rayo de 4 s que nace en sus ojos, termina en el cursor, atraviesa supervivientes y aplica quemadura (8 DPS durante 5 s). No hace daño directo."
+description = "Carga durante 2 s apuntando con el ratón. Al disparar (M1) canaliza un rayo de 4 s que nace en sus ojos, termina en el cursor, atraviesa supervivientes y aplica quemadura acumulable: 1 de daño cada 0.35 s por stack (hasta 3), durante 5 s. No hace daño directo."
 icon = ExtResource("3_icon")
 ability_script = ExtResource("2_laser")
 ability_scene = ExtResource("4_scene")
@@ -26,7 +26,10 @@ range_ = 1200.0
 cast_duration = 6.0
 burn_dps = 8.0
 burn_duration = 5.0
-burn_tick_interval = 1.0
+burn_tick_interval = 0.35
+burn_tick_damage = 1
+burn_reapply_interval = 1.0
+burn_max_stacks = 3
 has_fase2 = true
 fase2_kind = 1
 fase2_charge_time = 2.0

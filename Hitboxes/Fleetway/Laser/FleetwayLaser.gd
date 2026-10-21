@@ -27,7 +27,7 @@ const TIP_DRAW_SIZE: float = 72.0
 
 # Ojos de Fleetway dentro del frame 48x48 (centro del frame = 24,24).
 # Se multiplica por CharacterData.sprite_scale y se espeja según facing.
-const EYE_PIXEL_OFFSET := Vector2(7.5, -13.5)
+# (Sustituido por eye_offset_px / eye_world_offset, ajustables en el inspector.)
 
 const WALL_MARGIN: float = 2.0
 const DEFAULT_RANGE: float = 1200.0
@@ -51,6 +51,20 @@ var hitbox_max_range: float = DEFAULT_RANGE
 var on_hit_callback: Callable
 var on_end_callback: Callable
 
+# ── Origen del rayo (ajustable desde el inspector) ────────────────────
+## Centro del ojo dentro del frame de arte 48x48 (centro del frame = 24,24).
+## Pose "lazer": el ojo está en ≈ (31, 23). Se multiplica por sprite_scale.
+@export var eye_offset_px: Vector2 = Vector2(7.0, -1.0)
+## Ajuste fino en píxeles de mundo; NO se multiplica por sprite_scale.
+## +X = hacia delante, +Y = abajo.
+@export var eye_world_offset: Vector2 = Vector2.ZERO
+
+# ── Referencia fuerte a la habilidad (linaje de vida) ────────────────
+## Patrón LanzaProjectile/TopoSpear: el hitbox guarda la instancia de la
+## habilidad para que el RefCounted no se libere al terminar activate().
+var _ability: RefCounted = null
+var _caster: Node = null
+
 # ── Estado ────────────────────────────────────────────────────────────
 var beam_length: float = 0.0:
 	set(value):
@@ -62,7 +76,13 @@ var _direction: Vector2 = Vector2.RIGHT
 var _elapsed: float = 0.0
 var _stopped: bool = false
 var _server_initialized: bool = false
+## Objetivos golpeados al menos una vez (para el contador de on_end).
 var _burned_targets: Dictionary = {}
+## peer_id -> timestamp (ms) del próximo burn permitido. Permite reaplicar
+## mientras el objetivo siga dentro del rayo (stacks en StatusEffectService).
+var _burn_next_ms: Dictionary = {}
+## Intervalo entre reaplicaciones de burn. Lo asigna LaserBurn vía setup_laser.
+var burn_reapply_interval: float = 1.0
 
 @onready var _detector: Area2D = get_node_or_null("HurtboxDetector")
 @onready var _collision_shape: CollisionShape2D = get_node_or_null("HurtboxDetector/DetectShape")
@@ -126,6 +146,18 @@ func set_direction(dir: Vector2) -> void:
 		rotation = _direction.angle()
 
 
+## Llamado por LaserBurn tras crear el rayo. Guarda una referencia FUERTE a la
+## habilidad (imprescindible: es un RefCounted y el Router no la retiene) y al
+## caster, siguiendo el contrato de los hitboxes custom del proyecto.
+func setup_laser(ability: RefCounted, caster: Node, dir: Vector2,
+		reapply_interval: float = 1.0) -> void:
+	_ability = ability
+	_caster = caster
+	burn_reapply_interval = maxf(reapply_interval, 0.0)
+	if dir.length_squared() > 0.0:
+		_direction = dir.normalized()
+
+
 ## Corta el rayo inmediatamente (fin de canalización, cancelación o muerte).
 func stop_beam(_reason: String = "end") -> void:
 	if _stopped:
@@ -149,10 +181,14 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_from_caster(delta)
+	_refresh_burn_targets()
 
 
 func _recover_caster() -> bool:
 	if is_instance_valid(attacker_node):
+		return true
+	if is_instance_valid(_caster):
+		attacker_node = _caster
 		return true
 	if attacker_id > 0:
 		var player = PlayerRegistry.get_player(attacker_id)
@@ -233,8 +269,12 @@ func _get_eye_origin() -> Vector2:
 	if not is_instance_valid(attacker_node):
 		return global_position
 	var player_pos: Vector2 = attacker_node.global_position
-	var sprite_scale: float = 4.0
-	if attacker_node.character_data:
+	# Escala real del sprite (incluye sprite_scale aplicado por Player).
+	var sprite_scale: float = 1.0
+	var sprite := attacker_node.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite and sprite.scale.x != 0.0:
+		sprite_scale = absf(sprite.scale.x)
+	elif attacker_node.character_data:
 		var scale_value = attacker_node.character_data.get("sprite_scale")
 		if scale_value is float and scale_value > 0.0:
 			sprite_scale = scale_value
@@ -244,7 +284,7 @@ func _get_eye_origin() -> Vector2:
 	if facing_value is bool:
 		facing_right = facing_value
 
-	var offset: Vector2 = EYE_PIXEL_OFFSET * sprite_scale
+	var offset: Vector2 = eye_offset_px * sprite_scale + eye_world_offset
 	if not facing_right:
 		offset.x = -offset.x
 	return player_pos + offset
@@ -300,14 +340,47 @@ func _on_area_entered(area: Area2D) -> void:
 	var target_id: int = target.get_multiplayer_authority()
 	if target_id == attacker_id:
 		return
-	if _burned_targets.has(target_id):
-		return
 	if not _passes_team_filter(target):
 		return
+	# Sin reaplicación: un solo burn por objetivo y rayo.
+	if burn_reapply_interval <= 0.0 and _burned_targets.has(target_id):
+		return
+	_try_apply_burn(target, target_id)
 
+
+## Reaplica burn a los objetivos que sigan dentro del rayo. StatusEffectService
+## acumula stacks y refresca la duración; aquí solo se controla la cadencia.
+func _refresh_burn_targets() -> void:
+	if _stopped or not multiplayer.is_server():
+		return
+	if burn_reapply_interval <= 0.0 or not _detector:
+		return
+
+	for area in _detector.get_overlapping_areas():
+		if not area.is_in_group(GroupNames.HURTBOX):
+			continue
+		var target: Node = area.get_parent()
+		if not target or not target.is_in_group(GroupNames.PLAYERS):
+			continue
+		var target_id: int = target.get_multiplayer_authority()
+		if target_id == attacker_id:
+			continue
+		if not _passes_team_filter(target):
+			continue
+		_try_apply_burn(target, target_id)
+
+
+## Aplica burn si ha pasado burn_reapply_interval desde la última vez.
+## Devuelve true si se aplicó.
+func _try_apply_burn(target: Node, target_id: int) -> bool:
+	var now := Time.get_ticks_msec()
+	if now < int(_burn_next_ms.get(target_id, 0)):
+		return false
+	_burn_next_ms[target_id] = now + int(burn_reapply_interval * 1000.0)
 	_burned_targets[target_id] = true
 	if on_hit_callback.is_valid():
 		on_hit_callback.call(target)
+	return true
 
 
 func _passes_team_filter(target: Node) -> bool:

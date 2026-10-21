@@ -193,6 +193,20 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Intervalo entre ticks de daño del efecto "burn".
 @export var burn_tick_interval: float = 1.0
 
+## Daño fijo por tick de burn y por stack. Si es > 0, tiene prioridad sobre
+## burn_dps (el daño por tick pasa a ser burn_tick_damage × stacks).
+## 0 = usar burn_dps × burn_tick_interval.
+@export var burn_tick_damage: int = 0
+
+## Intervalo (segundos) entre reaplicaciones de burn mientras el objetivo
+## siga dentro de un efecto continuo (ej: el rayo del láser). Cada
+## reaplicación suma un stack. 0 = aplicar una sola vez.
+@export var burn_reapply_interval: float = 1.0
+
+## Máximo de stacks de burn acumulables por objetivo. Cada stack multiplica
+## el daño por tick (burn_tick_damage si > 0; si no, burn_dps × intervalo).
+@export var burn_max_stacks: int = 3
+
 
 # ════════════════════════════════════════════════════════════════════════════
 # GRUPO 7 — CONTROL DE MASAS (CC)

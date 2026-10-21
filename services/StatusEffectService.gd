@@ -175,6 +175,19 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 				var prev_duration: float = instances[0]["timer"]
 				instances[0]["timer"] = maxf(prev_duration, duration)
 
+		# Burn acumulable: cada reaplicación (ej: rayo del láser) suma un stack
+		# y refresca la duración. No se resetea tick_timer para mantener la
+		# cadencia de daño. El DPS total escala con los stacks.
+		if effect_name == "burn":
+			var max_stacks: int = maxi(int(instances[0].get("max_stacks",
+					params.get("max_stacks", 3))), 1)
+			var stacks: int = mini(int(instances[0].get("stacks", 1)) + 1, max_stacks)
+			instances[0]["stacks"] = stacks
+			instances[0]["max_stacks"] = max_stacks
+			instances[0]["timer"] = maxf(float(instances[0]["timer"]), duration)
+			print("[StatusEffectService] burn stack ", stacks, "/", max_stacks,
+					" para peer ", peer_id, " | timer: ", instances[0]["timer"])
+
 		# BUG 3 FIX: el slow acumulable necesita append, no refresh.
 		# _calculate_speed suma todas las instancias del array, pero apply()
 		# solo guardaba una → dos slows simultáneos se comportaban como uno.
@@ -288,6 +301,9 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			instance["dps"] = params.get("dps", 8.0)
 			instance["tick_interval"] = params.get("tick_interval", 1.0)
 			instance["tick_timer"] = instance["tick_interval"]
+			instance["tick_damage"] = int(params.get("tick_damage", 0))
+			instance["stacks"] = 1
+			instance["max_stacks"] = maxi(int(params.get("max_stacks", 3)), 1)
 		if effect_name == "damage_boost":
 			instance["multiplier"] = params.get("multiplier", 1.5)
 		if effect_name == "damage_reduction":
@@ -515,7 +531,14 @@ func _apply_dot_tick(peer_id: int, instance: Dictionary) -> void:
 	var player_node := _get_player(peer_id)
 	if not is_instance_valid(player_node):
 		return
-	var dmg: int = ceili(instance.get("dps", 5.0) * instance.get("tick_interval", 1.0))
+	var stacks: int = int(instance.get("stacks", 1))
+	var tick_damage: int = int(instance.get("tick_damage", 0))
+	var dmg: int
+	if tick_damage > 0:
+		# Daño fijo por tick y por stack (ej: 1 × stacks cada 0.35 s).
+		dmg = tick_damage * stacks
+	else:
+		dmg = ceili(instance.get("dps", 5.0) * instance.get("tick_interval", 1.0) * stacks)
 	var combat = GameServiceLocator.combat_mediator
 	if is_instance_valid(combat) and combat.has_method("apply_dot_damage"):
 		combat.apply_dot_damage(null, player_node, dmg)

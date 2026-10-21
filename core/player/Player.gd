@@ -741,6 +741,12 @@ func restore_fase2_pose() -> void:
 	hold_ability_anim = true
 
 
+## Tiempo restante (s) de la carga de fase 2. 0.0 = ya se puede disparar.
+## Lo usa la barra de habilidades para mostrar la cuenta atrás en M1.
+func get_fase2_charge_remaining() -> float:
+	return maxf((_fase2_charge_ready_at - Time.get_ticks_msec()) / 1000.0, 0.0)
+
+
 @rpc("any_peer", "call_local", "reliable")
 func _sync_cancel_ability() -> void:
 	var sender := multiplayer.get_remote_sender_id()

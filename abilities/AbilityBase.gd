@@ -31,6 +31,9 @@ func on_fase2_channel_stop(_reason: String) -> void:
 	pass
 
 # ── Registro central de instancias activas (genérico, evita hardcode LanzaAbility en Router) ──
+## OJO: guarda un WeakRef, NO mantiene viva la instancia. Una habilidad con
+## callbacks diferidos (proyectil, rayo, timer) debe sostenerse por sí misma:
+## lambdas que capturen `self` o una `static var _keep_alive` (patrón Lanza/Topo).
 static var _active_registry: Dictionary = {} # "peer_slot" -> WeakRef
 
 static func _registry_key(peer_id: int, slot_index: int) -> String:

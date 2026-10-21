@@ -133,11 +133,15 @@ func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot:
 					"speed": PROJECTILE_SPEED,
 					"offset": 0.0,
 					"impact_lifetime": IMPACT_LIFETIME,
-					"on_hit": Callable(self, "_on_projectile_hit").bind(
-							caster_id, entry_slot, player_node, dmg, atk_type,
-							stun_dur, tp_reward, fire_cd, channel_enabled),
-					"on_end": Callable(self, "_on_projectile_end").bind(
-							caster_id, entry_slot, fire_cd_fail, channel_enabled),
+					# Lambdas (no Callable.bind): capturan `self` y mantienen viva
+					# esta instancia RefCounted mientras el proyectil exista.
+					"on_hit": func(target_node: Node) -> void:
+						_on_projectile_hit(target_node, caster_id, entry_slot,
+								player_node, dmg, atk_type, stun_dur, tp_reward,
+								fire_cd, channel_enabled),
+					"on_end": func(hit_count: int) -> void:
+						_on_projectile_end(hit_count, caster_id, entry_slot,
+								fire_cd_fail, channel_enabled),
 				})
 				print("[RudeBusterAim] Fase 2 disparada | peer: ", caster_id, " | dir: ", proj_dir, " | dmg: ", dmg)
 		)

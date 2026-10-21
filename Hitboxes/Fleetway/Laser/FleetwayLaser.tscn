@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d01p7vqgfm1q0"]
 
-[ext_resource type="Script" path="res://abilities/fleetway/LaserBurn/FleetwayLaser.gd" id="1_laser"]
+[ext_resource type="Script" path="res://Hitboxes/Fleetway/Laser/FleetwayLaser.gd" id="1_laser"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_laser"]
 size = Vector2(1200, 24)
@@ -16,18 +16,18 @@ properties/2/path = NodePath(".:beam_length")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
-[node name="FleetwayLaser" type="Node2D"]
+[node name="FleetwayLaser" type="Node2D" unique_id=901001]
 z_index = 5
 script = ExtResource("1_laser")
 
-[node name="HurtboxDetector" type="Area2D" parent="."]
+[node name="HurtboxDetector" type="Area2D" parent="." unique_id=901002]
 collision_layer = 32
 collision_mask = 8
 monitorable = false
 
-[node name="DetectShape" type="CollisionShape2D" parent="HurtboxDetector"]
+[node name="DetectShape" type="CollisionShape2D" parent="HurtboxDetector" unique_id=901003]
 position = Vector2(600, 0)
 shape = SubResource("RectangleShape2D_laser")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=901004]
 replication_config = SubResource("SceneReplicationConfig_laser")
