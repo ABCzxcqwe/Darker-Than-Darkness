@@ -123,6 +123,11 @@ func set_key_label(key_name: String) -> void:
 
 
 func _process(delta: float) -> void:
+	# Reintento de tracking de TP: si el relay no existía en setup (orden de
+	# inicio), sin esto el borde de evolución quedaba congelado para siempre.
+	if _tp_service == null and ability_data and is_inside_tree():
+		if GameServiceLocator.get_client_relay() != null:
+			_setup_tp_tracking()
 	if _state != State.COOLDOWN:
 		return
 
@@ -299,6 +304,19 @@ func _setup_tp_tracking() -> void:
 	_build_fill_style(evolution_fill_rect, BORDER_COLOR_EVOLVED_A)
 	if evolution_fill_rect:
 		evolution_fill_rect.visible = false
+
+	# Si el layout aún no resolvió tamaños, el primer pintado queda en 0 y el
+	# borde "se traba" invisible: al resolver, repintar con los ratios actuales.
+	if not resized.is_connected(_on_button_resized):
+		resized.connect(_on_button_resized)
+
+
+func _on_button_resized() -> void:
+	if not ability_data:
+		return
+	_apply_growing_border(base_fill_rect, _ratio_base)
+	if _is_evolved and evolution_fill_rect and evolution_fill_rect.visible:
+		_apply_growing_border(evolution_fill_rect, _ratio_evo)
 
 	_ratio_base = 0.0
 	_ratio_evo  = 0.0

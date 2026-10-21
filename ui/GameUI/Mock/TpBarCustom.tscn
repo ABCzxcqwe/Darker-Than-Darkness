@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bjxkr0gvlib3r"]
 
-[ext_resource type="Script" uid="uid://bbgehkhjtrlf" path="res://ui/GameUI/Mock/scripts/tp_bar_custom.gd" id="1_tp"]
+[ext_resource type="Script" uid="uid://bbgehkhjtrlf" path="res://ui/GameUI/Scenes/tp_bar_custom.gd" id="1_tp"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent"]

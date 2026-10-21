@@ -231,7 +231,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_6g2kw")
 }],
-"loop": false,
+"loop": 0,
 "name": &"attack",
 "speed": 10.0
 }, {
@@ -239,7 +239,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("10_icon")
 }],
-"loop": true,
+"loop": 1,
 "name": &"icon",
 "speed": 5.0
 }, {
@@ -256,7 +256,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_yu7qk")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_horizontal",
 "speed": 5.0
 }, {
@@ -273,7 +273,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_jvijl")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_prepare",
 "speed": 6.0
 }, {
@@ -281,7 +281,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ak0ej")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_up",
 "speed": 5.0
 }, {
@@ -289,7 +289,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_km34e")
 }],
-"loop": true,
+"loop": 1,
 "name": &"life_down",
 "speed": 5.0
 }, {
@@ -318,7 +318,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_h3x6s")
 }],
-"loop": false,
+"loop": 0,
 "name": &"magic_health",
 "speed": 7.0
 }, {
@@ -326,7 +326,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_aoqnc")
 }],
-"loop": true,
+"loop": 1,
 "name": &"player_dead",
 "speed": 5.0
 }, {
@@ -355,7 +355,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_14ubf")
 }],
-"loop": true,
+"loop": 1,
 "name": &"run_horizontal",
 "speed": 15.0
 }, {
@@ -396,7 +396,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fqisg")
 }],
-"loop": true,
+"loop": 1,
 "name": &"susie_rude_buster",
 "speed": 9.0
 }, {
@@ -425,7 +425,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_2jbsk")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_horizontal",
 "speed": 10.0
 }]

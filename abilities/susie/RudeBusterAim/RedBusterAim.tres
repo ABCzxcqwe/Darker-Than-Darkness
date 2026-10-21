@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://Characters/scripts/AbilityData.gd" id="1"]
+[ext_resource type="Script" path="res://abilities/susie/RudeBusterAim/RudeBusterAim.gd" id="2"]
+[ext_resource type="Texture2D" path="res://abilities/susie/RedBuster/icons/RedBuster.png" id="3"]
+[ext_resource type="PackedScene" path="res://Hitboxes/Susie/RedBuster/RedHitbox.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Red Buster"
+description = "Fase 1: apunta (M1 dispara, X cancela). El TP se gasta solo al disparar."
+icon = ExtResource("3")
+ability_script = ExtResource("2")
+ability_scene = ExtResource("4")
+action_animation = "susie_rude_buster"
+prepare_animation = "idle_prepare"
+cooldown = 25.0
+tp_cost = 30.0
+tp_reward = 10.0
+move_restriction = 1
+attack_type = "projectile"
+base_damage = 20
+stun_duration = 5.0
+evo_status_duration_bonus = 1.0
+has_fase2 = true
+fase2_kind = 1
+fase2_cancel_on_damage = false
+fase2_cancel_on_stun = true
+fase2_timeout = 12.0
+fase2_cancel_cd = 2.0
+fase2_fire_tp_cost = 30.0
+fase2_fire_cooldown = 25.0
+fase2_fire_cooldown_fail = 25.0
+fase2_fire_animation = "susie_rude_buster"

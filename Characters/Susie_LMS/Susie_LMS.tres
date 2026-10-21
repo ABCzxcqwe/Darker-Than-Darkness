@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_i4atc"]
 [ext_resource type="Resource" uid="uid://fy2b3ca2wy3d" path="res://abilities/susie/AxeSlash/AxeSlash.tres" id="2_er8to"]
-[ext_resource type="Resource" uid="uid://b2crfnqna57t1" path="res://abilities/susie/RudeBuster/RudeBuster.tres" id="3_vjxak"]
+[ext_resource type="Resource" path="res://abilities/susie/RudeBusterAim/RudeBusterAim.tres" id="3_vjxak"]
 [ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal/UltimateHeal.tres" id="4_2iktt"]
 [ext_resource type="SpriteFrames" uid="uid://bbodi1wks2w6k" path="res://Characters/Susie_LMS/animations.tres" id="5_1e2ql"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_er8to"]

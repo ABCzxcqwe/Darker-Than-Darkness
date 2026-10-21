@@ -321,7 +321,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_sgyfg")
 }],
-"loop": false,
+"loop": 0,
 "name": &"act",
 "speed": 16.0
 }, {
@@ -353,7 +353,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_pyenp")
 }],
-"loop": false,
+"loop": 0,
 "name": &"attack",
 "speed": 18.0
 }, {
@@ -361,7 +361,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("9_icon")
 }],
-"loop": true,
+"loop": 1,
 "name": &"icon",
 "speed": 5.0
 }, {
@@ -378,7 +378,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_puuh5")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_horizontal",
 "speed": 5.0
 }, {
@@ -395,7 +395,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_umupi")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle_prepare",
 "speed": 7.0
 }, {
@@ -403,7 +403,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("3_vtquc")
 }],
-"loop": true,
+"loop": 1,
 "name": &"life_down",
 "speed": 5.0
 }, {
@@ -444,7 +444,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_r6vox")
 }],
-"loop": true,
+"loop": 1,
 "name": &"pirouette",
 "speed": 10.0
 }, {
@@ -452,7 +452,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("5_rfioo")
 }],
-"loop": true,
+"loop": 1,
 "name": &"player_dead",
 "speed": 5.0
 }, {
@@ -481,7 +481,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_p68av")
 }],
-"loop": true,
+"loop": 1,
 "name": &"run_horizontal",
 "speed": 15.0
 }, {
@@ -558,7 +558,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nnm51")
 }],
-"loop": true,
+"loop": 1,
 "name": &"shield",
 "speed": 8.0
 }, {
@@ -578,7 +578,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_jxctf")
 }],
-"loop": false,
+"loop": 0,
 "name": &"soul_protect_1",
 "speed": 5.0
 }, {
@@ -607,7 +607,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_0ouau")
 }],
-"loop": false,
+"loop": 0,
 "name": &"soul_protect_2",
 "speed": 5.0
 }, {
@@ -636,7 +636,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_q5j8x")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_horizontal",
 "speed": 10.0
 }]

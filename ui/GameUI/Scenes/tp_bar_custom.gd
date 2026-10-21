@@ -34,6 +34,7 @@ var _fill_color: Color = COLOR_NORMAL
 var _dynamic_overrides: Dictionary = {}
 var _star_display_x: Array[float] = []
 var _star_tweens: Array[Tween] = []
+var _relay_connected: bool = false
 
 @export var pulse_when_full: bool = true
 @export var show_cost_ticks: bool = true
@@ -83,17 +84,33 @@ func setup(peer_id: int, max_tp: float) -> void:
 		_refresh_costs()
 	var relay: Node = GameServiceLocator.get_client_relay()
 	if relay:
-		if relay.has_signal("tp_changed") and not relay.tp_changed.is_connected(_on_tp_changed):
-			relay.tp_changed.connect(_on_tp_changed)
-		if relay.has_signal("dynamic_tp_cost_changed") and not relay.dynamic_tp_cost_changed.is_connected(_on_dynamic_cost_changed):
-			relay.dynamic_tp_cost_changed.connect(_on_dynamic_cost_changed)
-		if relay.has_signal("ability_slot_updated") and not relay.ability_slot_updated.is_connected(_on_ability_slot_updated):
-			relay.ability_slot_updated.connect(_on_ability_slot_updated)
+		_connect_relay(relay)
 	var tp_svc: Node = GameServiceLocator.get_service("TPService") if GameServiceLocator.has_method("get_service") else null
 	if tp_svc and tp_svc.has_method("get_tp_for_peer"):
 		var cached: float = tp_svc.get_tp_for_peer(_peer_id)
 		if cached > 0:
 			_update_ui(cached, true)
+
+
+func _process(_delta: float) -> void:
+	# Reintento: si el relay no existía en setup, sin esto las estrellas y la
+	# barra quedaban congeladas para siempre.
+	if not _relay_connected:
+		var relay: Node = GameServiceLocator.get_client_relay()
+		if relay:
+			_connect_relay(relay)
+
+
+func _connect_relay(relay: Node) -> void:
+	if _relay_connected:
+		return
+	if relay.has_signal("tp_changed") and not relay.tp_changed.is_connected(_on_tp_changed):
+		relay.tp_changed.connect(_on_tp_changed)
+	if relay.has_signal("dynamic_tp_cost_changed") and not relay.dynamic_tp_cost_changed.is_connected(_on_dynamic_cost_changed):
+		relay.dynamic_tp_cost_changed.connect(_on_dynamic_cost_changed)
+	if relay.has_signal("ability_slot_updated") and not relay.ability_slot_updated.is_connected(_on_ability_slot_updated):
+		relay.ability_slot_updated.connect(_on_ability_slot_updated)
+	_relay_connected = true
 
 
 func _get_effective_cost(slot: Resource, idx: int) -> float:
@@ -152,8 +169,14 @@ func _refresh_costs() -> void:
 func _sync_star_display(old_costs: Array[float], old_display: Array[float]) -> void:
 	# Asegurar tamaño
 	if _star_display_x.size() != _costs.size():
-		# Si cambió cantidad, reinicializar sin tween
+		# Si cambió cantidad, matar tweens viejos (si no, escriben en índices
+		# que ya no existen) y reinicializar sin tween.
+		for tw in _star_tweens:
+			if tw and tw.is_valid():
+				tw.kill()
+		_star_tweens.clear()
 		_star_display_x.resize(_costs.size())
+		_star_tweens.resize(_costs.size())
 		_star_tweens.resize(_costs.size())
 		for i in _costs.size():
 			var r: float = clampf(_costs[i] / _max_tp, 0.0, 1.0) if _max_tp > 0 else 0.0

@@ -101,6 +101,12 @@ func _process_request(slot_index: int, direction: Vector2, peer_id: int) -> void
 	if not base_data:
 		return
 
+	# ── Fase 2: solo el slot en fase 2 acepta input (M1 = fase 2, X = cancelar
+	# vía cancel_aim). Cualquier otro slot se ignora mientras haya fase 2 activa.
+	var fase2_entry: int = _get_fase2_entry_slot(peer_id)
+	if fase2_entry >= 0 and slot_index != fase2_entry:
+		return
+
 	if _maybe_cancel_active_ability(peer_id, player_node, slot_index, base_data):
 		return
 
@@ -297,6 +303,12 @@ func _handle_animation_state(peer_id: int, player_node: Node, slot_index: int,
 		base_data: AbilityData, cd: Node) -> bool:
 	var anim_state: int = player_node.state
 
+	# ── Fase 2: la entrada no deja al jugador en estado ABILITY/PREPARE
+	# bloqueante (usa root + free_look), así que el disparo/confirmación
+	# (mismo slot) siempre pasa este filtro.
+	if _get_fase2_entry_slot(peer_id) == slot_index:
+		return false
+
 	if anim_state == 1: # PREPARE
 		_cancel_ability(peer_id, player_node, slot_index, base_data, cd)
 		return true
@@ -342,6 +354,13 @@ func _dispatch(peer_id: int, player_node: Node, ability_data: AbilityData,
 
 func _consume_evolution(evolution_service: Node, peer_id: int, slot_index: int,
 		is_evolved: bool, lms_wants_evolve: bool) -> void:
+	# ── Fase 2: la entrada (modo fase2 activo tras el dispatch) NO consume la
+	# evolución; se consume al disparar/confirmar (modo ya desactivado).
+	var abs_svc: Node = GameServiceLocator.ability_state
+	if abs_svc and abs_svc.has_method("is_mode_active") and abs_svc.is_mode_active(peer_id, slot_index):
+		var md: Dictionary = abs_svc.get_mode_data(peer_id, slot_index)
+		if md.get("fase2", false):
+			return
 	if lms_wants_evolve:
 		evolution_service.evolve_slot(peer_id, slot_index)
 		evolution_service.consume_evolution(peer_id, slot_index)
@@ -394,7 +413,7 @@ func cancel_aim(peer_id: int, slot_index: int) -> void:
 	var cd = GameServiceLocator.cooldown
 	print("[AbilityRouter] cancel_aim() → datos válidos, procediendo limpieza")
 
-	player_node.rpc("_sync_aiming_mode", slot_index, false)
+	player_node.rpc("_sync_fase2", slot_index, false)
 	player_node.rpc("_sync_effect", "free_look", false)
 	print("[AbilityRouter] cancel_aim() → RPCs sync enviados")
 
@@ -414,9 +433,13 @@ func cancel_aim(peer_id: int, slot_index: int) -> void:
 		cd.release_lock(peer_id, slot_index)
 		print("[AbilityRouter] cancel_aim() → lock liberado")
 
-	if cd and cd.has_method("start") and ability_data and ability_data.cooldown_cancel > 0.0:
-		cd.start(peer_id, slot_index, ability_data.cooldown_cancel)
-		print("[AbilityRouter] cancel_aim() → cooldown_cancel iniciado: ", ability_data.cooldown_cancel)
+	if cd and cd.has_method("start") and ability_data:
+		var cancel_cd: float = ability_data.cooldown_cancel
+		if "fase2_cancel_cd" in ability_data and ability_data.fase2_cancel_cd > 0.0:
+			cancel_cd = ability_data.fase2_cancel_cd
+		if cancel_cd > 0.0:
+			cd.start(peer_id, slot_index, cancel_cd)
+			print("[AbilityRouter] cancel_aim() → cooldown_cancel iniciado: ", cancel_cd)
 
 	player_node.rpc("_sync_cancel_ability")
 	print("[AbilityRouter] Apuntado cancelado | peer: ", peer_id, " | slot: ", slot_index)
@@ -455,12 +478,34 @@ func _notify_slot_updated(peer_id: int, slot_index: int, ability_data: AbilityDa
 	relay.rpc_id(peer_id, "_rpc_ability_slot_updated", slot_index, tp, cd, stage)
 
 
+# ── Fase 2 ────────────────────────────────────────────────────────────────
+
+## Devuelve el slot con modo fase2 activo para el peer, o -1 si no hay.
+## El modo se guarda en AbilityStateService con mode_data {"fase2": true}.
+func _get_fase2_entry_slot(peer_id: int) -> int:
+	var abs_svc: Node = GameServiceLocator.ability_state
+	if not abs_svc or not abs_svc.has_method("is_mode_active"):
+		return -1
+	for slot_index in range(5):
+		if abs_svc.is_mode_active(peer_id, slot_index):
+			var md: Dictionary = abs_svc.get_mode_data(peer_id, slot_index)
+			if md.get("fase2", false):
+				return slot_index
+	return -1
+
+
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
 func _resolve_tp_cost(ability_data: AbilityData, peer_id: int,
 		slot_index: int, abs_svc: Node) -> float:
 	if ability_data.is_scalable and abs_svc != null and abs_svc.has_method("get_dynamic_tp_cost"):
 		return abs_svc.get_dynamic_tp_cost(peer_id, slot_index)
+	# En fase 2 el coste real es el de disparo (la fase 1 siempre cuesta 0).
+	if abs_svc != null and abs_svc.has_method("is_mode_active"):
+		if abs_svc.is_mode_active(peer_id, slot_index):
+			var md: Dictionary = abs_svc.get_mode_data(peer_id, slot_index)
+			if md.get("fase2", false) and "fase2_fire_tp_cost" in ability_data:
+				return ability_data.fase2_fire_tp_cost
 	return ability_data.tp_cost
 
 
