@@ -2,22 +2,17 @@
 
 [ext_resource type="Script" uid="uid://vmk3vc0voxv7" path="res://ui/GameUI/scripts/game_dialog_notification.gd" id="1_w5uvy"]
 [ext_resource type="FontFile" uid="uid://cchcul8dpr64e" path="res://Fonts/deltarune-battle-dialogue.ttf" id="2_h22ld"]
+[ext_resource type="Texture2D" uid="uid://b51461ipgvddb" path="res://ui/GameUI/Scenes/marco_dialog.png" id="3_marco"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8g0xf"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dialog"]
 content_margin_left = 4.0
 content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
-bg_color = Color(0, 0, 0, 0.85)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 1, 1, 1)
-corner_detail = 2
+texture = ExtResource("3_marco")
 
 [node name="GameDialogNotification" type="PanelContainer" unique_id=2121232790]
-theme_override_styles/panel = SubResource("StyleBoxFlat_8g0xf")
+theme_override_styles/panel = SubResource("StyleBoxTexture_dialog")
 script = ExtResource("1_w5uvy")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=457983196]
