@@ -53,6 +53,7 @@ var time_left: float = 0.0
 var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
 var _escaped_players: Array[int] = []
 var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
+var _tp_cache: Dictionary = {}       # { peer_id: { "current": float, "max": float } }
 var _stats_cache: Dictionary = {}    # stats de este peer (menú de pausa)
 
 
@@ -226,7 +227,13 @@ func sync_stamina_to_client(peer_id: int, current_stamina: float, max_stamina: f
 ## TP
 @rpc("authority", "call_local", "reliable")
 func sync_tp_to_client(peer_id: int, current_tp: float, max_tp: float) -> void:
+	_tp_cache[peer_id] = { "current": current_tp, "max": max_tp }
 	tp_changed.emit(peer_id, current_tp, max_tp)
+
+
+## Último TP conocido de un peer (para pintar UI sin esperar al próximo cambio).
+func get_tp(peer_id: int) -> Dictionary:
+	return _tp_cache.get(peer_id, {})
 
 
 ## Dynamic TP cost (for scalable abilities like Ultimate Heal)
@@ -308,4 +315,5 @@ func reset_state() -> void:
 	_evolved_slots.clear()
 	_escaped_players.clear()
 	_stamina_cache.clear()
+	_tp_cache.clear()
 	_stats_cache.clear()

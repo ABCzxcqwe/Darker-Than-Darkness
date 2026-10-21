@@ -1,21 +1,20 @@
 extends AbilityBase
 
-## Rude Buster en dos fases (TEST Susie LMS, base del sistema fase2 genérico).
-## Fase 1 (sin fase2 activa): entra en fase2 — root (sin movimiento),
-## free_look + aiming sync para M1/X en el cliente, SIN animación bloqueante
-## (el estado se queda en IDLE para que el Router acepte la fase 2).
-## Fase 2 (fase2 activa): M1 dispara el proyectil (gasta TP aquí, solo aquí).
-## X cancela vía AbilityRouter.cancel_aim. Timeout / daño / stun (según
-## flags del .tres) limpian solos.
+## Rude Buster en dos fases (base del sistema fase2 genérico).
+##
+## La orquestación (timers, lockout, movimiento, cancelaciones, i-frames)
+## vive en AbilityRouter. Esta habilidad solo decide:
+##   - cuándo entrar en fase 2,
+##   - qué efecto ejecutar al disparar,
+##   - cuándo y con qué cooldown termina el disparo.
+##
+## Fase 1: abre AIM (M1 dispara, X cancela) sin gastar TP.
+## Fase 2: consume TP, dispara el proyectil y cierra la fase.
 
 const PROJECTILE_SPEED: float = 1000.0
 const PROJECTILE_LIFETIME: float = 2.0
 const IMPACT_LIFETIME: float = 0.3
 const SPAWN_DELAY: float = 0.5
-
-# Mantiene viva la instancia mientras la fase 2 sigue abierta (timeout y
-# señales de daño/stun). Patrón igual que Teleport._keep_alive.
-static var _keep_alive: Array = []
 
 
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
@@ -34,125 +33,27 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	if abs_svc and abs_svc.is_mode_active(caster_id, entry_slot):
 		var md: Dictionary = abs_svc.get_mode_data(caster_id, entry_slot)
 		if md.get("fase2", false):
+			# El Router ya valida carga/phase antes de despachar; esta guarda
+			# evita disparar si la habilidad se invoca por otra vía.
+			if String(md.get("phase", "aim")) != "aim":
+				return
+			if Time.get_ticks_msec() < int(md.get("charge_ready_ms", 0)):
+				return
 			_fire(player_node, data, direction, entry_slot)
 			return
 
-	_enter_fase2(player_node, data, entry_slot)
+	AbilityRouter.start_fase2(player_node, data, entry_slot)
 
 
-# ── Fase 1: entrar ────────────────────────────────────────────────────────
-
-func _enter_fase2(player_node: Node, data: AbilityData, entry_slot: int) -> void:
-	var caster_id: int = player_node.get_multiplayer_authority()
-	var abs_svc = GameServiceLocator.ability_state
-	var combat = GameServiceLocator.combat_mediator
-	var cd = GameServiceLocator.cooldown
-
-	var timeout: float = data.fase2_timeout if data.fase2_timeout > 0.0 else 12.0
-
-	if combat:
-		combat.apply_root(player_node, timeout)
-
-	if abs_svc:
-		abs_svc.activate_mode(caster_id, entry_slot, {
-			"fase2": true,
-			"kind": int(data.fase2_kind),
-			"entry_slot": entry_slot,
-			"cancel_on_damage": data.fase2_cancel_on_damage,
-			"cancel_on_stun": data.fase2_cancel_on_stun,
-		})
-
-	# Retícula + M1/X en el cliente (Player.gd rama fase2). Se usa _sync_fase2
-	# (any_peer): _sync_aiming_mode es authority y el motor descarta la llamada
-	# del servidor en clientes remotos.
-	player_node.rpc("_sync_effect", "free_look", true)
-	player_node.rpc("_sync_fase2", entry_slot, true)
-
-	# Pose de apuntado mantenida: ABILITY + animación en loop no auto-resetea
-	# (PlayerAnimationComponent) y el Router ya no bloquea al slot en fase2,
-	# así que es seguro. Al salir se restaura con _sync_cancel_ability.
-	var pose: String = data.prepare_animation if data.prepare_animation != "" else "idle_prepare"
-	player_node.play_ability_animation(pose, entry_slot, player_node.facing_right)
-
-	# El Router hizo start_lock(entry) antes del dispatch: se libera para
-	# que la fase 2 (mismo slot) quede pulsable. El cooldown real cae al
-	# disparar (on_hit/on_end) o al cancelar (cancel_aim).
-	if cd and cd.has_method("release_lock"):
-		cd.release_lock(caster_id, entry_slot)
-
-	_connect_interrupts(player_node, caster_id, entry_slot)
-
-	if not _keep_alive.has(self):
-		_keep_alive.append(self)
-	var tree := player_node.get_tree()
-	if tree:
-		tree.create_timer(timeout + 0.5).timeout.connect(_on_timeout.bind(caster_id, entry_slot))
-
-	print("[RudeBusterAim] Fase2 abierta | peer: ", caster_id, " | slot: ", entry_slot)
-
-
-func _connect_interrupts(player_node: Node, caster_id: int, entry_slot: int) -> void:
-	var combat = GameServiceLocator.combat_mediator
-	if not combat:
-		return
-	if combat.has_signal("stun_applied") and not combat.stun_applied.is_connected(_on_stun):
-		combat.stun_applied.connect(_on_stun)
-	if combat.has_signal("damage_dealt") and not combat.damage_dealt.is_connected(_on_damage):
-		combat.damage_dealt.connect(_on_damage)
-
-
-func _on_stun(target_id: int, _duration: float) -> void:
-	_maybe_interrupt(target_id, "stun")
-
-
-func _on_damage(_attacker_id: int, target_id: int, _dmg: int, _atk_type: String) -> void:
-	_maybe_interrupt(target_id, "damage")
-
-
-func _maybe_interrupt(caster_id: int, cause: String) -> void:
-	var abs_svc = GameServiceLocator.ability_state
-	if not abs_svc:
-		return
-	for slot_index in range(5):
-		if not abs_svc.is_mode_active(caster_id, slot_index):
-			continue
-		var md: Dictionary = abs_svc.get_mode_data(caster_id, slot_index)
-		if not md.get("fase2", false):
-			continue
-		var wants_exit: bool = false
-		if cause == "stun" and bool(md.get("cancel_on_stun", true)):
-			wants_exit = true
-		if cause == "damage" and bool(md.get("cancel_on_damage", false)):
-			wants_exit = true
-		if wants_exit:
-			print("[RudeBusterAim] Fase2 interrumpida por ", cause, " | peer: ", caster_id)
-			_exit_fase2(caster_id, slot_index, true)
-
-
-func _on_timeout(caster_id: int, entry_slot: int) -> void:
-	var abs_svc = GameServiceLocator.ability_state
-	if not abs_svc or not abs_svc.is_mode_active(caster_id, entry_slot):
-		_keep_alive.erase(self)
-		return
-	var md: Dictionary = abs_svc.get_mode_data(caster_id, entry_slot)
-	if not md.get("fase2", false):
-		_keep_alive.erase(self)
-		return
-	print("[RudeBusterAim] Timeout, cerrando fase2 | peer: ", caster_id)
-	_exit_fase2(caster_id, entry_slot, true)
-	_keep_alive.erase(self)
-
-
-# ── Fase 2: disparar ──────────────────────────────────────────────────────
+# ── Disparo ─────────────────────────────────────────────────────────────────
 
 func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot: int) -> void:
 	var caster_id: int = player_node.get_multiplayer_authority()
 	var hs = GameServiceLocator.hitbox
 	var tp_svc = GameServiceLocator.tp
-	var cd = GameServiceLocator.cooldown
 	if not hs:
 		push_error("[RudeBusterAim] HitboxService no disponible.")
-		_exit_fase2(caster_id, entry_slot, true)
+		AbilityRouter.abort_fase2(caster_id, entry_slot)
 		return
 
 	var fire_cost: float = data.fase2_fire_tp_cost
@@ -162,13 +63,12 @@ func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot:
 	var atk_type: String = data.attack_type
 	var stun_dur: float = data.stun_duration + data.evo_status_duration_bonus
 	var tp_reward: float = data.tp_reward
+	var channel_enabled: bool = data.fase2_channel_enabled
 
 	if fire_cost > 0.0 and tp_svc:
 		if not tp_svc.consume_tp(caster_id, fire_cost):
 			push_warning("[RudeBusterAim] TP insuficiente en fase 2 para peer ", caster_id)
-			_exit_fase2(caster_id, entry_slot, false)
-			if cd and cd.has_method("release_lock"):
-				cd.release_lock(caster_id, entry_slot)
+			AbilityRouter.abort_fase2(caster_id, entry_slot)
 			return
 
 	var proj_dir: Vector2 = direction.normalized()
@@ -182,20 +82,35 @@ func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot:
 
 	var anim_dur := _get_anim_duration(player_node, fire_anim)
 
-	# Cierra la fase 2 al disparar (barra y modo se restauran ya) pero SIN
-	# pisar la animación (keep_anim) y plantando los pies hasta que sale el
-	# proyectil. El lock del entry se mantiene hasta on_hit/on_end.
-	_exit_fase2(caster_id, entry_slot, false, true)
-	var combat_lock = GameServiceLocator.combat_mediator
-	if combat_lock and is_instance_valid(player_node):
-		combat_lock.apply_root(player_node, anim_dur + SPAWN_DELAY)
+	# I-frames calculados antes de cerrar la fase: el Router necesita leer
+	# mode_data (fire_iframes_mode / extra).
+	AbilityRouter.apply_fase2_fire_iframes(player_node, entry_slot, anim_dur)
 
-	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
-		player_node.get_tree().create_timer(anim_dur).timeout.connect(
-			func() -> void:
-				if is_instance_valid(player_node):
-					player_node.rpc("_sync_cancel_ability")
-		)
+	# La instancia que dispara queda registrada para poder recibir
+	# on_fase2_channel_stop() si la habilidad tiene fase CHANNEL.
+	AbilityBase.register_active(caster_id, entry_slot, self)
+
+	if data.fase2_channel_enabled:
+		# Fase 3: el Router mantiene el modo, aplica movilidad de canal y
+		# programa el fin. La habilidad debe cortar su efecto en
+		# on_fase2_channel_stop(reason).
+		AbilityRouter.start_fase2_channel(caster_id, entry_slot)
+	else:
+		# Cierra la fase al disparar (barra y modo se restauran) pero SIN pisar
+		# la animación (keep_anim). El lock del entry se mantiene hasta
+		# on_hit/on_end.
+		AbilityRouter.end_fase2_after_fire(caster_id, entry_slot, true)
+
+		var combat_lock = GameServiceLocator.combat_mediator
+		if combat_lock and is_instance_valid(player_node):
+			combat_lock.apply_root(player_node, anim_dur + SPAWN_DELAY)
+
+		if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+			player_node.get_tree().create_timer(anim_dur).timeout.connect(
+				func() -> void:
+					if is_instance_valid(player_node):
+						player_node.rpc("_sync_cancel_ability")
+			)
 
 	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
 		player_node.get_tree().create_timer(SPAWN_DELAY).timeout.connect(
@@ -218,76 +133,62 @@ func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot:
 					"speed": PROJECTILE_SPEED,
 					"offset": 0.0,
 					"impact_lifetime": IMPACT_LIFETIME,
-					"on_hit": func(target_node: Node) -> void:
-						if not is_instance_valid(target_node):
-							return
-						if player_node.multiplayer.is_server():
-							AudioManager.play_sfx_networked.rpc(SfxId.RUDEBUSTER_HIT, target_node.global_position.x, target_node.global_position.y)
-						if dmg > 0:
-							var combat_hit = GameServiceLocator.combat_mediator
-							if combat_hit:
-								combat_hit.apply_damage(player_node, target_node, dmg, atk_type)
-						if target_node.is_in_group("killer"):
-							var combat_cc = GameServiceLocator.combat_mediator
-							if combat_cc and stun_dur > 0.0:
-								combat_cc.apply_stun(target_node, stun_dur)
-							if tp_reward > 0.0 and tp_svc:
-								tp_svc.add_tp_custom(caster_id, tp_reward)
-						if cd and cd.has_method("release_lock"):
-							cd.release_lock(caster_id, entry_slot)
-						if cd:
-							cd.start(caster_id, entry_slot, fire_cd),
-					"on_end": func(hit_count: int) -> void:
-						if hit_count == 0:
-							if cd and cd.has_method("release_lock"):
-								cd.release_lock(caster_id, entry_slot)
-							if cd:
-								cd.start(caster_id, entry_slot, fire_cd_fail)
-						print("[RudeBusterAim] Proyectil expiró | golpes: ", hit_count)
+					"on_hit": Callable(self, "_on_projectile_hit").bind(
+							caster_id, entry_slot, player_node, dmg, atk_type,
+							stun_dur, tp_reward, fire_cd, channel_enabled),
+					"on_end": Callable(self, "_on_projectile_end").bind(
+							caster_id, entry_slot, fire_cd_fail, channel_enabled),
 				})
 				print("[RudeBusterAim] Fase 2 disparada | peer: ", caster_id, " | dir: ", proj_dir, " | dmg: ", dmg)
 		)
 
-	_keep_alive.erase(self)
+
+## Callable del proyectil. Los argumentos bound se agregan después de los que
+## envía HitboxService (target_node).
+func _on_projectile_hit(target_node: Node, caster_id: int, entry_slot: int,
+		player_node: Node, dmg: int, atk_type: String, stun_dur: float,
+		tp_reward: float, fire_cd: float, channel_enabled: bool) -> void:
+	if not is_instance_valid(target_node):
+		return
+	if is_instance_valid(player_node) and player_node.multiplayer.is_server():
+		AudioManager.play_sfx_networked.rpc(SfxId.RUDEBUSTER_HIT,
+				target_node.global_position.x, target_node.global_position.y)
+	if dmg > 0 and is_instance_valid(player_node):
+		var combat_hit = GameServiceLocator.combat_mediator
+		if combat_hit:
+			combat_hit.apply_damage(player_node, target_node, dmg, atk_type)
+	if target_node.is_in_group("killer"):
+		var combat_cc = GameServiceLocator.combat_mediator
+		if combat_cc and stun_dur > 0.0:
+			combat_cc.apply_stun(target_node, stun_dur)
+		var tp_svc = GameServiceLocator.tp
+		if tp_reward > 0.0 and tp_svc:
+			tp_svc.add_tp_custom(caster_id, tp_reward)
+	# En CHANNEL el lock y el cooldown los gestiona el Router al terminar.
+	if not channel_enabled:
+		var cd = GameServiceLocator.cooldown
+		if cd and cd.has_method("release_lock"):
+			cd.release_lock(caster_id, entry_slot)
+		if cd:
+			cd.start(caster_id, entry_slot, fire_cd)
 
 
-# ── Salida común (NO toca el lock del entry: lo gestiona quien llama) ─────
-
-func _exit_fase2(caster_id: int, entry_slot: int, with_cancel_cd: bool, keep_anim: bool = false) -> void:
-	var abs_svc = GameServiceLocator.ability_state
-	var combat = GameServiceLocator.combat_mediator
-	var cd = GameServiceLocator.cooldown
-	var player_node: Node = PlayerRegistry.get_player(caster_id)
-	if abs_svc and abs_svc.is_mode_active(caster_id, entry_slot):
-		abs_svc.deactivate_mode(caster_id, entry_slot)
-	if combat and is_instance_valid(player_node):
-		combat.remove_root(player_node)
-	if is_instance_valid(player_node):
-		player_node.rpc("_sync_fase2", entry_slot, false)
-		player_node.rpc("_sync_effect", "free_look", false)
-		# En ruta de disparo no se pisa la animación: el timer de anim_dur
-		# ya programa el _sync_cancel_ability al terminar el tiro.
-		if not keep_anim:
-			player_node.rpc("_sync_cancel_ability")
-	if with_cancel_cd and cd and cd.has_method("release_lock"):
-		cd.release_lock(caster_id, entry_slot)
-		var cancel_cd: float = 2.0
-		if is_instance_valid(player_node):
-			var pdata = _get_entry_data(player_node, entry_slot)
-			if pdata and "fase2_cancel_cd" in pdata and pdata.fase2_cancel_cd > 0.0:
-				cancel_cd = pdata.fase2_cancel_cd
-		if cancel_cd > 0.0:
-			cd.start(caster_id, entry_slot, cancel_cd)
+## Callable de fin del proyectil. HitboxService pasa hit_count.
+func _on_projectile_end(hit_count: int, caster_id: int, entry_slot: int,
+		fire_cd_fail: float, channel_enabled: bool) -> void:
+	if not channel_enabled and hit_count == 0:
+		var cd = GameServiceLocator.cooldown
+		if cd and cd.has_method("release_lock"):
+			cd.release_lock(caster_id, entry_slot)
+		if cd:
+			cd.start(caster_id, entry_slot, fire_cd_fail)
+	print("[RudeBusterAim] Proyectil expiró | golpes: ", hit_count)
 
 
-func _get_entry_data(player_node: Node, entry_slot: int) -> AbilityData:
-	var ch = player_node.get("character_data")
-	if not ch:
-		return null
-	var slots: Array = ch.ability_slots
-	if entry_slot < 0 or entry_slot >= slots.size():
-		return null
-	return slots[entry_slot]
+## Hook de fase CHANNEL. RudeBusterAim no canaliza; una variante que active
+## fase2_channel_enabled debe sobreescribir esto para cortar su rayo/ticks/VFX.
+func on_fase2_channel_stop(_reason: String) -> void:
+	pass
 
 
 func _get_anim_duration(player_node: Node, anim_name: String) -> float:

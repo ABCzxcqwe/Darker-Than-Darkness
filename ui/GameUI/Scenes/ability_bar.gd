@@ -9,6 +9,10 @@ var _buttons: Dictionary = {}
 # ── Fase 2: M1 = disparar/confirmar, X = cancelar ─────────────────────────
 var _fase2_active: bool = false
 var _fase2_temps: Array = []
+var _fase2_entry_slot: int = -1
+var _fase2_fire_btn: Node = null
+var _fase2_cancel_btn: Node = null
+var _fase2_last_phase: String = ""
 
 
 func setup(player_node: Node) -> void:
@@ -46,6 +50,13 @@ func _process(_delta: float) -> void:
 		else:
 			exit_fase2_mode()
 
+	if in_fase2 and _fase2_active:
+		var raw_phase = _player_node.get("fase2_phase")
+		var phase: String = String(raw_phase) if raw_phase != null else "aim"
+		if phase != _fase2_last_phase:
+			_fase2_last_phase = phase
+			_apply_fase2_phase_visibility(phase)
+
 
 ## Fase 2 activa: oculta la barra real y muestra solo
 ## M1 = disparar/confirmar y X = cancelar.
@@ -53,6 +64,8 @@ func enter_fase2_mode(entry_slot: int) -> void:
 	if _fase2_active:
 		return
 	_fase2_active = true
+	_fase2_entry_slot = entry_slot
+	_fase2_last_phase = ""
 	for slot in _buttons:
 		_buttons[slot].visible = false
 	var peer_id: int = _player_node.get_multiplayer_authority()
@@ -67,6 +80,7 @@ func enter_fase2_mode(entry_slot: int) -> void:
 		if fire_btn.has_method("set_key_label"):
 			fire_btn.set_key_label("M1")
 		_fase2_temps.append(fire_btn)
+		_fase2_fire_btn = fire_btn
 	var cancel_data := AbilityData.new()
 	cancel_data.display_name = "Cancelar"
 	cancel_data.icon = FASE2_CANCEL_ICON
@@ -76,13 +90,36 @@ func enter_fase2_mode(entry_slot: int) -> void:
 	if cancel_btn.has_method("set_key_label"):
 		cancel_btn.set_key_label("X")
 	_fase2_temps.append(cancel_btn)
+	_fase2_cancel_btn = cancel_btn
+	_apply_fase2_phase_visibility("aim")
 	print("[AbilityBar] Fase2 visual | entry: ", entry_slot, " | M1 dispara, X cancela")
+
+
+## En CHANNEL no se puede volver a disparar: se oculta M1. X solo se muestra
+## si la habilidad permite cancelar la canalización.
+func _apply_fase2_phase_visibility(phase: String) -> void:
+	var is_channel: bool = phase == "channel"
+	if is_instance_valid(_fase2_fire_btn):
+		_fase2_fire_btn.visible = not is_channel
+	if is_instance_valid(_fase2_cancel_btn):
+		var can_cancel := true
+		if is_channel:
+			var slots: Array = _player_node.character_data.ability_slots if _player_node.character_data else []
+			if _fase2_entry_slot >= 0 and _fase2_entry_slot < slots.size():
+				var entry_data: AbilityData = slots[_fase2_entry_slot]
+				if entry_data:
+					can_cancel = entry_data.fase2_channel_cancel_on_player
+		_fase2_cancel_btn.visible = can_cancel
 
 
 func exit_fase2_mode() -> void:
 	if not _fase2_active:
 		return
 	_fase2_active = false
+	_fase2_entry_slot = -1
+	_fase2_fire_btn = null
+	_fase2_cancel_btn = null
+	_fase2_last_phase = ""
 	for tmp in _fase2_temps:
 		if is_instance_valid(tmp):
 			tmp.queue_free()

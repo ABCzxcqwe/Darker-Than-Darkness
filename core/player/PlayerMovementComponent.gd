@@ -107,20 +107,30 @@ func _owner_process(_delta: float) -> void:
 		update_facing_and_flip(aim_dir)
 		if player.active_effects.has("free_look"):
 			var now = Time.get_ticks_msec()
-			if now - _last_aim_sync_time > 100:
+			# Durante fase 2 el rayo debe seguir el cursor con precisión: ~30 Hz.
+			# Fuera de fase 2 (emotes, etc.) basta con ~10 Hz.
+			var sync_interval: int = 33 if player.fase2_active else 100
+			if now - _last_aim_sync_time > sync_interval:
 				_last_aim_sync_time = now
+				# El Láser termina en el punto apuntado (cursor real o rango del mando).
+				var aim_point: Vector2 = player.input_component.get_aim_position(
+						player.global_position, 1200.0)
+				var aim_distance: float = player.global_position.distance_to(aim_point)
 				if player.multiplayer.is_server():
-					player._sync_aim_dir(aim_dir)
+					player._sync_aim_dir(aim_dir, aim_distance)
 				else:
-					player.rpc_id(1, "_sync_aim_dir", aim_dir)
+					player.rpc_id(1, "_sync_aim_dir", aim_dir, aim_distance)
 
 	var used_move := Vector2.ZERO
 	var used_sprint := false
 
-	if player.state == Player.AnimState.IDLE:
+	if _can_move_now():
 		var input_dir: Vector2 = _get_move_vector()
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
+		# La fase 2 nunca permite sprint: la movilidad la define la habilidad.
+		if player.fase2_active:
+			want_sprint = false
 		var stam_svc = GameServiceLocator.stamina
 		var status_svc = GameServiceLocator.status_effect
 		var pid = player.get_multiplayer_authority()
@@ -130,7 +140,8 @@ func _owner_process(_delta: float) -> void:
 		_apply_sprinting(can_sprint)
 
 		var sprint_mult = 1.5 if can_sprint else 1.0
-		player.velocity = input_dir * speed * sprint_mult
+		var fase2_mult: float = player.fase2_move_scale if player.fase2_active else 1.0
+		player.velocity = input_dir * speed * sprint_mult * fase2_mult
 		player.move_and_slide()
 
 		if player.multiplayer.is_server():
@@ -140,14 +151,17 @@ func _owner_process(_delta: float) -> void:
 		used_sprint = can_sprint
 
 		if player.health_state == "alive":
-			var vel_len = player.velocity.length()
-			var is_moving = vel_len > IDLE_MOVE_THRESHOLD
-			var is_running = vel_len > WALK_SPEED_THRESHOLD
-			var use_hurt = player.animation_component.should_use_hurt_sprite()
-			var anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt)
-			if player.last_animation != anim_name:
-				player.animated_sprite.play(anim_name)
-				player.last_animation = anim_name
+			if player.fase2_active and player.state == Player.AnimState.ABILITY:
+				_update_fase2_animation()
+			else:
+				var vel_len = player.velocity.length()
+				var is_moving = vel_len > IDLE_MOVE_THRESHOLD
+				var is_running = vel_len > WALK_SPEED_THRESHOLD
+				var use_hurt = player.animation_component.should_use_hurt_sprite()
+				var anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt)
+				if player.last_animation != anim_name:
+					player.animated_sprite.play(anim_name)
+					player.last_animation = anim_name
 	else:
 		player.velocity = Vector2.ZERO
 		_force_stop_sprint()
@@ -161,6 +175,48 @@ func _owner_process(_delta: float) -> void:
 			player.animated_sprite.speed_scale = clamp(vel_len / speed, 0.5, 2.0) if is_moving and speed > 0 else 1.0
 
 	_record_and_send_input(used_move, used_sprint)
+
+
+## Fase 2: la pose de apuntado/canalización vive en AnimState.ABILITY, pero
+## permitimos movimiento sin cambiar de estado. Si hay animación de movimiento
+## configurada se usa; si no existe, se cae a walk/run normal.
+func _update_fase2_animation() -> void:
+	var vel_len: float = player.velocity.length()
+	var is_moving: bool = vel_len > IDLE_MOVE_THRESHOLD
+	var is_running: bool = vel_len > WALK_SPEED_THRESHOLD
+	var use_hurt: bool = player.animation_component.should_use_hurt_sprite()
+	var anim_name: String = ""
+
+	if is_moving:
+		anim_name = player.fase2_move_animation
+		if anim_name == "" or not _has_animation(anim_name):
+			anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt)
+	else:
+		anim_name = player.fase2_pose_animation
+		if anim_name == "" or not _has_animation(anim_name):
+			anim_name = player.animation_component.select_movement_anim(false, false, use_hurt)
+
+	if anim_name == "" or anim_name == "default" or not _has_animation(anim_name):
+		return
+	if player.last_animation != anim_name:
+		player.animated_sprite.play(anim_name)
+		player.last_animation = anim_name
+
+
+func _has_animation(anim_name: String) -> bool:
+	if not player.animated_sprite or not player.animated_sprite.sprite_frames:
+		return false
+	return player.animated_sprite.sprite_frames.has_animation(anim_name)
+
+
+## Movimiento permitido: IDLE normal, o ABILITY durante fase 2 si la habilidad
+## no está RESTRICTED. Otras habilidades en ABILITY siguen ancladas.
+func _can_move_now() -> bool:
+	if player.state == Player.AnimState.IDLE:
+		return true
+	if player.fase2_active and player.state == Player.AnimState.ABILITY:
+		return not player.fase2_move_locked
+	return false
 
 
 ## Guarda el input aplicado (con la posicion resultante) y lo manda al servidor.
@@ -209,8 +265,14 @@ func _simulate(move: Vector2, sprint: bool) -> void:
 	var input_dir := move
 	if input_dir.length() > 1.0:
 		input_dir = input_dir.normalized()
+	if player.fase2_active:
+		if player.fase2_move_locked:
+			player.velocity = Vector2.ZERO
+			player.move_and_slide()
+			return
 	var mult := 1.5 if sprint else 1.0
-	player.velocity = input_dir * speed * mult
+	var fase2_mult: float = player.fase2_move_scale if player.fase2_active else 1.0
+	player.velocity = input_dir * speed * mult * fase2_mult
 	player.move_and_slide()
 
 
@@ -237,12 +299,14 @@ func _server_process(_delta: float) -> void:
 			player.cancel_emote()
 			player.state = Player.AnimState.IDLE
 
-	if player.state == Player.AnimState.IDLE:
+	if _can_move_now():
 		var input_dir: Vector2 = player.net_move_input
 		# Anti speed-hack: el cliente solo aporta direccion, nunca magnitud.
 		if input_dir.length() > 1.0:
 			input_dir = input_dir.normalized()
 		var want_sprint: bool = player.net_sprint and input_dir.length() > IDLE_MOVE_THRESHOLD
+		if player.fase2_active:
+			want_sprint = false
 		var stam_svc = GameServiceLocator.stamina
 		var status_svc = GameServiceLocator.status_effect
 		var pid = player.get_multiplayer_authority()
@@ -252,7 +316,8 @@ func _server_process(_delta: float) -> void:
 		_apply_sprinting(can_sprint)
 
 		var sprint_mult = 1.5 if can_sprint else 1.0
-		player.velocity = input_dir * speed * sprint_mult
+		var fase2_mult: float = player.fase2_move_scale if player.fase2_active else 1.0
+		player.velocity = input_dir * speed * sprint_mult * fase2_mult
 		player.move_and_slide()
 		player.move_state = _compute_move_state()
 	else:

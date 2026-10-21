@@ -111,7 +111,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	target.invincible_until = now + int(target.character_data.invincibility_frames * 1000)
 
-	health_svc.take_damage(target, final_damage)
+	health_svc.take_damage(target, final_damage, "direct")
 
 	if status_svc and target.character_data and target.character_data.team == "survivor":
 		status_svc.apply(target, "speed_boost", {
@@ -156,6 +156,11 @@ func apply_dot_damage(_attacker: Node, target: Node, amount: int) -> int:
 	var status = _status_effect_service
 	if status and status.has_method("get_damage_reduction"):
 		final_damage = ceili(final_damage * (1.0 - status.get_damage_reduction(target_peer)))
+	# La reducción de daño de fase 2 también protege contra DoT (pero el DoT
+	# nunca cancela la fase).
+	var fase2_dr: float = AbilityRouter.get_fase2_damage_reduction(target_peer)
+	if fase2_dr > 0.0:
+		final_damage = ceili(final_damage * (1.0 - fase2_dr))
 
 	final_damage = _apply_protections(target_peer, target, final_damage)
 	final_damage = maxi(1, final_damage)
@@ -164,7 +169,7 @@ func apply_dot_damage(_attacker: Node, target: Node, amount: int) -> int:
 	if final_damage <= 0:
 		return 0
 
-	health_svc.take_damage(target, final_damage)
+	health_svc.take_damage(target, final_damage, "dot")
 	_broadcast_damage_number(null, target_peer, final_damage, target.global_position)
 	return final_damage
 
@@ -198,9 +203,10 @@ func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_t
 	if not target.character_data:
 		return maxi(1, damage)
 
+	var target_peer: int = target.get_multiplayer_authority()
+
 	var lms_svc = _lms_service
 	if lms_svc and lms_svc.is_lms_active():
-		var target_peer: int = target.get_multiplayer_authority()
 		var lms_survivor = lms_svc.get_active_survivor()
 		if lms_survivor and lms_survivor.get_multiplayer_authority() == target_peer:
 			var resistance: float = target.character_data.lms_damage_resistance
@@ -209,7 +215,6 @@ func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_t
 
 	var status = _status_effect_service
 	if status:
-		var target_peer: int = target.get_multiplayer_authority()
 		var dr: float = status.get_post_stun_dr(target_peer)
 		if dr > 0.0:
 			damage = ceili(damage * (1.0 - dr))
@@ -222,6 +227,11 @@ func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_t
 		# Buff defensivo del objetivo (damage_reduction)
 		if status.has_method("get_damage_reduction"):
 			damage = ceili(damage * (1.0 - status.get_damage_reduction(target_peer)))
+
+	# Reducción de daño opcional de la fase 2 (apuntado o canalización).
+	var fase2_dr: float = AbilityRouter.get_fase2_damage_reduction(target_peer)
+	if fase2_dr > 0.0:
+		damage = ceili(damage * (1.0 - fase2_dr))
 
 	return maxi(1, damage)
 
@@ -341,7 +351,7 @@ func apply_self_damage(player_node: Node, amount: int) -> void:
 
 	var health = _health_service
 	if health:
-		health.take_damage(player_node, amount)
+		health.take_damage(player_node, amount, "direct")
 
 
 func remove_root(target: Node) -> void:

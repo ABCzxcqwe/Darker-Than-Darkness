@@ -65,6 +65,10 @@ func restore_idle() -> void:
 func end_stun() -> void:
 	player.state = Player.AnimState.IDLE
 	restore_idle()
+	# Si el stun no canceló la fase 2 (flag configurable), recuperar la pose
+	# y el estado ABILITY para que la movilidad RESTRICTED siga aplicándose.
+	if player.fase2_active and player.has_method("restore_fase2_pose"):
+		player.restore_fase2_pose()
 
 func on_anim_finished() -> void:
 	if player.state == Player.AnimState.STUNNED:

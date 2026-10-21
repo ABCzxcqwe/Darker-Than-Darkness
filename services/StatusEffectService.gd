@@ -8,7 +8,7 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
-const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "damage_boost", "damage_reduction", "invisibility", "sprint_disabled"]
+const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "burn", "damage_boost", "damage_reduction", "invisibility", "sprint_disabled"]
 
 # Efectos con acumulación por fuente: cada fuente distinta crea su propia
 # instancia en el array. Los demás efectos refrescan la instancia existente.
@@ -63,11 +63,11 @@ func _process(delta: float) -> void:
 			while i >= 0:
 				instances[i]["timer"] -= delta
 
-				# DoT (bleed): tick de daño por intervalo.
-				if effect_name == "bleed":
+				# DoT (bleed/burn): tick de daño por intervalo.
+				if effect_name == "bleed" or effect_name == "burn":
 					instances[i]["tick_timer"] -= delta
 					if instances[i]["tick_timer"] <= 0.0:
-						_apply_bleed_tick(peer_id, instances[i])
+						_apply_dot_tick(peer_id, instances[i])
 						instances[i]["tick_timer"] = instances[i]["tick_interval"]
 
 				if instances[i]["timer"] <= 0.0:
@@ -284,6 +284,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			instance["dps"] = params.get("dps", 5.0)
 			instance["tick_interval"] = params.get("tick_interval", 1.0)
 			instance["tick_timer"] = instance["tick_interval"]
+		if effect_name == "burn":
+			instance["dps"] = params.get("dps", 8.0)
+			instance["tick_interval"] = params.get("tick_interval", 1.0)
+			instance["tick_timer"] = instance["tick_interval"]
 		if effect_name == "damage_boost":
 			instance["multiplier"] = params.get("multiplier", 1.5)
 		if effect_name == "damage_reduction":
@@ -336,6 +340,7 @@ func is_blinded(peer_id: int)  -> bool: return has_effect(peer_id, "blind")
 func is_sped_up(peer_id: int)  -> bool: return has_effect(peer_id, "speed_boost")
 func is_stamina_reduced(peer_id: int) -> bool: return has_effect(peer_id, "stamina_reduction")
 func is_bleeding(peer_id: int) -> bool: return has_effect(peer_id, "bleed")
+func is_burning(peer_id: int) -> bool:  return has_effect(peer_id, "burn")
 func is_invisible(peer_id: int) -> bool: return has_effect(peer_id, "invisibility")
 func is_sprint_disabled(peer_id: int) -> bool: return has_effect(peer_id, "sprint_disabled")
 
@@ -506,7 +511,7 @@ func _on_stamina_reduction_expired(peer_id: int) -> void:
 
 # ── Internos ───────────────────────────────────────────────────────────
 
-func _apply_bleed_tick(peer_id: int, instance: Dictionary) -> void:
+func _apply_dot_tick(peer_id: int, instance: Dictionary) -> void:
 	var player_node := _get_player(peer_id)
 	if not is_instance_valid(player_node):
 		return
