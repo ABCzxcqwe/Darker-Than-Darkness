@@ -15,7 +15,7 @@
 [ext_resource type="Resource" uid="uid://72njoe1cptns" path="res://abilities/king/Topo/Topo.tres" id="9_topo"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Music/Sonic. Exe Chase.ogg" id="10_chase"]
 
-[sub_resource type="Resource" id="Resource_m1"]
+[sub_resource type="Resource" id="Resource_g6uvf"]
 script = ExtResource("1_ad")
 display_name = "golpe"
 ability_script = ExtResource("6_sword")
@@ -44,7 +44,7 @@ chase_radius = 500.0
 terror_music = ExtResource("9_terror")
 chase_music = ExtResource("10_chase")
 hit_sfx = Array[AudioStream]([ExtResource("7_3e8eq")])
-ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("7_lanza"), ExtResource("8_rugido"), ExtResource("9_topo"), null])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_g6uvf"), ExtResource("7_lanza"), ExtResource("8_rugido"), ExtResource("9_topo"), null])
 tp_max = 150.0
 tp_gain_time = 2.5
 stamina_max = 300.0

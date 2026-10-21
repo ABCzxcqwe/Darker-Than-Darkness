@@ -1,9 +1,8 @@
-[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://c9f3a1b2d4e67"]
+[gd_resource type="Resource" script_class="AbilityData" format=3 uid="uid://daf3a1b2d4e67"]
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_abilitydata"]
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/Sword/SwordSlash.gd" id="2_script"]
-[ext_resource type="PackedScene" uid="uid://dk3j9v2q1p0a1" path="res://Hitboxes/Jevil/basic/JHitboxCircle.tscn" id="3_scene"]
-[ext_resource type="Texture2D" uid="uid://dypk5a8hb25wa" path="res://Hitboxes/Jevil/basic/icons/M1.png" id="4_icon"]
+[ext_resource type="PackedScene" uid="uid://dk3kav2q1p0a1" path="res://Hitboxes/Jevil/basic/JHitboxCircle.tscn" id="3_scene"]
 
 [resource]
 script = ExtResource("1_abilitydata")

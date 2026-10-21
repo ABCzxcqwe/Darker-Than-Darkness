@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_khpcl"]
 [ext_resource type="SpriteFrames" uid="uid://nj314d6c3tkg" path="res://Characters/Fleetway/animations.tres" id="2_labjy"]
+[ext_resource type="Resource" uid="uid://daf3a1b2d4e67" path="res://abilities/jevil/M1Circle/M1Circle.tres" id="2_y0is7"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_y0is7"]
 [ext_resource type="Texture2D" uid="uid://bjxvglye3kwnb" path="res://Characters/Fleetway/icon.png" id="4_lokpx"]
 [ext_resource type="Texture2D" uid="uid://bvyigraepxctv" path="res://Characters/Fleetway/panel.png" id="5_t7m4y"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_cmkd7"]
-[ext_resource type="Resource" path="res://abilities/fleetway/LaserBurn/LaserBurn.tres" id="7_laser"]
+[ext_resource type="Resource" uid="uid://ctvplwbdwesph" path="res://abilities/fleetway/LaserBurn/LaserBurn.tres" id="7_laser"]
 
 [resource]
 script = ExtResource("6_cmkd7")
@@ -16,7 +17,6 @@ team = "killer"
 speed = 600.0
 max_health = 600
 invincibility_frames = 0.5
-ability_slots = Array[ExtResource("1_khpcl")]([ExtResource("7_laser"), null, null, null, null])
 size_x = 38
 size_y = 18
 position_y = 63
@@ -25,6 +25,7 @@ h_size_y = 138
 h_position_y = 3
 terror_radius = 1000.0
 chase_radius = 500.0
+ability_slots = Array[ExtResource("1_khpcl")]([ExtResource("2_y0is7"), ExtResource("7_laser"), null, null, null])
 tp_max = 150.0
 tp_gain_time = 2.5
 stamina_max = 210.0
