@@ -55,6 +55,7 @@ func _get_display_name(effect: String) -> String:
 		"stamina_reduction": return tr("HUD_FX_STAMINA")
 		"protection":        return tr("HUD_FX_PROT")
 		"bleed":             return tr("HUD_FX_BLEED")
+		"burn":              return tr("HUD_FX_BURN")
 		"damage_boost":      return tr("HUD_FX_DMGBOOST")
 		"damage_reduction":  return tr("HUD_FX_DEF")
 		"invisibility":      return tr("HUD_FX_INVIS")
