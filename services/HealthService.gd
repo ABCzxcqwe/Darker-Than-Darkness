@@ -35,9 +35,7 @@ func set_escaped(peer_id: int, current_hp: int, max_hp: int) -> void:
 	_set_state(peer_id, "escaped")
 	broadcast_health_update(peer_id, current_hp, max_hp, "escaped")
 
-## `damage_kind`: "direct" (ataques, autolesión) o "dot" (sangrado/veneno).
-## El DoT NUNCA cancela una fase 2; solo daña. La muerte/downed siempre cancela.
-func take_damage(player_node: Node, amount: int, damage_kind: String = "direct") -> void:
+func take_damage(player_node: Node, amount: int) -> void:
 	if not multiplayer.is_server():
 		return
 
@@ -50,24 +48,13 @@ func take_damage(player_node: Node, amount: int, damage_kind: String = "direct")
 
 	var new_health = player_node.health - amount
 
-	print("[HealthService] ", peer_id, " recibió ", amount, " daño (", damage_kind, ") | vida: ", new_health)
+	print("[HealthService] ", peer_id, " recibió ", amount, " daño | vida: ", new_health)
 
 	var revive_svc = _revive_service
 	if revive_svc:
 		revive_svc.cancel_revive(peer_id)
 
-	# ── Fase 2 ──────────────────────────────────────────────────────────────
-	# La fase 2 tiene su propia política de cancelación. Si está activa, NO se
-	# aplica el reset genérico de habilidad: el Router decide según los flags.
-	# Esto evita que recibir daño con cancel_on_damage=false saque al jugador
-	# del apuntado y le devuelva el movimiento.
-	var fase2_slot: int = -1
-	if AbilityRouter and AbilityRouter.has_method("get_active_fase2_slot"):
-		fase2_slot = AbilityRouter.get_active_fase2_slot(peer_id)
-	if fase2_slot >= 0:
-		if damage_kind == "direct":
-			AbilityRouter.cancel_fase2(peer_id, fase2_slot, "damage")
-	elif damage_kind == "direct" and is_instance_valid(player_node) and player_node.state != 0:
+	if is_instance_valid(player_node) and player_node.state != 0:
 		var combat = _combat_mediator
 		if combat:
 			combat.remove_root(player_node)
@@ -189,9 +176,6 @@ func _down(player_node: Node) -> void:
 	var peer_id := player_node.get_multiplayer_authority()
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
-	# Caer siempre cierra cualquier fase 2, independientemente de flags.
-	_cancel_fase2_for_state_change(peer_id, "death")
-
 	if _states.has(peer_id):
 		_states[peer_id]["down_count"] += 1
 
@@ -254,9 +238,6 @@ func _kill(player_node: Node) -> void:
 	var peer_id := player_node.get_multiplayer_authority()
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
-	# La muerte siempre cierra cualquier fase 2.
-	_cancel_fase2_for_state_change(peer_id, "death")
-
 	_play_death_sound(player_node)
 
 	var radar_svc = _radar_service
@@ -305,14 +286,6 @@ func _set_state(peer_id: int, state: String) -> void:
 		_states[peer_id] = { "state": state, "timer": null, "down_count": 0 }
 	else:
 		_states[peer_id]["state"] = state
-
-
-func _cancel_fase2_for_state_change(peer_id: int, reason: String) -> void:
-	if not AbilityRouter or not AbilityRouter.has_method("get_active_fase2_slot"):
-		return
-	var slot_index: int = AbilityRouter.get_active_fase2_slot(peer_id)
-	if slot_index >= 0:
-		AbilityRouter.cancel_fase2(peer_id, slot_index, reason)
 
 
 func broadcast_health_update(peer_id: int, current_hp: int, max_hp: int, state: String) -> void:

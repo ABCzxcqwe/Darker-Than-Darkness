@@ -183,16 +183,6 @@ enum SelectionType { ALLY, ENEMY, ANY }
 ## Debe coincidir con los valores que verifica CharacterData.special_defense_against.
 @export var attack_type: String = "normal"
 
-## Daño por segundo del efecto "burn" que apliquen las habilidades que lo usen.
-## El burn no puede matar: deja al objetivo con 1 HP.
-@export var burn_dps: float = 8.0
-
-## Duración en segundos del efecto "burn".
-@export var burn_duration: float = 5.0
-
-## Intervalo entre ticks de daño del efecto "burn".
-@export var burn_tick_interval: float = 1.0
-
 
 # ════════════════════════════════════════════════════════════════════════════
 # GRUPO 7 — CONTROL DE MASAS (CC)
@@ -386,18 +376,6 @@ const PROJECTILE_ONLY := [
 ## TARGET_SELECT  → selección de objetivo con menú (M1 confirma, X cancela).
 enum Fase2Kind { NONE, AIM, TARGET_SELECT }
 
-## Movilidad durante una fase 2.
-## NORMAL     → velocidad completa (el jugador puede kite).
-## REDUCED    → velocidad multiplicada por fase2_mobility_scale.
-## RESTRICTED → sin movimiento (anclado).
-enum Fase2Mobility { NORMAL, REDUCED, RESTRICTED }
-
-## Cómo se aplican los i-frames al disparar/canalizar.
-## NONE             → sin invencibilidad extra.
-## FIXED            → fase2_fire_iframes segundos.
-## COVER_ANIMATION  → duración de la animación + fase2_fire_iframes_extra.
-enum Fase2Iframes { NONE, FIXED, COVER_ANIMATION }
-
 @export_group("Fase 2")
 
 ## Si true, activar la habilidad entra en fase 2 en vez de ejecutarse directo.
@@ -407,55 +385,22 @@ enum Fase2Iframes { NONE, FIXED, COVER_ANIMATION }
 ## Define si la fase 2 es apuntado libre o selección de objetivo.
 @export var fase2_kind: Fase2Kind = Fase2Kind.NONE
 
-## Tiempo mínimo (segundos) que debe mantenerse la fase 2 antes de poder
-## disparar/confirmar. 0.0 = se puede disparar inmediatamente.
-@export var fase2_charge_time: float = 0.0
-
-## Bloqueo inicial (segundos) durante el que X no puede cancelar la fase 2.
-## Evita cancelar el apuntado en el mismo frame en que se abre.
-@export var fase2_cancel_lockout: float = 1.0
-
-## Movilidad durante el apuntado/carga.
-@export var fase2_mobility: Fase2Mobility = Fase2Mobility.RESTRICTED
-
-## Multiplicador de velocidad cuando fase2_mobility = REDUCED.
-@export var fase2_mobility_scale: float = 0.5
-
-## Animación de movimiento durante fase 2 (vacío = usar walk/run normal).
-## Solo se usa con movilidad NORMAL o REDUCED.
-@export var fase2_move_animation: String = ""
-
-## Si true, X cancela la fase 2 durante el apuntado (con lockout).
-@export var fase2_cancel_on_player: bool = true
-
-## Si true, recibir daño DIRECTO durante la fase 2 la cancela.
-## El daño por tiempo (sangrado/veneno) NUNCA cancela la fase 2.
+## Si true, recibir daño durante la fase 2 la cancela y revierte a fase 1.
 ## Ejemplo: curas canalizadas (Heal Prayer) → true. Rude Buster → false.
 @export var fase2_cancel_on_damage: bool = false
 
-## Si true, recibir stun durante la fase 2 la cancela.
-## Si false, el stun bloquea el disparo pero la fase 2 se mantiene hasta el
-## timeout (el Router ya bloquea por stun igualmente).
+## Si true, recibir stun durante la fase 2 la cancela y revierte a fase 1.
+## Casi siempre true; si false, el stun bloquea el disparo pero la fase 2
+## se mantiene hasta el timeout (el Router ya bloquea por stun igualmente).
 @export var fase2_cancel_on_stun: bool = true
-
-## Si true, agotar fase2_timeout cancela la fase 2 y aplica fase2_timeout_cd.
-## Si false, la fase 2 solo termina por disparo o cancelación explícita.
-@export var fase2_cancel_on_timeout: bool = true
 
 ## Segundos máximos en fase 2 sin disparar/confirmar ni cancelar.
 ## Al agotarse se limpia solo (sin coste de TP).
 @export var fase2_timeout: float = 12.0
 
-## Cooldown aplicado al cancelar voluntariamente (X).
+## Cooldown aplicado al slot original al cancelar la fase 2 (X, timeout o
+## interrupción). Evita spam de entrar/salir del apuntado.
 @export var fase2_cancel_cd: float = 2.0
-
-## Cooldown aplicado al cancelar por daño directo o stun.
-## 0.0 = usa fase2_cancel_cd.
-@export var fase2_interrupt_cd: float = 0.0
-
-## Cooldown aplicado al cancelar por timeout.
-## 0.0 = usa fase2_cancel_cd.
-@export var fase2_timeout_cd: float = 0.0
 
 ## TP que gasta la fase 2 al disparar/confirmar. La fase 1 siempre cuesta 0.
 @export var fase2_fire_tp_cost: float = 0.0
@@ -469,61 +414,6 @@ enum Fase2Iframes { NONE, FIXED, COVER_ANIMATION }
 
 ## Animación del disparo/confirmación de la fase 2 (vacío = sin animación).
 @export var fase2_fire_animation: String = ""
-
-## Reducción de daño (0.0 - 1.0) mientras se apunta/carga.
-@export var fase2_aim_damage_reduction: float = 0.0
-
-## Cómo se aplican los i-frames al disparar.
-@export var fase2_fire_iframes_mode: Fase2Iframes = Fase2Iframes.NONE
-
-## Duración fija de i-frames al disparar (modo FIXED).
-@export var fase2_fire_iframes: float = 0.0
-
-## Tiempo extra de i-frames al cubrir la animación de disparo.
-@export var fase2_fire_iframes_extra: float = 0.0
-
-# ── Fase 3 opcional: canalización tras disparar ────────────────────────────
-
-## Si true, tras disparar la habilidad entra en fase CHANNEL en vez de
-## terminar. La habilidad debe implementar on_fase2_channel_stop(reason)
-## para cortar su efecto (rayo, tick, VFX).
-@export var fase2_channel_enabled: bool = false
-
-## Duración de la canalización en segundos (<= 0 = indefinida hasta cancelar).
-@export var fase2_channel_time: float = 0.0
-
-## Animación mantenida durante la canalización (vacío = conservar la del disparo).
-@export var fase2_channel_animation: String = ""
-
-## Movilidad durante la canalización.
-@export var fase2_channel_mobility: Fase2Mobility = Fase2Mobility.RESTRICTED
-
-## Multiplicador de velocidad en canalización con movilidad REDUCED.
-@export var fase2_channel_mobility_scale: float = 0.5
-
-## Reducción de daño (0.0 - 1.0) durante la canalización.
-@export var fase2_channel_damage_reduction: float = 0.0
-
-## Si true, X cancela la canalización.
-@export var fase2_channel_cancel_on_player: bool = true
-
-## Si true, el daño directo cancela la canalización. El DoT nunca la cancela.
-@export var fase2_channel_cancel_on_damage: bool = true
-
-## Si true, el stun cancela la canalización.
-@export var fase2_channel_cancel_on_stun: bool = true
-
-## Cómo se aplican los i-frames al iniciar la canalización.
-@export var fase2_channel_iframes_mode: Fase2Iframes = Fase2Iframes.NONE
-
-## Duración fija de i-frames al iniciar la canalización (modo FIXED).
-@export var fase2_channel_iframes: float = 0.0
-
-## Cooldown al terminar la canalización de forma normal.
-@export var fase2_channel_cd: float = 0.0
-
-## Cooldown al cancelar la canalización (X, daño, stun).
-@export var fase2_channel_cancel_cd: float = 0.0
 
 
 # ════════════════════════════════════════════════════════════════════════════

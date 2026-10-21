@@ -52,31 +52,9 @@ var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var hold_ability_anim: bool = false
 var _latest_aim_dir: Vector2 = Vector2.RIGHT
-## Distancia desde el centro del jugador hasta el punto apuntado (cursor/mando).
-## La usa el Láser de Fleetway para terminar exactamente en el mouse.
-var _latest_aim_distance: float = 1200.0
 var _secret_heal_used: bool = false
 var _pending_selection_slot: int = -1
 var aiming_slot: int = -1
-
-# ── Fase 2 (apuntado/canalización) ─────────────────────────────────────
-## True desde que se abre la fase 2 hasta que se dispara/termina la fase.
-var fase2_active: bool = false
-## "aim" mientras se apunta/carga; "channel" durante la fase 3 opcional.
-var fase2_phase: String = ""
-## Multiplicador de movimiento aplicado por PlayerMovementComponent.
-var fase2_move_scale: float = 1.0
-## Si true, el jugador no puede moverse durante la fase 2.
-var fase2_move_locked: bool = false
-## Animación de movimiento durante fase 2 (vacío = walk/run normal).
-var fase2_move_animation: String = ""
-## Pose mantenida cuando está quieto durante fase 2.
-var fase2_pose_animation: String = ""
-## Deadline local (ms) antes del cual M1 no dispara.
-var _fase2_charge_ready_at: int = 0
-## Deadline local (ms) antes del cual X no cancela.
-var _fase2_cancel_ready_at: int = 0
-
 var _vision_scale: float = 1.0
 var _vision_scale_until: int = 0
 var _last_slot_request_time: Dictionary = {}
@@ -386,19 +364,13 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("confirm") and aiming_slot >= 0:
-		if fase2_phase == "channel":
-			return
-		if Time.get_ticks_msec() < _fase2_charge_ready_at:
-			print("[Player] Fase2 aún cargando; M1 ignorado.")
-			return
 		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
 		mouse_dir = input_component.get_aim_direction(global_position)
 		if multiplayer.is_server():
 			AbilityRouter.request_ability(aiming_slot, mouse_dir)
 		else:
 			AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
-		# No limpiamos aiming_slot aquí: el servidor confirma el disparo con
-		# _sync_fase2(false). Si lo rechaza (carga/TP), seguimos apuntando.
+		aiming_slot = -1
 		return
 
 	for action in action_map:
@@ -415,45 +387,26 @@ func _input(event: InputEvent) -> void:
 			_last_slot_request_time[slot] = now
 
 			if aiming_slot >= 0:
-				print("[Player] En fase2 | action: ", action, " | slot presionado: ", slot,
-					  " | entry_slot: ", aiming_slot, " | phase: ", fase2_phase)
-
-				if fase2_phase == "channel":
-					if action == "ability_3":
-						print("[Player] X detectada en canalización → cancelando slot ", aiming_slot)
-						var channel_peer = get_multiplayer_authority()
-						if multiplayer.is_server():
-							AbilityRouter.cancel_aim(channel_peer, aiming_slot)
-						else:
-							AbilityRouter.rpc_id(1, "cancel_aim", channel_peer, aiming_slot)
-					else:
-						print("[Player] Canalización activa: solo X cancela.")
-					return
-
+				print("[Player] En fase2 | action: ", action, " | slot presionado: ", slot, " | entry_slot: ", aiming_slot)
 				if action == "ability_0" or action == "confirm":
-					if now < _fase2_charge_ready_at:
-						print("[Player] Fase2 aún cargando; M1 ignorado.")
-						return
 					print("[Player] M1 detectado en fase2 → fase 2 del slot ", aiming_slot)
 					mouse_dir = input_component.get_aim_direction(global_position)
 					if multiplayer.is_server():
 						AbilityRouter.request_ability(aiming_slot, mouse_dir)
 					else:
 						AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
-					# No limpiamos aiming_slot: esperamos la confirmación del servidor.
+					aiming_slot = -1
+					print("[Player] aiming_slot reseteado a -1, retornando")
 					return
 				elif action == "ability_3":
-					if now < _fase2_cancel_ready_at:
-						print("[Player] Lockout de cancelación activo; X ignorada.")
-						return
 					print("[Player] X detectada en fase2 → cancelando slot ", aiming_slot)
 					var peer_id = get_multiplayer_authority()
 					if multiplayer.is_server():
 						AbilityRouter.cancel_aim(peer_id, aiming_slot)
 					else:
 						AbilityRouter.rpc_id(1, "cancel_aim", peer_id, aiming_slot)
-					# No limpiamos aiming_slot: el servidor decide si la cancelación
-					# es válida (flags/lockout) y responde con _sync_fase2(false).
+					aiming_slot = -1
+					print("[Player] Cancelación enviada, aiming_slot reseteado")
 					return
 				else:
 					print("[Player] Otra tecla en fase2, ignorando")
@@ -607,8 +560,6 @@ func set_character(char_id: int) -> void:
 func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 	if $AnimatedSprite2D:
 		$AnimatedSprite2D.sprite_frames = data.animation_frames
-		var s: float = data.sprite_scale if data.sprite_scale > 0.0 else 1.0
-		$AnimatedSprite2D.scale = Vector2.ONE * s
 	_setup_collision_layers(data)
 	_apply_camera_config(data)
 
@@ -726,19 +677,6 @@ func _sync_prepare_anim(anim_name: String, facing_right_override: bool, slot_ind
 
 func reset_ability_state() -> void:
 	animation_component.reset_ability_state()
-
-
-## Recupera la pose de fase 2 tras un stun que no canceló el modo.
-func restore_fase2_pose() -> void:
-	if not fase2_active:
-		return
-	if fase2_pose_animation == "" or not animated_sprite.sprite_frames.has_animation(fase2_pose_animation):
-		return
-	animated_sprite.play(fase2_pose_animation)
-	last_animation = fase2_pose_animation
-	state = AnimState.ABILITY
-	active_ability_slot = aiming_slot
-	hold_ability_anim = true
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -892,7 +830,7 @@ func _rpc_play_emote_audio(slot: int) -> void:
 
 
 @rpc("any_peer", "unreliable")
-func _sync_aim_dir(dir: Vector2, distance: float = -1.0) -> void:
+func _sync_aim_dir(dir: Vector2) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender = multiplayer.get_remote_sender_id()
@@ -900,8 +838,6 @@ func _sync_aim_dir(dir: Vector2, distance: float = -1.0) -> void:
 		return
 	if dir != Vector2.ZERO:
 		_latest_aim_dir = dir
-	if distance >= 0.0:
-		_latest_aim_distance = distance
 
 
 ## Input del dueño hacia el servidor. El servidor lo guarda y lo aplica en su
@@ -1139,54 +1075,16 @@ func _sync_aiming_mode(slot: int, active: bool) -> void:
 ## Sincronización de fase2 (M1 dispara / X cancela). Versión any_peer de
 ## _sync_aiming_mode: el servidor NO es autoridad del nodo del dueño, así que
 ## el RPC authority lo descarta el motor en clientes remotos.
-## `charge_remaining` y `cancel_lockout_remaining` se envían como duraciones
-## restantes (no timestamps del servidor) para evitar desfases de reloj.
 @rpc("any_peer", "call_local", "reliable")
-func _sync_fase2(slot: int, active: bool, phase: String = "aim",
-		charge_remaining: float = 0.0, cancel_lockout_remaining: float = 0.0) -> void:
+func _sync_fase2(slot: int, active: bool) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
 		return
-	var now := Time.get_ticks_msec()
-	if active:
-		aiming_slot = slot
-		fase2_active = true
-		fase2_phase = phase
-		_fase2_charge_ready_at = now + int(maxf(charge_remaining, 0.0) * 1000.0)
-		_fase2_cancel_ready_at = now + int(maxf(cancel_lockout_remaining, 0.0) * 1000.0)
-	else:
-		aiming_slot = -1
-		fase2_active = false
-		fase2_phase = ""
-		_fase2_charge_ready_at = 0
-		_fase2_cancel_ready_at = 0
-
-
-## Movilidad/animaciones de fase 2. Se separa de _sync_fase2 porque puede
-## cambiar al pasar de AIM a CHANNEL sin cerrar el modo.
-@rpc("any_peer", "call_local", "reliable")
-func _sync_fase2_movement(active: bool, move_scale: float, locked: bool,
-		move_animation: String, pose_animation: String) -> void:
-	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
-		return
-	if active:
-		fase2_move_scale = clampf(move_scale, 0.0, 1.0)
-		fase2_move_locked = locked
-		fase2_move_animation = move_animation
-		fase2_pose_animation = pose_animation
-	else:
-		fase2_move_scale = 1.0
-		fase2_move_locked = false
-		fase2_move_animation = ""
-		fase2_pose_animation = ""
+	aiming_slot = slot if active else -1
 
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_invincibility(duration_ms: int) -> void:
-	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
-		return
 	invincible_until = Time.get_ticks_msec() + duration_ms
 
 

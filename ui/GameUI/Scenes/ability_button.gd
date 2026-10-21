@@ -126,8 +126,7 @@ func _process(delta: float) -> void:
 	# Reintento de tracking de TP: si el relay no existía en setup (orden de
 	# inicio), sin esto el borde de evolución quedaba congelado para siempre.
 	if _tp_service == null and ability_data and is_inside_tree():
-		var relay: Node = GameServiceLocator.get_client_relay()
-		if relay and relay.has_signal("tp_changed"):
+		if GameServiceLocator.get_client_relay() != null:
 			_setup_tp_tracking()
 	if _state != State.COOLDOWN:
 		return
@@ -311,32 +310,6 @@ func _setup_tp_tracking() -> void:
 	if not resized.is_connected(_on_button_resized):
 		resized.connect(_on_button_resized)
 
-	_ratio_base = 0.0
-	_ratio_evo  = 0.0
-	_dynamic_tp_cost = -1.0
-
-	var relay: Node = GameServiceLocator.get_client_relay()
-	if relay:
-		# TP cacheado: los botones creados a mitad de partida (p.ej. los
-		# temporales de fase2) nacen con el borde ya dibujado.
-		if relay.has_method("get_tp"):
-			var cached: Dictionary = relay.get_tp(_peer_id)
-			if cached.has("current"):
-				_last_known_tp = float(cached["current"])
-		if relay.has_signal("tp_changed"):
-			_tp_service = relay
-			if not relay.tp_changed.is_connected(_on_tp_changed):
-				relay.tp_changed.connect(_on_tp_changed)
-		if relay.has_signal("dynamic_tp_cost_changed"):
-			if not relay.dynamic_tp_cost_changed.is_connected(_on_dynamic_tp_cost_changed):
-				relay.dynamic_tp_cost_changed.connect(_on_dynamic_tp_cost_changed)
-	else:
-		push_warning("[AbilityButton] TPService no disponible — slot " + str(slot_index))
-
-	# Pintar de inmediato con el último TP conocido; sin esto el borde no
-	# aparece hasta que llegue el primer tp_changed.
-	_update_tp_fill(_last_known_tp)
-
 
 func _on_button_resized() -> void:
 	if not ability_data:
@@ -344,6 +317,20 @@ func _on_button_resized() -> void:
 	_apply_growing_border(base_fill_rect, _ratio_base)
 	if _is_evolved and evolution_fill_rect and evolution_fill_rect.visible:
 		_apply_growing_border(evolution_fill_rect, _ratio_evo)
+
+	_ratio_base = 0.0
+	_ratio_evo  = 0.0
+	_dynamic_tp_cost = -1.0
+
+	var relay: Node = GameServiceLocator.get_client_relay()
+	if relay:
+		if relay.has_signal("tp_changed"):
+			_tp_service = relay
+			relay.tp_changed.connect(_on_tp_changed)
+		if relay.has_signal("dynamic_tp_cost_changed"):
+			relay.dynamic_tp_cost_changed.connect(_on_dynamic_tp_cost_changed)
+	else:
+		push_warning("[AbilityButton] TPService no disponible — slot " + str(slot_index))
 
 
 func _build_fill_style(rect: Panel, color: Color) -> void:

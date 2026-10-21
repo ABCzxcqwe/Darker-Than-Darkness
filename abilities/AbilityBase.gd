@@ -23,13 +23,6 @@ func can_cancel_now() -> bool:
 func cancel_early() -> void:
 	push_warning("[AbilityBase] cancel_early() no implementado en ", get_script().resource_path)
 
-## Hook opcional para habilidades con fase CHANNEL. El Router lo llama cuando
-## la canalización termina o se cancela; la habilidad debe cortar su efecto
-## (rayo, ticks, VFX) y limpiar sus timers. `reason` es "end", "player",
-## "damage", "stun" o "death".
-func on_fase2_channel_stop(_reason: String) -> void:
-	pass
-
 # ── Registro central de instancias activas (genérico, evita hardcode LanzaAbility en Router) ──
 static var _active_registry: Dictionary = {} # "peer_slot" -> WeakRef
 
