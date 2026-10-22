@@ -18,6 +18,21 @@ var _focus_idx := 0
 var _selection_locked := false
 var _is_animating := false
 
+# Panel de desarrollador (combo de mando L1 + Select). Solo se crea si DevMode
+# está activo.
+var _dev_panel: Control = null
+var _dev_list: ItemList = null
+var _dev_char_ids: Array[int] = []
+
+# Estado del combo L1 + Select. En un mando de PS3 en Linux:
+#   L1     = JOY_BUTTON_LEFT_SHOULDER (9)
+#   Select = JOY_BUTTON_BACK (4)
+const DEV_COMBO_L1 := JOY_BUTTON_LEFT_SHOULDER
+const DEV_COMBO_SELECT := JOY_BUTTON_BACK
+var _dev_l1_down := false
+var _dev_select_down := false
+var _dev_combo_latched := false
+
 # Cylinder config
 const PANEL_W := 220.0
 const PANEL_H := 330.0
@@ -32,7 +47,9 @@ func _ready() -> void:
 	add_to_group("character_select_screen")
 
 	LobbyManager.lobby_updated.connect(_on_lobby_updated)
+	LobbyManager.character_selection_rejected.connect(_on_selection_rejected)
 	countdown_timer.timeout.connect(_on_tick)
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 
 	var my_id := multiplayer.get_unique_id()
 	if LobbyManager.is_spectator(my_id):
@@ -60,6 +77,8 @@ func _ready() -> void:
 		hint_label.text = tr("HUD_CHAR_HINT")
 
 	_build_character_options()
+	_setup_dev_panel()
+	_setup_dev_badge()
 	_on_lobby_updated()
 	_start_countdown()
 	# Recalcular en resize para responsividad
@@ -170,6 +189,163 @@ func _build_character_options() -> void:
 		_update_name_labels()
 	else:
 		push_warning("[CharacterSelect] No hay personajes para rol: " + local_role)
+
+
+# ── Modo desarrollador ────────────────────────────────────────────────
+
+func _setup_dev_panel() -> void:
+	if not DevMode.is_enabled():
+		return
+
+	var panel := PanelContainer.new()
+	panel.name = "DevPanel"
+	panel.visible = false
+	panel.z_index = 100
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	panel.offset_left = 24.0
+	panel.offset_right = 404.0
+	panel.offset_top = -330.0
+	panel.offset_bottom = 330.0
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.03, 0.06, 0.97)
+	style.border_color = Color(1.0, 0.35, 0.9, 0.9)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+	add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "DEV MODE — TEST CHARACTERS"
+	title.add_theme_font_override("font", load("uid://dvelfumepo3c0"))
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color(1.0, 0.35, 0.9))
+	vbox.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "[L1 + Select] Cerrar  •  [ENTER] Elegir\nEl servidor también debe permitir el modo dev."
+	hint.add_theme_font_override("font", load("uid://dvelfumepo3c0"))
+	hint.add_theme_font_size_override("font_size", 13)
+	hint.add_theme_color_override("font_color", Color(0.72, 0.72, 0.8))
+	vbox.add_child(hint)
+
+	_dev_list = ItemList.new()
+	_dev_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_dev_list.focus_mode = Control.FOCUS_ALL
+	_dev_list.add_theme_font_override("font", load("uid://dvelfumepo3c0"))
+	_dev_list.add_theme_font_size_override("font_size", 16)
+	_dev_list.item_activated.connect(_on_dev_character_chosen)
+	vbox.add_child(_dev_list)
+
+	_dev_panel = panel
+	_refresh_dev_list()
+
+
+func _setup_dev_badge() -> void:
+	if not DevMode.is_enabled():
+		return
+	var badge := Label.new()
+	badge.name = "DevModeBadge"
+	badge.text = "DEV MODE — " + DevMode.build_kind().to_upper()
+	badge.position = Vector2(24, 22)
+	badge.z_index = 90
+	badge.add_theme_font_override("font", load("uid://dvelfumepo3c0"))
+	badge.add_theme_font_size_override("font_size", 16)
+	badge.add_theme_color_override("font_color", Color(1.0, 0.35, 0.9))
+	badge.add_theme_color_override("font_outline_color", Color.BLACK)
+	badge.add_theme_constant_override("outline_size", 4)
+	add_child(badge)
+
+
+func _refresh_dev_list() -> void:
+	if _dev_list == null:
+		return
+
+	_dev_list.clear()
+	_dev_char_ids.clear()
+
+	# El panel dev muestra SIEMPRE ambos bandos. Al elegir un personaje del
+	# otro equipo, el servidor ajusta el rol del jugador para que el spawn,
+	# las colisiones y la HUD usen el equipo correcto.
+	for data in CharacterRegistry.get_all_dev():
+		if not (data is CharacterData):
+			continue
+
+		var color: Color = data.theme_color if data.theme_color != Color(0, 0, 0, 0) else Color.WHITE
+		var idx := _dev_list.add_item("%s  [%s]  (TEST)" % [data.display_name, data.team.to_upper()])
+		_dev_list.set_item_custom_fg_color(idx, color)
+		_dev_char_ids.append(data.id)
+
+	if _dev_char_ids.is_empty():
+		var empty_idx := _dev_list.add_item("(sin personajes dev para este rol)")
+		_dev_list.set_item_disabled(empty_idx, true)
+		return
+
+	_dev_list.select(0)
+
+
+func _toggle_dev_panel() -> void:
+	if _dev_panel == null:
+		return
+
+	_dev_panel.visible = not _dev_panel.visible
+	if _dev_panel.visible:
+		_refresh_dev_list()
+		if _dev_list and not _dev_char_ids.is_empty():
+			_dev_list.grab_focus()
+			_dev_list.select(0)
+	elif _dev_list:
+		_dev_list.release_focus()
+
+
+func _on_dev_character_chosen(idx: int) -> void:
+	if idx < 0 or idx >= _dev_char_ids.size():
+		return
+	if _selection_locked or not timer_active:
+		return
+	var char_id := _dev_char_ids[idx]
+	_toggle_dev_panel()
+	_confirm_selection(char_id)
+
+
+func _on_selection_rejected(char_id: int, message: String) -> void:
+	if selected_char_id != char_id:
+		return
+	_selection_locked = false
+	selected_char_id = -1
+	if hint_label:
+		hint_label.text = "SELECCIÓN RECHAZADA: " + message
+		hint_label.modulate = Color(1.0, 0.45, 0.45, 1.0)
+	_layout_cylinder(true)
+
+
+func _notification(what: int) -> void:
+	# Si la ventana pierde el foco con el combo pulsado, no queremos que el
+	# estado quede atascado al volver.
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_reset_dev_combo()
+
+
+func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
+	_reset_dev_combo()
+
+
+func _reset_dev_combo() -> void:
+	_dev_l1_down = false
+	_dev_select_down = false
+	_dev_combo_latched = false
 
 
 func _layout_cylinder(animated: bool) -> void:
@@ -285,6 +461,36 @@ func _input(event):
 	var vp := get_viewport()
 	if vp == null:
 		return
+
+	# L1 + Select (mando): abrir/cerrar el panel de personajes de test.
+	# No usamos F8 porque el editor de Godot lo captura como "Stop" y cierra
+	# la instancia antes de que el juego reciba la tecla.
+	if event is InputEventJoypadButton:
+		var joy_event := event as InputEventJoypadButton
+		if joy_event.button_index == DEV_COMBO_L1:
+			_dev_l1_down = joy_event.pressed
+		elif joy_event.button_index == DEV_COMBO_SELECT:
+			_dev_select_down = joy_event.pressed
+
+		var combo_down := _dev_l1_down and _dev_select_down
+		if combo_down:
+			if not _dev_combo_latched and _dev_panel and DevMode.is_enabled() and not _selection_locked:
+				_dev_combo_latched = true
+				_toggle_dev_panel()
+				vp.set_input_as_handled()
+				return
+		else:
+			# Al soltar cualquiera de los dos, el combo puede volver a usarse.
+			_dev_combo_latched = false
+
+	# Con el panel abierto, el ItemList maneja flechas/Enter. Nosotros solo
+	# interceptamos B/ESC para cerrarlo.
+	if _dev_panel and _dev_panel.visible:
+		if event.is_action_pressed("menu_cancel"):
+			_toggle_dev_panel()
+			vp.set_input_as_handled()
+		return
+
 	if _selection_locked:
 		# Permitir cancelar con ESC si aún hay tiempo (opcional, comentado si quieres bloqueo total)
 		if event.is_action_pressed("menu_cancel"):
@@ -357,10 +563,15 @@ func _confirm_selection(char_id: int) -> void:
 			vbox.modulate.a = 0.32
 	_update_name_labels()
 	if hint_label:
-		hint_label.text = tr("HUD_CONFIRMED")
+		hint_label.modulate = Color.WHITE
+		hint_label.text = "TEST CHARACTER CONFIRMED" if CharacterRegistry.is_dev_only(char_id) else tr("HUD_CONFIRMED")
 
 
 func _on_lobby_updated() -> void:
+	var my_id := multiplayer.get_unique_id()
+	if LobbyManager.players.has(my_id):
+		local_role = String(LobbyManager.players[my_id].get("assigned_role", local_role))
+
 	selections_list.clear()
 	for p in LobbyManager.get_player_list():
 		var text = p.name
@@ -371,7 +582,7 @@ func _on_lobby_updated() -> void:
 		if p.character_id != -1:
 			var data: CharacterData = CharacterRegistry.get_character(p.character_id)
 			if data:
-				char_name = data.display_name
+				char_name = data.display_name + (" (TEST)" if data.dev_only else "")
 				dot_color = data.theme_color
 		var display_role = p.get("assigned_role", "survivor").to_upper()
 		# bullet con color temático via unicode circle
@@ -379,6 +590,11 @@ func _on_lobby_updated() -> void:
 		text = "%s %s -> %s [%s]" % [bullet, text, char_name, display_role]
 		var idx = selections_list.add_item(text)
 		selections_list.set_item_custom_fg_color(idx, dot_color if p.character_id != -1 else Color(0.7,0.7,0.7,1))
+
+	if _dev_panel and _dev_panel.visible:
+		_refresh_dev_list()
+		if _dev_list and not _dev_char_ids.is_empty():
+			_dev_list.grab_focus()
 
 
 func _start_countdown() -> void:
@@ -429,6 +645,8 @@ func _update_timer_label() -> void:
 
 func _on_timeout_expired() -> void:
 	timer_active = false
+	if _dev_panel and _dev_panel.visible:
+		_toggle_dev_panel()
 	if not is_inside_tree():
 		return
 	timer_label.text = "0"

@@ -10,6 +10,8 @@ var current_state: State = State.INTRO : set = _set_state
 
 const BASE_TIME := 100.0
 const TIME_PER_SURVIVOR := 60.0
+## Duración del temporizador en sandbox dev con un solo jugador.
+const DEV_SOLO_TIME := 600.0
 
 var _health_service: Node = null
 var _timer_service: Node = null
@@ -48,6 +50,21 @@ func is_in_game() -> bool:
 	return current_state == State.PLAYING
 
 
+## True si es una sesión de pruebas dev con exactamente un jugador no espectador.
+## Se usa para no cerrar la partida por no haber survivors/killer suficientes.
+func _is_dev_solo() -> bool:
+	if not DevMode.is_enabled():
+		return false
+	var count := 0
+	for pid in LobbyManager.players:
+		if LobbyManager.is_spectator(pid):
+			continue
+		count += 1
+		if count > 1:
+			return false
+	return count == 1
+
+
 func transition_to_playing() -> void:
 	if not multiplayer.is_server():
 		return
@@ -56,7 +73,10 @@ func transition_to_playing() -> void:
 	_set_state(State.PLAYING)
 	_setup_map_audio()
 	_start_timer()
-	_evaluate_match()
+	# En dev solo no evaluamos el estado inicial: si el jugador eligió killer
+	# no hay survivors y la partida terminaría en el mismo instante.
+	if not _is_dev_solo():
+		_evaluate_match()
 
 
 func transition_to_ended(reason: String, extra: Dictionary = {}) -> void:
@@ -128,6 +148,9 @@ func _start_timer() -> void:
 		if LobbyManager.players[pid]["assigned_role"] == "survivor":
 			survivor_count += 1
 	var initial_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
+	if _is_dev_solo():
+		initial_time = DEV_SOLO_TIME
+		print("[GameStateService] Dev solo: temporizador de pruebas = ", DEV_SOLO_TIME, "s")
 	_timer_service.start_timer(initial_time)
 
 
@@ -214,6 +237,9 @@ func _unregister_player_services(peer_id: int) -> void:
 func _evaluate_match() -> void:
 	if not multiplayer.is_server():
 		return
+	# Sandbox dev solo: no cerrar por falta de survivors, muerte o desconexión.
+	if _is_dev_solo():
+		return
 	var alive = _count_alive_survivors()
 	if alive == 0:
 		_timer_service.stop_timer()
@@ -280,6 +306,10 @@ func _find_any_survivor_node() -> Node:
 
 func evaluate_sudden_death_condition() -> void:
 	if not multiplayer.is_server():
+		return
+	# Sandbox dev solo: el jugador puede quedar downed/muerto sin que la
+	# partida termine automáticamente a los 3 segundos.
+	if _is_dev_solo():
 		return
 	if current_state != State.PLAYING or _ending_sequence_started:
 		return

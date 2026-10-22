@@ -159,6 +159,9 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if not _is_open:
+		# No abrir la pausa encima de otro menú (p. ej. el DevMenu).
+		if MenuUtils.is_any_menu_open(get_tree(), self):
+			return
 		if event.is_action_pressed("pause"):
 			_open()
 			vp.set_input_as_handled()

@@ -125,6 +125,13 @@ const KILLER_ONLY := [
 @export var theme_color: Color = Color(0.27, 0.78, 0.95)
 
 
+@export_group("Desarrollo")
+## Si es true, este personaje NO aparece en el selector normal.
+## Solo se puede elegir desde el panel de desarrollador (L1 + Select en el
+## mando) en builds DEV lanzadas con --dev. Nunca se auto-selecciona por timeout.
+@export var dev_only: bool = false
+
+
 func _validate_property(property: Dictionary) -> void:
 	var prop_name: String = property.name
 

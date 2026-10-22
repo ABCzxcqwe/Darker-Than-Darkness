@@ -6,6 +6,8 @@ signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
 signal kicked(reason: String)
+## Se emite en el cliente cuando el servidor rechaza una selección de personaje.
+signal character_selection_rejected(char_id: int, message: String)
 
 const MAX_PLAYERS := 10
 
@@ -21,6 +23,9 @@ var is_host: bool = false
 var current_phase: int = GamePhase.LOBBY
 var forced_killer_peer: int = -1
 var room_host_peer: int = -1
+## Solo en el servidor: peers que han reclamado el modo dev (--dev).
+## No se sincroniza a los clientes.
+var dev_peers: Dictionary = {}
 
 
 func _ready() -> void:
@@ -34,6 +39,32 @@ func is_spectator(peer_id: int) -> bool:
 
 func is_room_host() -> bool:
 	return room_host_peer != -1 and room_host_peer == multiplayer.get_unique_id()
+
+
+## True solo en el servidor si ese peer puede seleccionar personajes dev.
+## El host local cuenta como dev si su proceso tiene DevMode activo.
+func is_dev_peer(peer_id: int) -> bool:
+	if not DevMode.is_enabled():
+		return false
+	if peer_id == multiplayer.get_unique_id():
+		return true
+	return dev_peers.has(peer_id)
+
+
+## Un cliente dev lo llama al conectar. No es una frontera de seguridad
+## criptográfica: es una salvaguarda para que un cliente normal conectado a un
+## servidor dev no pueda seleccionar personajes de test por accidente.
+@rpc("any_peer", "reliable")
+func claim_dev_mode() -> void:
+	if not multiplayer.is_server():
+		return
+	if not DevMode.is_enabled():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0 or dev_peers.has(sender):
+		return
+	dev_peers[sender] = true
+	print("[LobbyManager] Peer %d reclamó modo dev" % sender)
 
 
 # ── Peer management ──
@@ -120,6 +151,7 @@ func _on_peer_disconnected(peer_id: int):
 				forced_killer_peer = -1
 
 		players.erase(peer_id)
+		dev_peers.erase(peer_id)
 		emit_signal("player_left", peer_id)
 
 		if room_host_peer == peer_id:
@@ -200,8 +232,16 @@ func set_my_character(char_id: int):
 @rpc("any_peer", "call_local")
 func _update_character(char_id: int):
 	var sender = multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
 	if multiplayer.is_server():
 		if players.has(sender):
+			var validation := _validate_character_selection(sender, char_id)
+			if not validation["ok"]:
+				players[sender]["character_id"] = -1
+				_reject_selection(sender, char_id, String(validation["reason"]))
+				emit_signal("lobby_updated")
+				return
 			players[sender].character_id = char_id
 			emit_signal("lobby_updated")
 			rpc("_sync_character", sender, char_id)
@@ -380,7 +420,7 @@ func host_start_character_selection():
 	if not multiplayer.is_server():
 		return
 
-	if players.size() < 2:
+	if players.size() < 2 and not DevMode.is_enabled():
 		print("[LobbyManager] Se necesitan al menos 2 jugadores.")
 		return
 
@@ -421,12 +461,15 @@ func host_resolve_missing_selections() -> void:
 			continue
 		if players[pid].get("character_id", -1) == -1:
 			var role: String = players[pid].get("assigned_role", "survivor")
-			var fallback_id := 0
-			for data in CharacterRegistry.get_all():
-				if data.team == role:
-					fallback_id = data.id
-					break
-			players[pid]["character_id"] = fallback_id
+			var fallback := CharacterRegistry.get_fallback(role)
+			if fallback:
+				players[pid]["character_id"] = fallback.id
+				print("[LobbyManager] Auto-selección para peer %d: '%s' (id %d)" % [
+					pid, fallback.display_name, fallback.id
+				])
+			else:
+				players[pid]["character_id"] = -1
+				push_error("[LobbyManager] No hay fallback normal para peer %d (rol '%s')." % [pid, role])
 
 
 @rpc("authority", "call_local", "reliable")
@@ -448,21 +491,100 @@ func select_character_in_screen(char_id: int):
 		sender_id = multiplayer.get_unique_id()
 
 	if multiplayer.is_server():
-		if players.has(sender_id):
-			players[sender_id]["character_id"] = char_id
-			print("[Server] Peer %d seleccionó personaje ID: %d" % [sender_id, char_id])
+		if not players.has(sender_id):
+			return
+		if is_spectator(sender_id):
+			_reject_selection(sender_id, char_id, "spectator")
+			return
+
+		var validation := _validate_character_selection(sender_id, char_id)
+		if not validation["ok"]:
+			players[sender_id]["character_id"] = -1
+			_reject_selection(sender_id, char_id, String(validation["reason"]))
 			emit_signal("lobby_updated")
-			rpc("_sync_screen_selection", sender_id, char_id)
+			return
+
+		players[sender_id]["character_id"] = char_id
+		print("[Server] Peer %d seleccionó personaje ID: %d" % [sender_id, char_id])
+		emit_signal("lobby_updated")
+		rpc("_sync_screen_selection", sender_id, char_id,
+			String(players[sender_id].get("assigned_role", "survivor")))
 	else:
 		rpc_id(1, "select_character_in_screen", char_id)
 
 
+## Valida una selección en el servidor. Devuelve { ok: bool, reason: String }.
+## Reglas:
+##   - El ID debe existir en el registro (normal o dev).
+##   - El equipo debe coincidir con el rol asignado.
+##   - Un personaje dev_only solo lo puede elegir un peer dev, y el servidor
+##     también debe tener DevMode activo.
+##   - Un peer dev puede elegir un personaje test de cualquier bando: el rol
+##     se ajusta al equipo del personaje para que spawn/HUD/colisiones sean
+##     coherentes. Esto permite probar killer y survivor desde el mismo panel.
+func _validate_character_selection(peer_id: int, char_id: int) -> Dictionary:
+	var data: CharacterData = CharacterRegistry.get_character(char_id)
+	if data == null:
+		return {"ok": false, "reason": "invalid"}
+
+	var role: String = String(players[peer_id].get("assigned_role", "survivor")).to_lower().strip_edges()
+	var data_team := data.team.to_lower().strip_edges()
+	var team_ok := data_team == role
+
+	if data.dev_only:
+		if not is_dev_peer(peer_id):
+			return {"ok": false, "reason": "not_dev"}
+		if not team_ok:
+			players[peer_id]["assigned_role"] = data.team
+			team_ok = true
+			print("[LobbyManager] Dev: peer %d cambia a rol '%s' por personaje test '%s'" % [
+				peer_id, data.team, data.display_name
+			])
+
+	if not team_ok:
+		return {"ok": false, "reason": "team"}
+
+	return {"ok": true, "reason": ""}
+
+
+func _reject_selection(peer_id: int, char_id: int, reason: String) -> void:
+	var message := reason
+	match reason:
+		"not_dev":
+			message = "Personaje de test: se requiere modo dev en el servidor y en el jugador."
+		"invalid":
+			message = "Personaje inválido."
+		"team":
+			message = "Ese personaje no pertenece a tu rol."
+		"spectator":
+			message = "Los espectadores no eligen personaje."
+	print("[LobbyManager] Selección rechazada | peer=%d char=%d motivo=%s" % [peer_id, char_id, reason])
+
+	if peer_id == multiplayer.get_unique_id():
+		character_selection_rejected.emit(char_id, message)
+	else:
+		rpc_id(peer_id, "_notify_selection_rejected", char_id, message)
+
+
 @rpc("authority", "reliable")
-func _sync_screen_selection(peer_id: int, char_id: int):
+func _notify_selection_rejected(char_id: int, message: String) -> void:
+	if multiplayer.is_server():
+		return
+	var my_id := multiplayer.get_unique_id()
+	if players.has(my_id) and int(players[my_id].get("character_id", -1)) == char_id:
+		players[my_id]["character_id"] = -1
+		emit_signal("lobby_updated")
+	character_selection_rejected.emit(char_id, message)
+
+
+@rpc("authority", "reliable")
+func _sync_screen_selection(peer_id: int, char_id: int, p_role: String = ""):
 	if not multiplayer.is_server():
 		if players.has(peer_id):
 			players[peer_id]["character_id"] = char_id
-			print("[Cliente] Sincronizado: Peer %d ahora es personaje %d" % [peer_id, char_id])
+			if p_role != "":
+				players[peer_id]["assigned_role"] = p_role
+			print("[Cliente] Sincronizado: Peer %d ahora es personaje %d (%s)" % [peer_id, char_id, p_role])
 			emit_signal("lobby_updated")
 
 
@@ -508,6 +630,7 @@ func register_local_player(peer_id: int, player_name: String) -> void:
 
 func reset_lobby_state() -> void:
 	players.clear()
+	dev_peers.clear()
 	current_phase = GamePhase.LOBBY
 	forced_killer_peer = -1
 	room_host_peer = -1

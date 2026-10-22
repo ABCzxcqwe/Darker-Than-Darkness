@@ -133,12 +133,22 @@ func _get_map_entries() -> Array:
 	return arr
 
 func _get_character_count() -> int:
+	# Contamos solo personajes normales: los dev_only no deben aparecer en el
+	# contador de la pantalla de carga pública.
+	var cr := get_node_or_null("/root/CharacterRegistry")
+	if cr and cr.has_method("get_all"):
+		return cr.get_all().size()
+
 	var cpath := "res://Characters/CharacterDatabase.tres"
 	if not ResourceLoader.exists(cpath):
 		return 0
 	var res: Resource = load(cpath)
 	if res and "character_list" in res:
-		return (res.character_list as Array).size()
+		var count := 0
+		for data in res.character_list:
+			if data and not bool(data.get("dev_only")):
+				count += 1
+		return count
 	return 0
 
 func _get_map_scene_paths() -> Array[String]:

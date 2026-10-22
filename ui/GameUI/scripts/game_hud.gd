@@ -103,8 +103,7 @@ func is_menu_open() -> bool:
 	return _menu_open
 
 func _is_pause_open() -> bool:
-	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
-	return menu != null and menu.has_method("is_open") and menu.is_open()
+	return MenuUtils.is_any_menu_open(get_tree())
 
 func _connect_dialog_relay() -> void:
 	var relay = GameServiceLocator.get_client_relay()

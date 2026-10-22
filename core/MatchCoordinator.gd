@@ -40,7 +40,7 @@ func start_match_countdown() -> void:
 		return
 	if is_start_countdown_active():
 		return
-	if LobbyManager.players.size() < 2:
+	if LobbyManager.players.size() < 2 and not DevMode.is_enabled():
 		return
 	if _start_countdown_timer == null:
 		_start_countdown_timer = Timer.new()
@@ -120,7 +120,29 @@ func host_launch_game() -> void:
 	for id in LobbyManager.players:
 		if LobbyManager.is_spectator(id):
 			continue
-		char_map[id] = LobbyManager.players[id].character_id
+
+		var role: String = String(LobbyManager.players[id].get("assigned_role", "survivor"))
+		var char_id: int = int(LobbyManager.players[id].get("character_id", -1))
+		var data: CharacterData = CharacterRegistry.get_character(char_id) if char_id > 0 else null
+
+		var needs_fallback := data == null
+		if data and data.dev_only and not LobbyManager.is_dev_peer(id):
+			needs_fallback = true
+		if data and data.team.to_lower().strip_edges() != role.to_lower().strip_edges():
+			needs_fallback = true
+
+		if needs_fallback:
+			var fallback := CharacterRegistry.get_fallback(role)
+			if fallback == null:
+				push_error("[MatchCoordinator] Peer %d sin personaje resoluble y sin fallback para rol '%s'; se omite." % [id, role])
+				continue
+			push_warning("[MatchCoordinator] Peer %d: ID %d no válido/permitido para rol '%s'; usando '%s' (id %d)." % [
+				id, char_id, role, fallback.display_name, fallback.id
+			])
+			char_id = fallback.id
+			LobbyManager.players[id]["character_id"] = char_id
+
+		char_map[id] = char_id
 
 	rpc("_begin_game", char_map, LobbyManager.selected_map)
 

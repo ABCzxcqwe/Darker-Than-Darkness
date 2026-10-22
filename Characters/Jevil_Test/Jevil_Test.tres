@@ -35,6 +35,7 @@ script = ExtResource("5_ueqpj")
 id = 8
 display_name = "Jevil TEST"
 team = "killer"
+dev_only = true
 speed = 600.0
 max_health = 1000
 size_x = 70

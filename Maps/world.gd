@@ -4,6 +4,7 @@ extends Node2D
 const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
 const GAME_HUD_MOCK_SCENE := preload("res://ui/GameUI/Mock/GameHUDMock.tscn")
 const PLAYER_SCENE := preload("uid://djw510qiudh6e")
+const DEV_MENU_SCENE := preload("res://ui/InGameMenu/DevMenu.tscn")
 const USE_MOCK_HUD := true
 
 @export var services_config: GameServicesConfig = null
@@ -102,12 +103,36 @@ func _spawn_player_node(peer_id: int, char_id: int) -> void:
 	var node_name := str(peer_id)
 	if has_node(node_name):
 		return
+
+	var role := "survivor"
+	if LobbyManager.players.has(peer_id):
+		role = String(LobbyManager.players[peer_id].get("assigned_role", role))
+
+	var resolved_id := char_id
+	if char_id <= 0 or not CharacterRegistry.has_character(char_id):
+		var fallback := CharacterRegistry.get_fallback(role)
+		if fallback == null:
+			push_error("[World] Peer %d sin personaje (id %d) y sin fallback para rol '%s'; no se spawnea." % [
+				peer_id, char_id, role
+			])
+			return
+		resolved_id = fallback.id
+		push_warning("[World] Peer %d: ID %d no resuelto en este cliente; usando fallback '%s' (id %d)." % [
+			peer_id, char_id, fallback.display_name, fallback.id
+		])
+
 	var player := PLAYER_SCENE.instantiate()
 	player.name = node_name
 	player.set_multiplayer_authority(peer_id)
-	player.set_character(char_id)
+	player.set_character(resolved_id)
+	if player.character_data == null:
+		push_error("[World] Peer %d quedó sin character_data tras set_character(%d); no se spawnea." % [
+			peer_id, resolved_id
+		])
+		player.free()
+		return
 	add_child(player)
-	print("[World] Jugador spawneado localmente: peer ", peer_id, " (char: ", char_id, ")")
+	print("[World] Jugador spawneado localmente: peer ", peer_id, " (char: ", resolved_id, ")")
 
 
 ## Un peer avisa que ya creó sus nodos de jugador. En ese momento el servidor
@@ -215,6 +240,15 @@ func _setup_hud() -> void:
 		_hud = GAME_HUD_SCENE.instantiate()
 	add_child(_hud)
 	_hud.setup(my_player)
+
+	# Menú Dev in-game: solo para el host local con jugador y con DevMode activo.
+	if DevMode.is_enabled() and multiplayer.is_server():
+		var ds := get_node_or_null("/root/DedicatedServer")
+		if not (ds and ds.is_dedicated):
+			var dev_menu := DEV_MENU_SCENE.instantiate()
+			_hud.add_child(dev_menu)
+			dev_menu.setup(my_player)
+			print("[World] DevMenu host-only instanciado.")
 
 
 func _exit_tree() -> void:

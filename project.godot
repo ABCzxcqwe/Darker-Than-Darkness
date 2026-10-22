@@ -27,6 +27,7 @@ buses/default_bus_layout="uid://b7gh8nqwcdau4"
 
 GameData="*uid://dposrf30fiusm"
 CharacterRegistry="*uid://i0qs00kcritb"
+DevMode="*res://core/dev_mode.gd"
 NetworkManager="*uid://bk85boo6f7ln5"
 DedicatedServer="*uid://dswqh56ful5bo"
 AbilityRouter="*uid://ryphqnurjury"

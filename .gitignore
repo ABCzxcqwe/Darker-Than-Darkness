@@ -37,3 +37,4 @@ steam_appid.txt
 /coordinator/*.exe
 /coordinator/darker-coordinator
 /server-dist/
+/android
