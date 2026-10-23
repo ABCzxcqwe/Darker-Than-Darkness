@@ -5,6 +5,7 @@ const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
 const GAME_HUD_MOCK_SCENE := preload("res://ui/GameUI/Mock/GameHUDMock.tscn")
 const PLAYER_SCENE := preload("uid://djw510qiudh6e")
 const DEV_MENU_SCENE := preload("res://ui/InGameMenu/DevMenu.tscn")
+const SCOREBOARD_SCENE := preload("res://ui/GameUI/Scenes/Scoreboard.tscn")
 const USE_MOCK_HUD := true
 
 @export var services_config: GameServicesConfig = null
@@ -47,6 +48,7 @@ func _ready() -> void:
 
 	await get_tree().process_frame
 	await get_tree().process_frame
+	_setup_scoreboard()
 	_setup_hud()
 
 	if multiplayer.is_server():
@@ -194,6 +196,13 @@ func _position_players_in_spawns() -> void:
 				# Asignamos la posición en el servidor; MultiplayerSynchronizer se encargará de replicarlo a los clientes
 				player_node.global_position = target_position
 				player_node.net_position = target_position
+
+
+func _setup_scoreboard() -> void:
+	var ds := get_node_or_null("/root/DedicatedServer")
+	if ds and ds.is_dedicated:
+		return
+	add_child(SCOREBOARD_SCENE.instantiate())
 
 
 func _setup_hud() -> void:

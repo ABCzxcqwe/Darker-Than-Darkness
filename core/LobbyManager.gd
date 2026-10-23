@@ -191,6 +191,32 @@ func request_start_match() -> void:
 	MatchCoordinator.start_match_countdown()
 
 
+## Cambio de mapa desde el tablero del hub. Solo el host/sala host puede.
+func request_select_map(map_id: String) -> void:
+	if multiplayer.is_server():
+		_server_select_map(map_id)
+	else:
+		rpc_id(1, "_server_select_map", map_id)
+
+
+@rpc("any_peer", "reliable")
+func _server_select_map(map_id: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	if sender != room_host_peer and not is_host:
+		return
+	if not MapRegistry.has_map(map_id):
+		return
+	if selected_map == map_id:
+		return
+	selected_map = map_id
+	print("[LobbyManager] Mapa de sala cambiado a '%s' por peer %d" % [map_id, sender])
+	_broadcast_lobby_state()
+
+
 @rpc("any_peer", "reliable")
 func request_cancel_start() -> void:
 	if not multiplayer.is_server():
@@ -478,6 +504,14 @@ func _go_to_character_selection(assigned_players: Dictionary):
 	players = assigned_players
 	for lobby in get_tree().get_nodes_in_group("lobby"):
 		lobby.queue_free()
+	# El hub deja de procesar avatares/interacciones mientras dura la partida.
+	# En servidor dedicado la escena queda como shell; en clientes se libera
+	# igual al cambiar a CharacterSelect.
+	for hub in get_tree().get_nodes_in_group("hub_session"):
+		if hub.has_method("prepare_for_match"):
+			hub.prepare_for_match()
+		else:
+			hub.queue_free()
 	var ds := get_node_or_null("/root/DedicatedServer")
 	if not (ds and ds.is_dedicated):
 		get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")

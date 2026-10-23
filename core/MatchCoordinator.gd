@@ -6,6 +6,7 @@ var current_game_manager: Node = null
 var last_match_results: Dictionary = {}
 var _resetting := false
 var _match_starting := false
+var _returning_to_lobby := false
 var _character_select_timer: Timer = null
 var _start_countdown_timer: Timer = null
 
@@ -232,6 +233,35 @@ func _go_to_stats_screen(stats_data: Dictionary) -> void:
 	LobbyManager.current_phase = LobbyManager.GamePhase.ENDED
 
 
+## Cualquier jugador puede pedir volver al lobby cuando la partida terminó.
+## En la arquitectura actual la vuelta es compartida: el primero que la pide
+## devuelve a todos. Cuando exista la sesión/hub, esto pasará a ser un cierre
+## local del overlay de resultados.
+func request_return_to_lobby() -> void:
+	if multiplayer.is_server():
+		_server_return_to_lobby()
+	else:
+		rpc_id(1, "_server_return_to_lobby")
+
+
+@rpc("any_peer", "reliable")
+func _server_return_to_lobby() -> void:
+	if not multiplayer.is_server():
+		return
+	if LobbyManager.current_phase != LobbyManager.GamePhase.ENDED:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	if not LobbyManager.players.has(sender):
+		return
+	if _returning_to_lobby:
+		return
+	_returning_to_lobby = true
+	print("[MatchCoordinator] Peer %d pidió volver al lobby" % sender)
+	host_return_to_lobby_reconfigured()
+
+
 @rpc("any_peer", "call_local", "reliable")
 func host_return_to_lobby_reconfigured() -> void:
 	if not LobbyManager.is_host:
@@ -252,14 +282,16 @@ func host_return_to_lobby_reconfigured() -> void:
 @rpc("authority", "call_local", "reliable")
 func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	_match_starting = false
+	_returning_to_lobby = false
 	stop_character_select_timer()
 	LobbyManager.players = reseted_players
 	# Asegurar que el flag/bakcup del forzado no quede colgado si _calculate no corrió
 	LobbyManager.clear_forced_killer_state()
 	LobbyManager.current_phase = LobbyManager.GamePhase.LOBBY
 	AudioManager.reset_match_audio()
-	if not _is_dedicated_server():
-		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+	# El servidor dedicado también carga el hub: recibe y retransmite el
+	# estado de los avatares entre los clientes.
+	get_tree().change_scene_to_file("res://Maps/Session.tscn")
 
 
 func reset_to_menu() -> void:
@@ -270,6 +302,7 @@ func reset_to_menu() -> void:
 	AudioManager.reset_match_audio()
 	cleanup_game_manager()
 	_match_starting = false
+	_returning_to_lobby = false
 	stop_character_select_timer()
 
 	NetworkManager.disconnect_from_server()

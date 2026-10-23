@@ -27,8 +27,29 @@ func set_client_relay(relay: Node) -> void:
 
 func _ready() -> void:
 	if not multiplayer.is_server():
+		# El cliente no simula el estado: lo recibe del servidor.
+		var relay := _client_relay
+		if relay == null:
+			relay = GameServiceLocator.get_client_relay()
+		if relay and relay.has_signal("game_state_changed"):
+			if not relay.game_state_changed.is_connected(_on_client_game_state_changed):
+				relay.game_state_changed.connect(_on_client_game_state_changed)
+			if relay.has_method("get_game_state"):
+				_apply_client_state(int(relay.get_game_state()))
 		return
 	LobbyManager.player_left.connect(_on_network_player_left)
+
+
+func _on_client_game_state_changed(new_state: int, _old_state: int) -> void:
+	_apply_client_state(new_state)
+
+
+func _apply_client_state(new_state: int) -> void:
+	if new_state < int(State.INTRO) or new_state > int(State.ENDED):
+		return
+	if int(current_state) == new_state:
+		return
+	current_state = new_state
 
 
 func _connect_services() -> void:

@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://core/player/HubAvatar.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Characters/Vessel/assets/idle.png" id="2_idle"]
+[ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="3_font"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(24, 44)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 100.0
+
+[node name="HubAvatar" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, -48)
+scale = Vector2(3, 3)
+texture = ExtResource("2_idle")
+hframes = 4
+frame = 0
+
+[node name="NameTag" type="Label" parent="."]
+z_index = 10
+offset_left = -120.0
+offset_top = -140.0
+offset_right = 120.0
+offset_bottom = -104.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9, 1, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "JUGADOR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -22)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(0, -48)
+zoom = Vector2(1.1, 1.1)
+
+[node name="InteractionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+position = Vector2(0, -20)
+shape = SubResource("CircleShape2D_interaction")

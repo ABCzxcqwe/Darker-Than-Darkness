@@ -131,6 +131,8 @@ func _boot_dedicated() -> void:
 		_start_heartbeat()
 
 	print("[DedicatedServer] Servidor dedicado listo.")
+	# Cargar el hub también en headless: recibe/retransmite el estado de avatares.
+	get_tree().change_scene_to_file.call_deferred("res://Maps/Session.tscn")
 
 
 func _start_heartbeat() -> void:

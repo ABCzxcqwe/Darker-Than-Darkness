@@ -1,0 +1,90 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="1_font"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(1440, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 740)
+
+[node name="HubMap" type="Node2D"]
+
+[node name="Background" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-760, -460, 760, -460, 760, 460, -760, 460)
+color = Color(0.045, 0.055, 0.08, 1)
+
+[node name="Walkable" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-700, -400, 700, -400, 700, 300, -700, 300)
+color = Color(0.11, 0.13, 0.17, 1)
+
+[node name="Board" type="Polygon2D" parent="."]
+position = Vector2(0, -120)
+polygon = PackedVector2Array(-120, -70, 120, -70, 120, 70, -120, 70)
+color = Color(0.16, 0.2, 0.28, 1)
+
+[node name="BoardLabel" type="Label" parent="."]
+offset_left = -100.0
+offset_top = -172.0
+offset_right = 100.0
+offset_bottom = -132.0
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 24
+text = "TABLERO"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LeftShop" type="Polygon2D" parent="."]
+position = Vector2(-520, -90)
+polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
+color = Color(0.22, 0.12, 0.2, 1)
+
+[node name="LeftShopLabel" type="Label" parent="."]
+offset_left = -620.0
+offset_top = -100.0
+offset_right = -420.0
+offset_bottom = -60.0
+theme_override_colors/font_color = Color(1, 0.65, 0.8, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 20
+text = "TIENDA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightShop" type="Polygon2D" parent="."]
+position = Vector2(520, -90)
+polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
+color = Color(0.12, 0.2, 0.24, 1)
+
+[node name="RightShopLabel" type="Label" parent="."]
+offset_left = 420.0
+offset_top = -100.0
+offset_right = 620.0
+offset_bottom = -60.0
+theme_override_colors/font_color = Color(0.55, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 20
+text = "TV"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="BottomShape" type="CollisionShape2D" parent="Walls"]
+position = Vector2(0, 300)
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="TopShape" type="CollisionShape2D" parent="Walls"]
+position = Vector2(0, -400)
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="LeftShape" type="CollisionShape2D" parent="Walls"]
+position = Vector2(-700, -50)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightShape" type="CollisionShape2D" parent="Walls"]
+position = Vector2(700, -50)
+shape = SubResource("RectangleShape2D_wall")

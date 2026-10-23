@@ -50,6 +50,7 @@ signal stats_received(stats: Dictionary)
 
 # ── Estado (lectura síncrona para UI) ────────────────────────────────
 var time_left: float = 0.0
+var _game_state: int = 0  # 0 INTRO / 1 PLAYING / 2 ENDED
 var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
 var _escaped_players: Array[int] = []
 var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
@@ -173,7 +174,13 @@ func _sync_lms_ended() -> void:
 ## Audio
 @rpc("authority", "call_local", "reliable")
 func _sync_game_state(new_state: int, old_state: int) -> void:
+	_game_state = new_state
 	game_state_changed.emit(new_state, old_state)
+
+
+## Último estado recibido del servidor (para servicios creados después del RPC).
+func get_game_state() -> int:
+	return _game_state
 
 
 @rpc("authority", "call_local", "reliable")
@@ -312,6 +319,7 @@ func get_my_stats() -> Dictionary:
 
 func reset_state() -> void:
 	time_left = 0.0
+	_game_state = 0
 	_evolved_slots.clear()
 	_escaped_players.clear()
 	_stamina_cache.clear()

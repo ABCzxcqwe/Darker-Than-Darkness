@@ -23,7 +23,7 @@ const DEFAULT_DEADZONE := 0.2
 const REBINDABLE_KEYBOARD := [
 	"move_up", "move_down", "move_left", "move_right",
 	"ability_0", "ability_1", "ability_2", "ability_3", "ability_4",
-	"interact", "run", "emote_toggle", "confirm",
+	"interact", "world_interact", "scoreboard", "run", "emote_toggle", "confirm",
 ]
 const REBINDABLE_GAMEPAD := [
 	"ability_0", "ability_1", "ability_2", "ability_3", "ability_4",
