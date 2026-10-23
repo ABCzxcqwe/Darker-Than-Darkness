@@ -48,8 +48,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _is_pause_open() -> bool:
-	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
-	return menu != null and menu.has_method("is_open") and menu.is_open()
+	return MenuUtils.is_any_menu_open(get_tree())
 
 
 func _unhandled_input(event: InputEvent) -> void:

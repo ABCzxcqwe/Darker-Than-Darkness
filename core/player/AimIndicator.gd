@@ -23,9 +23,8 @@ func _process(_delta: float) -> void:
 		visible = false
 		return
 
-	# Menú de pausa abierto: ocultar retícula y restaurar el cursor.
-	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
-	if menu and menu.has_method("is_open") and menu.is_open():
+	# Menú de pausa o DevMenu abierto: ocultar retícula y restaurar el cursor.
+	if MenuUtils.is_any_menu_open(get_tree()):
 		visible = false
 		_restore_mouse()
 		return

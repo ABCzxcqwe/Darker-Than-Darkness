@@ -1,25 +1,48 @@
-# res://scenes/MatchStats.gd
+# res://ui/GameUI/scripts/match_stats.gd
+# Overlay mínimo de fin de partida: resultado + botón para volver al lobby/hub.
+# Cualquier jugador puede cerrarlo (no es exclusivo del host).
 extends Control
 
+@onready var title_label: Label = $Label
 @onready var result_label: Label = $ResultLabel
 @onready var host_status_label: Label = $HostStatusLabel
 @onready var reset_room_button: Button = $ResetRoomButton
 
+var _closing := false
+var _retry_timer: Timer = null
+
+
 func _ready() -> void:
 	_record_theme_progress()
-	# 1. Obtener resultados de red de forma segura
+	_setup_texts()
+	_setup_result()
+	_setup_close_button()
+
+
+## Devuelve la traducción si existe; si el CSV todavía no se reimportó,
+## muestra un texto legible en vez de la clave cruda.
+func _tr_or(key: String, fallback: String) -> String:
+	var value := tr(key)
+	return value if value != key else fallback
+
+
+func _setup_texts() -> void:
+	if title_label:
+		title_label.text = _tr_or("HUD_END_TITLE", "RESULTADOS")
+	if host_status_label:
+		host_status_label.text = _tr_or("HUD_END_FINISHED", "PARTIDA FINALIZADA")
+
+
+func _setup_result() -> void:
 	var results: Dictionary = MatchCoordinator.last_match_results
-	
-	# Inicializamos variables por defecto por si el diccionario viene corrupto o vacío
+
 	var reason_code: String = ""
 	var winner_team: String = ""
-	
-	# Extraemos los datos usando .get() SOLAMENTE si results no es nulo y tiene datos
-	if typeof(results) == TYPE_DICTIONARY and not results.is_empty():
-		reason_code = results.get("end_reason", results.get("reason", ""))
-		winner_team = results.get("winner", "")
 
-	# 2. EVALUACIÓN DEFENSIVA (Si no encuentra claves, no crashea)
+	if typeof(results) == TYPE_DICTIONARY and not results.is_empty():
+		reason_code = str(results.get("end_reason", results.get("reason", "")))
+		winner_team = str(results.get("winner", ""))
+
 	if reason_code == "killer_disconnected":
 		result_label.text = tr("HUD_END_KILLER_LEFT")
 		result_label.modulate = Color.CYAN
@@ -27,29 +50,75 @@ func _ready() -> void:
 		result_label.text = tr("HUD_END_KILLER_WIN")
 		result_label.modulate = Color.MAGENTA
 	elif reason_code == "survivors_escaped":
-		var escaped = results.get("escaped_count", 0)
-		var total = results.get("total_survivors", 0)
-		var not_escaped = total - escaped
+		var escaped: int = int(results.get("escaped_count", 0))
+		var total: int = int(results.get("total_survivors", 0))
+		var not_escaped: int = total - escaped
 		if escaped > 0:
 			result_label.text = tr("HUD_END_SURV_ESCAPED") % [escaped, not_escaped]
 		else:
 			result_label.text = tr("HUD_END_SURV_TIME")
 		result_label.modulate = Color.CYAN
 	else:
-		# Fallback por si el cliente se desconectó de golpe y el diccionario se rompió
 		result_label.text = tr("HUD_END_OVER")
 		result_label.modulate = Color.YELLOW
 
-	# 3. Configuración asimétrica de la UI de cierre
-	if LobbyManager.is_host:
-		host_status_label.text = tr("HUD_END_HOST")
-		reset_room_button.visible = true
-		reset_room_button.text = tr("HUD_END_NEW_ROOM")
-		if not reset_room_button.pressed.is_connected(_on_reset_room_pressed):
-			reset_room_button.pressed.connect(_on_reset_room_pressed)
-	else:
-		host_status_label.text = tr("HUD_END_WAIT")
-		reset_room_button.visible = false
+	result_label.add_theme_font_size_override("font_size", 28)
+
+
+func _setup_close_button() -> void:
+	reset_room_button.visible = true
+	reset_room_button.disabled = false
+	reset_room_button.text = _tr_or("HUD_END_BACK_HUB", "VOLVER AL HUB [Z]")
+	reset_room_button.add_theme_font_size_override("font_size", 18)
+	if not reset_room_button.pressed.is_connected(_on_close_pressed):
+		reset_room_button.pressed.connect(_on_close_pressed)
+	reset_room_button.grab_focus()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _closing:
+		return
+
+	var accept: bool = event.is_action_pressed("menu_accept") \
+			or event.is_action_pressed("ui_accept") \
+			or (event is InputEventKey and event.pressed and event.keycode == KEY_Z)
+	var cancel: bool = event.is_action_pressed("menu_cancel") \
+			or event.is_action_pressed("ui_cancel") \
+			or (event is InputEventKey and event.pressed and event.keycode == KEY_X)
+
+	if accept or cancel:
+		var vp := get_viewport()
+		if vp:
+			vp.set_input_as_handled()
+		_on_close_pressed()
+
+
+func _on_close_pressed() -> void:
+	if _closing:
+		return
+	_closing = true
+	reset_room_button.disabled = true
+	reset_room_button.text = _tr_or("HUD_END_RETURNING", "VOLVIENDO...")
+
+	# Timer hijo: si la escena se libera por el cambio al hub, el timer muere
+	# con ella. Si el servidor no responde, permite reintentar.
+	if _retry_timer == null:
+		_retry_timer = Timer.new()
+		_retry_timer.one_shot = true
+		_retry_timer.wait_time = 3.0
+		_retry_timer.timeout.connect(_on_return_timeout)
+		add_child(_retry_timer)
+	_retry_timer.start()
+
+	MatchCoordinator.request_return_to_lobby()
+
+
+func _on_return_timeout() -> void:
+	if not is_inside_tree():
+		return
+	_closing = false
+	reset_room_button.disabled = false
+	reset_room_button.text = _tr_or("HUD_END_BACK_HUB", "VOLVER AL HUB [Z]")
 
 
 func _record_theme_progress() -> void:
@@ -80,18 +149,9 @@ func _record_theme_progress() -> void:
 	elif winner == "killer" or reason == "killer_elimination":
 		i_won = my_role == "killer"
 	elif reason == "survivors_escaped":
-		# Solo survivors que escaparon o siguen vivos cuentan; simplificado: survivors vivos ganan
-		if my_role == "survivor":
-			# Si tenemos coord, verificar escape, sino asumir vivo = ganancia
-			var hes := get_node_or_null("/root/GameServiceLocator")
-			i_won = true
-			# Refinar si MapEventCoordinator disponible (opcional)
-			var mec = get_node_or_null("/root/MatchCoordinator")
-			if mec != null:
-				# no bloquear si no hay info, mantener true para survivors_escaped
-				pass
+		# Se mantiene el comportamiento actual: los survivors cuentan como ganadores.
+		i_won = my_role == "survivor"
 	else:
-		# Fallback winner team
 		if winner != "":
 			i_won = winner == my_role
 	if i_won:
@@ -100,6 +160,3 @@ func _record_theme_progress() -> void:
 		if not was_unlocked and sm.is_theme_unlocked("light"):
 			# Notificación: se auto-activa vía SettingsManager.unlock_theme -> menu_theme
 			print("[MatchStats] ¡Tema LIGHT desbloqueado! Tema auto-activado.")
-
-func _on_reset_room_pressed() -> void:
-	MatchCoordinator.host_return_to_lobby_reconfigured()

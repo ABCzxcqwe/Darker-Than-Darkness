@@ -56,6 +56,21 @@ func get_stamina(peer_id: int) -> float:
 	return _stamina.get(peer_id, 0.0)
 
 
+## Solo dev: fija la stamina de un jugador y sincroniza a los clientes.
+func dev_set_stamina(peer_id: int, value: float) -> void:
+	if not multiplayer.is_server():
+		return
+	if not _stamina.has(peer_id) or not _character_data.has(peer_id):
+		return
+	var max_s: float = float(_character_data[peer_id].stamina_max)
+	var clamped: float = clampf(value, 0.0, max_s)
+	_stamina[peer_id] = clamped
+	_exhausted[peer_id] = -1.0
+	stamina_changed.emit(peer_id, clamped, max_s)
+	if _client_relay:
+		_client_relay.rpc("sync_stamina_to_client", peer_id, clamped, max_s)
+
+
 func has_stamina(peer_id: int) -> bool:
 	if _stamina.has(peer_id):
 		return _stamina[peer_id] > 0.0

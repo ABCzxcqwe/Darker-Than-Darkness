@@ -132,6 +132,20 @@ func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
 	
 	# print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)
 
+## Solo dev: fija el TP de un jugador y sincroniza a los clientes.
+func dev_set_tp(peer_id: int, value: float) -> void:
+	if not multiplayer.is_server():
+		return
+	if not _tp.has(peer_id) or not _character_data.has(peer_id):
+		return
+	var data = _character_data[peer_id]
+	var clamped: float = clampf(value, 0.0, data.tp_max)
+	_tp[peer_id] = clamped
+	tp_changed.emit(peer_id, clamped, data.tp_max)
+	if _client_relay:
+		_client_relay.rpc("sync_tp_to_client", peer_id, clamped, data.tp_max)
+
+
 func consume_tp(peer_id: int, amount: float) -> bool:
 	if not multiplayer.is_server(): return false
 	if not _tp.has(peer_id) or not _character_data.has(peer_id): return false

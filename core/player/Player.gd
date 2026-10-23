@@ -322,8 +322,7 @@ func _exit_tree() -> void:
 ## true si el menú de pausa (desplegable) está abierto. Mientras lo está,
 ## el jugador local no actúa (movilidad, habilidades, etc.) pero el mundo sigue.
 func is_pause_menu_open() -> bool:
-	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
-	return menu != null and menu.has_method("is_open") and menu.is_open()
+	return MenuUtils.is_any_menu_open(get_tree())
 
 
 func _input(event: InputEvent) -> void:
@@ -357,6 +356,14 @@ func _input(event: InputEvent) -> void:
 
 	# ── Emote toggle ──
 	if event.is_action_pressed("emote_toggle"):
+		# L1 + Select abre el DevMenu (solo si este host tiene uno). No dejar
+		# que el mismo Select abra además la barra de emotes.
+		if event is InputEventJoypadButton:
+			var joy_event := event as InputEventJoypadButton
+			if joy_event.button_index == JOY_BUTTON_BACK \
+					and Input.is_joy_button_pressed(joy_event.device, JOY_BUTTON_LEFT_SHOULDER) \
+					and get_tree().get_first_node_in_group(GroupNames.DEV_MENU) != null:
+				return
 		_emote_bar_open = not _emote_bar_open
 		_toggle_emote_bar(_emote_bar_open)
 		return
@@ -588,7 +595,24 @@ func _cancel_ability_selection(slot: int) -> void:
 
 func set_character(char_id: int) -> void:
 	var data: CharacterData = CharacterRegistry.get_character(char_id)
-	if not data: return
+	if not data:
+		# Fallback de red: un cliente con un build distinto puede no tener el
+		# recurso de este ID. Preferimos un personaje válido del bando antes que
+		# dejar el nodo sin character_data (HUD/habilidades rotas).
+		var role := "survivor"
+		var peer_id := get_multiplayer_authority()
+		var lm := get_node_or_null("/root/LobbyManager")
+		if lm and lm.players.has(peer_id):
+			role = String(lm.players[peer_id].get("assigned_role", role))
+		data = CharacterRegistry.get_fallback(role)
+		if not data:
+			push_error("[Player] No se pudo resolver el personaje %d ni construir un fallback para rol '%s'." % [
+				char_id, role
+			])
+			return
+		push_warning("[Player] Personaje %d no disponible en este cliente; usando fallback '%s' (id %d) para peer %d." % [
+			char_id, data.display_name, data.id, peer_id
+		])
 
 	character_data = data
 	health         = data.max_health

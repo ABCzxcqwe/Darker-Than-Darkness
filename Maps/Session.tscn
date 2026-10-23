@@ -1,0 +1,77 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Maps/session.gd" id="1_session"]
+[ext_resource type="PackedScene" path="res://Maps/Hub/HubMap.tscn" id="2_hubmap"]
+[ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="4_font"]
+[ext_resource type="PackedScene" path="res://Maps/Hub/HubBoard.tscn" id="5_board"]
+[ext_resource type="PackedScene" path="res://ui/Hub/BoardPanel.tscn" id="6_board_panel"]
+
+[node name="Session" type="Node2D"]
+script = ExtResource("1_session")
+
+[node name="HubArea" type="Node2D" parent="."]
+
+[node name="HubMap" parent="HubArea" instance=ExtResource("2_hubmap")]
+
+[node name="HubSpawn" type="Marker2D" parent="HubArea"]
+position = Vector2(0, 200)
+
+[node name="HubBoard" parent="HubArea" instance=ExtResource("5_board")]
+position = Vector2(0, -120)
+
+[node name="MatchArea" type="Node2D" parent="."]
+position = Vector2(50000, 50000)
+
+[node name="MapContainer" type="Node2D" parent="MatchArea"]
+
+[node name="Actors" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StatusLabel" type="Label" parent="UI"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 900.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "HUB — ACERCATE AL TABLERO"
+vertical_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="UI"]
+visible = false
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -150.0
+offset_right = 320.0
+offset_bottom = -108.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.8, 1, 0.8, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "[E] INTERACTUAR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ControlsLabel" type="Label" parent="UI"]
+anchors_preset = -1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -80.0
+offset_right = 900.0
+offset_bottom = -40.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "WASD/FLECHAS MOVER   —   E INTERACTUAR   —   X SALIR"
+vertical_alignment = 1
+
+[node name="BoardPanel" parent="UI" instance=ExtResource("6_board_panel")]

@@ -62,7 +62,7 @@ func _on_start_pressed():
 	AudioManager.play_sfx_ui(SfxId.SELECT)
 	if not LobbyManager.is_host:
 		return
-	if LobbyManager.players.size() < 2:
+	if LobbyManager.players.size() < 2 and not DevMode.is_enabled():
 		status_label.text = "No hay suficientes jugadores."
 		return
 	

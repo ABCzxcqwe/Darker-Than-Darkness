@@ -672,7 +672,7 @@ func _on_connection_succeeded() -> void:
 	_joining = false
 	_busy = false
 	if is_inside_tree():
-		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+		get_tree().change_scene_to_file("res://Maps/Session.tscn")
 
 func _on_connection_failed() -> void:
 	if _mode == MODE_LAN:

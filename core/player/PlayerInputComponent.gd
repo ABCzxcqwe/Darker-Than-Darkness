@@ -107,7 +107,7 @@ func get_last_aim_dir() -> Vector2:
 ## Teclado: teclas 1-4. Mando: DPAD (arriba, derecha, abajo, izquierda).
 ## Devuelve -1 si el evento no selecciona ningún emote.
 func resolve_emote_slot(event: InputEvent) -> int:
-	if event is InputEventJoypadButton and event.pressed and not event.echo:
+	if event is InputEventJoypadButton and event.pressed:
 		match event.button_index:
 			JOY_BUTTON_DPAD_UP: return 0
 			JOY_BUTTON_DPAD_RIGHT: return 1

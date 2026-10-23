@@ -28,6 +28,7 @@ script = ExtResource("2_cd")
 id = 7
 display_name = "KING_LANZA"
 team = "killer"
+dev_only = true
 speed = 500.0
 max_health = 750
 size_x = 70

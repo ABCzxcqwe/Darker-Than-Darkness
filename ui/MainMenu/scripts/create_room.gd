@@ -463,7 +463,7 @@ func _on_server_created() -> void:
 	_busy = false
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/Lobby.tscn")
+	get_tree().change_scene_to_file("res://Maps/Session.tscn")
 
 func _on_create_failed() -> void:
 	_busy = false

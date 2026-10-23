@@ -1032,7 +1032,7 @@ func _on_start_pressed() -> void:
 	var is_room_host: bool = lm.has_method("is_room_host") and lm.is_room_host()
 	if not is_host and not is_room_host:
 		return
-	if lm.players.size() < 2:
+	if lm.players.size() < 2 and not DevMode.is_enabled():
 		if _status_label:
 			_status_label.text = tr("LOBBY_ST_NOT_ENOUGH")
 			_status_label.modulate = Color(0, 1, 0, 1)
