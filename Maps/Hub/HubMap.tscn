@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://bnw2h8r6l4e0j"]
 
-[ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="1_font"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="1_font"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(1440, 40)
@@ -8,22 +8,22 @@ size = Vector2(1440, 40)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 740)
 
-[node name="HubMap" type="Node2D"]
+[node name="HubMap" type="Node2D" unique_id=827354402]
 
-[node name="Background" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-760, -460, 760, -460, 760, 460, -760, 460)
+[node name="Background" type="Polygon2D" parent="." unique_id=603705786]
 color = Color(0.045, 0.055, 0.08, 1)
+polygon = PackedVector2Array(-760, -460, 760, -460, 760, 460, -760, 460)
 
-[node name="Walkable" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-700, -400, 700, -400, 700, 300, -700, 300)
+[node name="Walkable" type="Polygon2D" parent="." unique_id=1261305208]
 color = Color(0.11, 0.13, 0.17, 1)
+polygon = PackedVector2Array(-700, -400, 700, -400, 700, 300, -700, 300)
 
-[node name="Board" type="Polygon2D" parent="."]
+[node name="Board" type="Polygon2D" parent="." unique_id=742170524]
 position = Vector2(0, -120)
-polygon = PackedVector2Array(-120, -70, 120, -70, 120, 70, -120, 70)
 color = Color(0.16, 0.2, 0.28, 1)
+polygon = PackedVector2Array(-120, -70, 120, -70, 120, 70, -120, 70)
 
-[node name="BoardLabel" type="Label" parent="."]
+[node name="BoardLabel" type="Label" parent="." unique_id=431761460]
 offset_left = -100.0
 offset_top = -172.0
 offset_right = 100.0
@@ -35,12 +35,12 @@ text = "TABLERO"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LeftShop" type="Polygon2D" parent="."]
+[node name="LeftShop" type="Polygon2D" parent="." unique_id=1864798982]
 position = Vector2(-520, -90)
-polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
 color = Color(0.22, 0.12, 0.2, 1)
+polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
 
-[node name="LeftShopLabel" type="Label" parent="."]
+[node name="LeftShopLabel" type="Label" parent="." unique_id=122575909]
 offset_left = -620.0
 offset_top = -100.0
 offset_right = -420.0
@@ -52,12 +52,12 @@ text = "TIENDA"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RightShop" type="Polygon2D" parent="."]
+[node name="RightShop" type="Polygon2D" parent="." unique_id=1131196814]
 position = Vector2(520, -90)
-polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
 color = Color(0.12, 0.2, 0.24, 1)
+polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
 
-[node name="RightShopLabel" type="Label" parent="."]
+[node name="RightShopLabel" type="Label" parent="." unique_id=1875562835]
 offset_left = 420.0
 offset_top = -100.0
 offset_right = 620.0
@@ -69,22 +69,21 @@ text = "TV"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Walls" type="StaticBody2D" parent="."]
-collision_layer = 1
+[node name="Walls" type="StaticBody2D" parent="." unique_id=966582910]
 collision_mask = 2
 
-[node name="BottomShape" type="CollisionShape2D" parent="Walls"]
+[node name="BottomShape" type="CollisionShape2D" parent="Walls" unique_id=50489505]
 position = Vector2(0, 300)
 shape = SubResource("RectangleShape2D_floor")
 
-[node name="TopShape" type="CollisionShape2D" parent="Walls"]
+[node name="TopShape" type="CollisionShape2D" parent="Walls" unique_id=1642145992]
 position = Vector2(0, -400)
 shape = SubResource("RectangleShape2D_floor")
 
-[node name="LeftShape" type="CollisionShape2D" parent="Walls"]
+[node name="LeftShape" type="CollisionShape2D" parent="Walls" unique_id=1317450199]
 position = Vector2(-700, -50)
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="RightShape" type="CollisionShape2D" parent="Walls"]
+[node name="RightShape" type="CollisionShape2D" parent="Walls" unique_id=311668788]
 position = Vector2(700, -50)
 shape = SubResource("RectangleShape2D_wall")
