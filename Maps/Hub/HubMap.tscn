@@ -1,33 +1,44 @@
 [gd_scene format=3 uid="uid://bnw2h8r6l4e0j"]
 
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="1_font"]
+[ext_resource type="PackedScene" uid="uid://cbiu5c23w71d4" path="res://Maps/Hub/CastleTownTilesDemo.tscn" id="1_hoq55"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
-size = Vector2(1440, 40)
+size = Vector2(754, 24)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
-size = Vector2(40, 740)
+size = Vector2(40, 1097)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2bsax"]
+size = Vector2(3190, 23)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_2aln1"]
+a = Vector2(-1610, 1231)
+b = Vector2(-1444, 726)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_2bsax"]
+a = Vector2(-1706, 762)
+b = Vector2(-1539, 1266)
 
 [node name="HubMap" type="Node2D" unique_id=827354402]
 
-[node name="Background" type="Polygon2D" parent="." unique_id=603705786]
-color = Color(0.045, 0.055, 0.08, 1)
-polygon = PackedVector2Array(-760, -460, 760, -460, 760, 460, -760, 460)
-
-[node name="Walkable" type="Polygon2D" parent="." unique_id=1261305208]
-color = Color(0.11, 0.13, 0.17, 1)
-polygon = PackedVector2Array(-700, -400, 700, -400, 700, 300, -700, 300)
+[node name="CastleTownTilesDemo" parent="." unique_id=1850868203 instance=ExtResource("1_hoq55")]
+z_index = -10
+position = Vector2(-215.00002, -969)
+scale = Vector2(3, 3)
 
 [node name="Board" type="Polygon2D" parent="." unique_id=742170524]
-position = Vector2(0, -120)
+position = Vector2(-108, -1161)
 color = Color(0.16, 0.2, 0.28, 1)
 polygon = PackedVector2Array(-120, -70, 120, -70, 120, 70, -120, 70)
 
-[node name="BoardLabel" type="Label" parent="." unique_id=431761460]
-offset_left = -100.0
-offset_top = -172.0
-offset_right = 100.0
-offset_bottom = -132.0
+[node name="BoardLabel" type="Label" parent="Board" unique_id=431761460]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.6, 0.6)
 theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 24
@@ -36,15 +47,16 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LeftShop" type="Polygon2D" parent="." unique_id=1864798982]
-position = Vector2(-520, -90)
+position = Vector2(-370, -755)
 color = Color(0.22, 0.12, 0.2, 1)
-polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
+polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -8.45752, 60, -90, 60)
 
-[node name="LeftShopLabel" type="Label" parent="." unique_id=122575909]
-offset_left = -620.0
-offset_top = -100.0
-offset_right = -420.0
-offset_bottom = -60.0
+[node name="LeftShopLabel" type="Label" parent="LeftShop" unique_id=122575909]
+offset_left = -100.0
+offset_top = -10.0
+offset_right = 100.0
+offset_bottom = 31.0
+scale = Vector2(0.6, 0.6)
 theme_override_colors/font_color = Color(1, 0.65, 0.8, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 20
@@ -53,15 +65,16 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="RightShop" type="Polygon2D" parent="." unique_id=1131196814]
-position = Vector2(520, -90)
+position = Vector2(238, -738)
 color = Color(0.12, 0.2, 0.24, 1)
 polygon = PackedVector2Array(-90, -60, 90, -60, 90, 60, -90, 60)
 
-[node name="RightShopLabel" type="Label" parent="." unique_id=1875562835]
-offset_left = 420.0
-offset_top = -100.0
-offset_right = 620.0
-offset_bottom = -60.0
+[node name="RightShopLabel" type="Label" parent="RightShop" unique_id=1875562835]
+offset_left = -58.0
+offset_top = -6.0
+offset_right = 142.0
+offset_bottom = 35.0
+scale = Vector2(0.6, 0.6)
 theme_override_colors/font_color = Color(0.55, 0.9, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 20
@@ -70,20 +83,43 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Walls" type="StaticBody2D" parent="." unique_id=966582910]
+position = Vector2(-86, -387)
+scale = Vector2(0.6, 0.6)
 collision_mask = 2
 
 [node name="BottomShape" type="CollisionShape2D" parent="Walls" unique_id=50489505]
-position = Vector2(0, 300)
+position = Vector2(1062, 719)
 shape = SubResource("RectangleShape2D_floor")
 
 [node name="TopShape" type="CollisionShape2D" parent="Walls" unique_id=1642145992]
-position = Vector2(0, -400)
+position = Vector2(-1092, 719)
 shape = SubResource("RectangleShape2D_floor")
 
 [node name="LeftShape" type="CollisionShape2D" parent="Walls" unique_id=1317450199]
-position = Vector2(-700, -50)
+position = Vector2(-895, -217.5)
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightShape" type="CollisionShape2D" parent="Walls" unique_id=311668788]
-position = Vector2(700, -50)
+position = Vector2(865, -217.5)
 shape = SubResource("RectangleShape2D_wall")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Walls" unique_id=1276729042]
+polygon = PackedVector2Array(-875, -766, -825, -819, -525, -819, -460, -824, -440, -839, -430, -859, -420, -909, -395, -1019, -390, -1049, -390, -1064, -395, -1124, -435, -1229, -440, -1249, -440, -1379, -415, -1399, -360, -1444, -340, -1444, -280, -1469, 250, -1469, 310, -1444, 330, -1444, 365, -1414, 395, -1394, 395, -1184, 390, -1184, 375, -1154, 370, -1139, 365, -1124, 365, -1094, 360, -1064, 360, -1049, 365, -1019, 375, -989, 390, -959, 390, -929, 390, -909, 395, -884, 400, -859, 410, -839, 430, -824, 495, -819, 808, -819, 845, -766, 927, -766, 927, -1225, -71, -1700, -971, -1183, -971, -766)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Walls" unique_id=1276875677]
+polygon = PackedVector2Array(-875, 331, -715, 331, -715, 707, -875, 707)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="Walls" unique_id=734906067]
+position = Vector2(1560, 0)
+polygon = PackedVector2Array(-875, 331, -715, 331, -715, 707, -875, 707)
+
+[node name="TopShape2" type="CollisionShape2D" parent="Walls" unique_id=80831133]
+position = Vector2(-15, 1242.5)
+shape = SubResource("RectangleShape2D_2bsax")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls" unique_id=738677958]
+shape = SubResource("SegmentShape2D_2aln1")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Walls" unique_id=68635475]
+position = Vector2(3123, -36)
+shape = SubResource("SegmentShape2D_2bsax")

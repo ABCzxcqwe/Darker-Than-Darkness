@@ -1,0 +1,1662 @@
+{
+  "source": "res://sprites/CastleTown.png",
+  "source_size": [
+	1611,
+	949
+  ],
+  "padding": 1,
+  "padding_note": "Cada sprite tiene 1 px transparente en los cuatro lados. sheet_rect incluye ese margen; content_rect es el dibujo exacto.",
+  "filter": "nearest (project setting: textures/canvas_textures/default_texture_filter=0)",
+  "total_sprites": 43,
+  "sheets": {
+	"buildings": {
+	  "file": "sheets/buildings.png",
+	  "size": [
+		657,
+		296
+	  ],
+	  "sprite_count": 12,
+	  "description": "Edificios normales: cafeteria, panaderia, Party Dojo, musica, TV, shop y torre del castillo."
+	},
+	"buildings_winter": {
+	  "file": "sheets/buildings_winter.png",
+	  "size": [
+		420,
+		284
+	  ],
+	  "sprite_count": 6,
+	  "description": "Variantes navidenas de los edificios."
+	},
+	"landmarks": {
+	  "file": "sheets/landmarks.png",
+	  "size": [
+		778,
+		360
+	  ],
+	  "sprite_count": 6,
+	  "description": "Piezas grandes: castillo frontal, casa grande, ascensor, cueva, torreon y cartel TV."
+	},
+	"decor": {
+	  "file": "sheets/decor.png",
+	  "size": [
+		483,
+		221
+	  ],
+	  "sprite_count": 13,
+	  "description": "Decoracion: arbol, corona, baston, banners, escalera, letrero, TVs arcade y props de tienda."
+	},
+	"walls": {
+	  "file": "sheets/walls.png",
+	  "size": [
+		644,
+		736
+	  ],
+	  "sprite_count": 6,
+	  "description": "Paneles de castillo (fondo negro opaco) y bandas de muralla."
+	}
+  },
+  "assets": {
+	"castle_tower": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		336,
+		73,
+		173
+	  ],
+	  "content_rect": [
+		1,
+		1,
+		73,
+		173
+	  ],
+	  "sheet_rect": [
+		0,
+		0,
+		75,
+		175
+	  ],
+	  "size": [
+		75,
+		175
+	  ],
+	  "content_size": [
+		73,
+		173
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-86.5
+	  ],
+	  "atlas_texture": "atlas/buildings/castle_tower.tres",
+	  "notes": ""
+	},
+	"cafe": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		791,
+		350,
+		131,
+		159
+	  ],
+	  "content_rect": [
+		76,
+		1,
+		131,
+		159
+	  ],
+	  "sheet_rect": [
+		75,
+		0,
+		133,
+		161
+	  ],
+	  "size": [
+		133,
+		161
+	  ],
+	  "content_size": [
+		131,
+		159
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-79.5
+	  ],
+	  "atlas_texture": "atlas/buildings/cafe.tres",
+	  "notes": "Incluye las burbujas de vapor separadas."
+	},
+	"bakery": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		218,
+		98,
+		117
+	  ],
+	  "content_rect": [
+		209,
+		1,
+		98,
+		117
+	  ],
+	  "sheet_rect": [
+		208,
+		0,
+		100,
+		119
+	  ],
+	  "size": [
+		100,
+		119
+	  ],
+	  "content_size": [
+		98,
+		117
+	  ],
+	  "ground_inset_bottom": 6,
+	  "anchor_offset": [
+		0,
+		-53.5
+	  ],
+	  "atlas_texture": "atlas/buildings/bakery.tres",
+	  "notes": "Incluye el cartel separado; la linea de piso queda 6 px sobre el borde inferior."
+	},
+	"shop": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		1187,
+		395,
+		104,
+		113
+	  ],
+	  "content_rect": [
+		309,
+		1,
+		104,
+		113
+	  ],
+	  "sheet_rect": [
+		308,
+		0,
+		106,
+		115
+	  ],
+	  "size": [
+		106,
+		115
+	  ],
+	  "content_size": [
+		104,
+		113
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-56.5
+	  ],
+	  "atlas_texture": "atlas/buildings/shop.tres",
+	  "notes": ""
+	},
+	"tv_shop": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		1208,
+		237,
+		96,
+		97
+	  ],
+	  "content_rect": [
+		415,
+		1,
+		96,
+		97
+	  ],
+	  "sheet_rect": [
+		414,
+		0,
+		98,
+		99
+	  ],
+	  "size": [
+		98,
+		99
+	  ],
+	  "content_size": [
+		96,
+		97
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-48.5
+	  ],
+	  "atlas_texture": "atlas/buildings/tv_shop.tres",
+	  "notes": ""
+	},
+	"tv_shop_alt": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "alt",
+	  "source_rect": [
+		1305,
+		237,
+		96,
+		97
+	  ],
+	  "content_rect": [
+		513,
+		1,
+		96,
+		97
+	  ],
+	  "sheet_rect": [
+		512,
+		0,
+		98,
+		99
+	  ],
+	  "size": [
+		98,
+		99
+	  ],
+	  "content_size": [
+		96,
+		97
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-48.5
+	  ],
+	  "atlas_texture": "atlas/buildings/tv_shop_alt.tres",
+	  "notes": ""
+	},
+	"cafe_plain": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "plain",
+	  "source_rect": [
+		923,
+		390,
+		131,
+		119
+	  ],
+	  "content_rect": [
+		1,
+		176,
+		131,
+		119
+	  ],
+	  "sheet_rect": [
+		0,
+		175,
+		133,
+		121
+	  ],
+	  "size": [
+		133,
+		121
+	  ],
+	  "content_size": [
+		131,
+		119
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-59.5
+	  ],
+	  "atlas_texture": "atlas/buildings/cafe_plain.tres",
+	  "notes": ""
+	},
+	"party_dojo": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		94,
+		142,
+		98
+	  ],
+	  "content_rect": [
+		134,
+		176,
+		142,
+		98
+	  ],
+	  "sheet_rect": [
+		133,
+		175,
+		144,
+		100
+	  ],
+	  "size": [
+		144,
+		100
+	  ],
+	  "content_size": [
+		142,
+		98
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-49.0
+	  ],
+	  "atlas_texture": "atlas/buildings/party_dojo.tres",
+	  "notes": "Incluye el cartel y los detalles separados de la izquierda."
+	},
+	"party_dojo_alt": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "alt",
+	  "source_rect": [
+		786,
+		94,
+		121,
+		98
+	  ],
+	  "content_rect": [
+		278,
+		176,
+		121,
+		98
+	  ],
+	  "sheet_rect": [
+		277,
+		175,
+		123,
+		100
+	  ],
+	  "size": [
+		123,
+		100
+	  ],
+	  "content_size": [
+		121,
+		98
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-49.0
+	  ],
+	  "atlas_texture": "atlas/buildings/party_dojo_alt.tres",
+	  "notes": "Incluye el cartel y los detalles separados de la izquierda."
+	},
+	"bakery_plain": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "plain",
+	  "source_rect": [
+		744,
+		224,
+		79,
+		111
+	  ],
+	  "content_rect": [
+		401,
+		176,
+		79,
+		111
+	  ],
+	  "sheet_rect": [
+		400,
+		175,
+		81,
+		113
+	  ],
+	  "size": [
+		81,
+		113
+	  ],
+	  "content_size": [
+		79,
+		111
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-55.5
+	  ],
+	  "atlas_texture": "atlas/buildings/bakery_plain.tres",
+	  "notes": ""
+	},
+	"music_shop": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "normal",
+	  "source_rect": [
+		931,
+		252,
+		86,
+		83
+	  ],
+	  "content_rect": [
+		482,
+		176,
+		86,
+		83
+	  ],
+	  "sheet_rect": [
+		481,
+		175,
+		88,
+		85
+	  ],
+	  "size": [
+		88,
+		85
+	  ],
+	  "content_size": [
+		86,
+		83
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-41.5
+	  ],
+	  "atlas_texture": "atlas/buildings/music_shop.tres",
+	  "notes": ""
+	},
+	"music_shop_alt": {
+	  "sheet": "buildings",
+	  "sheet_file": "sheets/buildings.png",
+	  "category": "building",
+	  "variant": "alt",
+	  "source_rect": [
+		1020,
+		252,
+		86,
+		83
+	  ],
+	  "content_rect": [
+		570,
+		176,
+		86,
+		83
+	  ],
+	  "sheet_rect": [
+		569,
+		175,
+		88,
+		85
+	  ],
+	  "size": [
+		88,
+		85
+	  ],
+	  "content_size": [
+		86,
+		83
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-41.5
+	  ],
+	  "atlas_texture": "atlas/buildings/music_shop_alt.tres",
+	  "notes": ""
+	},
+	"castle_tower_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		717,
+		336,
+		73,
+		173
+	  ],
+	  "content_rect": [
+		1,
+		1,
+		73,
+		173
+	  ],
+	  "sheet_rect": [
+		0,
+		0,
+		75,
+		175
+	  ],
+	  "size": [
+		75,
+		175
+	  ],
+	  "content_size": [
+		73,
+		173
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-86.5
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/castle_tower_winter.tres",
+	  "notes": ""
+	},
+	"cafe_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		1055,
+		350,
+		131,
+		159
+	  ],
+	  "content_rect": [
+		76,
+		1,
+		131,
+		159
+	  ],
+	  "sheet_rect": [
+		75,
+		0,
+		133,
+		161
+	  ],
+	  "size": [
+		133,
+		161
+	  ],
+	  "content_size": [
+		131,
+		159
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-79.5
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/cafe_winter.tres",
+	  "notes": "Incluye la burbuja de vapor separada."
+	},
+	"bakery_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		826,
+		205,
+		104,
+		130
+	  ],
+	  "content_rect": [
+		209,
+		1,
+		104,
+		130
+	  ],
+	  "sheet_rect": [
+		208,
+		0,
+		106,
+		132
+	  ],
+	  "size": [
+		106,
+		132
+	  ],
+	  "content_size": [
+		104,
+		130
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-65.0
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/bakery_winter.tres",
+	  "notes": ""
+	},
+	"shop_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		1292,
+		387,
+		104,
+		122
+	  ],
+	  "content_rect": [
+		315,
+		1,
+		104,
+		122
+	  ],
+	  "sheet_rect": [
+		314,
+		0,
+		106,
+		124
+	  ],
+	  "size": [
+		106,
+		124
+	  ],
+	  "content_size": [
+		104,
+		122
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-61.0
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/shop_winter.tres",
+	  "notes": ""
+	},
+	"party_dojo_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		929,
+		85,
+		142,
+		107
+	  ],
+	  "content_rect": [
+		1,
+		176,
+		142,
+		107
+	  ],
+	  "sheet_rect": [
+		0,
+		175,
+		144,
+		109
+	  ],
+	  "size": [
+		144,
+		109
+	  ],
+	  "content_size": [
+		142,
+		107
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-53.5
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/party_dojo_winter.tres",
+	  "notes": ""
+	},
+	"music_shop_winter": {
+	  "sheet": "buildings_winter",
+	  "sheet_file": "sheets/buildings_winter.png",
+	  "category": "building",
+	  "variant": "winter",
+	  "source_rect": [
+		1109,
+		233,
+		98,
+		102
+	  ],
+	  "content_rect": [
+		145,
+		176,
+		98,
+		102
+	  ],
+	  "sheet_rect": [
+		144,
+		175,
+		100,
+		104
+	  ],
+	  "size": [
+		100,
+		104
+	  ],
+	  "content_size": [
+		98,
+		102
+	  ],
+	  "ground_inset_bottom": 1,
+	  "anchor_offset": [
+		0,
+		-51.0
+	  ],
+	  "atlas_texture": "atlas/buildings_winter/music_shop_winter.tres",
+	  "notes": ""
+	},
+	"big_house": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		1402,
+		1,
+		208,
+		226
+	  ],
+	  "content_rect": [
+		1,
+		1,
+		208,
+		226
+	  ],
+	  "sheet_rect": [
+		0,
+		0,
+		210,
+		228
+	  ],
+	  "size": [
+		210,
+		228
+	  ],
+	  "content_size": [
+		208,
+		226
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/big_house.tres",
+	  "notes": ""
+	},
+	"cave": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		1039,
+		768,
+		240,
+		180
+	  ],
+	  "content_rect": [
+		211,
+		1,
+		240,
+		180
+	  ],
+	  "sheet_rect": [
+		210,
+		0,
+		242,
+		182
+	  ],
+	  "size": [
+		242,
+		182
+	  ],
+	  "content_size": [
+		240,
+		180
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/cave.tres",
+	  "notes": ""
+	},
+	"castle_front": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		1283,
+		797,
+		324,
+		151
+	  ],
+	  "content_rect": [
+		453,
+		1,
+		324,
+		151
+	  ],
+	  "sheet_rect": [
+		452,
+		0,
+		326,
+		153
+	  ],
+	  "size": [
+		326,
+		153
+	  ],
+	  "content_size": [
+		324,
+		151
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/castle_front.tres",
+	  "notes": ""
+	},
+	"elevator": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		1300,
+		665,
+		308,
+		130
+	  ],
+	  "content_rect": [
+		1,
+		229,
+		308,
+		130
+	  ],
+	  "sheet_rect": [
+		0,
+		228,
+		310,
+		132
+	  ],
+	  "size": [
+		310,
+		132
+	  ],
+	  "content_size": [
+		308,
+		130
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/elevator.tres",
+	  "notes": ""
+	},
+	"tv_sign": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		1306,
+		139,
+		94,
+		96
+	  ],
+	  "content_rect": [
+		311,
+		229,
+		94,
+		96
+	  ],
+	  "sheet_rect": [
+		310,
+		228,
+		96,
+		98
+	  ],
+	  "size": [
+		96,
+		98
+	  ],
+	  "content_size": [
+		94,
+		96
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/tv_sign.tres",
+	  "notes": ""
+	},
+	"skyline_tower": {
+	  "sheet": "landmarks",
+	  "sheet_file": "sheets/landmarks.png",
+	  "category": "landmark",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		1,
+		79,
+		83
+	  ],
+	  "content_rect": [
+		407,
+		229,
+		79,
+		83
+	  ],
+	  "sheet_rect": [
+		406,
+		228,
+		81,
+		85
+	  ],
+	  "size": [
+		81,
+		85
+	  ],
+	  "content_size": [
+		79,
+		83
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/landmarks/skyline_tower.tres",
+	  "notes": ""
+	},
+	"tree": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "winter",
+	  "source_rect": [
+		816,
+		516,
+		64,
+		107
+	  ],
+	  "content_rect": [
+		1,
+		1,
+		64,
+		107
+	  ],
+	  "sheet_rect": [
+		0,
+		0,
+		66,
+		109
+	  ],
+	  "size": [
+		66,
+		109
+	  ],
+	  "content_size": [
+		64,
+		107
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/tree.tres",
+	  "notes": "Decoracion navidena."
+	},
+	"pink_counter": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		536,
+		90,
+		87
+	  ],
+	  "content_rect": [
+		67,
+		1,
+		90,
+		87
+	  ],
+	  "sheet_rect": [
+		66,
+		0,
+		92,
+		89
+	  ],
+	  "size": [
+		92,
+		89
+	  ],
+	  "content_size": [
+		90,
+		87
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/pink_counter.tres",
+	  "notes": ""
+	},
+	"arcade_tv_c": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		1450,
+		314,
+		80,
+		97
+	  ],
+	  "content_rect": [
+		159,
+		1,
+		80,
+		97
+	  ],
+	  "sheet_rect": [
+		158,
+		0,
+		82,
+		99
+	  ],
+	  "size": [
+		82,
+		99
+	  ],
+	  "content_size": [
+		80,
+		97
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/arcade_tv_c.tres",
+	  "notes": ""
+	},
+	"arcade_tv_d": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		1531,
+		314,
+		79,
+		97
+	  ],
+	  "content_rect": [
+		241,
+		1,
+		79,
+		97
+	  ],
+	  "sheet_rect": [
+		240,
+		0,
+		81,
+		99
+	  ],
+	  "size": [
+		81,
+		99
+	  ],
+	  "content_size": [
+		79,
+		97
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/arcade_tv_d.tres",
+	  "notes": ""
+	},
+	"arcade_tv_a": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		1450,
+		230,
+		79,
+		83
+	  ],
+	  "content_rect": [
+		322,
+		1,
+		79,
+		83
+	  ],
+	  "sheet_rect": [
+		321,
+		0,
+		81,
+		85
+	  ],
+	  "size": [
+		81,
+		85
+	  ],
+	  "content_size": [
+		79,
+		83
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/arcade_tv_a.tres",
+	  "notes": ""
+	},
+	"arcade_tv_b": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		1531,
+		230,
+		79,
+		83
+	  ],
+	  "content_rect": [
+		403,
+		1,
+		79,
+		83
+	  ],
+	  "sheet_rect": [
+		402,
+		0,
+		81,
+		85
+	  ],
+	  "size": [
+		81,
+		85
+	  ],
+	  "content_size": [
+		79,
+		83
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/arcade_tv_b.tres",
+	  "notes": ""
+	},
+	"banner_welcome_a": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "winter",
+	  "source_rect": [
+		972,
+		543,
+		138,
+		80
+	  ],
+	  "content_rect": [
+		1,
+		110,
+		138,
+		80
+	  ],
+	  "sheet_rect": [
+		0,
+		109,
+		140,
+		82
+	  ],
+	  "size": [
+		140,
+		82
+	  ],
+	  "content_size": [
+		138,
+		80
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/banner_welcome_a.tres",
+	  "notes": "Decoracion navidena."
+	},
+	"banner_welcome_b": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "winter",
+	  "source_rect": [
+		1111,
+		543,
+		138,
+		80
+	  ],
+	  "content_rect": [
+		141,
+		110,
+		138,
+		80
+	  ],
+	  "sheet_rect": [
+		140,
+		109,
+		140,
+		82
+	  ],
+	  "size": [
+		140,
+		82
+	  ],
+	  "content_size": [
+		138,
+		80
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/banner_welcome_b.tres",
+	  "notes": "Decoracion navidena."
+	},
+	"blue_machine": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		734,
+		558,
+		43,
+		65
+	  ],
+	  "content_rect": [
+		281,
+		110,
+		43,
+		65
+	  ],
+	  "sheet_rect": [
+		280,
+		109,
+		45,
+		67
+	  ],
+	  "size": [
+		45,
+		67
+	  ],
+	  "content_size": [
+		43,
+		65
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/blue_machine.tres",
+	  "notes": ""
+	},
+	"wreath": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "winter",
+	  "source_rect": [
+		881,
+		565,
+		52,
+		58
+	  ],
+	  "content_rect": [
+		326,
+		110,
+		52,
+		58
+	  ],
+	  "sheet_rect": [
+		325,
+		109,
+		54,
+		60
+	  ],
+	  "size": [
+		54,
+		60
+	  ],
+	  "content_size": [
+		52,
+		58
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/wreath.tres",
+	  "notes": "Decoracion navidena."
+	},
+	"ladder": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		1250,
+		576,
+		32,
+		47
+	  ],
+	  "content_rect": [
+		380,
+		110,
+		32,
+		47
+	  ],
+	  "sheet_rect": [
+		379,
+		109,
+		34,
+		49
+	  ],
+	  "size": [
+		34,
+		49
+	  ],
+	  "content_size": [
+		32,
+		47
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/ladder.tres",
+	  "notes": ""
+	},
+	"candy_cane": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "winter",
+	  "source_rect": [
+		934,
+		595,
+		37,
+		28
+	  ],
+	  "content_rect": [
+		1,
+		192,
+		37,
+		28
+	  ],
+	  "sheet_rect": [
+		0,
+		191,
+		39,
+		30
+	  ],
+	  "size": [
+		39,
+		30
+	  ],
+	  "content_size": [
+		37,
+		28
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/candy_cane.tres",
+	  "notes": "Decoracion navidena."
+	},
+	"racing_sign": {
+	  "sheet": "decor",
+	  "sheet_file": "sheets/decor.png",
+	  "category": "decor",
+	  "variant": "normal",
+	  "source_rect": [
+		643,
+		510,
+		111,
+		25
+	  ],
+	  "content_rect": [
+		40,
+		192,
+		111,
+		25
+	  ],
+	  "sheet_rect": [
+		39,
+		191,
+		113,
+		27
+	  ],
+	  "size": [
+		113,
+		27
+	  ],
+	  "content_size": [
+		111,
+		25
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/decor/racing_sign.tres",
+	  "notes": ""
+	},
+	"castle_panel_a": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		1,
+		158,
+		320,
+		580
+	  ],
+	  "content_rect": [
+		1,
+		1,
+		320,
+		580
+	  ],
+	  "sheet_rect": [
+		0,
+		0,
+		322,
+		582
+	  ],
+	  "size": [
+		322,
+		582
+	  ],
+	  "content_size": [
+		320,
+		580
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/castle_panel_a.tres",
+	  "notes": "Fondo negro opaco; no es una capa transparente."
+	},
+	"castle_panel_b": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		322,
+		158,
+		320,
+		580
+	  ],
+	  "content_rect": [
+		323,
+		1,
+		320,
+		580
+	  ],
+	  "sheet_rect": [
+		322,
+		0,
+		322,
+		582
+	  ],
+	  "size": [
+		322,
+		582
+	  ],
+	  "content_size": [
+		320,
+		580
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/castle_panel_b.tres",
+	  "notes": "Fondo negro opaco; no es una capa transparente."
+	},
+	"wall_band_a": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		1,
+		6,
+		319,
+		75
+	  ],
+	  "content_rect": [
+		1,
+		583,
+		319,
+		75
+	  ],
+	  "sheet_rect": [
+		0,
+		582,
+		321,
+		77
+	  ],
+	  "size": [
+		321,
+		77
+	  ],
+	  "content_size": [
+		319,
+		75
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/wall_band_a.tres",
+	  "notes": ""
+	},
+	"wall_band_b": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		321,
+		6,
+		319,
+		75
+	  ],
+	  "content_rect": [
+		322,
+		583,
+		319,
+		75
+	  ],
+	  "sheet_rect": [
+		321,
+		582,
+		321,
+		77
+	  ],
+	  "size": [
+		321,
+		77
+	  ],
+	  "content_size": [
+		319,
+		75
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/wall_band_b.tres",
+	  "notes": ""
+	},
+	"wall_band_c": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		1,
+		82,
+		320,
+		75
+	  ],
+	  "content_rect": [
+		1,
+		660,
+		320,
+		75
+	  ],
+	  "sheet_rect": [
+		0,
+		659,
+		322,
+		77
+	  ],
+	  "size": [
+		322,
+		77
+	  ],
+	  "content_size": [
+		320,
+		75
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/wall_band_c.tres",
+	  "notes": ""
+	},
+	"wall_band_d": {
+	  "sheet": "walls",
+	  "sheet_file": "sheets/walls.png",
+	  "category": "wall",
+	  "variant": "normal",
+	  "source_rect": [
+		322,
+		82,
+		320,
+		75
+	  ],
+	  "content_rect": [
+		323,
+		660,
+		320,
+		75
+	  ],
+	  "sheet_rect": [
+		322,
+		659,
+		322,
+		77
+	  ],
+	  "size": [
+		322,
+		77
+	  ],
+	  "content_size": [
+		320,
+		75
+	  ],
+	  "ground_inset_bottom": null,
+	  "anchor_offset": null,
+	  "atlas_texture": "atlas/walls/wall_band_d.tres",
+	  "notes": ""
+	}
+  }
+}

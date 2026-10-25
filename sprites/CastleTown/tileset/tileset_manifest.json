@@ -1,0 +1,9333 @@
+{
+  "source": "res://sprites/CastleTown.png",
+  "tile_size": [
+    20,
+    20
+  ],
+  "base_grid": "20x20",
+  "filter": "nearest",
+  "note": "Hojas uniformes para TileSet/TileMap. No reemplazan sheets/ ni atlas/. La seccion modular del PNG original tiene celdas de 20x20 separadas por 1 px transparente; se copiaron las celdas y se descartaron los separadores. La cara grande es una tile de 320x200 (16x10 celdas). El cuadrado blanco es un tile sintetico agregado a pedido, no proviene del PNG.",
+  "source_count": 8,
+  "tile_count": 214,
+  "sources": [
+    {
+      "source_id": 0,
+      "name": "Edificios",
+      "file": "buildings.png",
+      "path": "res://sprites/CastleTown/tileset/buildings.png",
+      "cell_size": [
+        144,
+        180
+      ],
+      "texture_region_size": [
+        144,
+        180
+      ],
+      "columns": 4,
+      "rows": 3,
+      "sheet_size": [
+        576,
+        540
+      ],
+      "pivot": "base",
+      "ground_y": 174,
+      "tile_count": 12,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "castle_tower",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            35,
+            1,
+            73,
+            173
+          ],
+          "content_in_cell": [
+            35,
+            1,
+            73,
+            173
+          ],
+          "content_size": [
+            73,
+            173
+          ],
+          "source_rect": [
+            643,
+            336,
+            73,
+            173
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "cafe",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            144,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            150,
+            15,
+            131,
+            159
+          ],
+          "content_in_cell": [
+            6,
+            15,
+            131,
+            159
+          ],
+          "content_size": [
+            131,
+            159
+          ],
+          "source_rect": [
+            791,
+            350,
+            131,
+            159
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            2,
+            0
+          ],
+          "sprite": "bakery",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            288,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            311,
+            62,
+            98,
+            117
+          ],
+          "content_in_cell": [
+            23,
+            62,
+            98,
+            117
+          ],
+          "content_size": [
+            98,
+            117
+          ],
+          "source_rect": [
+            643,
+            218,
+            98,
+            117
+          ],
+          "ground_inset_bottom": 6
+        },
+        {
+          "atlas_coords": [
+            3,
+            0
+          ],
+          "sprite": "shop",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            432,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            452,
+            61,
+            104,
+            113
+          ],
+          "content_in_cell": [
+            20,
+            61,
+            104,
+            113
+          ],
+          "content_size": [
+            104,
+            113
+          ],
+          "source_rect": [
+            1187,
+            395,
+            104,
+            113
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            0,
+            1
+          ],
+          "sprite": "tv_shop",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            24,
+            257,
+            96,
+            97
+          ],
+          "content_in_cell": [
+            24,
+            77,
+            96,
+            97
+          ],
+          "content_size": [
+            96,
+            97
+          ],
+          "source_rect": [
+            1208,
+            237,
+            96,
+            97
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            1,
+            1
+          ],
+          "sprite": "tv_shop_alt",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            144,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            168,
+            257,
+            96,
+            97
+          ],
+          "content_in_cell": [
+            24,
+            77,
+            96,
+            97
+          ],
+          "content_size": [
+            96,
+            97
+          ],
+          "source_rect": [
+            1305,
+            237,
+            96,
+            97
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            2,
+            1
+          ],
+          "sprite": "cafe_plain",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            288,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            294,
+            235,
+            131,
+            119
+          ],
+          "content_in_cell": [
+            6,
+            55,
+            131,
+            119
+          ],
+          "content_size": [
+            131,
+            119
+          ],
+          "source_rect": [
+            923,
+            390,
+            131,
+            119
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            3,
+            1
+          ],
+          "sprite": "party_dojo",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            432,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            433,
+            256,
+            142,
+            98
+          ],
+          "content_in_cell": [
+            1,
+            76,
+            142,
+            98
+          ],
+          "content_size": [
+            142,
+            98
+          ],
+          "source_rect": [
+            643,
+            94,
+            142,
+            98
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            0,
+            2
+          ],
+          "sprite": "party_dojo_alt",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            360,
+            144,
+            180
+          ],
+          "content_rect": [
+            11,
+            436,
+            121,
+            98
+          ],
+          "content_in_cell": [
+            11,
+            76,
+            121,
+            98
+          ],
+          "content_size": [
+            121,
+            98
+          ],
+          "source_rect": [
+            786,
+            94,
+            121,
+            98
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            1,
+            2
+          ],
+          "sprite": "bakery_plain",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            144,
+            360,
+            144,
+            180
+          ],
+          "content_rect": [
+            176,
+            423,
+            79,
+            111
+          ],
+          "content_in_cell": [
+            32,
+            63,
+            79,
+            111
+          ],
+          "content_size": [
+            79,
+            111
+          ],
+          "source_rect": [
+            744,
+            224,
+            79,
+            111
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            2,
+            2
+          ],
+          "sprite": "music_shop",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            288,
+            360,
+            144,
+            180
+          ],
+          "content_rect": [
+            317,
+            451,
+            86,
+            83
+          ],
+          "content_in_cell": [
+            29,
+            91,
+            86,
+            83
+          ],
+          "content_size": [
+            86,
+            83
+          ],
+          "source_rect": [
+            931,
+            252,
+            86,
+            83
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            3,
+            2
+          ],
+          "sprite": "music_shop_alt",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            432,
+            360,
+            144,
+            180
+          ],
+          "content_rect": [
+            461,
+            451,
+            86,
+            83
+          ],
+          "content_in_cell": [
+            29,
+            91,
+            86,
+            83
+          ],
+          "content_size": [
+            86,
+            83
+          ],
+          "source_rect": [
+            1020,
+            252,
+            86,
+            83
+          ],
+          "ground_inset_bottom": 1
+        }
+      ]
+    },
+    {
+      "source_id": 1,
+      "name": "Edificios invierno",
+      "file": "buildings_winter.png",
+      "path": "res://sprites/CastleTown/tileset/buildings_winter.png",
+      "cell_size": [
+        144,
+        180
+      ],
+      "texture_region_size": [
+        144,
+        180
+      ],
+      "columns": 3,
+      "rows": 2,
+      "sheet_size": [
+        432,
+        360
+      ],
+      "pivot": "base",
+      "ground_y": 174,
+      "tile_count": 6,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "castle_tower_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            35,
+            1,
+            73,
+            173
+          ],
+          "content_in_cell": [
+            35,
+            1,
+            73,
+            173
+          ],
+          "content_size": [
+            73,
+            173
+          ],
+          "source_rect": [
+            717,
+            336,
+            73,
+            173
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "cafe_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            144,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            150,
+            15,
+            131,
+            159
+          ],
+          "content_in_cell": [
+            6,
+            15,
+            131,
+            159
+          ],
+          "content_size": [
+            131,
+            159
+          ],
+          "source_rect": [
+            1055,
+            350,
+            131,
+            159
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            2,
+            0
+          ],
+          "sprite": "bakery_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            288,
+            0,
+            144,
+            180
+          ],
+          "content_rect": [
+            308,
+            44,
+            104,
+            130
+          ],
+          "content_in_cell": [
+            20,
+            44,
+            104,
+            130
+          ],
+          "content_size": [
+            104,
+            130
+          ],
+          "source_rect": [
+            826,
+            205,
+            104,
+            130
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            0,
+            1
+          ],
+          "sprite": "shop_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            20,
+            232,
+            104,
+            122
+          ],
+          "content_in_cell": [
+            20,
+            52,
+            104,
+            122
+          ],
+          "content_size": [
+            104,
+            122
+          ],
+          "source_rect": [
+            1292,
+            387,
+            104,
+            122
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            1,
+            1
+          ],
+          "sprite": "party_dojo_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            144,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            145,
+            247,
+            142,
+            107
+          ],
+          "content_in_cell": [
+            1,
+            67,
+            142,
+            107
+          ],
+          "content_size": [
+            142,
+            107
+          ],
+          "source_rect": [
+            929,
+            85,
+            142,
+            107
+          ],
+          "ground_inset_bottom": 1
+        },
+        {
+          "atlas_coords": [
+            2,
+            1
+          ],
+          "sprite": "music_shop_winter",
+          "texture_origin": [
+            0,
+            74
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            288,
+            180,
+            144,
+            180
+          ],
+          "content_rect": [
+            311,
+            252,
+            98,
+            102
+          ],
+          "content_in_cell": [
+            23,
+            72,
+            98,
+            102
+          ],
+          "content_size": [
+            98,
+            102
+          ],
+          "source_rect": [
+            1109,
+            233,
+            98,
+            102
+          ],
+          "ground_inset_bottom": 1
+        }
+      ]
+    },
+    {
+      "source_id": 2,
+      "name": "Landmarks",
+      "file": "landmarks.png",
+      "path": "res://sprites/CastleTown/tileset/landmarks.png",
+      "cell_size": [
+        326,
+        228
+      ],
+      "texture_region_size": [
+        326,
+        228
+      ],
+      "columns": 3,
+      "rows": 2,
+      "sheet_size": [
+        978,
+        456
+      ],
+      "pivot": "base",
+      "ground_y": 227,
+      "tile_count": 6,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "big_house",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            0,
+            326,
+            228
+          ],
+          "content_rect": [
+            59,
+            1,
+            208,
+            226
+          ],
+          "content_in_cell": [
+            59,
+            1,
+            208,
+            226
+          ],
+          "content_size": [
+            208,
+            226
+          ],
+          "source_rect": [
+            1402,
+            1,
+            208,
+            226
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "cave",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            326,
+            0,
+            326,
+            228
+          ],
+          "content_rect": [
+            369,
+            47,
+            240,
+            180
+          ],
+          "content_in_cell": [
+            43,
+            47,
+            240,
+            180
+          ],
+          "content_size": [
+            240,
+            180
+          ],
+          "source_rect": [
+            1039,
+            768,
+            240,
+            180
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            2,
+            0
+          ],
+          "sprite": "castle_front",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            652,
+            0,
+            326,
+            228
+          ],
+          "content_rect": [
+            653,
+            76,
+            324,
+            151
+          ],
+          "content_in_cell": [
+            1,
+            76,
+            324,
+            151
+          ],
+          "content_size": [
+            324,
+            151
+          ],
+          "source_rect": [
+            1283,
+            797,
+            324,
+            151
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            0,
+            1
+          ],
+          "sprite": "elevator",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            228,
+            326,
+            228
+          ],
+          "content_rect": [
+            9,
+            325,
+            308,
+            130
+          ],
+          "content_in_cell": [
+            9,
+            97,
+            308,
+            130
+          ],
+          "content_size": [
+            308,
+            130
+          ],
+          "source_rect": [
+            1300,
+            665,
+            308,
+            130
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            1
+          ],
+          "sprite": "tv_sign",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            326,
+            228,
+            326,
+            228
+          ],
+          "content_rect": [
+            442,
+            359,
+            94,
+            96
+          ],
+          "content_in_cell": [
+            116,
+            131,
+            94,
+            96
+          ],
+          "content_size": [
+            94,
+            96
+          ],
+          "source_rect": [
+            1306,
+            139,
+            94,
+            96
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            2,
+            1
+          ],
+          "sprite": "skyline_tower",
+          "texture_origin": [
+            0,
+            103
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            652,
+            228,
+            326,
+            228
+          ],
+          "content_rect": [
+            775,
+            372,
+            79,
+            83
+          ],
+          "content_in_cell": [
+            123,
+            144,
+            79,
+            83
+          ],
+          "content_size": [
+            79,
+            83
+          ],
+          "source_rect": [
+            643,
+            1,
+            79,
+            83
+          ],
+          "ground_inset_bottom": null
+        }
+      ]
+    },
+    {
+      "source_id": 3,
+      "name": "Decoración",
+      "file": "decor.png",
+      "path": "res://sprites/CastleTown/tileset/decor.png",
+      "cell_size": [
+        140,
+        110
+      ],
+      "texture_region_size": [
+        140,
+        110
+      ],
+      "columns": 5,
+      "rows": 3,
+      "sheet_size": [
+        700,
+        330
+      ],
+      "pivot": "base",
+      "ground_y": 108,
+      "tile_count": 13,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "tree",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            0,
+            140,
+            110
+          ],
+          "content_rect": [
+            38,
+            1,
+            64,
+            107
+          ],
+          "content_in_cell": [
+            38,
+            1,
+            64,
+            107
+          ],
+          "content_size": [
+            64,
+            107
+          ],
+          "source_rect": [
+            816,
+            516,
+            64,
+            107
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "pink_counter",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            140,
+            0,
+            140,
+            110
+          ],
+          "content_rect": [
+            165,
+            21,
+            90,
+            87
+          ],
+          "content_in_cell": [
+            25,
+            21,
+            90,
+            87
+          ],
+          "content_size": [
+            90,
+            87
+          ],
+          "source_rect": [
+            643,
+            536,
+            90,
+            87
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            2,
+            0
+          ],
+          "sprite": "arcade_tv_c",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            280,
+            0,
+            140,
+            110
+          ],
+          "content_rect": [
+            310,
+            11,
+            80,
+            97
+          ],
+          "content_in_cell": [
+            30,
+            11,
+            80,
+            97
+          ],
+          "content_size": [
+            80,
+            97
+          ],
+          "source_rect": [
+            1450,
+            314,
+            80,
+            97
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            3,
+            0
+          ],
+          "sprite": "arcade_tv_d",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            420,
+            0,
+            140,
+            110
+          ],
+          "content_rect": [
+            450,
+            11,
+            79,
+            97
+          ],
+          "content_in_cell": [
+            30,
+            11,
+            79,
+            97
+          ],
+          "content_size": [
+            79,
+            97
+          ],
+          "source_rect": [
+            1531,
+            314,
+            79,
+            97
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            4,
+            0
+          ],
+          "sprite": "arcade_tv_a",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            560,
+            0,
+            140,
+            110
+          ],
+          "content_rect": [
+            590,
+            25,
+            79,
+            83
+          ],
+          "content_in_cell": [
+            30,
+            25,
+            79,
+            83
+          ],
+          "content_size": [
+            79,
+            83
+          ],
+          "source_rect": [
+            1450,
+            230,
+            79,
+            83
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            0,
+            1
+          ],
+          "sprite": "arcade_tv_b",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            110,
+            140,
+            110
+          ],
+          "content_rect": [
+            30,
+            135,
+            79,
+            83
+          ],
+          "content_in_cell": [
+            30,
+            25,
+            79,
+            83
+          ],
+          "content_size": [
+            79,
+            83
+          ],
+          "source_rect": [
+            1531,
+            230,
+            79,
+            83
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            1
+          ],
+          "sprite": "banner_welcome_a",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            140,
+            110,
+            140,
+            110
+          ],
+          "content_rect": [
+            141,
+            138,
+            138,
+            80
+          ],
+          "content_in_cell": [
+            1,
+            28,
+            138,
+            80
+          ],
+          "content_size": [
+            138,
+            80
+          ],
+          "source_rect": [
+            972,
+            543,
+            138,
+            80
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            2,
+            1
+          ],
+          "sprite": "banner_welcome_b",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            280,
+            110,
+            140,
+            110
+          ],
+          "content_rect": [
+            281,
+            138,
+            138,
+            80
+          ],
+          "content_in_cell": [
+            1,
+            28,
+            138,
+            80
+          ],
+          "content_size": [
+            138,
+            80
+          ],
+          "source_rect": [
+            1111,
+            543,
+            138,
+            80
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            3,
+            1
+          ],
+          "sprite": "blue_machine",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            420,
+            110,
+            140,
+            110
+          ],
+          "content_rect": [
+            468,
+            153,
+            43,
+            65
+          ],
+          "content_in_cell": [
+            48,
+            43,
+            43,
+            65
+          ],
+          "content_size": [
+            43,
+            65
+          ],
+          "source_rect": [
+            734,
+            558,
+            43,
+            65
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            4,
+            1
+          ],
+          "sprite": "wreath",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            560,
+            110,
+            140,
+            110
+          ],
+          "content_rect": [
+            604,
+            160,
+            52,
+            58
+          ],
+          "content_in_cell": [
+            44,
+            50,
+            52,
+            58
+          ],
+          "content_size": [
+            52,
+            58
+          ],
+          "source_rect": [
+            881,
+            565,
+            52,
+            58
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            0,
+            2
+          ],
+          "sprite": "ladder",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            0,
+            220,
+            140,
+            110
+          ],
+          "content_rect": [
+            54,
+            281,
+            32,
+            47
+          ],
+          "content_in_cell": [
+            54,
+            61,
+            32,
+            47
+          ],
+          "content_size": [
+            32,
+            47
+          ],
+          "source_rect": [
+            1250,
+            576,
+            32,
+            47
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            2
+          ],
+          "sprite": "candy_cane",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            140,
+            220,
+            140,
+            110
+          ],
+          "content_rect": [
+            191,
+            300,
+            37,
+            28
+          ],
+          "content_in_cell": [
+            51,
+            80,
+            37,
+            28
+          ],
+          "content_size": [
+            37,
+            28
+          ],
+          "source_rect": [
+            934,
+            595,
+            37,
+            28
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            2,
+            2
+          ],
+          "sprite": "racing_sign",
+          "texture_origin": [
+            0,
+            43
+          ],
+          "y_sort_origin": 10,
+          "cell_rect": [
+            280,
+            220,
+            140,
+            110
+          ],
+          "content_rect": [
+            294,
+            303,
+            111,
+            25
+          ],
+          "content_in_cell": [
+            14,
+            83,
+            111,
+            25
+          ],
+          "content_size": [
+            111,
+            25
+          ],
+          "source_rect": [
+            643,
+            510,
+            111,
+            25
+          ],
+          "ground_inset_bottom": null
+        }
+      ]
+    },
+    {
+      "source_id": 4,
+      "name": "Muros",
+      "file": "walls_bands.png",
+      "path": "res://sprites/CastleTown/tileset/walls_bands.png",
+      "cell_size": [
+        320,
+        80
+      ],
+      "texture_region_size": [
+        320,
+        80
+      ],
+      "columns": 2,
+      "rows": 2,
+      "sheet_size": [
+        640,
+        160
+      ],
+      "pivot": "top_left",
+      "ground_y": null,
+      "tile_count": 4,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "wall_band_a",
+          "texture_origin": [
+            -150,
+            -30
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            0,
+            0,
+            320,
+            80
+          ],
+          "content_rect": [
+            0,
+            0,
+            319,
+            75
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            319,
+            75
+          ],
+          "content_size": [
+            319,
+            75
+          ],
+          "source_rect": [
+            1,
+            6,
+            319,
+            75
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "wall_band_b",
+          "texture_origin": [
+            -150,
+            -30
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            320,
+            0,
+            320,
+            80
+          ],
+          "content_rect": [
+            320,
+            0,
+            319,
+            75
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            319,
+            75
+          ],
+          "content_size": [
+            319,
+            75
+          ],
+          "source_rect": [
+            321,
+            6,
+            319,
+            75
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            0,
+            1
+          ],
+          "sprite": "wall_band_c",
+          "texture_origin": [
+            -150,
+            -30
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            0,
+            80,
+            320,
+            80
+          ],
+          "content_rect": [
+            0,
+            80,
+            320,
+            75
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            320,
+            75
+          ],
+          "content_size": [
+            320,
+            75
+          ],
+          "source_rect": [
+            1,
+            82,
+            320,
+            75
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            1
+          ],
+          "sprite": "wall_band_d",
+          "texture_origin": [
+            -150,
+            -30
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            320,
+            80,
+            320,
+            80
+          ],
+          "content_rect": [
+            320,
+            80,
+            320,
+            75
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            320,
+            75
+          ],
+          "content_size": [
+            320,
+            75
+          ],
+          "source_rect": [
+            322,
+            82,
+            320,
+            75
+          ],
+          "ground_inset_bottom": null
+        }
+      ]
+    },
+    {
+      "source_id": 5,
+      "name": "Paneles",
+      "file": "walls_panels.png",
+      "path": "res://sprites/CastleTown/tileset/walls_panels.png",
+      "cell_size": [
+        320,
+        580
+      ],
+      "texture_region_size": [
+        320,
+        580
+      ],
+      "columns": 2,
+      "rows": 1,
+      "sheet_size": [
+        640,
+        580
+      ],
+      "pivot": "top_left",
+      "ground_y": null,
+      "tile_count": 2,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "castle_panel_a",
+          "texture_origin": [
+            -150,
+            -280
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            0,
+            0,
+            320,
+            580
+          ],
+          "content_rect": [
+            0,
+            0,
+            320,
+            580
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            320,
+            580
+          ],
+          "content_size": [
+            320,
+            580
+          ],
+          "source_rect": [
+            1,
+            158,
+            320,
+            580
+          ],
+          "ground_inset_bottom": null
+        },
+        {
+          "atlas_coords": [
+            1,
+            0
+          ],
+          "sprite": "castle_panel_b",
+          "texture_origin": [
+            -150,
+            -280
+          ],
+          "y_sort_origin": 0,
+          "cell_rect": [
+            320,
+            0,
+            320,
+            580
+          ],
+          "content_rect": [
+            320,
+            0,
+            320,
+            580
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            320,
+            580
+          ],
+          "content_size": [
+            320,
+            580
+          ],
+          "source_rect": [
+            322,
+            158,
+            320,
+            580
+          ],
+          "ground_inset_bottom": null
+        }
+      ]
+    },
+    {
+      "source_id": 6,
+      "name": "Modular",
+      "file": "modular.png",
+      "path": "res://sprites/CastleTown/tileset/modular.png",
+      "cell_size": [
+        20,
+        20
+      ],
+      "texture_region_size": [
+        20,
+        20
+      ],
+      "columns": 27,
+      "rows": 10,
+      "sheet_size": [
+        540,
+        200
+      ],
+      "pivot": "cell",
+      "ground_y": null,
+      "tile_count": 170,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            2
+          ],
+          "sprite": "modular_c16_r02",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 2,
+          "source_rect": [
+            337,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            2
+          ],
+          "sprite": "modular_c17_r02",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 2,
+          "source_rect": [
+            358,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            2
+          ],
+          "sprite": "modular_c18_r02",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 2,
+          "source_rect": [
+            379,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            2
+          ],
+          "sprite": "modular_c19_r02",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 2,
+          "source_rect": [
+            400,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            2
+          ],
+          "sprite": "modular_c20_r02",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 2,
+          "source_rect": [
+            421,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            2
+          ],
+          "sprite": "modular_c21_r02",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 2,
+          "source_rect": [
+            442,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            2
+          ],
+          "sprite": "modular_c22_r02",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 2,
+          "source_rect": [
+            463,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            2
+          ],
+          "sprite": "modular_c23_r02",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 2,
+          "source_rect": [
+            484,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            2
+          ],
+          "sprite": "modular_c24_r02",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 2,
+          "source_rect": [
+            505,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            2
+          ],
+          "sprite": "modular_c26_r02",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 2,
+          "source_rect": [
+            547,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            11,
+            2
+          ],
+          "sprite": "modular_c27_r02",
+          "kind": "modular",
+          "source_col": 27,
+          "source_row": 2,
+          "source_rect": [
+            568,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            220,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            220,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            2
+          ],
+          "sprite": "modular_c28_r02",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 2,
+          "source_rect": [
+            589,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            2
+          ],
+          "sprite": "modular_c30_r02",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 2,
+          "source_rect": [
+            631,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            15,
+            2
+          ],
+          "sprite": "modular_c31_r02",
+          "kind": "modular",
+          "source_col": 31,
+          "source_row": 2,
+          "source_rect": [
+            652,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            300,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            300,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            2
+          ],
+          "sprite": "modular_c32_r02",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 2,
+          "source_rect": [
+            673,
+            781,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            40,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            40,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            3
+          ],
+          "sprite": "modular_c16_r03",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 3,
+          "source_rect": [
+            337,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            3
+          ],
+          "sprite": "modular_c17_r03",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 3,
+          "source_rect": [
+            358,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            3
+          ],
+          "sprite": "modular_c18_r03",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 3,
+          "source_rect": [
+            379,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            3
+          ],
+          "sprite": "modular_c19_r03",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 3,
+          "source_rect": [
+            400,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            3
+          ],
+          "sprite": "modular_c20_r03",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 3,
+          "source_rect": [
+            421,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            3
+          ],
+          "sprite": "modular_c21_r03",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 3,
+          "source_rect": [
+            442,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            3
+          ],
+          "sprite": "modular_c22_r03",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 3,
+          "source_rect": [
+            463,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            3
+          ],
+          "sprite": "modular_c23_r03",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 3,
+          "source_rect": [
+            484,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            3
+          ],
+          "sprite": "modular_c24_r03",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 3,
+          "source_rect": [
+            505,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            3
+          ],
+          "sprite": "modular_c25_r03",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 3,
+          "source_rect": [
+            526,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            3
+          ],
+          "sprite": "modular_c26_r03",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 3,
+          "source_rect": [
+            547,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            11,
+            3
+          ],
+          "sprite": "modular_c27_r03",
+          "kind": "modular",
+          "source_col": 27,
+          "source_row": 3,
+          "source_rect": [
+            568,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            220,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            220,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            3
+          ],
+          "sprite": "modular_c28_r03",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 3,
+          "source_rect": [
+            589,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            3
+          ],
+          "sprite": "modular_c29_r03",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 3,
+          "source_rect": [
+            610,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            3
+          ],
+          "sprite": "modular_c30_r03",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 3,
+          "source_rect": [
+            631,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            15,
+            3
+          ],
+          "sprite": "modular_c31_r03",
+          "kind": "modular",
+          "source_col": 31,
+          "source_row": 3,
+          "source_rect": [
+            652,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            300,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            300,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            3
+          ],
+          "sprite": "modular_c32_r03",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 3,
+          "source_rect": [
+            673,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            3
+          ],
+          "sprite": "modular_c33_r03",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 3,
+          "source_rect": [
+            694,
+            802,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            60,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            60,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            4
+          ],
+          "sprite": "modular_c16_r04",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 4,
+          "source_rect": [
+            337,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            4
+          ],
+          "sprite": "modular_c17_r04",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 4,
+          "source_rect": [
+            358,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            4
+          ],
+          "sprite": "modular_c18_r04",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 4,
+          "source_rect": [
+            379,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            4
+          ],
+          "sprite": "modular_c19_r04",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 4,
+          "source_rect": [
+            400,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            4
+          ],
+          "sprite": "modular_c20_r04",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 4,
+          "source_rect": [
+            421,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            4
+          ],
+          "sprite": "modular_c21_r04",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 4,
+          "source_rect": [
+            442,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            4
+          ],
+          "sprite": "modular_c22_r04",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 4,
+          "source_rect": [
+            463,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            4
+          ],
+          "sprite": "modular_c23_r04",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 4,
+          "source_rect": [
+            484,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            4
+          ],
+          "sprite": "modular_c24_r04",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 4,
+          "source_rect": [
+            505,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            4
+          ],
+          "sprite": "modular_c25_r04",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 4,
+          "source_rect": [
+            526,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            4
+          ],
+          "sprite": "modular_c26_r04",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 4,
+          "source_rect": [
+            547,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            11,
+            4
+          ],
+          "sprite": "modular_c27_r04",
+          "kind": "modular",
+          "source_col": 27,
+          "source_row": 4,
+          "source_rect": [
+            568,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            220,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            220,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            4
+          ],
+          "sprite": "modular_c28_r04",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 4,
+          "source_rect": [
+            589,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            4
+          ],
+          "sprite": "modular_c29_r04",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 4,
+          "source_rect": [
+            610,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            4
+          ],
+          "sprite": "modular_c30_r04",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 4,
+          "source_rect": [
+            631,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            15,
+            4
+          ],
+          "sprite": "modular_c31_r04",
+          "kind": "modular",
+          "source_col": 31,
+          "source_row": 4,
+          "source_rect": [
+            652,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            300,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            300,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            4
+          ],
+          "sprite": "modular_c32_r04",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 4,
+          "source_rect": [
+            673,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            4
+          ],
+          "sprite": "modular_c33_r04",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 4,
+          "source_rect": [
+            694,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            4
+          ],
+          "sprite": "modular_c34_r04",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 4,
+          "source_rect": [
+            715,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            4
+          ],
+          "sprite": "modular_c35_r04",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 4,
+          "source_rect": [
+            736,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            4
+          ],
+          "sprite": "modular_c36_r04",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 4,
+          "source_rect": [
+            757,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            4
+          ],
+          "sprite": "modular_c37_r04",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 4,
+          "source_rect": [
+            778,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            4
+          ],
+          "sprite": "modular_c38_r04",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 4,
+          "source_rect": [
+            799,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            23,
+            4
+          ],
+          "sprite": "modular_c39_r04",
+          "kind": "modular",
+          "source_col": 39,
+          "source_row": 4,
+          "source_rect": [
+            820,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            460,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            460,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            24,
+            4
+          ],
+          "sprite": "modular_c40_r04",
+          "kind": "modular",
+          "source_col": 40,
+          "source_row": 4,
+          "source_rect": [
+            841,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            480,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            480,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            25,
+            4
+          ],
+          "sprite": "modular_c41_r04",
+          "kind": "modular",
+          "source_col": 41,
+          "source_row": 4,
+          "source_rect": [
+            862,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            500,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            500,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            26,
+            4
+          ],
+          "sprite": "modular_c42_r04",
+          "kind": "modular",
+          "source_col": 42,
+          "source_row": 4,
+          "source_rect": [
+            883,
+            823,
+            20,
+            20
+          ],
+          "cell_rect": [
+            520,
+            80,
+            20,
+            20
+          ],
+          "content_rect": [
+            520,
+            80,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            5
+          ],
+          "sprite": "modular_c18_r05",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 5,
+          "source_rect": [
+            379,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            5
+          ],
+          "sprite": "modular_c19_r05",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 5,
+          "source_rect": [
+            400,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            5
+          ],
+          "sprite": "modular_c20_r05",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 5,
+          "source_rect": [
+            421,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            5
+          ],
+          "sprite": "modular_c21_r05",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 5,
+          "source_rect": [
+            442,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            5
+          ],
+          "sprite": "modular_c22_r05",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 5,
+          "source_rect": [
+            463,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            5
+          ],
+          "sprite": "modular_c25_r05",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 5,
+          "source_rect": [
+            526,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            5
+          ],
+          "sprite": "modular_c26_r05",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 5,
+          "source_rect": [
+            547,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            11,
+            5
+          ],
+          "sprite": "modular_c27_r05",
+          "kind": "modular",
+          "source_col": 27,
+          "source_row": 5,
+          "source_rect": [
+            568,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            220,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            220,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            5
+          ],
+          "sprite": "modular_c29_r05",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 5,
+          "source_rect": [
+            610,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            15,
+            5
+          ],
+          "sprite": "modular_c31_r05",
+          "kind": "modular",
+          "source_col": 31,
+          "source_row": 5,
+          "source_rect": [
+            652,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            300,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            300,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            5
+          ],
+          "sprite": "modular_c32_r05",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 5,
+          "source_rect": [
+            673,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            5
+          ],
+          "sprite": "modular_c33_r05",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 5,
+          "source_rect": [
+            694,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            5
+          ],
+          "sprite": "modular_c34_r05",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 5,
+          "source_rect": [
+            715,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            5
+          ],
+          "sprite": "modular_c35_r05",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 5,
+          "source_rect": [
+            736,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            5
+          ],
+          "sprite": "modular_c36_r05",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 5,
+          "source_rect": [
+            757,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            5
+          ],
+          "sprite": "modular_c37_r05",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 5,
+          "source_rect": [
+            778,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            5
+          ],
+          "sprite": "modular_c38_r05",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 5,
+          "source_rect": [
+            799,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            23,
+            5
+          ],
+          "sprite": "modular_c39_r05",
+          "kind": "modular",
+          "source_col": 39,
+          "source_row": 5,
+          "source_rect": [
+            820,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            460,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            460,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            24,
+            5
+          ],
+          "sprite": "modular_c40_r05",
+          "kind": "modular",
+          "source_col": 40,
+          "source_row": 5,
+          "source_rect": [
+            841,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            480,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            480,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            26,
+            5
+          ],
+          "sprite": "modular_c42_r05",
+          "kind": "modular",
+          "source_col": 42,
+          "source_row": 5,
+          "source_rect": [
+            883,
+            844,
+            20,
+            20
+          ],
+          "cell_rect": [
+            520,
+            100,
+            20,
+            20
+          ],
+          "content_rect": [
+            520,
+            100,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            6
+          ],
+          "sprite": "modular_c16_r06",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 6,
+          "source_rect": [
+            337,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            6
+          ],
+          "sprite": "modular_c17_r06",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 6,
+          "source_rect": [
+            358,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            6
+          ],
+          "sprite": "modular_c18_r06",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 6,
+          "source_rect": [
+            379,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            6
+          ],
+          "sprite": "modular_c19_r06",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 6,
+          "source_rect": [
+            400,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            6
+          ],
+          "sprite": "modular_c20_r06",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 6,
+          "source_rect": [
+            421,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            6
+          ],
+          "sprite": "modular_c21_r06",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 6,
+          "source_rect": [
+            442,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            6
+          ],
+          "sprite": "modular_c22_r06",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 6,
+          "source_rect": [
+            463,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            6
+          ],
+          "sprite": "modular_c23_r06",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 6,
+          "source_rect": [
+            484,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            6
+          ],
+          "sprite": "modular_c24_r06",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 6,
+          "source_rect": [
+            505,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            6
+          ],
+          "sprite": "modular_c25_r06",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 6,
+          "source_rect": [
+            526,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            6
+          ],
+          "sprite": "modular_c26_r06",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 6,
+          "source_rect": [
+            547,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            11,
+            6
+          ],
+          "sprite": "modular_c27_r06",
+          "kind": "modular",
+          "source_col": 27,
+          "source_row": 6,
+          "source_rect": [
+            568,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            220,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            220,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            6
+          ],
+          "sprite": "modular_c28_r06",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 6,
+          "source_rect": [
+            589,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            6
+          ],
+          "sprite": "modular_c29_r06",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 6,
+          "source_rect": [
+            610,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            6
+          ],
+          "sprite": "modular_c30_r06",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 6,
+          "source_rect": [
+            631,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            15,
+            6
+          ],
+          "sprite": "modular_c31_r06",
+          "kind": "modular",
+          "source_col": 31,
+          "source_row": 6,
+          "source_rect": [
+            652,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            300,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            300,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            6
+          ],
+          "sprite": "modular_c32_r06",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 6,
+          "source_rect": [
+            673,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            6
+          ],
+          "sprite": "modular_c33_r06",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 6,
+          "source_rect": [
+            694,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            6
+          ],
+          "sprite": "modular_c34_r06",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 6,
+          "source_rect": [
+            715,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            6
+          ],
+          "sprite": "modular_c35_r06",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 6,
+          "source_rect": [
+            736,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            6
+          ],
+          "sprite": "modular_c36_r06",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 6,
+          "source_rect": [
+            757,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            6
+          ],
+          "sprite": "modular_c37_r06",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 6,
+          "source_rect": [
+            778,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            6
+          ],
+          "sprite": "modular_c38_r06",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 6,
+          "source_rect": [
+            799,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            23,
+            6
+          ],
+          "sprite": "modular_c39_r06",
+          "kind": "modular",
+          "source_col": 39,
+          "source_row": 6,
+          "source_rect": [
+            820,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            460,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            460,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            24,
+            6
+          ],
+          "sprite": "modular_c40_r06",
+          "kind": "modular",
+          "source_col": 40,
+          "source_row": 6,
+          "source_rect": [
+            841,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            480,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            480,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            25,
+            6
+          ],
+          "sprite": "modular_c41_r06",
+          "kind": "modular",
+          "source_col": 41,
+          "source_row": 6,
+          "source_rect": [
+            862,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            500,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            500,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            26,
+            6
+          ],
+          "sprite": "modular_c42_r06",
+          "kind": "modular",
+          "source_col": 42,
+          "source_row": 6,
+          "source_rect": [
+            883,
+            865,
+            20,
+            20
+          ],
+          "cell_rect": [
+            520,
+            120,
+            20,
+            20
+          ],
+          "content_rect": [
+            520,
+            120,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            7
+          ],
+          "sprite": "modular_c16_r07",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 7,
+          "source_rect": [
+            337,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            7
+          ],
+          "sprite": "modular_c17_r07",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 7,
+          "source_rect": [
+            358,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            7
+          ],
+          "sprite": "modular_c18_r07",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 7,
+          "source_rect": [
+            379,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            7
+          ],
+          "sprite": "modular_c19_r07",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 7,
+          "source_rect": [
+            400,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            7
+          ],
+          "sprite": "modular_c21_r07",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 7,
+          "source_rect": [
+            442,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            7
+          ],
+          "sprite": "modular_c22_r07",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 7,
+          "source_rect": [
+            463,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            7
+          ],
+          "sprite": "modular_c23_r07",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 7,
+          "source_rect": [
+            484,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            7
+          ],
+          "sprite": "modular_c24_r07",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 7,
+          "source_rect": [
+            505,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            7
+          ],
+          "sprite": "modular_c25_r07",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 7,
+          "source_rect": [
+            526,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            7
+          ],
+          "sprite": "modular_c26_r07",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 7,
+          "source_rect": [
+            547,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            7
+          ],
+          "sprite": "modular_c28_r07",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 7,
+          "source_rect": [
+            589,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            7
+          ],
+          "sprite": "modular_c29_r07",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 7,
+          "source_rect": [
+            610,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            7
+          ],
+          "sprite": "modular_c30_r07",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 7,
+          "source_rect": [
+            631,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            7
+          ],
+          "sprite": "modular_c32_r07",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 7,
+          "source_rect": [
+            673,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            7
+          ],
+          "sprite": "modular_c33_r07",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 7,
+          "source_rect": [
+            694,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            7
+          ],
+          "sprite": "modular_c34_r07",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 7,
+          "source_rect": [
+            715,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            7
+          ],
+          "sprite": "modular_c35_r07",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 7,
+          "source_rect": [
+            736,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            7
+          ],
+          "sprite": "modular_c36_r07",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 7,
+          "source_rect": [
+            757,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            7
+          ],
+          "sprite": "modular_c37_r07",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 7,
+          "source_rect": [
+            778,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            7
+          ],
+          "sprite": "modular_c38_r07",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 7,
+          "source_rect": [
+            799,
+            886,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            140,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            140,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            8
+          ],
+          "sprite": "modular_c16_r08",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 8,
+          "source_rect": [
+            337,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            8
+          ],
+          "sprite": "modular_c17_r08",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 8,
+          "source_rect": [
+            358,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            8
+          ],
+          "sprite": "modular_c18_r08",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 8,
+          "source_rect": [
+            379,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            8
+          ],
+          "sprite": "modular_c19_r08",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 8,
+          "source_rect": [
+            400,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            8
+          ],
+          "sprite": "modular_c21_r08",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 8,
+          "source_rect": [
+            442,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            8
+          ],
+          "sprite": "modular_c22_r08",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 8,
+          "source_rect": [
+            463,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            8
+          ],
+          "sprite": "modular_c23_r08",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 8,
+          "source_rect": [
+            484,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            8
+          ],
+          "sprite": "modular_c24_r08",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 8,
+          "source_rect": [
+            505,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            8
+          ],
+          "sprite": "modular_c25_r08",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 8,
+          "source_rect": [
+            526,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            8
+          ],
+          "sprite": "modular_c26_r08",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 8,
+          "source_rect": [
+            547,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            8
+          ],
+          "sprite": "modular_c28_r08",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 8,
+          "source_rect": [
+            589,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            8
+          ],
+          "sprite": "modular_c29_r08",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 8,
+          "source_rect": [
+            610,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            8
+          ],
+          "sprite": "modular_c30_r08",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 8,
+          "source_rect": [
+            631,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            8
+          ],
+          "sprite": "modular_c32_r08",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 8,
+          "source_rect": [
+            673,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            8
+          ],
+          "sprite": "modular_c33_r08",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 8,
+          "source_rect": [
+            694,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            8
+          ],
+          "sprite": "modular_c34_r08",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 8,
+          "source_rect": [
+            715,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            8
+          ],
+          "sprite": "modular_c35_r08",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 8,
+          "source_rect": [
+            736,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            8
+          ],
+          "sprite": "modular_c36_r08",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 8,
+          "source_rect": [
+            757,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            8
+          ],
+          "sprite": "modular_c37_r08",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 8,
+          "source_rect": [
+            778,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            8
+          ],
+          "sprite": "modular_c38_r08",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 8,
+          "source_rect": [
+            799,
+            907,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            160,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            160,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            0,
+            9
+          ],
+          "sprite": "modular_c16_r09",
+          "kind": "modular",
+          "source_col": 16,
+          "source_row": 9,
+          "source_rect": [
+            337,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            0,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            0,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            1,
+            9
+          ],
+          "sprite": "modular_c17_r09",
+          "kind": "modular",
+          "source_col": 17,
+          "source_row": 9,
+          "source_rect": [
+            358,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            20,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            20,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            2,
+            9
+          ],
+          "sprite": "modular_c18_r09",
+          "kind": "modular",
+          "source_col": 18,
+          "source_row": 9,
+          "source_rect": [
+            379,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            40,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            40,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            3,
+            9
+          ],
+          "sprite": "modular_c19_r09",
+          "kind": "modular",
+          "source_col": 19,
+          "source_row": 9,
+          "source_rect": [
+            400,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            60,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            60,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            4,
+            9
+          ],
+          "sprite": "modular_c20_r09",
+          "kind": "modular",
+          "source_col": 20,
+          "source_row": 9,
+          "source_rect": [
+            421,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            80,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            80,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            5,
+            9
+          ],
+          "sprite": "modular_c21_r09",
+          "kind": "modular",
+          "source_col": 21,
+          "source_row": 9,
+          "source_rect": [
+            442,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            100,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            100,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            6,
+            9
+          ],
+          "sprite": "modular_c22_r09",
+          "kind": "modular",
+          "source_col": 22,
+          "source_row": 9,
+          "source_rect": [
+            463,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            120,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            120,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            7,
+            9
+          ],
+          "sprite": "modular_c23_r09",
+          "kind": "modular",
+          "source_col": 23,
+          "source_row": 9,
+          "source_rect": [
+            484,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            140,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            140,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            8,
+            9
+          ],
+          "sprite": "modular_c24_r09",
+          "kind": "modular",
+          "source_col": 24,
+          "source_row": 9,
+          "source_rect": [
+            505,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            160,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            160,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            9,
+            9
+          ],
+          "sprite": "modular_c25_r09",
+          "kind": "modular",
+          "source_col": 25,
+          "source_row": 9,
+          "source_rect": [
+            526,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            180,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            180,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            10,
+            9
+          ],
+          "sprite": "modular_c26_r09",
+          "kind": "modular",
+          "source_col": 26,
+          "source_row": 9,
+          "source_rect": [
+            547,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            200,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            200,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            12,
+            9
+          ],
+          "sprite": "modular_c28_r09",
+          "kind": "modular",
+          "source_col": 28,
+          "source_row": 9,
+          "source_rect": [
+            589,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            240,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            240,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            13,
+            9
+          ],
+          "sprite": "modular_c29_r09",
+          "kind": "modular",
+          "source_col": 29,
+          "source_row": 9,
+          "source_rect": [
+            610,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            260,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            260,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            14,
+            9
+          ],
+          "sprite": "modular_c30_r09",
+          "kind": "modular",
+          "source_col": 30,
+          "source_row": 9,
+          "source_rect": [
+            631,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            280,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            280,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            16,
+            9
+          ],
+          "sprite": "modular_c32_r09",
+          "kind": "modular",
+          "source_col": 32,
+          "source_row": 9,
+          "source_rect": [
+            673,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            320,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            320,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            17,
+            9
+          ],
+          "sprite": "modular_c33_r09",
+          "kind": "modular",
+          "source_col": 33,
+          "source_row": 9,
+          "source_rect": [
+            694,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            340,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            340,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            18,
+            9
+          ],
+          "sprite": "modular_c34_r09",
+          "kind": "modular",
+          "source_col": 34,
+          "source_row": 9,
+          "source_rect": [
+            715,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            360,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            360,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            19,
+            9
+          ],
+          "sprite": "modular_c35_r09",
+          "kind": "modular",
+          "source_col": 35,
+          "source_row": 9,
+          "source_rect": [
+            736,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            380,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            380,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            20,
+            9
+          ],
+          "sprite": "modular_c36_r09",
+          "kind": "modular",
+          "source_col": 36,
+          "source_row": 9,
+          "source_rect": [
+            757,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            400,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            400,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            21,
+            9
+          ],
+          "sprite": "modular_c37_r09",
+          "kind": "modular",
+          "source_col": 37,
+          "source_row": 9,
+          "source_rect": [
+            778,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            420,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            420,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            22,
+            9
+          ],
+          "sprite": "modular_c38_r09",
+          "kind": "modular",
+          "source_col": 38,
+          "source_row": 9,
+          "source_rect": [
+            799,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            440,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            440,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            23,
+            9
+          ],
+          "sprite": "modular_c39_r09",
+          "kind": "modular",
+          "source_col": 39,
+          "source_row": 9,
+          "source_rect": [
+            820,
+            928,
+            20,
+            20
+          ],
+          "cell_rect": [
+            460,
+            180,
+            20,
+            20
+          ],
+          "content_rect": [
+            460,
+            180,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10
+        },
+        {
+          "atlas_coords": [
+            26,
+            0
+          ],
+          "sprite": "cuadrado_blanco",
+          "kind": "blank",
+          "synthetic": true,
+          "source_col": 42,
+          "source_row": 0,
+          "source_rect": null,
+          "cell_rect": [
+            520,
+            0,
+            20,
+            20
+          ],
+          "content_rect": [
+            520,
+            0,
+            20,
+            20
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            20,
+            20
+          ],
+          "content_size": [
+            20,
+            20
+          ],
+          "texture_origin": [
+            0,
+            0
+          ],
+          "y_sort_origin": 10,
+          "note": "Tile sintético agregado a pedido: cuadrado blanco con borde negro 1 px."
+        }
+      ]
+    },
+    {
+      "source_id": 7,
+      "name": "Cara del castillo",
+      "file": "cara.png",
+      "path": "res://sprites/CastleTown/tileset/cara.png",
+      "cell_size": [
+        320,
+        200
+      ],
+      "texture_region_size": [
+        320,
+        200
+      ],
+      "columns": 1,
+      "rows": 1,
+      "sheet_size": [
+        320,
+        200
+      ],
+      "pivot": "top_left",
+      "ground_y": null,
+      "tile_count": 1,
+      "tiles": [
+        {
+          "atlas_coords": [
+            0,
+            0
+          ],
+          "sprite": "cara_castillo",
+          "kind": "face",
+          "source_col": 0,
+          "source_row": 0,
+          "source_grid_rect": [
+            1,
+            739,
+            335,
+            209
+          ],
+          "source_cells": [
+            16,
+            10
+          ],
+          "gutter": 1,
+          "cell_rect": [
+            0,
+            0,
+            320,
+            200
+          ],
+          "content_rect": [
+            0,
+            0,
+            320,
+            200
+          ],
+          "content_in_cell": [
+            0,
+            0,
+            320,
+            200
+          ],
+          "content_size": [
+            320,
+            200
+          ],
+          "texture_origin": [
+            -150,
+            -90
+          ],
+          "y_sort_origin": 0,
+          "note": "16x10 celdas de 20x20 con separadores transparentes de 1 px eliminados."
+        }
+      ]
+    }
+  ]
+}
