@@ -1,6 +1,9 @@
 class_name PlayerAnimationComponent
 extends Node
 
+const MOVE_EPSILON: float = 0.1
+const KRIS_CHARACTER_ID: int = 1
+
 var player: CharacterBody2D = null
 
 
@@ -10,7 +13,14 @@ func initialize(body: CharacterBody2D) -> void:
 
 # ── Movement animation helpers ─────────────────────────────────────────
 
-func select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool) -> String:
+func select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool, move_dir: Vector2 = Vector2.ZERO) -> String:
+	var frames = player.animated_sprite.sprite_frames if player.animated_sprite else null
+
+	if _is_kris_pressing_down(move_dir):
+		for anim_name: String in ["walk_down", "idle_down"]:
+			if frames and frames.has_animation(anim_name):
+				return anim_name
+
 	var prioritized: Array[String] = []
 
 	if use_hurt:
@@ -28,11 +38,16 @@ func select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool) -> 
 		else:
 			prioritized = ["idle_horizontal"]
 
-	var frames = player.animated_sprite.sprite_frames if player.animated_sprite else null
 	for anim_name in prioritized:
 		if frames and frames.has_animation(anim_name):
 			return anim_name
 	return "default"
+
+
+func _is_kris_pressing_down(move_dir: Vector2) -> bool:
+	if not player.character_data or player.character_data.id != KRIS_CHARACTER_ID:
+		return false
+	return move_dir.y > MOVE_EPSILON and absf(move_dir.y) >= absf(move_dir.x)
 
 
 func should_use_hurt_sprite() -> bool:

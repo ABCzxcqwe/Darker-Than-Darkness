@@ -37,6 +37,7 @@ var facing: Vector2 = Vector2.RIGHT
 
 ## Estado de movimiento replicado por el servidor (0 idle / 1 walk / 2 run).
 var move_state: int = 0
+var move_facing_down: bool = false
 ## Posicion autoritativa del servidor; los remotos interpolan hacia aca.
 var net_position: Vector2 = Vector2.ZERO
 
@@ -182,8 +183,9 @@ func _apply_networked_anim() -> void:
 		return
 	var is_moving: bool = move_state == 1 or move_state == 2
 	var is_running: bool = move_state == 2
+	var move_dir: Vector2 = Vector2(0, 1) if move_facing_down else Vector2.ZERO
 	var anim_name: String = animation_component.select_movement_anim(
-			is_moving, is_running, animation_component.should_use_hurt_sprite())
+			is_moving, is_running, animation_component.should_use_hurt_sprite(), move_dir)
 	if anim_name != "default" and animated_sprite.animation != anim_name:
 		animated_sprite.play(anim_name)
 		last_animation = anim_name

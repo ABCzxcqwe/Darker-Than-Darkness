@@ -90,6 +90,7 @@ func _owner_process(_delta: float) -> void:
 
 	if blocked:
 		player.velocity = Vector2.ZERO
+		player.move_facing_down = false
 		_force_stop_sprint()
 		_record_and_send_input(Vector2.ZERO, false)
 		return
@@ -126,6 +127,7 @@ func _owner_process(_delta: float) -> void:
 
 	if _can_move_now():
 		var input_dir: Vector2 = _get_move_vector()
+		player.move_facing_down = _is_down_input(input_dir)
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
 		# La fase 2 nunca permite sprint: la movilidad la define la habilidad.
@@ -158,12 +160,13 @@ func _owner_process(_delta: float) -> void:
 				var is_moving = vel_len > IDLE_MOVE_THRESHOLD
 				var is_running = vel_len > WALK_SPEED_THRESHOLD
 				var use_hurt = player.animation_component.should_use_hurt_sprite()
-				var anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt)
+				var anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt, input_dir)
 				if player.last_animation != anim_name:
 					player.animated_sprite.play(anim_name)
 					player.last_animation = anim_name
 	else:
 		player.velocity = Vector2.ZERO
+		player.move_facing_down = false
 		_force_stop_sprint()
 
 	if player.health_state == "alive":
@@ -185,16 +188,17 @@ func _update_fase2_animation() -> void:
 	var is_moving: bool = vel_len > IDLE_MOVE_THRESHOLD
 	var is_running: bool = vel_len > WALK_SPEED_THRESHOLD
 	var use_hurt: bool = player.animation_component.should_use_hurt_sprite()
+	var move_dir: Vector2 = _get_move_vector()
 	var anim_name: String = ""
 
 	if is_moving:
 		anim_name = player.fase2_move_animation
 		if anim_name == "" or not _has_animation(anim_name):
-			anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt)
+			anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt, move_dir)
 	else:
 		anim_name = player.fase2_pose_animation
 		if anim_name == "" or not _has_animation(anim_name):
-			anim_name = player.animation_component.select_movement_anim(false, false, use_hurt)
+			anim_name = player.animation_component.select_movement_anim(false, false, use_hurt, move_dir)
 
 	if anim_name == "" or anim_name == "default" or not _has_animation(anim_name):
 		return
@@ -299,11 +303,13 @@ func _server_process(_delta: float) -> void:
 			player.cancel_emote()
 			player.state = Player.AnimState.IDLE
 
+	player.move_facing_down = false
 	if _can_move_now():
 		var input_dir: Vector2 = player.net_move_input
 		# Anti speed-hack: el cliente solo aporta direccion, nunca magnitud.
 		if input_dir.length() > 1.0:
 			input_dir = input_dir.normalized()
+		player.move_facing_down = _is_down_input(input_dir)
 		var want_sprint: bool = player.net_sprint and input_dir.length() > IDLE_MOVE_THRESHOLD
 		if player.fase2_active:
 			want_sprint = false
@@ -355,6 +361,10 @@ func update_facing_and_flip(dir: Vector2) -> void:
 		# El dueño avisa el cambio de facing al servidor para que lo replique.
 		if changed and not player.multiplayer.is_server():
 			player.rpc_id(1, "_submit_facing", new_right)
+
+
+func _is_down_input(dir: Vector2) -> bool:
+	return dir.y > IDLE_MOVE_THRESHOLD and absf(dir.y) >= absf(dir.x)
 
 
 func _get_move_vector() -> Vector2:

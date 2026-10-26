@@ -365,6 +365,11 @@ animations = [{
 "name": &"icon",
 "speed": 5.0
 }, {
+"frames": [],
+"loop": 1,
+"name": &"idle_down",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ojg4i")
