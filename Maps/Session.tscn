@@ -1,34 +1,34 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://hu0r0lipnfbe"]
 
-[ext_resource type="Script" path="res://Maps/session.gd" id="1_session"]
-[ext_resource type="PackedScene" path="res://Maps/Hub/HubMap.tscn" id="2_hubmap"]
-[ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="4_font"]
+[ext_resource type="Script" uid="uid://c52fw8e7u06k0" path="res://Maps/session.gd" id="1_session"]
+[ext_resource type="PackedScene" uid="uid://bnw2h8r6l4e0j" path="res://Maps/Hub/HubMap.tscn" id="2_hubmap"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="4_font"]
 [ext_resource type="PackedScene" path="res://Maps/Hub/HubBoard.tscn" id="5_board"]
 [ext_resource type="PackedScene" path="res://ui/Hub/BoardPanel.tscn" id="6_board_panel"]
 
-[node name="Session" type="Node2D"]
+[node name="Session" type="Node2D" unique_id=404635471]
 script = ExtResource("1_session")
 
-[node name="HubArea" type="Node2D" parent="."]
+[node name="HubArea" type="Node2D" parent="." unique_id=355188946]
 
-[node name="HubMap" parent="HubArea" instance=ExtResource("2_hubmap")]
+[node name="HubMap" parent="HubArea" unique_id=653170129 instance=ExtResource("2_hubmap")]
 
-[node name="HubSpawn" type="Marker2D" parent="HubArea"]
+[node name="HubSpawn" type="Marker2D" parent="HubArea" unique_id=879892216]
 position = Vector2(0, 200)
 
-[node name="HubBoard" parent="HubArea" instance=ExtResource("5_board")]
-position = Vector2(0, -120)
+[node name="HubBoard" parent="HubArea" unique_id=8377167 instance=ExtResource("5_board")]
+position = Vector2(-110, -1161)
 
-[node name="MatchArea" type="Node2D" parent="."]
+[node name="MatchArea" type="Node2D" parent="." unique_id=871562017]
 position = Vector2(50000, 50000)
 
-[node name="MapContainer" type="Node2D" parent="MatchArea"]
+[node name="MapContainer" type="Node2D" parent="MatchArea" unique_id=432415939]
 
-[node name="Actors" type="Node2D" parent="."]
+[node name="Actors" type="Node2D" parent="." unique_id=972688190]
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1331295274]
 
-[node name="StatusLabel" type="Label" parent="UI"]
+[node name="StatusLabel" type="Label" parent="UI" unique_id=282527754]
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 900.0
@@ -39,7 +39,7 @@ theme_override_font_sizes/font_size = 22
 text = "HUB — ACERCATE AL TABLERO"
 vertical_alignment = 1
 
-[node name="PromptLabel" type="Label" parent="UI"]
+[node name="PromptLabel" type="Label" parent="UI" unique_id=1569651779]
 visible = false
 anchors_preset = -1
 anchor_left = 0.5
@@ -59,7 +59,7 @@ text = "[E] INTERACTUAR"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ControlsLabel" type="Label" parent="UI"]
+[node name="ControlsLabel" type="Label" parent="UI" unique_id=1318488257]
 anchors_preset = -1
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -74,4 +74,4 @@ theme_override_font_sizes/font_size = 18
 text = "WASD/FLECHAS MOVER   —   E INTERACTUAR   —   X SALIR"
 vertical_alignment = 1
 
-[node name="BoardPanel" parent="UI" instance=ExtResource("6_board_panel")]
+[node name="BoardPanel" parent="UI" unique_id=1143499273 instance=ExtResource("6_board_panel")]
