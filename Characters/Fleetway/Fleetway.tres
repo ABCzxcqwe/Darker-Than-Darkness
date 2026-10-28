@@ -36,6 +36,6 @@ vision_cone_angle = 110.0
 icon = ExtResource("4_lokpx")
 panel_texture = ExtResource("5_t7m4y")
 animation_frames = ExtResource("2_labjy")
-sprite_scale = 10.0
+sprite_scale = 4.0
 theme_color = Color(1, 0.82, 0.1, 1)
 dev_only = true
