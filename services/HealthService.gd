@@ -316,9 +316,10 @@ func _cancel_fase2_for_state_change(peer_id: int, reason: String) -> void:
 
 
 func broadcast_health_update(peer_id: int, current_hp: int, max_hp: int, state: String) -> void:
+	var down_count: int = int(_states.get(peer_id, {}).get("down_count", 0))
 	health_changed.emit(peer_id, current_hp, max_hp)
 	player_state_changed.emit(peer_id, state)
-	_client_relay.rpc("_sync_global_health", peer_id, current_hp, max_hp, state)
+	_client_relay.rpc("_sync_global_health", peer_id, current_hp, max_hp, state, down_count)
 
 
 @rpc("authority", "reliable", "call_local")

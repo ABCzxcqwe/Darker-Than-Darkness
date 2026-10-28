@@ -36,6 +36,8 @@ var _map_loop_start: float = 0.0
 var _map_loop_end: float = -1.0
 var _final_loop_start: float = 0.0
 var _final_loop_end: float = -1.0
+var _last_life_loop_start: float = 0.0
+var _last_life_loop_end: float = -1.0
 var _priority_before_special: int = PriorityLevel.NONE
 var _escape_was_active: bool = false
 var _lms_peer_id: int = -1
@@ -264,6 +266,13 @@ func _handle_loop_ends() -> void:
 			var pos2 := lms_music_player.get_playback_position()
 			if pos2 >= _final_loop_end:
 				lms_music_player.seek(_final_loop_start)
+	# Música de última vida: recorte manual para MP3/Ogg (WAV loopea nativo).
+	if _last_life_loop_end > 0.0 and _chase_variant == ChaseVariantType.LAST_LIFE \
+			and chase_music_player and chase_music_player.playing and chase_music_player.stream:
+		if not (chase_music_player.stream is AudioStreamWAV):
+			var pos3 := chase_music_player.get_playback_position()
+			if pos3 >= _last_life_loop_end:
+				chase_music_player.seek(_last_life_loop_start)
 
 func _is_disconnected_or_menu() -> bool:
 	if current_global_state == "menu_drone":
@@ -282,6 +291,7 @@ func _is_disconnected_or_menu() -> bool:
 func _update_proximities(player: Node, delta: float) -> void:
 	if not is_instance_valid(player):
 		return
+	var local_downed := _is_player_downed(player)
 	if "interaction" in player and player.interaction and player.interaction.is_spectator:
 		var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
 		var target = ctrl.get_follow_target() if ctrl and ctrl.has_method("get_follow_target") else null
@@ -305,8 +315,16 @@ func _update_proximities(player: Node, delta: float) -> void:
 	if lms_music_player.playing:
 		lms_music_player.stop()
 
+	if local_downed:
+		_is_chasing = false
+		_smooth_fade(terror_music_player, MIN_DB, delta)
+		_smooth_fade(chase_music_player, MIN_DB, delta)
+		_smooth_fade(map_music_player, MAX_DB, delta)
+		return
+
 	if killers.size() == 0:
 		_is_chasing = false
+		_apply_chase_variant(ChaseVariantType.NORMAL)
 		_smooth_fade(terror_music_player, MIN_DB, delta)
 		_smooth_fade(chase_music_player, MIN_DB, delta)
 		_smooth_fade(map_music_player, MAX_DB, delta)
@@ -326,33 +344,41 @@ func _update_proximities(player: Node, delta: float) -> void:
 	var relay = GameServiceLocator.get_client_relay()
 
 	if is_killer:
+		var target_on_last_life: bool = false
+		var target_in_chase: bool = false
 		for s in survivors:
 			if not is_instance_valid(s): continue
 			if "health_state" in s and s.health_state != "alive": continue
 			if relay and relay.has_player_escaped(s.get_multiplayer_authority()): continue
 			var d: float = player.global_position.distance_to(s.global_position)
 			if d <= chase_range:
-				if not _is_chasing:
-					_is_chasing = true
-				_smooth_fade(chase_music_player, MAX_DB, delta)
-				_smooth_fade(map_music_player, MIN_DB, delta)
-				_smooth_fade(terror_music_player, MIN_DB, delta)
-				return
+				target_in_chase = true
+				if _is_on_last_life(s):
+					target_on_last_life = true
+		if target_in_chase:
+			_is_chasing = true
+			_apply_chase_variant(ChaseVariantType.LAST_LIFE if target_on_last_life else ChaseVariantType.NORMAL)
+			_smooth_fade(chase_music_player, MAX_DB, delta)
+			_smooth_fade(map_music_player, MIN_DB, delta)
+			_smooth_fade(terror_music_player, MIN_DB, delta)
+			return
 		_is_chasing = false
+		_apply_chase_variant(ChaseVariantType.NORMAL)
 		_smooth_fade(chase_music_player, MIN_DB, delta)
 		_smooth_fade(map_music_player, MAX_DB, delta)
 		_smooth_fade(terror_music_player, MIN_DB, delta)
 		return
 
 	if distance <= chase_range:
-		if not _is_chasing:
-			_is_chasing = true
+		_is_chasing = true
+		_apply_chase_variant(ChaseVariantType.LAST_LIFE if _is_on_last_life(player) else ChaseVariantType.NORMAL)
 		_smooth_fade(chase_music_player, MAX_DB, delta)
 		_smooth_fade(terror_music_player, MIN_DB, delta)
 		_smooth_fade(map_music_player, MIN_DB, delta)
 	elif distance <= terror_radius:
 		if _is_chasing:
 			_is_chasing = false
+		_apply_chase_variant(ChaseVariantType.NORMAL)
 		var factor: float = 1.0 - ((distance - chase_radius_base) / (terror_radius - chase_radius_base))
 		var target_db := lerpf(-30.0, 0.0, factor)
 		if occluded:
@@ -363,9 +389,48 @@ func _update_proximities(player: Node, delta: float) -> void:
 	else:
 		if _is_chasing:
 			_is_chasing = false
+		_apply_chase_variant(ChaseVariantType.NORMAL)
 		_smooth_fade(terror_music_player, MIN_DB, delta)
 		_smooth_fade(chase_music_player, MIN_DB, delta)
 		_smooth_fade(map_music_player, MAX_DB, delta)
+
+
+func _is_player_downed(node: Node) -> bool:
+	if not is_instance_valid(node):
+		return false
+	if "interaction" in node and node.interaction and node.interaction.is_spectator:
+		return false
+	return "health_state" in node and node.health_state != "alive"
+
+
+func _is_on_last_life(node: Node) -> bool:
+	if not is_instance_valid(node):
+		return false
+	var relay = GameServiceLocator.get_client_relay()
+	if relay and relay.has_method("is_on_last_life"):
+		return relay.is_on_last_life(node.get_multiplayer_authority())
+	return false
+
+
+func _apply_chase_variant(variant: int) -> void:
+	if variant == ChaseVariantType.LAST_LIFE and _chase_stream_last_life == null:
+		variant = ChaseVariantType.NORMAL
+	if variant == _chase_variant:
+		return
+	_chase_variant = variant
+	if chase_music_player == null:
+		return
+	var target_stream: AudioStream = _chase_stream_normal
+	if variant == ChaseVariantType.LAST_LIFE and _chase_stream_last_life:
+		target_stream = _chase_stream_last_life
+	if chase_music_player.stream == target_stream:
+		return
+	var was_playing := chase_music_player.playing
+	chase_music_player.stop()
+	chase_music_player.stream = target_stream
+	if was_playing and target_stream:
+		chase_music_player.volume_db = MIN_DB
+		chase_music_player.play()
 
 func _smooth_fade(player: AudioStreamPlayer, target_db: float, delta: float) -> void:
 	if player.stream == null:
@@ -433,13 +498,23 @@ func _configure_stream_loop(stream: AudioStream, loop_start: float, loop_end: fl
 	return s
 
 
-func set_character_threat_audio(terror_stream: AudioStream, chase_stream: AudioStream) -> void:
+func set_character_threat_audio(
+		terror_stream: AudioStream,
+		chase_stream: AudioStream,
+		last_life_stream: AudioStream = null,
+		last_life_loop_start: float = 0.0,
+		last_life_loop_end: float = -1.0) -> void:
 	if terror_music_player:
 		var s1 := _configure_stream_loop(terror_stream, 0.0, -1.0, true) if terror_stream else null
 		terror_music_player.stream = s1
 	if chase_music_player:
 		var s2 := _configure_stream_loop(chase_stream, 0.0, -1.0, true) if chase_stream else null
 		_chase_stream_normal = s2
+		var s3 := _configure_stream_loop(last_life_stream, last_life_loop_start, last_life_loop_end, true) if last_life_stream else null
+		_chase_stream_last_life = s3
+		_last_life_loop_start = maxf(last_life_loop_start, 0.0) if last_life_stream else 0.0
+		_last_life_loop_end = last_life_loop_end if last_life_stream else -1.0
+		_chase_variant = ChaseVariantType.NORMAL
 		chase_music_player.stream = s2
 
 func set_killer_config(terror_r: float, chase_r: float) -> void:
@@ -461,8 +536,11 @@ func setup_match_audio(map_id: String) -> void:
 	set_killer_config(terror_r, chase_r)
 	var terror_stream: AudioStream = killer_node.character_data.terror_music if killer_node and killer_node.character_data else null
 	var chase_stream: AudioStream = killer_node.character_data.chase_music if killer_node and killer_node.character_data else null
+	var last_life_stream: AudioStream = killer_node.character_data.last_life_music if killer_node and killer_node.character_data else null
+	var last_life_loop_start: float = killer_node.character_data.last_life_music_loop_start if killer_node and killer_node.character_data else 0.0
+	var last_life_loop_end: float = killer_node.character_data.last_life_music_loop_end if killer_node and killer_node.character_data else -1.0
 	var lms_stream: AudioStream = survivor_node.character_data.lms_music if survivor_node and survivor_node.character_data else null
-	register_match_character_music(terror_stream, chase_stream, lms_stream)
+	register_match_character_music(terror_stream, chase_stream, lms_stream, last_life_stream, last_life_loop_start, last_life_loop_end)
 
 
 func _find_first_in_group(group_name: String) -> Node:
@@ -559,6 +637,8 @@ func reset_match_audio() -> void:
 	_map_loop_end = -1.0
 	_final_loop_start = 0.0
 	_final_loop_end = -1.0
+	_last_life_loop_start = 0.0
+	_last_life_loop_end = -1.0
 
 	current_global_state = "menu"
 
@@ -583,8 +663,14 @@ func setup_map_audio(map_id: String) -> void:
 func setup_map_audio_finish() -> void:
 	change_audio_state("ingame")
 
-func register_match_character_music(killer_terror: AudioStream, killer_chase: AudioStream, survivor_lms: AudioStream) -> void:
-	set_character_threat_audio(killer_terror, killer_chase)
+func register_match_character_music(
+		killer_terror: AudioStream,
+		killer_chase: AudioStream,
+		survivor_lms: AudioStream,
+		killer_last_life: AudioStream = null,
+		last_life_loop_start: float = 0.0,
+		last_life_loop_end: float = -1.0) -> void:
+	set_character_threat_audio(killer_terror, killer_chase, killer_last_life, last_life_loop_start, last_life_loop_end)
 	if lms_music_player and survivor_lms:
 		var s := _configure_stream_loop(survivor_lms, 0.0, -1.0, false)
 		lms_music_player.stream = s

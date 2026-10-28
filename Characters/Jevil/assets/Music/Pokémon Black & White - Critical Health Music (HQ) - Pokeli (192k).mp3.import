@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bvvracqgifg26"
+path="res://.godot/imported/Pokémon Black & White - Critical Health Music (HQ) - Pokeli (192k).mp3-86d3baf5ea74b3541dcef26218d1def2.mp3str"
+
+[deps]
+
+source_file="res://Characters/Jevil/assets/Music/Pokémon Black & White - Critical Health Music (HQ) - Pokeli (192k).mp3"
+dest_files=["res://.godot/imported/Pokémon Black & White - Critical Health Music (HQ) - Pokeli (192k).mp3-86d3baf5ea74b3541dcef26218d1def2.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

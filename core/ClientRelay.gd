@@ -55,6 +55,7 @@ var _evolved_slots: Dictionary = {}  # peer_id -> [bool, bool, bool, bool, bool]
 var _escaped_players: Array[int] = []
 var _stamina_cache: Dictionary = {}  # { peer_id: { "current": float, "max": float } }
 var _tp_cache: Dictionary = {}       # { peer_id: { "current": float, "max": float } }
+var _down_counts: Dictionary = {}    # peer_id -> número de caídas
 var _stats_cache: Dictionary = {}    # stats de este peer (menú de pausa)
 
 
@@ -74,9 +75,20 @@ func _sync_timeout() -> void:
 
 ## Health
 @rpc("authority", "reliable", "call_local")
-func _sync_global_health(peer_id: int, current_hp: int, max_hp: int, state: String) -> void:
+func _sync_global_health(peer_id: int, current_hp: int, max_hp: int, state: String, down_count: int = 0) -> void:
+	_down_counts[peer_id] = down_count
 	health_changed.emit(peer_id, current_hp, max_hp)
 	player_state_changed.emit(peer_id, state)
+
+
+## Caídas acumuladas de un peer (0 = vida normal, >=1 = última vida).
+func get_down_count(peer_id: int) -> int:
+	return int(_down_counts.get(peer_id, 0))
+
+
+## True si el peer ya cayó y fue revivido: su siguiente caída es muerte.
+func is_on_last_life(peer_id: int) -> bool:
+	return get_down_count(peer_id) >= 1
 
 
 @rpc("authority", "reliable", "call_local")
@@ -324,4 +336,5 @@ func reset_state() -> void:
 	_escaped_players.clear()
 	_stamina_cache.clear()
 	_tp_cache.clear()
+	_down_counts.clear()
 	_stats_cache.clear()

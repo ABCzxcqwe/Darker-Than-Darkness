@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://53el72ckbctb"
+path="res://.godot/imported/Gallery - Toby Fox (192k).mp3-9f6fdf4ef4f0b1514f5226f32fa217b4.mp3str"
+
+[deps]
+
+source_file="res://Characters/Jevil/assets/Music/Gallery - Toby Fox (192k).mp3"
+dest_files=["res://.godot/imported/Gallery - Toby Fox (192k).mp3-9f6fdf4ef4f0b1514f5226f32fa217b4.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

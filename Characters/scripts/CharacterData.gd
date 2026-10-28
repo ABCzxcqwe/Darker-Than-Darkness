@@ -14,6 +14,7 @@ const SURVIVOR_ONLY := [
 const KILLER_ONLY := [
 	"can_take_damage", "terror_radius", "chase_radius",
 	"terror_music", "chase_music",
+	"last_life_music", "last_life_music_loop_start", "last_life_music_loop_end",
 	"lms_music_", "lms_duration_",
 	"hit_sfx",
 ]
@@ -69,6 +70,12 @@ const KILLER_ONLY := [
 @export var chase_radius: float = 200.0
 @export var terror_music: AudioStream
 @export var chase_music: AudioStream
+## Música de persecución cuando el superviviente perseguido está en su última vida.
+@export var last_life_music: AudioStream
+## Punto en segundos desde donde reinicia el loop (0 = inicio). Usado para MP3/Ogg (loop_offset) y WAV (loop_begin).
+@export var last_life_music_loop_start: float = 0.0
+## Punto en segundos donde se corta antes del silencio final (-1 = fin real). Para WAV usa loop_end nativo; para MP3/Ogg se hace seek manual.
+@export var last_life_music_loop_end: float = -1.0
 @export var lms_music_: AudioStream
 @export var lms_duration_: float = 140.0
 @export var hit_sfx: Array[AudioStream]
