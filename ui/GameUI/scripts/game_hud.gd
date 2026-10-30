@@ -37,7 +37,7 @@ extends CanvasLayer
 @onready var dialog_container:  Control         = $DialogContainer
 
 # ── Constantes ─────────────────────────────────────────────────────────
-const CONTEXT_ITEM_SCENE := preload("uid://b8p1jgthpblec")
+const CONTEXT_WHEEL_SCENE := preload("res://ui/GameUI/Scenes/ContextWheel.tscn")
 const TIMER_URGENT_SECS  := 15.0
 const COLOR_SURVIVOR:    Color = Color(0.27, 0.78, 0.95)  # cian
 const COLOR_KILLER:      Color = Color(1.0,  0.27, 0.27)  # rojo
@@ -51,8 +51,7 @@ var _active_tp_bar:    Control  = null
 var _my_team:          String   = "survivor"
 var _theme_color:      Color    = COLOR_SURVIVOR
 var _menu_open:        bool     = false
-var _ctx_items:        Array    = []
-var _ctx_selected_idx: int      = 0
+var _context_wheel:    Control  = null
 var _on_confirm:       Callable = Callable()
 var _on_cancel:        Callable = Callable()
 var _my_id:            int        = 0
@@ -74,6 +73,12 @@ func _ready() -> void:
 		context_title.text = tr("HUD_TARGET_SELECT")
 	if context_hint:
 		context_hint.text = tr("HUD_TARGET_HINT")
+
+	_context_wheel = CONTEXT_WHEEL_SCENE.instantiate()
+	add_child(_context_wheel)
+	_context_wheel.confirmed.connect(_on_wheel_confirmed)
+	_context_wheel.cancelled.connect(_on_wheel_cancelled)
+
 	if killer_hp_public:
 		killer_hp_public.visible = false
 	_connect_dialog_relay()
@@ -380,133 +385,111 @@ func _stop_rage_timer_display() -> void:
 	_rage_time_left = 0.0
 
 # ── Menú contextual Simplificado (Aparición directa) ───────────────────
-func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1, can_target_self: bool = false) -> void:
-	if _menu_open: return
-	_menu_open   = true
-	_on_confirm  = on_confirm
-	_on_cancel   = on_cancel
-
-	_build_context_items(filter_peer_id, can_target_self)
-
-	if context_title:
-		context_title.text = title.to_upper()
-	if context_menu:
-		context_menu.visible = true
-
-	if can_target_self and filter_peer_id > 0 and _ctx_items.size() == 1:
-		print("[GameHUD] Solo el caster disponible — auto-curando")
-		_close_context_menu()
-		if _on_confirm.is_valid():
-			_on_confirm.call(filter_peer_id)
+func request_selection(title: String, on_confirm: Callable, on_cancel: Callable = Callable(), filter_peer_id: int = -1, can_target_self: bool = false, selection_type: int = 0) -> void:
+	if _menu_open:
 		return
 
-	if not _ctx_items.is_empty():
-		_select_ctx_item(0)
+	var caster_id: int = filter_peer_id if filter_peer_id > 0 else _my_id
+	var options := _build_context_options(selection_type, caster_id, can_target_self)
+
+	if options.is_empty():
+		if on_cancel.is_valid():
+			on_cancel.call()
+		selection_cancelled.emit()
+		return
+
+	# Si el único objetivo válido es el caster y puede auto-curarse, no
+	# hace falta mostrar la rueda.
+	if options.size() == 1 and can_target_self and int((options[0] as Dictionary).get("peer_id", -1)) == caster_id:
+		print("[GameHUD] Solo el caster disponible — auto-curando")
+		if on_confirm.is_valid():
+			on_confirm.call(caster_id)
+		selection_confirmed.emit(caster_id)
+		return
+
+	_menu_open = true
+	_on_confirm = on_confirm
+	_on_cancel = on_cancel
+	var caster := _find_player_by_peer_id(caster_id)
+	_context_wheel.open(title, options, caster)
+
 
 func cancel_selection() -> void:
-	if not _menu_open: return
-	_close_context_menu()
-	if _on_cancel.is_valid():
-		_on_cancel.call()
-	selection_cancelled.emit()
+	if not _menu_open:
+		return
+	if _context_wheel:
+		_context_wheel.cancel()
 
-func _build_context_items(filter_peer_id: int = -1, can_target_self: bool = false) -> void:
-	for child in context_grid.get_children():
-		child.queue_free()
-	_ctx_items.clear()
-	_ctx_selected_idx = 0
 
-	for player in get_tree().get_nodes_in_group(GroupNames.SURVIVOR):
-		if "health_state" in player and player.health_state != "alive":
-			continue
-		var relay = GameServiceLocator.get_client_relay()
-		if relay and relay.has_player_escaped(player.get_multiplayer_authority()):
-			continue
-		var data: CharacterData = player.character_data if player.get("character_data") else null
-		if not data: continue
-
-		var p_id = player.get_multiplayer_authority()
-		# Saltar al propio caster si can_target_self es false
-		if filter_peer_id > 0 and p_id == filter_peer_id and not can_target_self:
-			continue
-
-		var item = CONTEXT_ITEM_SCENE.instantiate()
-		context_grid.add_child(item)
-
-		var icon: Texture2D = data.icon if data.icon else null
-		var p_name = LobbyManager.players.get(p_id, {}).get("name", "")
-		item.setup(p_id, data.display_name, data.animation_frames, icon, p_name)
-		item.item_clicked.connect(_on_ctx_item_clicked)
-
-		_ctx_items.append(item)
-
-func _on_ctx_item_clicked(peer_id: int) -> void:
-	_close_context_menu()
+func _on_wheel_confirmed(peer_id: int) -> void:
+	_menu_open = false
 	if _on_confirm.is_valid():
 		_on_confirm.call(peer_id)
 	selection_confirmed.emit(peer_id)
 
-func _close_context_menu() -> void:
-	_menu_open = false
-	if context_menu:
-		context_menu.visible = false # Desaparece al instante
 
-func _select_ctx_item(idx: int) -> void:
-	if _ctx_items.is_empty(): return
-	_ctx_selected_idx = clamp(idx, 0, _ctx_items.size() - 1)
-	for i in _ctx_items.size():
-		if _ctx_items[i].has_method("set_selected"):
-			_ctx_items[i].set_selected(i == _ctx_selected_idx)
+func _on_wheel_cancelled() -> void:
+	_menu_open = false
+	if _on_cancel.is_valid():
+		_on_cancel.call()
+	selection_cancelled.emit()
+
+
+func _build_context_options(selection_type: int, caster_id: int, can_target_self: bool) -> Array:
+	var options: Array = []
+	var relay = GameServiceLocator.get_client_relay()
+
+	for player in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(player):
+			continue
+		var data: CharacterData = player.character_data if player.get("character_data") else null
+		if not data:
+			continue
+
+		var p_id: int = player.get_multiplayer_authority()
+		var team := str(data.team)
+		if selection_type == 0 and team != "survivor": # ALLY
+			continue
+		if selection_type == 1 and team != "killer": # ENEMY
+			continue
+		if p_id == caster_id and not can_target_self:
+			continue
+
+		if team == "survivor":
+			if "health_state" in player and str(player.health_state) != "alive":
+				continue
+			if relay and relay.has_player_escaped(p_id):
+				continue
+		elif "health_state" in player and str(player.health_state) in ["dead", "escaped"]:
+			continue
+
+		var status := ""
+		if team == "survivor":
+			var max_hp: int = maxi(int(data.max_health), 1)
+			var hp: int = int(player.get("health"))
+			status = "%d/%d" % [hp, max_hp]
+
+		var icon: Texture2D = data.icon if data.icon else null
+		var p_name: String = LobbyManager.players.get(p_id, {}).get("name", "")
+		options.append({
+			"peer_id": p_id,
+			"display_name": data.display_name,
+			"frames": data.animation_frames,
+			"icon": icon,
+			"player_name": p_name,
+			"status": status,
+		})
+
+	return options
+
 
 # ── Input del menú contextual ──────────────────────────────────────────
 func _input(event: InputEvent) -> void:
-	if not _menu_open: return
-	if _is_pause_open(): return
-
-	if event.is_action_pressed("ui_cancel"):
-		cancel_selection()
-		get_viewport().set_input_as_handled()
+	if not _menu_open:
 		return
-
-	var cols: int = context_grid.columns if context_grid else 2
-	var is_key: bool = event is InputEventKey and event.pressed and not event.echo
-	if is_key:
-		match event.keycode:
-			KEY_S, KEY_DOWN:
-				_select_ctx_item(_ctx_selected_idx + cols)
-				get_viewport().set_input_as_handled()
-				return
-			KEY_W, KEY_UP:
-				_select_ctx_item(_ctx_selected_idx - cols)
-				get_viewport().set_input_as_handled()
-				return
-			KEY_D, KEY_RIGHT:
-				_select_ctx_item(_ctx_selected_idx + 1)
-				get_viewport().set_input_as_handled()
-				return
-			KEY_A, KEY_LEFT:
-				_select_ctx_item(_ctx_selected_idx - 1)
-				get_viewport().set_input_as_handled()
-				return
-
-	if event.is_action_pressed("ui_down"):
-		_select_ctx_item(_ctx_selected_idx + cols)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_up"):
-		_select_ctx_item(_ctx_selected_idx - cols)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_right"):
-		_select_ctx_item(_ctx_selected_idx + 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_left"):
-		_select_ctx_item(_ctx_selected_idx - 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_accept"):
-		if not _ctx_items.is_empty():
-			var target_item = _ctx_items[_ctx_selected_idx]
-			# Verificamos que el nodo de UI tenga implementado get_peer_id()
-			if target_item.has_method("get_peer_id"):
-				_on_ctx_item_clicked(target_item.get_peer_id())
+	if _is_pause_open():
+		return
+	if _context_wheel and _context_wheel.handle_input(event):
 		get_viewport().set_input_as_handled()
 
 # ── Revive prompts (marcador sobre el caído con barra de progreso) ───
@@ -747,7 +730,9 @@ func set_spectator_ui_active(active: bool) -> void:
 	elif tp_bar:
 		tp_bar.visible = not active
 	if context_menu:
-		context_menu.visible = not active
+		context_menu.visible = false
+	if active and _menu_open:
+		cancel_selection()
 	if killer_hp_public:
 		killer_hp_public.visible = not active
 	if timer_panel:

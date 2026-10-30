@@ -42,6 +42,7 @@ var _confirm_index := 0 # 0 = SI, 1 = NO
 var _action_focusables: Array[Control] = []
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
@@ -51,6 +52,8 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.connect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.connect(_on_setting_changed)
@@ -137,6 +140,21 @@ func _is_dedicated() -> bool:
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
 	_update_player_list()
+
+
+func _on_palette_changed(palette: Dictionary) -> void:
+	_apply_theme()
+	_highlight(_index, false)
+	if _action_visible:
+		_highlight_action(_action_index, false)
+	if _confirm_visible:
+		_highlight_confirm(_confirm_index, false)
+
+	# Las filas de jugadores guardan colores base al crearse; reconstruirlas
+	# una sola vez al terminar el tween para que queden con la paleta final.
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm and tm.has_method("get_base_palette") and palette == tm.get_base_palette():
+		_update_player_list()
 
 func _apply_theme() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -727,23 +745,9 @@ func _position_soul(idx: int, instant: bool) -> void:
 	if idx < 0 or idx >= _focusables.size():
 		return
 	var t := _focusables[idx]
-	if not is_instance_valid(t) or not t.is_visible_in_tree():
+	if not is_instance_valid(t):
 		return
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(t) or not is_instance_valid(_soul):
-		return
-	if not t.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := t.global_position + Vector2(-28, (t.size.y - soul_h)/2.0) - global_position
-	_soul.visible = true
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, t, instant, 12.0, false)
 
 func _position_soul_action(idx: int, instant: bool) -> void:
 	if _soul == null or _action_focusables.is_empty():
@@ -751,45 +755,17 @@ func _position_soul_action(idx: int, instant: bool) -> void:
 	if idx < 0 or idx >= _action_focusables.size():
 		return
 	var t := _action_focusables[idx]
-	if not is_instance_valid(t) or not t.is_visible_in_tree():
+	if not is_instance_valid(t):
 		return
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(t) or not is_instance_valid(_soul):
-		return
-	if not t.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := t.global_position + Vector2(-28, (t.size.y - soul_h)/2.0) - global_position
-	_soul.visible = true
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, t, instant, 12.0, false)
 
 func _position_soul_confirm(idx: int, instant: bool) -> void:
 	if _soul == null:
 		return
 	var t: Control = _confirm_yes if idx == 0 else _confirm_no
-	if not is_instance_valid(t) or not t.is_visible_in_tree():
+	if not is_instance_valid(t):
 		return
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(t) or not is_instance_valid(_soul):
-		return
-	if not t.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := t.global_position + Vector2(-28, (t.size.y - soul_h)/2.0) - global_position
-	_soul.visible = true
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, t, instant, 12.0, false)
 
 func _confirm() -> void:
 	if _focusables.is_empty():
@@ -1074,6 +1050,8 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.disconnect(_on_setting_changed)

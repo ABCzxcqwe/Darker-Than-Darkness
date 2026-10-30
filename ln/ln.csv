@@ -42,10 +42,11 @@ SET_OPT_WINDOW;Ventana;Window;Janela;Ventana;Ventana;Ventana
 SET_OPT_FULL;Completo;Fullscreen;Ecrã completo;Completo;Completo;Completo
 SET_LOCKED;[BLOQUEADO];[LOCKED];[BLOQUEADO];[BLOQUEADO];[BLOQUEADO];[BLOQUEADO]
 SET_OPT_ONLINE_NA;ONLINE — No disponible;ONLINE — Unavailable;ONLINE — Indisponível;ONLINE — No disponible;ONLINE — No disponible;ONLINE — No disponible
+SET_OPT_NO_PROVIDER;NO DISPONIBLE;UNAVAILABLE;INDISPONÍVEL;НЕДОСТУПНО;사용 불가;利用不可
 SET_CH_LANGUAGE;Idioma — %s;Language — %s;Idioma — %s;Idioma — %s;Idioma — %s;Idioma — %s
 SET_CH_PLAYER;Tu alias en lobbies — %s;Your lobby alias — %s;O teu nome nos lobbies — %s;Tu alias en lobbies — %s;Tu alias en lobbies — %s;Tu alias en lobbies — %s
 SET_CH_EMPTY;vacío;empty;vazio;vacío;vacío;vacío
-SET_CH_PROVIDER;LAN / Online — elige red;LAN / Online — choose network;LAN / Online — escolhe a rede;LAN / Online — elige red;LAN / Online — elige red;LAN / Online — elige red
+SET_CH_PROVIDER;Proveedor online — %s;Online provider — %s;Fornecedor online — %s;Онлайн-провайдер — %s;온라인 제공자 — %s;オンラインプロバイダー — %s
 SET_CH_THEME;Tema — %s;Theme — %s;Tema — %s;Tema — %s;Tema — %s;Tema — %s
 SET_CH_MUSIC;Volumen música — %d%%;Music volume — %d%%;Volume da música — %d%%;Volumen música — %d%%;Volumen música — %d%%;Volumen música — %d%%
 SET_CH_SFX;Efectos — %d%%;Effects — %d%%;Efeitos — %d%%;Efectos — %d%%;Efectos — %d%%;Efectos — %d%%
@@ -56,6 +57,7 @@ SET_CH_DEADZONE;Zona muerta — %.2f respuesta del stick;Deadzone — %.2f stick
 SET_CH_RESET;Restaura mandos por defecto;Restore default controls;Repõe os comandos predefinidos;Restaura mandos por defecto;Restaura mandos por defecto;Restaura mandos por defecto
 SET_MSG_ONLINE_NA;ONLINE no disponible;ONLINE unavailable;ONLINE indisponível;ONLINE no disponible;ONLINE no disponible;ONLINE no disponible
 SET_MSG_NETMODE;Modo red: %s;Network mode: %s;Modo de rede: %s;Modo red: %s;Modo red: %s;Modo red: %s
+SET_MSG_PROVIDER;Proveedor online: %s;Online provider: %s;Fornecedor online: %s;Онлайн-провайдер: %s;온라인 제공자: %s;オンラインプロバイダー: %s
 SET_MSG_THEME_LOCKED;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Theme locked: win with all characters to unlock LIGHT;Tema bloqueado: vence com todas as personagens para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT;Tema bloqueado: gana con todos los personajes para desbloquear LIGHT
 SET_MSG_THEME_CHANGED;Tema cambiado a %s;Theme changed to %s;Tema mudado para %s;Tema cambiado a %s;Tema cambiado a %s;Tema cambiado a %s
 SET_MSG_CONTROLS_RESET;Controles restablecidos;Controls reset;Comandos repostos;Controles restablecidos;Controles restablecidos;Controles restablecidos
@@ -230,7 +232,7 @@ HUD_CHAR_HINT;[A/D] GIRAR  •  [ENTER / ESPACIO] CONFIRMAR;[A/D] ROTATE  •  [
 HUD_YOU_SHORT; (Tú); (You); (Tú); (Tú); (Tú); (Tú)
 HUD_CHOOSING;Eligiendo...;Choosing...;Eligiendo...;Eligiendo...;Eligiendo...;Eligiendo...
 HUD_TARGET_SELECT;SELECCIONAR OBJETIVO;SELECT TARGET;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO;SELECCIONAR OBJETIVO
-HUD_TARGET_HINT;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVIGATE · ENTER CONFIRM · ESC CANCEL;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR;↑↓ NAVEGAR · ENTER CONFIRMAR · ESC CANCELAR
+HUD_TARGET_HINT;← → ELEGIR · Z CONFIRMAR · X CANCELAR;← → SELECT · Z CONFIRM · X CANCEL;← → ESCOLHER · Z CONFIRMAR · X CANCELAR;← → ВЫБОР · Z ПОДТВЕРДИТЬ · X ОТМЕНА;← → 선택 · Z 확인 · X 취소;← → 選択 · Z 決定 · X キャンセル
 HUD_REVIVE;REVIVIR [%s];REVIVE [%s];REVIVIR [%s];REVIVIR [%s];REVIVIR [%s];REVIVIR [%s]
 HUD_ALLY_TARGET;OBJETIVO;OBJECTIVE;OBJETIVO;OBJETIVO;OBJETIVO;OBJETIVO
 HUD_ALLY_NAME;NOMBRE;NAME;NOMBRE;NOMBRE;NOMBRE;NOMBRE
@@ -264,6 +266,11 @@ LOBBY_KICK_REASON;Expulsado por el host;Kicked by the host;Expulso pelo host;Exp
 HUD_END_TITLE;RESULTADOS;ROUND RESULTS;RESULTADOS;РЕЗУЛЬТАТЫ;결과;結果
 HUD_END_FINISHED;PARTIDA FINALIZADA;MATCH FINISHED;PARTIDA TERMINADA;МАТЧ ЗАВЕРШЁН;경기 종료;試合終了
 HUD_END_BACK_HUB;VOLVER AL HUB [Z];BACK TO HUB [Z];VOLTAR AO HUB [Z];ВЕРНУТЬСЯ В ХАБ [Z];허브로 돌아가기 [Z];ハブに戻る [Z]
+HUD_END_PLAYERS;JUGADORES;PLAYERS;JOGADORES;ИГРОКИ;플레이어;プレイヤー
+HUD_END_WON;GANÓ;WON;VENCEU;ПОБЕДА;승리;勝利
+HUD_END_LOST;PERDIÓ;LOST;PERDEU;ПОРАЖЕНИЕ;패배;敗北
+HUD_END_SPECTATOR;ESPECTADOR;SPECTATOR;ESPECTADOR;ЗРИТЕЛЬ;관전자;観戦者
+HUD_END_YOU;(TÚ);(YOU);(VOCÊ);(ВЫ);(나);(あなた)
 HUD_END_RETURNING;VOLVIENDO...;RETURNING...;A VOLTAR...;ВОЗВРАЩЕНИЕ...;돌아가는 중...;戻っています...
 SCOREBOARD_TITLE;JUGADORES;PLAYERS;JOGADORES;ИГРОКИ;플레이어;プレイヤー
 SCOREBOARD_EMPTY;SIN JUGADORES;NO PLAYERS;SEM JOGADORES;НЕТ ИГРОКОВ;플레이어 없음;プレイヤーなし

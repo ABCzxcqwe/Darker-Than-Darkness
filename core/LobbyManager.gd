@@ -514,7 +514,7 @@ func _go_to_character_selection(assigned_players: Dictionary):
 			hub.queue_free()
 	var ds := get_node_or_null("/root/DedicatedServer")
 	if not (ds and ds.is_dedicated):
-		get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
+		SceneTransition.change_scene("res://ui/GameUI/Scenes/CharacterSelect.tscn", 0.45, 0.15, 0.6)
 
 
 @rpc("any_peer", "call_local", "reliable")

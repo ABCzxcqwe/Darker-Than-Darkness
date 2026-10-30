@@ -23,13 +23,18 @@ var _style: StyleBoxFlat = null
 signal item_clicked(peer_id: int)
 
 
-func setup(peer_id: int, display_name: String, frames: SpriteFrames, fallback_tex: Texture2D = null, player_name: String = "") -> void:
+func setup(peer_id: int, display_name: String, frames: SpriteFrames, fallback_tex: Texture2D = null, player_name: String = "", status_text: String = "") -> void:
 	_peer_id = peer_id
 	if name_label:
 		var txt = display_name.to_upper()
 		if not player_name.is_empty():
 			txt += "  (%s)" % player_name
+		if not status_text.is_empty():
+			txt += "  %s" % status_text
 		name_label.text = txt
+		name_label.clip_text = true
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		name_label.custom_minimum_size = Vector2(0, 0)
 	if icon_rect:
 		icon_rect.setup(frames, "icon", fallback_tex)
 		icon_rect.visible = true
@@ -51,4 +56,5 @@ func get_peer_id() -> int:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		accept_event()
 		item_clicked.emit(_peer_id)

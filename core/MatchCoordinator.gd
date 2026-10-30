@@ -158,6 +158,8 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 		print("[MatchCoordinator] Espectador ignorando _begin_game (ya en World)")
 		return
 
+	await SceneTransition.fade_to_black(0.45)
+
 	for node in get_tree().get_nodes_in_group(GroupNames.CHARACTER_SELECT_SCREEN):
 		node.queue_free()
 
@@ -166,6 +168,11 @@ func _begin_game(char_map: Dictionary, map_id: String) -> void:
 	current_game_manager.start_game(char_map, map_id)
 
 	LobbyManager.current_phase = LobbyManager.GamePhase.PLAYING
+
+	if DisplayServer.get_name() != "headless":
+		await get_tree().process_frame
+		await get_tree().create_timer(0.15).timeout
+		SceneTransition.fade_from_black(0.65)
 
 
 @rpc("authority", "reliable")
@@ -186,7 +193,7 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 			# espectador clavado. Esperamos un frame y solo cambiamos si sigue sin World.
 			await get_tree().process_frame
 			if current_game_manager == null:
-				get_tree().change_scene_to_file("res://ui/GameUI/Scenes/CharacterSelect.tscn")
+				SceneTransition.change_scene("res://ui/GameUI/Scenes/CharacterSelect.tscn", 0.45, 0.15, 0.6)
 		LobbyManager.GamePhase.PLAYING:
 			GameData.selected_map = data.get("map_id", "")
 			current_game_manager = MAIN_SCENE.instantiate()
@@ -196,7 +203,7 @@ func _join_late_as_spectator(phase: int, data: Dictionary) -> void:
 			call_deferred("_sync_spectator_audio", data.get("map_id", ""))
 		LobbyManager.GamePhase.ENDED:
 			AudioManager.reset_match_audio()
-			get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
+			SceneTransition.change_scene("res://ui/GameUI/Scenes/MatchStats.tscn", 0.45, 0.1, 0.6)
 
 
 func _sync_spectator_audio(_map_id: String) -> void:
@@ -228,7 +235,7 @@ func _go_to_stats_screen(stats_data: Dictionary) -> void:
 	cleanup_game_manager()
 
 	if not _is_dedicated_server():
-		get_tree().change_scene_to_file("res://ui/GameUI/Scenes/MatchStats.tscn")
+		SceneTransition.change_scene("res://ui/GameUI/Scenes/MatchStats.tscn", 0.45, 0.1, 0.6)
 
 	LobbyManager.current_phase = LobbyManager.GamePhase.ENDED
 
@@ -291,7 +298,7 @@ func _back_to_lobby_scene(reseted_players: Dictionary) -> void:
 	AudioManager.reset_match_audio()
 	# El servidor dedicado también carga el hub: recibe y retransmite el
 	# estado de los avatares entre los clientes.
-	get_tree().change_scene_to_file("res://Maps/Session.tscn")
+	SceneTransition.change_scene("res://Maps/Session.tscn", 0.5, 0.25, 0.7)
 
 
 func reset_to_menu() -> void:
@@ -323,4 +330,4 @@ func reset_to_menu() -> void:
 func _do_change_to_menu() -> void:
 	_resetting = false
 	if is_inside_tree():
-		get_tree().change_scene_to_file("res://ui/MainMenu/scenes/MainMenu.tscn")
+		SceneTransition.change_scene("res://ui/MainMenu/scenes/MainMenu.tscn", 0.45, 0.1, 0.5)

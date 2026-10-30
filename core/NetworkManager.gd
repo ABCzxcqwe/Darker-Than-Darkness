@@ -1,8 +1,8 @@
 # res://core/NetworkManager.gd
 extends Node
 
-enum NetworkMode { LAN, STEAM }
-const ONLINE = NetworkMode.STEAM
+enum NetworkMode { LAN, ONLINE }
+const ONLINE = NetworkMode.ONLINE
 
 const PORT := 4242
 const MAX_LOBBIES := 16
@@ -14,6 +14,7 @@ signal connection_succeeded()
 signal connection_failed()
 signal server_disconnected()
 signal steam_lobby_list_updated(lobbies: Array)
+signal online_providers_changed(providers: Array)
 
 var peer: MultiplayerPeer
 var network_mode: NetworkMode = NetworkMode.LAN
@@ -24,13 +25,23 @@ var _net_poll_accum := 0.0
 var _steam: Variant = null
 var current_online_provider: String = "steam"
 var _steam_ready := false
+var _last_online_providers: Array = []
+var _provider_check_accum := 0.0
 # Lista interna dev: hardcodear aquí futuros servidores {name, address} - no accesible al jugador
 var custom_servers: Array = [] # Ej: [{"name":"Brazil","address":"brazil.example.com:4242"}]
 
 
-func _process(_delta: float):
+func _process(delta: float):
 	if _steam:
 		_steam.run_callbacks()
+	if _steam_ready:
+		_provider_check_accum += delta
+		if _provider_check_accum >= 1.0:
+			_provider_check_accum = 0.0
+			var providers := get_online_providers()
+			if providers != _last_online_providers:
+				_last_online_providers = providers
+				online_providers_changed.emit(providers)
 
 
 func _physics_process(delta: float) -> void:
@@ -79,6 +90,8 @@ func _init_steam_once():
 	_steam.lobby_match_list.connect(_on_steam_lobby_list)
 	_steam.lobby_chat_update.connect(_on_steam_lobby_chat_update)
 	_steam_ready = true
+	_last_online_providers = get_online_providers()
+	online_providers_changed.emit(_last_online_providers)
 	print("[NetworkManager] Steam listo para usar")
 
 
@@ -90,8 +103,8 @@ func initialize_steam() -> bool:
 		print("[NetworkManager] Steam no se pudo inicializar. Revisá la consola para más detalles.")
 		return false
 	current_online_provider = "steam"
-	network_mode = NetworkMode.STEAM
-	print("[NetworkManager] Modo Steam activado")
+	network_mode = NetworkMode.ONLINE
+	print("[NetworkManager] Modo ONLINE activado | proveedor: ", current_online_provider)
 	return true
 
 
@@ -100,17 +113,33 @@ func is_steam_ready() -> bool:
 
 func is_online_available(provider: String = "steam") -> bool:
 	if provider.to_lower() == "steam":
-		return _steam_ready
+		if not _steam_ready or _steam == null:
+			return false
+		if _steam.has_method("isSteamRunning") and not _steam.isSteamRunning():
+			return false
+		return true
 	return false
 
 func get_online_providers() -> Array:
-	# Solo Steam por ahora, placeholders futuros no visibles
-	return ["Steam"]
+	# Solo proveedores realmente usables. Steam por ahora.
+	var out: Array = []
+	if is_online_available("steam"):
+		out.append("steam")
+	return out
 
 func initialize_online(provider: String = "steam") -> bool:
-	if provider.to_lower() != "steam":
+	var pid := provider.to_lower()
+	if pid != "steam":
 		print("[NetworkManager] Proveedor no soportado: ", provider)
 		return false
+	if not is_online_available(pid):
+		# Steam pudo haberse abierto después de iniciar el juego.
+		if _steam != null and not _steam_ready:
+			_init_steam_once()
+		if not is_online_available(pid):
+			print("[NetworkManager] Proveedor no disponible: ", pid)
+			return false
+	current_online_provider = pid
 	return initialize_steam()
 
 func set_online_mode(provider: String = "steam") -> bool:

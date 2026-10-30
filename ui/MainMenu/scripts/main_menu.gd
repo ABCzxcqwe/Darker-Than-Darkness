@@ -21,9 +21,9 @@ const OPTION_HINT_KEYS := ["MENU_HINT_PLAY", "MENU_HINT_OPTIONS", "MENU_HINT_EXT
 
 var _index := 0
 var _busy := false
-var _soul_tween: Tween
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	var btn := get_node_or_null("BackToOriginal")
 	if btn:
 		btn.visible = false
@@ -41,6 +41,9 @@ func _ready() -> void:
 	if tm and tm.has_signal("theme_changed"):
 		if not tm.theme_changed.is_connected(_on_theme_changed):
 			tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed"):
+		if not tm.palette_changed.is_connected(_on_palette_changed):
+			tm.palette_changed.connect(_on_palette_changed)
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed"):
@@ -59,6 +62,8 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
 		sm.setting_changed.disconnect(_on_setting_changed)
@@ -83,6 +88,11 @@ func _setup_audio() -> void:
 			am.change_audio_state("menu_drone")
 
 func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+	_highlight(_index, true)
+
+
+func _on_palette_changed(_palette: Dictionary) -> void:
 	_apply_theme()
 	_highlight(_index, true)
 
@@ -186,7 +196,6 @@ func _highlight(idx: int, _instant: bool) -> void:
 
 	for j in _labels.size():
 		var lbl: Label = _labels[j]
-		lbl.text = tr(OPTION_KEYS[j])
 		lbl.modulate = sel if j == idx else dim
 
 func _position_soul(idx: int, instant: bool) -> void:
@@ -194,33 +203,10 @@ func _position_soul(idx: int, instant: bool) -> void:
 		return
 	if idx < 0 or idx >= _labels.size():
 		return
-
 	var target: Label = _labels[idx]
-	if not is_instance_valid(target) or not target.is_visible_in_tree():
+	if not is_instance_valid(target):
 		return
-	# esperar layout estable (size del label y soul)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(self) or not is_instance_valid(target) or not is_instance_valid(_soul):
-		return
-	if not target.is_visible_in_tree():
-		return
-
-	var label_global := target.global_position
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var soul_offset := Vector2(-28, (target.size.y - soul_h) / 2.0)
-	var dest_global := label_global + soul_offset
-	var local_dest := dest_global - global_position
-
-	if _soul_tween and _soul_tween.is_running():
-		_soul_tween.kill()
-
-	if instant:
-		_soul.position = local_dest
-	else:
-		_soul_tween = create_tween()
-		_soul_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		_soul_tween.tween_property(_soul, "position", local_dest, 0.08)
+	MenuUtils.move_soul(_soul, target, instant, 12.0, false)
 
 func _update_footer() -> void:
 	if _footer == null:

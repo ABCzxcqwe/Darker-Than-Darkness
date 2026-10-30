@@ -16,6 +16,7 @@ var _index := 0
 var _busy := false
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
@@ -36,9 +37,14 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.connect(_on_palette_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed") and not sm.setting_changed.is_connected(_on_setting_changed):
 		sm.setting_changed.connect(_on_setting_changed)
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm and nm.has_signal("online_providers_changed") and not nm.online_providers_changed.is_connected(_on_online_providers_changed):
+		nm.online_providers_changed.connect(_on_online_providers_changed)
 	_highlight(_index)
 	_position_soul(_index, true)
 	grab_focus()
@@ -47,9 +53,20 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
 		sm.setting_changed.disconnect(_on_setting_changed)
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm and nm.has_signal("online_providers_changed") and nm.online_providers_changed.is_connected(_on_online_providers_changed):
+		nm.online_providers_changed.disconnect(_on_online_providers_changed)
+
+func _on_online_providers_changed(_providers: Array) -> void:
+	_rebuild_options()
+	_index = clampi(_index, 0, maxi(_visible_options.size() - 1, 0))
+	_highlight(_index)
+	_position_soul(_index, true)
 
 func _on_setting_changed(key: String, _value: Variant) -> void:
 	if key != "language":
@@ -66,6 +83,11 @@ func _refresh_texts() -> void:
 		_footer.text = tr("MENU_FOOTER")
 
 func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+	_highlight(_index)
+
+
+func _on_palette_changed(_palette: Dictionary) -> void:
 	_apply_theme()
 	_highlight(_index)
 
@@ -102,12 +124,16 @@ func _apply_theme() -> void:
 
 func _rebuild_options() -> void:
 	var nm := get_node_or_null("/root/NetworkManager")
-	var online_available := false
-	if nm and nm.has_method("is_online_available"):
-		online_available = nm.is_online_available()
-	elif nm and nm.has_method("is_steam_ready"):
-		online_available = nm.is_steam_ready()
-	if online_available:
+	var sm := get_node_or_null("/root/SettingsManager")
+	var providers: Array = []
+	if nm and nm.has_method("get_online_providers"):
+		providers = nm.get_online_providers()
+	if not providers.is_empty() and sm:
+		# Si el proveedor guardado ya no está, usar el primero disponible.
+		var saved := str(sm.get("online_provider")).to_lower()
+		if saved == "" or not providers.has(saved):
+			sm.online_provider = str(providers[0]).to_lower()
+	if not providers.is_empty():
 		_visible_options = ["LAN", "ONLINE"]
 		_visible_hints = [tr("NET_HINT_LAN"), tr("NET_HINT_ONLINE")]
 	else:
@@ -166,22 +192,9 @@ func _position_soul(idx: int, instant: bool) -> void:
 	if idx < 0 or idx >= _labels.size():
 		return
 	var target: Label = _labels[idx]
-	if not is_instance_valid(target) or not target.is_visible_in_tree():
+	if not is_instance_valid(target):
 		return
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(target) or not is_instance_valid(_soul):
-		return
-	if not target.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := target.global_position + Vector2(-28, (target.size.y - soul_h) / 2.0) - global_position
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, target, instant, 12.0, false)
 
 func _confirm() -> void:
 	var am := get_node_or_null("/root/AudioManager")
@@ -212,18 +225,13 @@ func _go_back() -> void:
 func _open_browser(mode: String) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	var nm := get_node_or_null("/root/NetworkManager")
-	if sm:
-		sm.network_mode = 1 if mode == "ONLINE" else 0
-		if "online_provider" in sm and mode == "ONLINE":
-			sm.online_provider = "steam"
-		sm.save_settings()
 	if nm:
 		if mode == "ONLINE":
+			var prov := "steam"
+			if sm and "online_provider" in sm:
+				prov = str(sm.online_provider).to_lower()
 			var ok := false
 			if nm.has_method("initialize_online"):
-				var prov := "steam"
-				if sm and "online_provider" in sm:
-					prov = sm.online_provider
 				ok = nm.initialize_online(prov)
 			elif nm.has_method("initialize_steam"):
 				ok = nm.initialize_steam()
@@ -236,4 +244,12 @@ func _open_browser(mode: String) -> void:
 				return
 		else:
 			nm.set_lan_mode()
+	if sm:
+		sm.network_mode = 1 if mode == "ONLINE" else 0
+		if "online_provider" in sm and mode == "ONLINE":
+			var prov2 := "steam"
+			if "online_provider" in sm:
+				prov2 = str(sm.online_provider).to_lower()
+			sm.online_provider = prov2
+		sm.save_settings()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/ServerBrowser.tscn")

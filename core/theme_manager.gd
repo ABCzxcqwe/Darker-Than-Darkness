@@ -31,6 +31,11 @@ var _fallback_themes: Dictionary = {
 }
 
 signal theme_changed(id: String)
+signal palette_changed(palette: Dictionary)
+
+var _display_palette: Dictionary = {}
+var _palette_tween: Tween = null
+const PALETTE_FADE_TIME := 1.0
 
 var current_theme_id: String = DEFAULT_THEME:
 	set(v):
@@ -38,6 +43,11 @@ var current_theme_id: String = DEFAULT_THEME:
 		if nid == current_theme_id:
 			return
 		current_theme_id = nid
+		if _display_palette.is_empty():
+			_display_palette = _base_palette(nid)
+			palette_changed.emit(_display_palette)
+		else:
+			_start_palette_transition(nid)
 		theme_changed.emit(current_theme_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_menu_drone"):
@@ -66,6 +76,8 @@ func _ready() -> void:
 				current_theme_id = DEFAULT_THEME
 		if sm.has_signal("setting_changed"):
 			sm.setting_changed.connect(_on_setting_changed)
+	if _display_palette.is_empty():
+		_display_palette = _base_palette(current_theme_id)
 	theme_changed.connect(_on_theme_changed_forward_audio)
 
 func _load_themes() -> void:
@@ -164,7 +176,7 @@ func get_music_path(id: String = current_theme_id) -> String:
 		return str(t.get("music", _fallback_themes[DEFAULT_THEME]["music"]))
 	return "res://ui/Boot/scenes/AUDIO_DRONE.wav"
 
-func get_palette(id: String = current_theme_id) -> Dictionary:
+func _base_palette(id: String = current_theme_id) -> Dictionary:
 	var t = get_theme(id)
 	if t != null and t is Resource and "border_color" in t:
 		return {
@@ -186,7 +198,51 @@ func get_palette(id: String = current_theme_id) -> Dictionary:
 			"separator": t["border_color"],
 			"bg": t["bg_color"],
 		}
-	return get_palette(DEFAULT_THEME)
+	return _base_palette(DEFAULT_THEME)
+
+
+func get_palette(id: String = current_theme_id) -> Dictionary:
+	# Durante un cambio de tema devolvemos la paleta interpolada actual.
+	if id == current_theme_id and not _display_palette.is_empty():
+		return _display_palette
+	return _base_palette(id)
+
+
+## Paleta final del tema, sin interpolación. La usa MenuBackdrop para no
+## crear el fondo nuevo con colores intermedios.
+func get_base_palette(id: String = current_theme_id) -> Dictionary:
+	return _base_palette(id)
+
+
+func _start_palette_transition(nid: String) -> void:
+	if _palette_tween and _palette_tween.is_valid():
+		_palette_tween.kill()
+
+	var from := _display_palette.duplicate()
+	var to := _base_palette(nid)
+	if from == to:
+		_display_palette = to
+		palette_changed.emit(to)
+		return
+
+	_palette_tween = create_tween()
+	_palette_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_palette_tween.tween_method(_apply_palette_step.bind(from, to), 0.0, 1.0, PALETTE_FADE_TIME)
+	_palette_tween.finished.connect(func() -> void:
+		_display_palette = to
+		palette_changed.emit(to)
+		_palette_tween = null
+	)
+
+
+func _apply_palette_step(t: float, from: Dictionary, to: Dictionary) -> void:
+	var out := {}
+	for key in to:
+		var a: Color = from.get(key, to[key])
+		var b: Color = to[key]
+		out[key] = a.lerp(b, t)
+	_display_palette = out
+	palette_changed.emit(out)
 
 func get_sfx_profile(id: String = current_theme_id) -> String:
 	var t = get_theme(id)
@@ -287,6 +343,19 @@ func apply_to_background(bg_node: Control, id: String = current_theme_id) -> voi
 	for c in bg_node.get_children():
 		if str(c.name).begins_with("ThemeBg_"):
 			c.queue_free()
+
+	# El fondo de menú ahora es persistente: MenuBackdrop vive fuera de la
+	# escena y no se reinicia al cambiar de menú. El Background local queda
+	# transparente para no taparlo.
+	var backdrop := get_node_or_null("/root/MenuBackdrop")
+	if backdrop and backdrop.has_method("prepare_for_menu"):
+		backdrop.prepare_for_menu(id)
+		if bg_node is ColorRect:
+			(bg_node as ColorRect).color = Color.TRANSPARENT
+		else:
+			bg_node.modulate = Color(1, 1, 1, 0)
+		return
+
 	var scene: PackedScene = get_background_scene(id)
 	if scene:
 		var inst: Control = scene.instantiate() as Control

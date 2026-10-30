@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://abilities/ralsei/HealPrayer/HealingField.gd" id="1_field"]
+
+[node name="HealingField" type="Node2D"]
+z_index = 0
+script = ExtResource("1_field")

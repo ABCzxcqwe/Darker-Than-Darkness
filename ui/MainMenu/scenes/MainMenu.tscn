@@ -16,6 +16,7 @@ grow_vertical = 2
 script = ExtResource("1_mock")
 
 [node name="Background" type="ColorRect" parent="." unique_id=9000002]
+z_index = -2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

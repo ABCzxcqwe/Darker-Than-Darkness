@@ -23,7 +23,7 @@ func _ready():
 	_call_setup_focus()
 
 func _update_ui_for_mode():
-	var is_steam = NetworkManager.network_mode == NetworkManager.NetworkMode.STEAM
+	var is_steam = NetworkManager.network_mode == NetworkManager.NetworkMode.ONLINE
 	ip_input.visible = not is_steam
 	lobby_list.visible = is_steam
 	refresh_btn.visible = is_steam
@@ -34,7 +34,7 @@ func _update_ui_for_mode():
 		join_btn.text = "Conectar"
 
 func _call_setup_focus() -> void:
-	var is_steam = NetworkManager.network_mode == NetworkManager.NetworkMode.STEAM
+	var is_steam = NetworkManager.network_mode == NetworkManager.NetworkMode.ONLINE
 	if is_steam:
 		_setup_focus([player_name_input, lobby_list, refresh_btn, join_btn, back_btn])
 	else:
@@ -81,7 +81,7 @@ func _on_join_pressed():
 	if _name.is_empty():
 		status_label.text = "Ingresá tu nombre."
 		return
-	if NetworkManager.network_mode == NetworkManager.NetworkMode.STEAM:
+	if NetworkManager.network_mode == NetworkManager.NetworkMode.ONLINE:
 		if lobby_list.get_selected_items().size() > 0:
 			var idx = lobby_list.get_selected_items()[0]
 			_on_lobby_selected(idx)

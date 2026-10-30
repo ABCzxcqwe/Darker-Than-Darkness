@@ -10,6 +10,7 @@ var _game_mode_idx := 0
 var _max_players: int = 4
 var _focus_idx := 0 # 0=Nombre, 1=Mapa, 2=Modo juego, 3=Jugadores, 4=Servidor, 5=Crear, 6=Volver
 var _field_nodes: Array[Control] = []
+var _soul_targets: Array[Control] = []
 var _busy := false
 var _available_maps: Array = []
 var _server_modes: Array[String] = [SERVER_LOCAL]
@@ -27,6 +28,7 @@ var _server_arrows: Array[Label] = []
 @onready var _players_label: Label = $CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow/PlayersLabel
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
 		am0.play_menu_drone()
@@ -34,6 +36,8 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.connect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.connect(_on_setting_changed)
@@ -63,6 +67,19 @@ func _ready() -> void:
 	_build_server_row()
 	_refresh_static_texts()
 	_field_nodes = [_name_edit, _map_label, _game_mode_label, _players_label, _server_label, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/CreateBtn, $CenterContainer/DeltaruneBox/Margin/VBox/Actions/BackBtn]
+	var vbox := $CenterContainer/DeltaruneBox/Margin/VBox
+	_soul_targets = [
+		vbox.get_node_or_null("NameRow"),
+		vbox.get_node_or_null("MapRow"),
+		vbox.get_node_or_null("GameModeRow"),
+		vbox.get_node_or_null("PlayersRow"),
+		vbox.get_node_or_null("ServerRow"),
+		vbox.get_node_or_null("Actions/CreateBtn"),
+		vbox.get_node_or_null("Actions/BackBtn"),
+	]
+	for i in _soul_targets.size():
+		if not is_instance_valid(_soul_targets[i]) and i < _field_nodes.size():
+			_soul_targets[i] = _field_nodes[i]
 	if has_node("/root/NetworkManager"):
 		var nmm := get_node_or_null("/root/NetworkManager")
 		if nmm and not nmm.connection_succeeded.is_connected(_on_server_created):
@@ -308,27 +325,14 @@ func _highlight(idx: int) -> void:
 			6: _hint.text = tr("CREATE_HINT_BACK")
 
 func _position_soul(idx: int, instant: bool) -> void:
-	if _soul == null or _field_nodes.is_empty():
+	if _soul == null or _soul_targets.is_empty():
 		return
-	if idx < 0 or idx >= _field_nodes.size():
+	if idx < 0 or idx >= _soul_targets.size():
 		return
-	var target: Control = _field_nodes[idx]
-	if not is_instance_valid(target) or not target.is_visible_in_tree():
+	var target: Control = _soul_targets[idx]
+	if not is_instance_valid(target):
 		return
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(target) or not is_instance_valid(_soul):
-		return
-	if not target.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := target.global_position + Vector2(-28, (target.size.y - soul_h)/2.0) - global_position
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, target, instant, 12.0, target is Button)
 
 func _change_map(dir: int) -> void:
 	if _available_maps.is_empty():
@@ -463,7 +467,7 @@ func _on_server_created() -> void:
 	_busy = false
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file("res://Maps/Session.tscn")
+	SceneTransition.change_scene("res://Maps/Session.tscn", 0.5, 0.25, 0.7)
 
 func _on_create_failed() -> void:
 	_busy = false
@@ -479,6 +483,11 @@ func _go_back() -> void:
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/ServerBrowser.tscn")
 
 func _on_theme_changed(_id: String) -> void:
+	_apply_theme()
+	_highlight(_focus_idx)
+
+
+func _on_palette_changed(_palette: Dictionary) -> void:
 	_apply_theme()
 	_highlight(_focus_idx)
 
@@ -550,6 +559,8 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.disconnect(_on_setting_changed)

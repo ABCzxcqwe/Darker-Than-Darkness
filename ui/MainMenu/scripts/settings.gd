@@ -20,18 +20,22 @@ func _sm_str(sm: Node, key: String, fallback: String) -> String:
 	var v: Variant = sm.get(key)
 	return str(v) if v != null else fallback
 
+
+func _tr_or(key: String, fallback: String) -> String:
+	var value := tr(key)
+	return value if value != key else fallback
+
 var _tab_idx := 0
 var _content_idx := 0
 var _in_tabs := true
 var _busy := false
-var _soul_tween: Tween
 
 # Definición de filas por pestaña: cada fila {id estable, label_key para tr(), type, ...}
 var _tab_rows := {
 	"GENERAL": [
 		{"id": "language", "label": "IDIOMA", "label_key": "SET_LANGUAGE", "type": "option", "options": ["Español", "English", "Português", "Русский", "한국어", "日本語"], "value": 0},
 		{"id": "player_name", "label": "NOMBRE JUGADOR", "label_key": "SET_PLAYER_NAME", "type": "input", "value": ""},
-		{"id": "online_provider", "label": "PROVEEDOR ONLINE", "label_key": "SET_ONLINE_PROVIDER", "type": "option", "options": ["LAN"], "value": 0},
+		{"id": "online_provider", "label": "PROVEEDOR ONLINE", "label_key": "SET_ONLINE_PROVIDER", "type": "option", "options": ["NO DISPONIBLE"], "value": 0, "provider_ids": [], "disabled": true},
 		{"id": "theme", "label": "TEMA", "label_key": "SET_THEME", "type": "theme_option", "value": 0, "theme_ids": PackedStringArray(["device"])},
 	],
 	"AUDIO": [
@@ -57,6 +61,7 @@ var _tab_rows := {
 @onready var _scroll: ScrollContainer = $RightPanel/Margin/RightVBox/Scroll
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	_setup_audio()
 	
 	var tabs_vbox := $LeftPanel/Margin/LeftVBox/Tabs
@@ -75,11 +80,19 @@ func _ready() -> void:
 	if tm and tm.has_signal("theme_changed"):
 		if not tm.theme_changed.is_connected(_on_theme_changed):
 			tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed"):
+		if not tm.palette_changed.is_connected(_on_palette_changed):
+			tm.palette_changed.connect(_on_palette_changed)
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed"):
 		if not sm.setting_changed.is_connected(_on_setting_changed):
 			sm.setting_changed.connect(_on_setting_changed)
+
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm and nm.has_signal("online_providers_changed"):
+		if not nm.online_providers_changed.is_connected(_on_online_providers_changed):
+			nm.online_providers_changed.connect(_on_online_providers_changed)
 
 	grab_focus()
 
@@ -87,21 +100,44 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.has_signal("setting_changed") and sm.setting_changed.is_connected(_on_setting_changed):
 		sm.setting_changed.disconnect(_on_setting_changed)
+	var nm := get_node_or_null("/root/NetworkManager")
+	if nm and nm.has_signal("online_providers_changed") and nm.online_providers_changed.is_connected(_on_online_providers_changed):
+		nm.online_providers_changed.disconnect(_on_online_providers_changed)
+
+
+func _on_online_providers_changed(_providers: Array) -> void:
+	if not is_inside_tree():
+		return
+	var keep := _content_idx
+	_sync_from_settings()
+	_build_content(_tab_idx, false)
+	_content_idx = clampi(keep, 0, maxi(_content_list.get_child_count() - 1, 0))
+	_highlight_tabs()
+	if not _in_tabs:
+		_highlight_content()
+		_position_soul_content(_content_idx, true)
 
 
 func _on_setting_changed(key: String, _value: Variant) -> void:
 	if key != "language":
 		return
 	# Reconstruir opciones dependientes del idioma y repintar todo.
+	var keep := _content_idx
 	_sync_from_settings()
 	_refresh_static_texts()
-	_build_content(_tab_idx)
+	_build_content(_tab_idx, false)
+	_content_idx = clampi(keep, 0, maxi(_content_list.get_child_count() - 1, 0))
 	_highlight_tabs()
 	if not _in_tabs:
 		_highlight_content()
+		_position_soul_content(_content_idx, true)
+	else:
+		_position_soul_tabs(_tab_idx, true)
 
 
 func _refresh_static_texts() -> void:
@@ -111,6 +147,9 @@ func _refresh_static_texts() -> void:
 	var footer := get_node_or_null("Footer") as Label
 	if footer:
 		footer.text = tr("SET_FOOTER")
+	for i in _left_labels.size():
+		if i < TAB_KEYS.size():
+			_left_labels[i].text = tr(TAB_KEYS[i])
 	if _hint and _in_tabs:
 		_hint.text = tr(TAB_HINT_KEYS[_tab_idx])
 
@@ -124,7 +163,19 @@ func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
 	_sync_from_settings()
 	if TABS[_tab_idx] == "GENERAL":
-		_build_content(_tab_idx)
+		var keep := _content_idx
+		_build_content(_tab_idx, false)
+		_content_idx = clampi(keep, 0, maxi(_content_list.get_child_count() - 1, 0))
+		_highlight_content()
+		if not _in_tabs:
+			_position_soul_content(_content_idx, true)
+
+
+func _on_palette_changed(_palette: Dictionary) -> void:
+	_apply_theme()
+	if _in_tabs:
+		_highlight_tabs()
+	else:
 		_highlight_content()
 
 func _apply_theme() -> void:
@@ -180,68 +231,124 @@ func _apply_theme() -> void:
 		if st:
 			_soul.texture = st
 
+func _row_index(tab_name: String, row_id: String) -> int:
+	var rows: Array = _tab_rows.get(tab_name, [])
+	for i in rows.size():
+		if str(rows[i].get("id", "")) == row_id:
+			return i
+	return -1
+
+
+func _provider_label(provider_id: String) -> String:
+	match provider_id.to_lower():
+		"steam":
+			return "STEAM"
+		_:
+			return provider_id.to_upper()
+
+
 func _sync_from_settings() -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	var tm := get_node_or_null("/root/ThemeManager")
 	var isrv := get_node_or_null("/root/InputService")
 
 	if sm:
-		_tab_rows["GENERAL"][0]["options"] = LANG_NAMES.duplicate()
-		_tab_rows["GENERAL"][0]["value"] = maxi(LANG_IDS.find(_sm_str(sm, "language", "es")), 0)
-		_tab_rows["GENERAL"][1]["value"] = sm.get("player_name") if "player_name" in sm else ""
-		_tab_rows["AUDIO"][0]["value"] = sm.get("music_volume") if "music_volume" in sm else 1.0
-		_tab_rows["AUDIO"][1]["value"] = sm.get("sfx_volume") if "sfx_volume" in sm else 1.0
-		_tab_rows["VIDEO"][0]["value"] = sm.get("brightness") if "brightness" in sm else 1.0
-		_tab_rows["VIDEO"][1]["options"] = [tr("SET_OPT_WINDOW"), tr("SET_OPT_FULL")]
-		_tab_rows["VIDEO"][1]["value"] = 1 if sm.get("display_mode") == 3 else 0
-		_tab_rows["VIDEO"][2]["value"] = sm.get("vhs_enabled") if "vhs_enabled" in sm else true
-		var nm := get_node_or_null("/root/NetworkManager")
-		var online_avail := false
-		if nm and nm.has_method("is_online_available"):
-			online_avail = nm.is_online_available()
-		elif nm and nm.has_method("is_steam_ready"):
-			online_avail = nm.is_steam_ready()
-		if online_avail:
-			_tab_rows["GENERAL"][2]["options"] = ["LAN", "ONLINE"]
-			_tab_rows["GENERAL"][2]["value"] = 1 if sm.get("network_mode") == 1 else 0
-		else:
-			_tab_rows["GENERAL"][2]["options"] = ["LAN", tr("SET_OPT_ONLINE_NA")]
-			_tab_rows["GENERAL"][2]["value"] = 0
+		var lang_i := _row_index("GENERAL", "language")
+		if lang_i >= 0:
+			_tab_rows["GENERAL"][lang_i]["options"] = LANG_NAMES.duplicate()
+			_tab_rows["GENERAL"][lang_i]["value"] = maxi(LANG_IDS.find(_sm_str(sm, "language", "es")), 0)
+
+		var name_i := _row_index("GENERAL", "player_name")
+		if name_i >= 0:
+			_tab_rows["GENERAL"][name_i]["value"] = sm.get("player_name") if "player_name" in sm else ""
+
+		var music_i := _row_index("AUDIO", "music")
+		if music_i >= 0:
+			_tab_rows["AUDIO"][music_i]["value"] = sm.get("music_volume") if "music_volume" in sm else 1.0
+		var sfx_i := _row_index("AUDIO", "sfx")
+		if sfx_i >= 0:
+			_tab_rows["AUDIO"][sfx_i]["value"] = sm.get("sfx_volume") if "sfx_volume" in sm else 1.0
+
+		var bright_i := _row_index("VIDEO", "brightness")
+		if bright_i >= 0:
+			_tab_rows["VIDEO"][bright_i]["value"] = sm.get("brightness") if "brightness" in sm else 1.0
+		var screen_i := _row_index("VIDEO", "screen")
+		if screen_i >= 0:
+			_tab_rows["VIDEO"][screen_i]["options"] = [tr("SET_OPT_WINDOW"), tr("SET_OPT_FULL")]
+			_tab_rows["VIDEO"][screen_i]["value"] = 1 if sm.get("display_mode") == 3 else 0
+		var vhs_i := _row_index("VIDEO", "vhs")
+		if vhs_i >= 0:
+			_tab_rows["VIDEO"][vhs_i]["value"] = sm.get("vhs_enabled") if "vhs_enabled" in sm else true
+
+		# Proveedor online: fila siempre visible. Si no hay proveedores,
+		# queda como NO DISPONIBLE y deshabilitada.
+		var prov_i := _row_index("GENERAL", "online_provider")
+		if prov_i >= 0:
+			var prov_row: Dictionary = _tab_rows["GENERAL"][prov_i]
+			var nm := get_node_or_null("/root/NetworkManager")
+			var providers: Array = []
+			if nm and nm.has_method("get_online_providers"):
+				providers = nm.get_online_providers()
+			if providers.is_empty():
+				prov_row["options"] = [_tr_or("SET_OPT_NO_PROVIDER", "NO DISPONIBLE")]
+				prov_row["provider_ids"] = []
+				prov_row["value"] = 0
+				prov_row["disabled"] = true
+			else:
+				var labels: Array = []
+				for p in providers:
+					labels.append(_provider_label(str(p)))
+				prov_row["options"] = labels
+				prov_row["provider_ids"] = providers
+				prov_row["disabled"] = false
+				var saved := str(sm.get("online_provider")).to_lower()
+				var cur_idx := 0
+				for i in providers.size():
+					if str(providers[i]).to_lower() == saved:
+						cur_idx = i
+						break
+				prov_row["value"] = cur_idx
+				if saved != str(providers[cur_idx]).to_lower():
+					sm.online_provider = str(providers[cur_idx]).to_lower()
 
 		if tm and tm.has_method("list_all_ids"):
-			var all_ids: PackedStringArray = tm.list_all_ids()
-			var theme_row: Dictionary = _tab_rows["GENERAL"][3]
-			theme_row["theme_ids"] = all_ids
+			var theme_i := _row_index("GENERAL", "theme")
+			if theme_i >= 0:
+				var all_ids: PackedStringArray = tm.list_all_ids()
+				var theme_row: Dictionary = _tab_rows["GENERAL"][theme_i]
+				theme_row["theme_ids"] = all_ids
 
-			var opts: Array = []
-			for tid in all_ids:
-				var label: String = tid.to_upper()
-				if tm.has_method("get_theme"):
-					var th = tm.get_theme(str(tid))
-					if th is Resource and "label" in th and str(th.label) != "":
-						label = str(th.label)
-					elif th is Dictionary:
-						label = str(th.get("label", label))
+				var opts: Array = []
+				for tid in all_ids:
+					var label: String = tid.to_upper()
+					if tm.has_method("get_theme"):
+						var th = tm.get_theme(str(tid))
+						if th is Resource and "label" in th and str(th.label) != "":
+							label = str(th.label)
+						elif th is Dictionary:
+							label = str(th.get("label", label))
 
-				var is_unlocked: bool = sm.has_method("is_theme_unlocked") and sm.is_theme_unlocked(str(tid))
-				if not is_unlocked:
-					label += " " + tr("SET_LOCKED")
-				opts.append(label)
+					var is_unlocked: bool = sm.has_method("is_theme_unlocked") and sm.is_theme_unlocked(str(tid))
+					if not is_unlocked:
+						label += " " + tr("SET_LOCKED")
+					opts.append(label)
 
-			theme_row["options"] = opts
-			var cur_id: String = str(sm.get("menu_theme")).to_lower() if "menu_theme" in sm else "device"
-			if cur_id == "green_drone":
-				cur_id = "device"
+				theme_row["options"] = opts
+				var cur_id: String = str(sm.get("menu_theme")).to_lower() if "menu_theme" in sm else "device"
+				if cur_id == "green_drone":
+					cur_id = "device"
 
-			var cur_idx: int = 0
-			for i in all_ids.size():
-				if str(all_ids[i]).to_lower() == cur_id:
-					cur_idx = i
-					break
-			theme_row["value"] = cur_idx
+				var cur_idx: int = 0
+				for i in all_ids.size():
+					if str(all_ids[i]).to_lower() == cur_id:
+						cur_idx = i
+						break
+				theme_row["value"] = cur_idx
 
 	if isrv and "stick_deadzone" in isrv:
-		_tab_rows["CONTROLES"][0]["value"] = isrv.stick_deadzone
+		var dz_i := _row_index("CONTROLES", "deadzone")
+		if dz_i >= 0:
+			_tab_rows["CONTROLES"][dz_i]["value"] = isrv.stick_deadzone
 
 func _is_lineedit_editing() -> bool:
 	if _in_tabs or _content_list.get_child_count() <= _content_idx:
@@ -316,6 +423,8 @@ func _move_tab(dir: int) -> void:
 	if ni == _tab_idx:
 		return
 	_tab_idx = ni
+	# Refrescar el panel derecho para que acompañe la pestaña seleccionada.
+	_build_content(_tab_idx, true)
 	_highlight_tabs()
 	_position_soul_tabs(_tab_idx, false)
 	_play_sfx(SfxId.MENU_MOVE)
@@ -362,6 +471,12 @@ func _adjust_content(dir: int) -> void:
 	var data: Dictionary = rows[_content_idx]
 	var t: String = str(data.get("type", ""))
 
+	if bool(data.get("disabled", false)):
+		_play_sfx(SfxId.ERROR)
+		if _hint:
+			_hint.text = tr("SET_MSG_ONLINE_NA")
+		return
+
 	if t == "slider":
 		var v: float = float(data.get("value", 0))
 		var step: float = float(data.get("step", 0.05))
@@ -374,8 +489,19 @@ func _adjust_content(dir: int) -> void:
 	elif t == "option" or t == "theme_option":
 		var opts: Array = data.get("options", [])
 		var cur: int = int(data.get("value", 0))
-		cur = clampi(cur + dir, 0, max(0, opts.size() - 1))
-		data["value"] = cur
+		var next: int = clampi(cur + dir, 0, max(0, opts.size() - 1))
+		if t == "theme_option":
+			var tids: PackedStringArray = data.get("theme_ids", PackedStringArray())
+			if next >= 0 and next < tids.size():
+				var want: String = str(tids[next])
+				var sm_chk := get_node_or_null("/root/SettingsManager")
+				var unlocked: bool = sm_chk and sm_chk.has_method("is_theme_unlocked") and sm_chk.is_theme_unlocked(want)
+				if not unlocked:
+					_play_sfx(SfxId.ERROR)
+					if _hint:
+						_hint.text = tr("SET_MSG_THEME_LOCKED")
+					return
+		data["value"] = next
 		_update_row_value(row, data)
 		_persist_row(tab_name, _content_idx)
 	elif t == "check":
@@ -407,25 +533,17 @@ func _persist_row(tab_name: String, idx: int) -> void:
 				if _hint:
 					_hint.text = tr("SET_CH_LANGUAGE") % LANG_NAMES[lang_idx]
 			elif row_id == "online_provider":
-				var nm2 := get_node_or_null("/root/NetworkManager")
-				var online_avail2 := false
-				if nm2 and nm2.has_method("is_online_available"):
-					online_avail2 = nm2.is_online_available()
-				elif nm2 and nm2.has_method("is_steam_ready"):
-					online_avail2 = nm2.is_steam_ready()
-				var cur2: int = int(data.get("value", 0))
-				if cur2 == 1 and not online_avail2:
-					_play_sfx(SfxId.ERROR)
-					if _hint:
-						_hint.text = tr("SET_MSG_ONLINE_NA")
+				if bool(data.get("disabled", false)):
 					return
-				var want_mode := 1 if cur2 == 1 else 0
-				sm.set("network_mode", want_mode)
-				if want_mode == 1 and "online_provider" in sm:
-					sm.online_provider = "steam"
+				var ids: Array = data.get("provider_ids", [])
+				var cur2: int = int(data.get("value", 0))
+				if cur2 < 0 or cur2 >= ids.size():
+					return
+				var provider := str(ids[cur2]).to_lower()
+				sm.online_provider = provider
 				if sm.has_method("save_settings"): sm.save_settings()
 				if _hint:
-					_hint.text = tr("SET_MSG_NETMODE") % ("ONLINE" if want_mode == 1 else "LAN")
+					_hint.text = _tr_or("SET_MSG_PROVIDER", "Proveedor online: %s") % _provider_label(provider)
 			elif row_id == "theme":
 				var tids: PackedStringArray = data.get("theme_ids", PackedStringArray())
 				var cur: int = int(data.get("value", 0))
@@ -485,7 +603,10 @@ func _update_row_value(row: HBoxContainer, data: Dictionary) -> void:
 	elif t == "option" or t == "theme_option":
 		var opts: Array = data.get("options", [])
 		var cur: int = clampi(int(data.get("value", 0)), 0, max(0, opts.size() - 1))
-		val_label.text = "< %s >" % str(opts[cur]) if not opts.is_empty() else ""
+		if bool(data.get("disabled", false)):
+			val_label.text = str(opts[cur]) if not opts.is_empty() else ""
+		else:
+			val_label.text = "< %s >" % str(opts[cur]) if not opts.is_empty() else ""
 	elif t == "check":
 		var b: bool = bool(data.get("value", false))
 		val_label.text = "[X]" if b else "[ ]"
@@ -559,6 +680,12 @@ func _reset_current_row() -> void:
 	var data: Dictionary = rows[_content_idx]
 	var t: String = str(data.get("type", ""))
 
+	if bool(data.get("disabled", false)):
+		_play_sfx(SfxId.ERROR)
+		if _hint:
+			_hint.text = tr("SET_MSG_ONLINE_NA")
+		return
+
 	if t == "slider":
 		match str(data.get("id", "")):
 			"brightness": data["value"] = 1.0
@@ -566,8 +693,18 @@ func _reset_current_row() -> void:
 			_: data["value"] = 0.8
 	elif t == "option":
 		data["value"] = 0
+	elif t == "theme_option":
+		var tids: PackedStringArray = data.get("theme_ids", PackedStringArray())
+		var idx := 0
+		for i in tids.size():
+			if str(tids[i]).to_lower() == "device":
+				idx = i
+				break
+		data["value"] = idx
 	elif t == "check":
 		data["value"] = true
+	elif t == "input":
+		data["value"] = ""
 
 	_persist_row(tab_name, _content_idx)
 	var row := _content_list.get_child(_content_idx) as HBoxContainer
@@ -575,7 +712,7 @@ func _reset_current_row() -> void:
 		_update_row_value(row, data)
 	_highlight_content()
 
-func _build_content(tab_idx: int) -> void:
+func _build_content(tab_idx: int, reset_index: bool = true) -> void:
 	var tab_name: String = TABS[tab_idx]
 	if _right_title:
 		_right_title.text = tr(TAB_KEYS[tab_idx])
@@ -632,7 +769,10 @@ func _build_content(tab_idx: int) -> void:
 		_content_list.add_child(row)
 		_update_row_value(row, data)
 
-	_content_idx = 0
+	if reset_index:
+		_content_idx = 0
+	else:
+		_content_idx = clampi(_content_idx, 0, maxi(_content_list.get_child_count() - 1, 0))
 	_highlight_content()
 
 func _highlight_tabs() -> void:
@@ -643,7 +783,6 @@ func _highlight_tabs() -> void:
 
 	for i in _left_labels.size():
 		var lbl: Label = _left_labels[i]
-		lbl.text = tr(TAB_KEYS[i])
 		if _in_tabs:
 			lbl.modulate = sel if i == _tab_idx else dim
 		else:
@@ -681,7 +820,12 @@ func _get_content_hint(tab_name: String, row_idx: int) -> String:
 		"player_name":
 			var pn: String = str(rows[row_idx].get("value", "")).strip_edges()
 			return tr("SET_CH_PLAYER") % (pn if pn != "" else tr("SET_CH_EMPTY"))
-		"online_provider": return tr("SET_CH_PROVIDER")
+		"online_provider":
+			if bool(rows[row_idx].get("disabled", false)):
+				return tr("SET_MSG_ONLINE_NA")
+			var prov_opts: Array = rows[row_idx].get("options", [])
+			var prov_cur: int = clampi(int(rows[row_idx].get("value", 0)), 0, maxi(prov_opts.size() - 1, 0))
+			return _tr_or("SET_CH_PROVIDER", "Proveedor online — %s") % str(prov_opts[prov_cur] if prov_cur < prov_opts.size() else "")
 		"theme":
 			var opts: Array = rows[row_idx].get("options", [])
 			var cur: int = int(rows[row_idx].get("value", 0))
@@ -713,19 +857,25 @@ func _highlight_content() -> void:
 	var sel: Color = pal.get("selected", Color(0, 1, 0, 1))
 	var dim: Color = pal.get("dim", Color(0, 0.50196, 0, 1))
 
+	var rows: Array = _tab_rows.get(TABS[_tab_idx], [])
 	for i in _content_list.get_child_count():
 		var row := _content_list.get_child(i) as HBoxContainer
 		if not is_instance_valid(row):
 			continue
 
 		var is_sel := (i == _content_idx)
+		var disabled := i < rows.size() and bool(rows[i].get("disabled", false))
 		for c in row.get_children():
 			if c.name == "Label":
 				var lbl := c as Label
 				# preservar texto base sin prefijo de espacios
 				lbl.modulate = sel if is_sel else dim
+				if disabled:
+					lbl.modulate.a *= 0.55
 			elif c.name == "Value":
 				c.modulate = sel if is_sel else dim
+				if disabled:
+					c.modulate.a *= 0.55
 
 	if _hint:
 		_hint.text = _get_content_hint(TABS[_tab_idx], _content_idx)
@@ -738,18 +888,7 @@ func _position_soul_tabs(idx: int, instant: bool) -> void:
 	var t := _left_labels[idx]
 	if not is_instance_valid(t):
 		return
-	# esperar layout sin descartar si aún no es visible
-	for i in 3:
-		if t.is_visible_in_tree() and t.size.y > 0:
-			break
-		await get_tree().process_frame
-	if not is_instance_valid(self) or not is_instance_valid(t) or not is_instance_valid(_soul):
-		return
-	if not t.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := t.global_position + Vector2(-28, (t.size.y - soul_h) / 2.0) - global_position
-	_animate_soul(dest, instant)
+	MenuUtils.move_soul(_soul, t, instant, 12.0, false)
 
 func _position_soul_content(idx: int, instant: bool) -> void:
 	if _soul == null or _content_list.get_child_count() == 0:
@@ -759,28 +898,7 @@ func _position_soul_content(idx: int, instant: bool) -> void:
 	var row := _content_list.get_child(idx) as Control
 	if not is_instance_valid(row):
 		return
-	for i in 3:
-		if row.is_visible_in_tree() and row.size.y > 0:
-			break
-		await get_tree().process_frame
-	if not is_instance_valid(self) or not is_instance_valid(row) or not is_instance_valid(_soul):
-		return
-	if not row.is_visible_in_tree():
-		return
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := row.global_position + Vector2(-28, (row.size.y - soul_h) / 2.0) - global_position
-	_animate_soul(dest, instant)
-
-func _animate_soul(dest: Vector2, instant: bool) -> void:
-	if _soul_tween and _soul_tween.is_running():
-		_soul_tween.kill()
-
-	if instant:
-		_soul.position = dest
-	else:
-		_soul_tween = create_tween()
-		_soul_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		_soul_tween.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, row, instant, 12.0, false)
 
 func _ensure_visible(idx: int) -> void:
 	if _scroll == null or _content_list.get_child_count() == 0:

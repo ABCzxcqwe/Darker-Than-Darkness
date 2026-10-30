@@ -38,6 +38,7 @@ var _join_serial := 0
 var _header: HBoxContainer = null
 
 func _ready() -> void:
+	MenuUtils.init_soul(_soul)
 	_relocate_header()
 	var am0 := get_node_or_null("/root/AudioManager")
 	if am0 and am0.has_method("play_menu_drone") and am0.current_global_state != "menu_drone":
@@ -47,6 +48,8 @@ func _ready() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.connect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.connect(_on_setting_changed)
@@ -69,8 +72,15 @@ func _ready() -> void:
 		
 		var sm := get_node_or_null("/root/SettingsManager")
 		if _mode == MODE_ONLINE:
-			var ok = nm.initialize_steam()
-			if not ok or not nm.is_steam_ready():
+			var provider := "steam"
+			if sm and "online_provider" in sm:
+				provider = str(sm.online_provider).to_lower()
+			var ok = false
+			if nm.has_method("initialize_online"):
+				ok = nm.initialize_online(provider)
+			elif nm.has_method("initialize_steam"):
+				ok = nm.initialize_steam()
+			if not ok or not nm.is_online_available(provider):
 				print("[ServerBrowser] Online no disponible, forzando LAN")
 				_mode = MODE_LAN
 				_set_title()
@@ -233,6 +243,16 @@ func _rebuild_focusables() -> void:
 	if ip_row and ip_row.has_node("ConnectBtn"):
 		_focusables.append(ip_row.get_node("ConnectBtn"))
 
+
+## Mantiene _index dentro de rango y recoloca el soul tras reconstruir la lista.
+func _sync_focus_after_rebuild() -> void:
+	if _focusables.is_empty():
+		_index = 0
+		return
+	_index = clampi(_index, 0, _focusables.size() - 1)
+	_highlight(_index, true)
+	_position_soul(_index, true)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy and not _joining:
 		return
@@ -390,57 +410,15 @@ func _position_soul(idx: int, instant: bool) -> void:
 		return
 	idx = clampi(idx, 0, _focusables.size() - 1)
 	var target: Control = _focusables[idx]
-	if not is_instance_valid(target) or not target.is_visible_in_tree():
+	if not is_instance_valid(target):
 		return
-
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(target) or not is_instance_valid(_soul):
-		return
-	if not target.is_visible_in_tree():
-		return
-
-	# si es botón, corazón dentro del botón como hijo
-	if target is Button:
-		if _soul.get_parent() != target:
-			# guardar posición global antes de reparent
-			var keep_global := _soul.global_position
-			if _soul.get_parent():
-				_soul.get_parent().remove_child(_soul)
-			target.add_child(_soul)
-			_soul.global_position = keep_global
-		var soul_h2 := _soul.size.y if _soul.size.y > 0 else 20.0
-		var inside_pos := Vector2(10, (target.size.y - soul_h2) / 2.0)
-		if target is Button:
-			# compensar padding del texto del botón
-			inside_pos.x = 12
-		if instant:
-			_soul.position = inside_pos
-		else:
-			var tw2 := create_tween()
-			tw2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tw2.tween_property(_soul, "position", inside_pos, 0.08)
-		return
-	else:
-		# asegurar que soul esté en el root si estaba dentro de un botón
-		if _soul.get_parent() != self:
-			var keep2 := _soul.global_position
-			_soul.get_parent().remove_child(_soul)
-			add_child(_soul)
-			_soul.global_position = keep2
-
-	var soul_h := _soul.size.y if _soul.size.y > 0 else 20.0
-	var dest := target.global_position + Vector2(-28, (target.size.y - soul_h) / 2.0) - global_position
-	if instant:
-		_soul.position = dest
-	else:
-		var tw := create_tween()
-		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_soul, "position", dest, 0.08)
+	MenuUtils.move_soul(_soul, target, instant, 12.0, target is Button)
 
 func _confirm() -> void:
 	if _focusables.is_empty() or _joining:
 		return
+	if _index < 0 or _index >= _focusables.size():
+		_index = clampi(_index, 0, _focusables.size() - 1)
 	var cur := _focusables[_index]
 	if not is_instance_valid(cur):
 		return
@@ -552,6 +530,7 @@ func _list_server_rooms() -> void:
 	_mock_rooms.clear()
 	_populate_rooms()
 	_rebuild_focusables()
+	_sync_focus_after_rebuild()
 	_refresh_empty_state()
 	var rooms: Array = await cc.list_rooms_from(base)
 	_busy = false
@@ -583,6 +562,7 @@ func _list_server_rooms() -> void:
 	_mock_rooms = _master_rooms.duplicate()
 	_populate_rooms()
 	_rebuild_focusables()
+	_sync_focus_after_rebuild()
 	_refresh_empty_state()
 	if _mock_rooms.is_empty():
 		_hint.text = tr("BROWSE_MSG_NO_ROOMS")
@@ -672,7 +652,7 @@ func _on_connection_succeeded() -> void:
 	_joining = false
 	_busy = false
 	if is_inside_tree():
-		get_tree().change_scene_to_file("res://Maps/Session.tscn")
+		SceneTransition.change_scene("res://Maps/Session.tscn", 0.5, 0.25, 0.7)
 
 func _on_connection_failed() -> void:
 	if _mode == MODE_LAN:
@@ -770,6 +750,7 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 	_mock_rooms = _master_rooms.duplicate()
 	_populate_rooms()
 	_rebuild_focusables()
+	_sync_focus_after_rebuild()
 	_refresh_empty_state()
 	_busy = false
 	_hint.text = tr("BROWSE_MSG_ROOMS_FOUND") % _mock_rooms.size() if not _mock_rooms.is_empty() else tr("BROWSE_MSG_NO_ROOMS")
@@ -777,7 +758,11 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 func _do_refresh() -> void:
 	if _mode == MODE_ONLINE:
 		var nm := get_node_or_null("/root/NetworkManager")
-		if nm == null or not nm.is_steam_ready():
+		var sm_ref := get_node_or_null("/root/SettingsManager")
+		var provider := "steam"
+		if sm_ref and "online_provider" in sm_ref:
+			provider = str(sm_ref.online_provider).to_lower()
+		if nm == null or not nm.is_online_available(provider):
 			_hint.text = tr("BROWSE_MSG_ONLINE_NA")
 			return
 		_busy = true
@@ -786,6 +771,7 @@ func _do_refresh() -> void:
 		_mock_rooms.clear()
 		_populate_rooms()
 		_rebuild_focusables()
+		_sync_focus_after_rebuild()
 		_refresh_empty_state()
 		nm.request_lobby_list()
 		await get_tree().create_timer(JOIN_TIMEOUT).timeout
@@ -802,6 +788,7 @@ func _do_refresh() -> void:
 	_mock_rooms.clear()
 	_populate_rooms()
 	_rebuild_focusables()
+	_sync_focus_after_rebuild()
 	_refresh_empty_state()
 
 func _do_search() -> void:
@@ -816,6 +803,7 @@ func _do_search() -> void:
 		_mock_rooms = filtered
 	_populate_rooms()
 	_rebuild_focusables()
+	_sync_focus_after_rebuild()
 	_refresh_empty_state()
 
 func _populate_rooms() -> void:
@@ -852,6 +840,11 @@ func _go_back() -> void:
 
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
+
+
+func _on_palette_changed(_palette: Dictionary) -> void:
+	_apply_theme()
+	_highlight(_index, false)
 
 func _apply_theme() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -946,6 +939,8 @@ func _exit_tree() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.disconnect(_on_theme_changed)
+	if tm and tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_palette_changed):
+		tm.palette_changed.disconnect(_on_palette_changed)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and slm.setting_changed.is_connected(_on_setting_changed):
 		slm.setting_changed.disconnect(_on_setting_changed)

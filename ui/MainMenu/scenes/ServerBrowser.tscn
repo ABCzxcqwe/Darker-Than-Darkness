@@ -231,7 +231,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
-text = "DIRECCIÓN IP:"
+text = "DIRECCIÓN IP:   "
 
 [node name="IPInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200019]
 custom_minimum_size = Vector2(240, 32)

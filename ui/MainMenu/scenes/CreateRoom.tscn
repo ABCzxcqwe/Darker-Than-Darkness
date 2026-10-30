@@ -51,6 +51,7 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/DeltaruneBox/Margin" unique_id=9300006]
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9300007]
@@ -78,9 +79,9 @@ theme_override_font_sizes/font_size = 18
 text = "NOMBRE"
 
 [node name="NameInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/NameRow" unique_id=9300011]
-custom_minimum_size = Vector2(360, 36)
+custom_minimum_size = Vector2(720, 36)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
@@ -95,13 +96,15 @@ alignment = 1
 [node name="ModeLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ModeRow" unique_id=9300013]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "MODO"
+vertical_alignment = 1
 
 [node name="ModeValue" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ModeRow" unique_id=9300014]
+custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "ONLINE"
@@ -126,9 +129,9 @@ theme_override_font_sizes/font_size = 22
 text = "<"
 
 [node name="MapLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MapRow" unique_id=9300018]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "Card Castle"
@@ -159,9 +162,9 @@ theme_override_font_sizes/font_size = 22
 text = "<"
 
 [node name="GameModeLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/GameModeRow" unique_id=9300033]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "Escape"
@@ -192,9 +195,9 @@ theme_override_font_sizes/font_size = 22
 text = "<"
 
 [node name="PlayersLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/PlayersRow" unique_id=9300038]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "4"

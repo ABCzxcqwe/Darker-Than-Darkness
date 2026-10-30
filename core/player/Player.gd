@@ -10,6 +10,7 @@ const HURT_FLASH_DURATION_MS: int = 300
 const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const INVISIBILITY_ALPHA_SELF: float = 0.5
+const HEAL_FIELD_SCENE := preload("res://abilities/ralsei/HealPrayer/HealingField.tscn")
 @onready var synchronizer      = $Synchronizer
 @onready var synchronizer_anim = $SynchronizerAnim
 @onready var animated_sprite   = $AnimatedSprite2D
@@ -52,6 +53,7 @@ var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
 var active_ability_slot: int = -1
 var hold_ability_anim: bool = false
+var _heal_field: Node2D = null
 var _latest_aim_dir: Vector2 = Vector2.RIGHT
 ## Distancia desde el centro del jugador hasta el punto apuntado (cursor/mando).
 ## La usa el Láser de Fleetway para terminar exactamente en el mouse.
@@ -542,7 +544,8 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 				else:
 					rpc_id(1, "_cancel_ability_selection", slot),
 		filter_peer_id,
-		can_target_self
+		can_target_self,
+		selection_type
 	)
 
 
@@ -787,6 +790,37 @@ func _sync_ability_hold(hold: bool) -> void:
 	if sender != 0 and sender != 1:
 		return
 	hold_ability_anim = hold
+
+
+## Visual replicado del área de rezo de Ralsei. No corre lógica de juego:
+## el servidor se encarga de los ticks y del daño.
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_heal_field(active: bool, radius: float = 220.0, duration: float = 4.3) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if is_instance_valid(_heal_field):
+		_heal_field.queue_free()
+		_heal_field = null
+	if not active:
+		return
+	var field := HEAL_FIELD_SCENE.instantiate() as Node2D
+	if field == null:
+		return
+	_heal_field = field
+	var parent := get_parent()
+	if parent == null:
+		add_child(field)
+		field.position = Vector2.ZERO
+	else:
+		parent.add_child(field)
+		field.global_position = global_position
+		# Dibujar detrás del jugador (mismo orden que el cuerpo).
+		parent.move_child(field, get_index())
+	if "radius" in field:
+		field.radius = radius
+	if "duration" in field:
+		field.duration = duration
 
 
 # ── Emotes ────────────────────────────────────────────────────────────

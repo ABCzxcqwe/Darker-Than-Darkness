@@ -45,6 +45,8 @@ LobbyManager="*res://core/LobbyManager.gd"
 ChatService="*res://core/ChatService.gd"
 ThemeManager="*res://core/theme_manager.gd"
 CoordinatorClient="*res://core/CoordinatorClient.gd"
+MenuBackdrop="*res://core/menu_backdrop.gd"
+SceneTransition="*res://core/scene_transition.gd"
 
 [display]
 
