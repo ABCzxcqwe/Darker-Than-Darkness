@@ -5,6 +5,7 @@ extends Node
 signal player_joined(peer_id: int, player_info: Dictionary)
 signal player_left(peer_id: int)
 signal lobby_updated()
+signal character_select_started()
 signal kicked(reason: String)
 ## Se emite en el cliente cuando el servidor rechaza una selección de personaje.
 signal character_selection_rejected(char_id: int, message: String)
@@ -23,6 +24,8 @@ var is_host: bool = false
 var current_phase: int = GamePhase.LOBBY
 var forced_killer_peer: int = -1
 var room_host_peer: int = -1
+## Snapshot de los peers que entraron a la ronda actual (no AFK / no espectadores).
+var match_participants: Array[int] = []
 ## Solo en el servidor: peers que han reclamado el modo dev (--dev).
 ## No se sincroniza a los clientes.
 var dev_peers: Dictionary = {}
@@ -35,6 +38,94 @@ func _ready() -> void:
 
 func is_spectator(peer_id: int) -> bool:
 	return players.has(peer_id) and players[peer_id].get("is_spectator", false)
+
+
+func is_afk(peer_id: int) -> bool:
+	return players.has(peer_id) and bool(players[peer_id].get("afk", false))
+
+
+## "hub" | "match" | "spectate". Lo usa Session para no dibujar avatares de
+## jugadores que están en la partida y para reaparecer a quien vuelve al hub.
+func is_in_hub(peer_id: int) -> bool:
+	return players.has(peer_id) and str(players[peer_id].get("presence", "hub")) == "hub"
+
+
+func set_local_presence(presence: String) -> void:
+	if presence not in ["hub", "match", "spectate"]:
+		return
+	if multiplayer == null or multiplayer.multiplayer_peer == null:
+		return
+	if multiplayer.is_server():
+		_apply_presence(multiplayer.get_unique_id(), presence)
+	else:
+		rpc_id(1, "_server_set_presence", presence)
+
+
+@rpc("any_peer", "reliable")
+func _server_set_presence(presence: String) -> void:
+	if not multiplayer.is_server():
+		return
+	if presence not in ["hub", "match", "spectate"]:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	_apply_presence(sender, presence)
+
+
+func _apply_presence(peer_id: int, presence: String) -> void:
+	if not players.has(peer_id):
+		return
+	players[peer_id]["presence"] = presence
+	_broadcast_lobby_state()
+
+
+func apply_match_presence(char_map: Dictionary) -> void:
+	for pid in players:
+		players[pid]["presence"] = "match" if char_map.has(int(pid)) else "hub"
+	emit_signal("lobby_updated")
+
+
+func is_match_participant(peer_id: int) -> bool:
+	return match_participants.has(peer_id)
+
+
+## El host puede marcarse AFK: en la Fase B el World sigue simulando en el
+## servidor aunque la vista local esté en el hub.
+func can_local_toggle_afk() -> bool:
+	return true
+
+
+## Peers que pueden entrar a la próxima ronda.
+func get_active_participants() -> Array[int]:
+	var out: Array[int] = []
+	for pid in players:
+		if is_spectator(pid) or is_afk(pid):
+			continue
+		out.append(int(pid))
+	return out
+
+
+func request_toggle_afk() -> void:
+	if multiplayer.is_server():
+		_server_toggle_afk()
+	else:
+		rpc_id(1, "_server_toggle_afk")
+
+
+@rpc("any_peer", "reliable")
+func _server_toggle_afk() -> void:
+	if not multiplayer.is_server():
+		return
+	if current_phase != GamePhase.LOBBY:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	if not players.has(sender) or is_spectator(sender):
+		return
+	players[sender]["afk"] = not bool(players[sender].get("afk", false))
+	_broadcast_lobby_state()
 
 
 func is_room_host() -> bool:
@@ -96,7 +187,9 @@ func _send_player_info(player_name: String):
 			"character_id": -1,
 			"killer_points": 0,
 			"assigned_role": "spectator" if is_late_join else "survivor",
-			"is_spectator": is_late_join
+			"is_spectator": is_late_join,
+			"afk": false,
+			"presence": "hub"
 		}
 		if not is_late_join and room_host_peer == -1:
 			room_host_peer = sender
@@ -127,14 +220,18 @@ func _sync_lobby_state(all_players: Dictionary, map_id: String, p_room_name: Str
 
 
 func _send_spectator_join(peer_id: int) -> void:
-	var char_map = {}
-	for pid in players:
-		if not is_spectator(pid):
+	var char_map: Dictionary = {}
+	if not MatchCoordinator.current_match_char_map.is_empty():
+		char_map = MatchCoordinator.current_match_char_map.duplicate()
+	else:
+		for pid in players:
+			if is_spectator(pid) or is_afk(pid):
+				continue
 			char_map[pid] = players[pid].character_id
 
 	var data = {
 		"char_map": char_map,
-		"map_id": selected_map,
+		"map_id": MatchCoordinator.current_match_map_id if MatchCoordinator.current_match_map_id != "" else selected_map,
 	}
 
 	MatchCoordinator.rpc_id(peer_id, "_join_late_as_spectator", current_phase, data)
@@ -214,6 +311,26 @@ func _server_select_map(map_id: String) -> void:
 		return
 	selected_map = map_id
 	print("[LobbyManager] Mapa de sala cambiado a '%s' por peer %d" % [map_id, sender])
+	_broadcast_lobby_state()
+
+
+func request_set_max_players(value: int) -> void:
+	if multiplayer.is_server():
+		_server_set_max_players(value)
+	else:
+		rpc_id(1, "_server_set_max_players", value)
+
+
+@rpc("any_peer", "reliable")
+func _server_set_max_players(value: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	if sender != room_host_peer:
+		return
+	max_players = clampi(value, 2, MAX_PLAYERS)
 	_broadcast_lobby_state()
 
 
@@ -305,6 +422,7 @@ func host_set_spectator(peer_id: int) -> bool:
 		forced_killer_peer = -1
 	players[peer_id]["is_spectator"] = true
 	players[peer_id]["assigned_role"] = "spectator"
+	players[peer_id]["afk"] = false
 	_broadcast_lobby_state()
 	print("[LobbyManager] Peer %d puesto como espectador" % peer_id)
 	return true
@@ -321,6 +439,7 @@ func host_set_survivor(peer_id: int) -> bool:
 		return false
 	players[peer_id]["is_spectator"] = false
 	players[peer_id]["assigned_role"] = "survivor"
+	players[peer_id]["afk"] = false
 	_broadcast_lobby_state()
 	print("[LobbyManager] Peer %d restaurado a survivor" % peer_id)
 	return true
@@ -351,6 +470,7 @@ func host_force_killer(peer_id: int) -> bool:
 	players[peer_id]["killer_points"] = 99
 	players[peer_id]["assigned_role"] = "killer"
 	players[peer_id]["is_spectator"] = false
+	players[peer_id]["afk"] = false
 	forced_killer_peer = peer_id
 	# Todos los demas no-espectadores pasan a survivor
 	for pid in players:
@@ -429,7 +549,7 @@ func get_killer_candidates() -> Array[int]:
 	var highest_points: int = -1
 	var candidates: Array[int] = []
 	for pid in players:
-		if is_spectator(pid):
+		if is_spectator(pid) or is_afk(pid):
 			continue
 		var pts: int = int(players[pid].get("killer_points", 0))
 		if pts > highest_points:
@@ -446,34 +566,38 @@ func host_start_character_selection():
 	if not multiplayer.is_server():
 		return
 
-	if players.size() < 2 and not DevMode.is_enabled():
-		print("[LobbyManager] Se necesitan al menos 2 jugadores.")
+	var active := get_active_participants()
+	if active.size() < 2 and not DevMode.is_enabled():
+		print("[LobbyManager] Se necesitan al menos 2 jugadores activos.")
 		return
-
-	current_phase = GamePhase.CHARACTER_SELECT
 
 	var killer_peer_id: int = -1
 	# Si hay killer forzado (99 pts) respetar el override inmediato
-	if forced_killer_peer != -1 and players.has(forced_killer_peer) and not is_spectator(forced_killer_peer):
+	if forced_killer_peer != -1 and players.has(forced_killer_peer) and not is_spectator(forced_killer_peer) and not is_afk(forced_killer_peer):
 		killer_peer_id = forced_killer_peer
 	else:
 		var candidates: Array[int] = get_killer_candidates()
 		if candidates.is_empty():
-			print("[LobbyManager] No hay jugadores elegibles para ser killer (todos espectadores).")
+			print("[LobbyManager] No hay jugadores elegibles para ser killer (todos espectadores/AFK).")
 			return
 		randomize()
 		killer_peer_id = candidates[randi() % candidates.size()]
 
+	current_phase = GamePhase.CHARACTER_SELECT
+	match_participants = active.duplicate()
+
 	for pid in players:
-		if is_spectator(pid):
+		if is_spectator(pid) or is_afk(pid):
+			players[pid]["presence"] = "hub"
 			continue
 		players[pid]["character_id"] = -1
+		players[pid]["presence"] = "match"
 		if pid == killer_peer_id:
 			players[pid]["assigned_role"] = "killer"
 		else:
 			players[pid]["assigned_role"] = "survivor"
 
-	rpc("_go_to_character_selection", players)
+	rpc("_go_to_character_selection", players, match_participants)
 	MatchCoordinator.start_character_select_timer()
 
 
@@ -483,7 +607,7 @@ func host_resolve_missing_selections() -> void:
 	if not multiplayer.is_server():
 		return
 	for pid in players:
-		if is_spectator(pid):
+		if is_spectator(pid) or is_afk(pid):
 			continue
 		if players[pid].get("character_id", -1) == -1:
 			var role: String = players[pid].get("assigned_role", "survivor")
@@ -499,22 +623,17 @@ func host_resolve_missing_selections() -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _go_to_character_selection(assigned_players: Dictionary):
+func _go_to_character_selection(assigned_players: Dictionary, participants: Array = []):
 	current_phase = GamePhase.CHARACTER_SELECT
 	players = assigned_players
-	for lobby in get_tree().get_nodes_in_group("lobby"):
-		lobby.queue_free()
-	# El hub deja de procesar avatares/interacciones mientras dura la partida.
-	# En servidor dedicado la escena queda como shell; en clientes se libera
-	# igual al cambiar a CharacterSelect.
-	for hub in get_tree().get_nodes_in_group("hub_session"):
-		if hub.has_method("prepare_for_match"):
-			hub.prepare_for_match()
-		else:
-			hub.queue_free()
-	var ds := get_node_or_null("/root/DedicatedServer")
-	if not (ds and ds.is_dedicated):
-		SceneTransition.change_scene("res://ui/GameUI/Scenes/CharacterSelect.tscn", 0.45, 0.15, 0.6)
+	match_participants.clear()
+	for pid in participants:
+		match_participants.append(int(pid))
+	if match_participants.is_empty():
+		match_participants = get_active_participants()
+	# El overlay de CharacterSelect lo muestra cada Session local si el peer
+	# está en match_participants. Los AFK/espectadores se quedan en el hub.
+	character_select_started.emit()
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -665,6 +784,7 @@ func register_local_player(peer_id: int, player_name: String) -> void:
 func reset_lobby_state() -> void:
 	players.clear()
 	dev_peers.clear()
+	match_participants.clear()
 	current_phase = GamePhase.LOBBY
 	forced_killer_peer = -1
 	room_host_peer = -1

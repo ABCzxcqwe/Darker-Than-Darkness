@@ -127,7 +127,12 @@ func _spawn_warning(pos: Vector2) -> void:
 	if not container:
 		container = world
 	var warning = WARNING_SCENE.instantiate()
-	warning.global_position = pos
+	var parent_2d := container as Node2D
+	var warning_2d := warning as Node2D
+	if parent_2d and warning_2d:
+		warning_2d.position = parent_2d.to_local(pos)
+	elif warning_2d:
+		warning_2d.global_position = pos
 	var circle_duration: float = WARNING_TIME + SPEAR_HOLD + 1.0
 	if "radius" in warning:
 		warning.radius = WARNING_RADIUS
@@ -136,6 +141,8 @@ func _spawn_warning(pos: Vector2) -> void:
 	elif warning.has_method("set_duration"):
 		warning.set_duration(circle_duration)
 	container.add_child(warning, true)
+	if not parent_2d and warning_2d:
+		warning_2d.global_position = pos
 	var tree2 := _player_node.get_tree()
 	if tree2:
 		tree2.create_timer(WARNING_TIME).timeout.connect(_spawn_spear.bind(pos))

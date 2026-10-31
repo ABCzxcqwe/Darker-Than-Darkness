@@ -75,14 +75,14 @@ position = Vector2(720, 540)
 texture = ExtResource("3_r2jes")
 
 [node name="Button2" type="Sprite2D" parent="." unique_id=1845395873]
-self_modulate = Color(1, 1, 1, 0.5)
+self_modulate = Color(1, 1, 1, 0.5019608)
 z_index = 5
 position = Vector2(720, 922.5)
 texture = ExtResource("2_60uvt")
 hframes = 4
 
 [node name="Button" type="Sprite2D" parent="." unique_id=738135575]
-self_modulate = Color(1, 1, 1, 0.5)
+self_modulate = Color(1, 1, 1, 0.2509804)
 z_index = 4
 position = Vector2(720, 922.5)
 texture = ExtResource("2_60uvt")

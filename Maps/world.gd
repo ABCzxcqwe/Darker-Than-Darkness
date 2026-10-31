@@ -13,16 +13,25 @@ const USE_MOCK_HUD := true
 @onready var map_container: Node2D = $MapContainer
 
 var _hud: CanvasLayer = null
+var _scoreboard: Node = null
 var current_map_node: BaseMap = null
+## "play" | "spectate" | "hub". En "hub" el servidor sigue simulando pero no
+## muestra ni HUD ni cámara de la partida localmente.
+var _local_view_mode := "play"
+var _local_view_ready := false
+var _applying_local_view := false
+var _match_canvas_modulates: Array[CanvasModulate] = []
 
 func _ready() -> void:
 	if not services_config:
 		push_error("[World] No hay services_config asignado.")
 		return
 
+	_local_view_mode = String(get_meta("local_view_mode", "play"))
 	GameServiceLocator.register_all(services_config)
 
 	await _load_map()
+	_collect_match_canvas_modulates()
 
 	# Inicializar eventos del mapa (coordinador)
 	var coordinator = GameServiceLocator.map_event_coordinator
@@ -49,7 +58,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_setup_scoreboard()
-	_setup_hud()
+	await _setup_hud()
+	_local_view_ready = true
+	_apply_local_view_mode()
 
 	if multiplayer.is_server():
 		var tp = GameServiceLocator.tp
@@ -148,6 +159,12 @@ func _peer_world_ready() -> void:
 	if sender == 0:
 		return
 	_grant_all_visibility_to(sender)
+	# Asegurar el estado inicial de posición para el World que acaba de crear
+	# un espectador/late join. La visibilidad del Synchronizer sola puede
+	# tardar un frame en enviar el primer delta.
+	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if is_instance_valid(player_node):
+			player_node.rpc_id(sender, "_sync_server_position", player_node.global_position)
 	# Late-join: si es espectador, mandarle el estado de audio completo
 	# (mapa + personajes + track prioritario/LMS con su posicion actual).
 	var player_characters: Dictionary = get_meta("player_characters", {})
@@ -192,20 +209,34 @@ func _position_players_in_spawns() -> void:
 				else:
 					target_position = current_map_node.get_random_survivor_spawn()
 					print("[World] Posicionando Survivor (Peer: ", player_node.name, ") en: ", target_position)
-				
-				# Asignamos la posición en el servidor; MultiplayerSynchronizer se encargará de replicarlo a los clientes
+
+				# BaseMap ya devuelve posiciones globales (los marcadores viven
+				# dentro del mapa, que a su vez está dentro de MatchArea).
+				# Asignamos la posición en el servidor; MultiplayerSynchronizer se encargará de replicarlo a los clientes.
+				# Además forzamos el spawn al dueño (el Synchronizer de posición no le
+				# replica su propia posición para evitar rubber-banding).
 				player_node.global_position = target_position
 				player_node.net_position = target_position
+				player_node.rpc("_sync_server_position", target_position)
 
 
 func _setup_scoreboard() -> void:
 	var ds := get_node_or_null("/root/DedicatedServer")
 	if ds and ds.is_dedicated:
 		return
-	add_child(SCOREBOARD_SCENE.instantiate())
+	if _local_view_mode != "play":
+		return
+	_scoreboard = SCOREBOARD_SCENE.instantiate()
+	add_child(_scoreboard)
 
 
 func _setup_hud() -> void:
+	if _local_view_mode == "hub":
+		return
+	if _local_view_mode == "spectate":
+		_activate_spectator_local()
+		return
+
 	var my_peer_id := multiplayer.get_unique_id()
 
 	var player_characters: Dictionary = get_meta("player_characters", {})
@@ -213,9 +244,7 @@ func _setup_hud() -> void:
 			or not player_characters.has(my_peer_id)
 
 	if is_spectator:
-		var ctrl := get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
-		if ctrl and ctrl.has_method("activate"):
-			ctrl.activate()
+		_activate_spectator_local()
 		print("[World] Espectador local listo (nodos del roster ya creados localmente).")
 		return
 
@@ -249,6 +278,7 @@ func _setup_hud() -> void:
 		_hud = GAME_HUD_SCENE.instantiate()
 	add_child(_hud)
 	_hud.setup(my_player)
+	_set_local_player_camera(true)
 
 	# Menú Dev in-game: solo para el host local con jugador y con DevMode activo.
 	if DevMode.is_enabled() and multiplayer.is_server():
@@ -258,6 +288,107 @@ func _setup_hud() -> void:
 			_hud.add_child(dev_menu)
 			dev_menu.setup(my_player)
 			print("[World] DevMenu host-only instanciado.")
+
+
+## Cambia la vista local dentro de la misma instancia de World. En "hub" el
+## servidor sigue simulando la partida, pero el cliente local no muestra HUD ni
+## cámara de juego.
+func set_local_view_mode(mode: String) -> void:
+	if mode not in ["play", "spectate", "hub"]:
+		return
+	_local_view_mode = mode
+	set_meta("local_view_mode", mode)
+	if _local_view_ready and not _applying_local_view:
+		_apply_local_view_mode()
+
+
+func _apply_local_view_mode() -> void:
+	if not _local_view_ready:
+		return
+	_applying_local_view = true
+	match _local_view_mode:
+		"play":
+			_set_match_canvas_modulates_visible(true)
+			# El scoreboard se muestra solo con Tab; no forzarlo visible al
+			# entrar en play o queda el overlay "JUGADORES" durante la partida.
+			_deactivate_spectator_local()
+			_set_local_player_camera(true)
+			if _hud:
+				_hud.process_mode = Node.PROCESS_MODE_INHERIT
+				_hud.visible = true
+				if _hud.has_method("set_spectator_ui_active"):
+					_hud.set_spectator_ui_active(false)
+		"spectate":
+			# El espectador ve el mundo sin la oscuridad ambiental del mapa.
+			_set_match_canvas_modulates_visible(false)
+			if _scoreboard and is_instance_valid(_scoreboard):
+				_scoreboard.visible = false
+			_set_local_player_camera(false)
+			if _hud:
+				_hud.process_mode = Node.PROCESS_MODE_INHERIT
+				_hud.visible = true
+				if _hud.has_method("set_spectator_ui_active"):
+					_hud.set_spectator_ui_active(true)
+			_activate_spectator_local()
+		"hub":
+			# El CanvasModulate del mapa es global para su canvas: si queda
+			# visible, oscurece también el hub que ahora coexiste en Session.
+			_set_match_canvas_modulates_visible(false)
+			if _scoreboard and is_instance_valid(_scoreboard):
+				_scoreboard.visible = false
+			_deactivate_spectator_local()
+			_set_local_player_camera(false)
+			for panel in get_tree().get_nodes_in_group("chat_panel"):
+				if panel.has_method("close_input"):
+					panel.close_input()
+			if _hud:
+				_hud.visible = false
+				_hud.process_mode = Node.PROCESS_MODE_DISABLED
+	_applying_local_view = false
+
+
+func _activate_spectator_local() -> void:
+	var ctrl := get_spectator_controller()
+	if ctrl and ctrl.has_method("activate"):
+		ctrl.activate()
+
+
+func _deactivate_spectator_local() -> void:
+	var ctrl := get_spectator_controller()
+	if ctrl and ctrl.has_method("deactivate"):
+		ctrl.deactivate()
+
+
+func get_spectator_controller() -> Node:
+	var ctrl := get_node_or_null("SpectatorController")
+	if ctrl:
+		return ctrl
+	return get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
+
+
+func _set_local_player_camera(enabled: bool) -> void:
+	var player := PlayerRegistry.get_player(multiplayer.get_unique_id())
+	if not player or not is_instance_valid(player):
+		return
+	var cam := player.get_node_or_null("Camera2D") as Camera2D
+	if cam == null:
+		return
+	cam.enabled = enabled
+	if enabled:
+		cam.make_current()
+
+
+func _collect_match_canvas_modulates() -> void:
+	_match_canvas_modulates.clear()
+	for node in find_children("*", "CanvasModulate", true, false):
+		if node is CanvasModulate:
+			_match_canvas_modulates.append(node)
+
+
+func _set_match_canvas_modulates_visible(visible_now: bool) -> void:
+	for cm in _match_canvas_modulates:
+		if is_instance_valid(cm):
+			cm.visible = visible_now
 
 
 func _exit_tree() -> void:

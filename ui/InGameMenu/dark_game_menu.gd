@@ -105,6 +105,25 @@ var _tabbar_tween: Tween
 var _cached_stats: Dictionary = {}
 var _style_normal: StyleBox = null
 var _style_highlighted: StyleBox = null
+var _hub_mode := false
+var _hidden_tabs: Dictionary = {}
+
+
+## En el hub mostramos STATS solo si este jugador entró a la partida actual.
+func force_close() -> void:
+	_close(true)
+
+
+func set_hub_mode(enabled: bool, show_stats: bool = false) -> void:
+	_hub_mode = enabled
+	_hidden_tabs.clear()
+	if enabled and not show_stats:
+		_hidden_tabs[0] = true
+		if _tab_idx == 0:
+			_tab_idx = 1
+	if tab_nodes.size() > 0:
+		tab_nodes[0].visible = not (enabled and not show_stats)
+	_refresh_tab_highlight()
 
 
 func _ready() -> void:
@@ -293,6 +312,8 @@ func _open() -> void:
 	_is_open = true
 	_in_tabs = true
 	_tab_idx = 0
+	while _hidden_tabs.has(_tab_idx) and _tab_idx < TAB_IDS.size() - 1:
+		_tab_idx += 1
 	overlay.visible = true
 	center.visible = true
 	hint_center.visible = true
@@ -416,7 +437,13 @@ func _hide_all() -> void:
 # ── Navegación entre pestañas ────────────────────────────────────────
 
 func _move_tab(dir: int) -> void:
-	var new_idx: int = clampi(_tab_idx + dir, 0, TAB_IDS.size() - 1)
+	if TAB_IDS.is_empty():
+		return
+	var new_idx := _tab_idx
+	for _i in TAB_IDS.size():
+		new_idx = posmod(new_idx + dir, TAB_IDS.size())
+		if not _hidden_tabs.has(new_idx):
+			break
 	if new_idx == _tab_idx:
 		return
 	_tab_idx = new_idx
@@ -426,6 +453,9 @@ func _move_tab(dir: int) -> void:
 
 func _refresh_tab_highlight() -> void:
 	for i in tab_nodes.size():
+		if _hidden_tabs.has(i):
+			_set_panel_highlighted(tab_nodes[i], false)
+			continue
 		_set_panel_highlighted(tab_nodes[i], i == _tab_idx)
 
 

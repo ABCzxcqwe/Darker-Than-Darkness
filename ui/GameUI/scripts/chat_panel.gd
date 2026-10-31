@@ -16,6 +16,7 @@ var _messages: Array[String] = []
 
 
 func _ready() -> void:
+	add_to_group("chat_panel")
 	var font = load(FONT_PATH) if ResourceLoader.exists(FONT_PATH) else null
 	if font:
 		history_label.add_theme_font_override("normal_font", font)
@@ -49,6 +50,15 @@ func _input(event: InputEvent) -> void:
 
 func _is_pause_open() -> bool:
 	return MenuUtils.is_any_menu_open(get_tree())
+
+
+func is_input_active() -> bool:
+	return _input_active
+
+
+func close_input() -> void:
+	if _input_active:
+		_close_input()
 
 
 func _unhandled_input(event: InputEvent) -> void:

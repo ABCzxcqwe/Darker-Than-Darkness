@@ -125,8 +125,15 @@ func _fire_shot() -> void:
 	projectile.slow_duration = SLOW_DURATION
 	projectile.mine_tp_amount = TP_PER_HIT
 
-	projectile.global_position = _player_node.global_position
+	var parent_2d := _container as Node2D
+	var projectile_2d := projectile as Node2D
+	if parent_2d and projectile_2d:
+		projectile_2d.position = parent_2d.to_local(_player_node.global_position)
+	elif projectile_2d:
+		projectile_2d.global_position = _player_node.global_position
 	_container.add_child(projectile, true)
+	if not parent_2d and projectile_2d:
+		projectile_2d.global_position = _player_node.global_position
 
 	_fired_count += 1
 	print("[FluffyFilling] Disparo ", _fired_count, "/", _pending_projectiles, " | dir: ", dir)

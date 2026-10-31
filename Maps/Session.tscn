@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://Maps/Hub/HubBoard.tscn" id="5_board"]
 [ext_resource type="PackedScene" path="res://ui/Hub/BoardPanel.tscn" id="6_board_panel"]
 [ext_resource type="PackedScene" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="7_chat"]
+[ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="8_menu"]
 
 [node name="Session" type="Node2D" unique_id=404635471]
 script = ExtResource("1_session")
@@ -76,9 +77,17 @@ text = "WASD/FLECHAS MOVER   —   E INTERACTUAR   —   X SALIR"
 vertical_alignment = 1
 
 [node name="ChatPanel" parent="UI" unique_id=191919197 instance=ExtResource("7_chat")]
-offset_left = 24.0
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -484.0
 offset_top = 96.0
-offset_right = 484.0
+offset_right = -24.0
 offset_bottom = 306.0
+grow_horizontal = 0
 
 [node name="BoardPanel" parent="UI" unique_id=1143499273 instance=ExtResource("6_board_panel")]
+
+[node name="DarkGameMenu" parent="UI" unique_id=1048152264 instance=ExtResource("8_menu")]
+z_index = 50

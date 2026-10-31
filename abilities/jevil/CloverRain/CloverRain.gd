@@ -234,9 +234,10 @@ func _spawn_arena(center: Vector2) -> void:
 	if not container:
 		return
 	var arena = ARENA_SCENE.instantiate()
-	arena.configure(center, ARENA_RADIUS)
 	arena.set_multiplayer_authority(1)
 	container.add_child(arena, true)
+	# configure fija global_position; debe ejecutarse ya dentro del árbol.
+	arena.configure(center, ARENA_RADIUS)
 	_arena = arena
 
 
@@ -256,9 +257,18 @@ func _spawn_in_projectiles(scene: PackedScene, pos: Vector2) -> Node:
 	if not container:
 		return null
 	var proj = scene.instantiate()
-	proj.global_position = pos
+	# El contenedor está dentro de World/MatchArea: convertir la posición
+	# global a local antes de add_child para no duplicar el offset.
+	var parent_2d := container as Node2D
+	var proj_2d := proj as Node2D
+	if parent_2d and proj_2d:
+		proj_2d.position = parent_2d.to_local(pos)
+	elif proj_2d:
+		proj_2d.global_position = pos
 	proj.set_multiplayer_authority(1)
 	container.add_child(proj, true)
+	if not parent_2d and proj_2d:
+		proj_2d.global_position = pos
 	return proj
 
 

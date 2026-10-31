@@ -1,23 +1,28 @@
 class_name SpectatorController
 extends Node
 
-const SPECTATOR_PANEL_SCENE := preload("uid://cd0mergb3r8er")
-const GAME_MENU_SCENE := preload("uid://50v1655uyic8")
+const CHAT_PANEL_SCENE := preload("res://ui/GameUI/Scenes/ChatPanel.tscn")
+const FONT := preload("res://Fonts/deltarune font.ttf")
 const SPECTATOR_ZOOM := 0.7
 
 var _active := false
 var _ui_layer: CanvasLayer = null
 var _spectator_camera: Camera2D = null
 var _spectator_panel: PanelContainer = null
+var _target_label: Label = null
+var _chat_panel: Control = null
 var _follow_target: Node = null
-var _spec_freecam_offset: Vector2 = Vector2.ZERO
-var _spec_freecam_speed: float = 400.0
-var _spec_is_freecam := false
+var _last_target_peer_id := -1
+var _session: Node = null
 
 
 func _ready() -> void:
 	add_to_group(GroupNames.SPECTATOR)
 	set_process(false)
+
+
+func is_active() -> bool:
+	return _active
 
 
 func get_follow_target() -> Node:
@@ -28,9 +33,68 @@ func activate() -> void:
 	if _active:
 		return
 	_active = true
+	set_process(true)
+	_session = get_tree().get_first_node_in_group("hub_session")
 	print("[SpectatorController] Modo espectador activado para el peer local")
 
 	_disable_local_player_camera()
+	_build_ui()
+	_spectator_camera.enabled = true
+	_spectator_camera.make_current()
+	_spectator_panel.visible = true
+
+	_reveal_players()
+
+	var hud := get_tree().get_first_node_in_group(GroupNames.GAME_HUD)
+	if hud and hud.has_method("set_spectator_ui_active"):
+		hud.set_spectator_ui_active(true)
+	else:
+		_ensure_chat_panel()
+
+	_select_initial_target()
+	# La cámara nace en (0,0). Si el objetivo está en MatchArea (offset 50.000)
+	# y dejamos position_smoothing activo, tarda en "volar" hasta la partida y
+	# durante ese tiempo parece que el mapa/las posiciones no sincronizaron.
+	_snap_camera_to_target()
+
+	# Mantiene el World en el mismo estado aunque la activación venga desde la
+	# muerte de un jugador (Player llama directamente a este controlador).
+	var world := get_parent()
+	if world and world.has_method("set_local_view_mode"):
+		world.set_local_view_mode("spectate")
+
+	if _session and _session.has_method("enter_spectator_view"):
+		_session.enter_spectator_view()
+
+
+func deactivate() -> void:
+	if not _active and _ui_layer == null:
+		return
+	_active = false
+	set_process(false)
+	if _follow_target and is_instance_valid(_follow_target):
+		_last_target_peer_id = _follow_target.get_multiplayer_authority()
+	_follow_target = null
+	if _spectator_camera:
+		_spectator_camera.enabled = false
+	if _spectator_panel:
+		_spectator_panel.visible = false
+	if _chat_panel and is_instance_valid(_chat_panel):
+		_chat_panel.queue_free()
+	_chat_panel = null
+
+
+func request_return_to_hub() -> void:
+	if _session and _session.has_method("return_to_hub_from_spectate"):
+		_last_target_peer_id = _current_target_peer_id()
+		_session.return_to_hub_from_spectate()
+		return
+	deactivate()
+
+
+func _build_ui() -> void:
+	if _ui_layer:
+		return
 
 	_ui_layer = CanvasLayer.new()
 	_ui_layer.name = "SpectatorCanvasLayer"
@@ -39,156 +103,224 @@ func activate() -> void:
 
 	_spectator_camera = Camera2D.new()
 	_spectator_camera.name = "SpectatorCamera"
-	_spectator_camera.enabled = true
+	_spectator_camera.enabled = false
 	_spectator_camera.zoom = Vector2(SPECTATOR_ZOOM, SPECTATOR_ZOOM)
 	_spectator_camera.position_smoothing_enabled = true
 	_spectator_camera.position_smoothing_speed = 10.0
 	add_child(_spectator_camera)
 
-	_spectator_panel = SPECTATOR_PANEL_SCENE.instantiate()
-	_spectator_panel.prev_requested.connect(_cycle_target.bind(-1))
-	_spectator_panel.next_requested.connect(_cycle_target.bind(1))
+	_spectator_panel = PanelContainer.new()
+	_spectator_panel.name = "SpectatorPanel"
+	_spectator_panel.custom_minimum_size = Vector2(560, 92)
+	_spectator_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_spectator_panel.offset_left = -280.0
+	_spectator_panel.offset_top = -118.0
+	_spectator_panel.offset_right = 280.0
+	_spectator_panel.offset_bottom = -26.0
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.02, 0.03, 0.86)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.8, 0.8, 0.9, 0.7)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 14
+	style.content_margin_top = 8
+	style.content_margin_right = 14
+	style.content_margin_bottom = 8
+	_spectator_panel.add_theme_stylebox_override("panel", style)
 	_ui_layer.add_child(_spectator_panel)
 
-	_setup_pause_menu()
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	_spectator_panel.add_child(vbox)
 
-	_hide_canvas_modulates()
-	_reveal_players()
+	_target_label = Label.new()
+	_target_label.text = "ESPECTANDO: —"
+	_target_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_target_label.add_theme_font_override("font", FONT)
+	_target_label.add_theme_font_size_override("font_size", 18)
+	_target_label.add_theme_color_override("font_color", Color(0.85, 0.85, 1.0, 1.0))
+	vbox.add_child(_target_label)
 
-	var hud := get_tree().get_first_node_in_group(GroupNames.GAME_HUD)
-	if hud and hud.has_method("set_spectator_ui_active"):
-		hud.set_spectator_ui_active(true)
+	var hint := Label.new()
+	hint.text = "Q/E O ←/→ CAMBIAR   —   ESPACIO VOLVER AL HUB"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_override("font", FONT)
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_color_override("font_color", Color(0.65, 0.65, 0.75, 1.0))
+	vbox.add_child(hint)
 
-	set_process(true)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 8)
+	vbox.add_child(buttons)
+
+	var prev := Button.new()
+	prev.text = "◀"
+	prev.custom_minimum_size = Vector2(48, 28)
+	prev.add_theme_font_override("font", FONT)
+	prev.pressed.connect(_cycle_target.bind(-1))
+	buttons.add_child(prev)
+
+	var next := Button.new()
+	next.text = "▶"
+	next.custom_minimum_size = Vector2(48, 28)
+	next.add_theme_font_override("font", FONT)
+	next.pressed.connect(_cycle_target.bind(1))
+	buttons.add_child(next)
+
+	var hub_btn := Button.new()
+	hub_btn.text = "VOLVER AL HUB"
+	hub_btn.custom_minimum_size = Vector2(170, 28)
+	hub_btn.add_theme_font_override("font", FONT)
+	hub_btn.add_theme_font_size_override("font_size", 14)
+	hub_btn.pressed.connect(request_return_to_hub)
+	buttons.add_child(hub_btn)
+
+
+func _ensure_chat_panel() -> void:
+	if _chat_panel or _ui_layer == null:
+		return
+	_chat_panel = CHAT_PANEL_SCENE.instantiate()
+	_chat_panel.name = "SpectatorChat"
+	_chat_panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	_chat_panel.offset_left = 24.0
+	_chat_panel.offset_top = -105.0
+	_chat_panel.offset_right = 484.0
+	_chat_panel.offset_bottom = 105.0
+	_ui_layer.add_child(_chat_panel)
+
+
+func _select_initial_target() -> void:
+	var alive := _alive_players()
+	if alive.is_empty():
+		_follow_target = null
+		return
+	if _last_target_peer_id > 0:
+		for p in alive:
+			if p.get_multiplayer_authority() == _last_target_peer_id:
+				_follow_target = p
+				return
+	_follow_target = alive[0]
+	_last_target_peer_id = _follow_target.get_multiplayer_authority()
+
+
+func _alive_players() -> Array[Node]:
+	var result: Array[Node] = []
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if not is_instance_valid(p):
+			continue
+		if "health_state" in p and p.health_state == "alive":
+			result.append(p)
+	result.sort_custom(func(a: Node, b: Node) -> bool:
+		return a.get_multiplayer_authority() < b.get_multiplayer_authority()
+	)
+	return result
+
+
+func _process(_delta: float) -> void:
+	if not _active:
+		return
+	if MenuUtils.is_any_menu_open(get_tree(), self):
+		return
+	if _is_chat_input_active():
+		return
+	_handle_input()
+	_update_camera()
+	_update_panel()
+
+
+func _handle_input() -> void:
+	if Input.is_action_just_pressed("spec_toggle"):
+		request_return_to_hub()
+		return
+
+	var direction := 0
+	if Input.is_action_just_pressed("spec_next") or Input.is_action_just_pressed("menu_right"):
+		direction = 1
+	elif Input.is_action_just_pressed("spec_prev") or Input.is_action_just_pressed("menu_left"):
+		direction = -1
+	if direction != 0:
+		_cycle_target(direction)
+
+
+func _update_camera() -> void:
+	if _spectator_camera == null:
+		return
+	if _follow_target and is_instance_valid(_follow_target) \
+			and (not ("health_state" in _follow_target) or _follow_target.health_state == "alive"):
+		_spectator_camera.global_position = _follow_target.global_position
+	else:
+		_cycle_target(1)
+
+
+func _snap_camera_to_target() -> void:
+	if _spectator_camera == null or _follow_target == null \
+			or not is_instance_valid(_follow_target):
+		return
+	_spectator_camera.global_position = _follow_target.global_position
+	_spectator_camera.reset_smoothing()
+
+
+func _cycle_target(direction: int) -> void:
+	var alive := _alive_players()
+	if alive.is_empty():
+		_follow_target = null
+		return
+
+	var current_idx := -1
+	if _follow_target and is_instance_valid(_follow_target):
+		current_idx = alive.find(_follow_target)
+
+	var new_idx := current_idx + direction
+	if current_idx == -1:
+		new_idx = 0 if direction >= 0 else alive.size() - 1
+	while new_idx < 0:
+		new_idx += alive.size()
+	new_idx %= alive.size()
+
+	_follow_target = alive[new_idx]
+	_last_target_peer_id = _follow_target.get_multiplayer_authority()
+	if _active:
+		_snap_camera_to_target()
+
+
+func _update_panel() -> void:
+	if _target_label == null:
+		return
+	if _follow_target == null or not is_instance_valid(_follow_target):
+		_target_label.text = "ESPECTANDO: SIN JUGADORES VIVOS"
+		return
+	var pid := _follow_target.get_multiplayer_authority()
+	var pdata: Dictionary = LobbyManager.players.get(pid, {})
+	var display_name := str(pdata.get("name", "")).strip_edges()
+	if display_name == "":
+		display_name = "JUGADOR %d" % pid
+	_target_label.text = "ESPECTANDO: " + display_name
+
+
+func _current_target_peer_id() -> int:
+	if _follow_target and is_instance_valid(_follow_target):
+		return _follow_target.get_multiplayer_authority()
+	return _last_target_peer_id
+
+
+func _is_chat_input_active() -> bool:
+	for panel in get_tree().get_nodes_in_group("chat_panel"):
+		if panel.has_method("is_input_active") and panel.is_input_active():
+			return true
+	return false
 
 
 func _disable_local_player_camera() -> void:
 	var my_player := PlayerRegistry.get_player(multiplayer.get_unique_id())
 	if my_player and my_player.has_node("Camera2D"):
 		my_player.get_node("Camera2D").enabled = false
-
-
-func _setup_pause_menu() -> void:
-	var hud := get_tree().get_first_node_in_group(GroupNames.GAME_HUD)
-	if hud:
-		return
-	var menu := GAME_MENU_SCENE.instantiate()
-	menu.name = "SpectatorMenu"
-	_ui_layer.add_child(menu)
-
-
-func _process(delta: float) -> void:
-	if not _active:
-		return
-	_handle_input(delta)
-	_update_camera(delta)
-	_update_panel()
-
-
-func _handle_input(delta: float) -> void:
-	var menu := get_tree().get_first_node_in_group(GroupNames.GAME_MENU)
-	if menu and menu.has_method("is_open") and menu.is_open():
-		return
-	if Input.is_action_just_pressed("spec_toggle"):
-		_spec_is_freecam = not _spec_is_freecam
-		if _spectator_camera:
-			if _spec_is_freecam:
-				_spec_freecam_offset = _spectator_camera.position
-			_spectator_camera.position_smoothing_enabled = not _spec_is_freecam
-		if not _spec_is_freecam:
-			_cycle_target(1)
-
-	var next_dir := 0
-	if Input.is_action_just_pressed("spec_next"):
-		next_dir = 1
-	elif Input.is_action_just_pressed("spec_prev"):
-		next_dir = -1
-	if next_dir != 0:
-		_cycle_target(next_dir)
-
-	if _spec_is_freecam:
-		var move := Input.get_vector("spec_left", "spec_right", "spec_up", "spec_down")
-		_spec_freecam_offset += move * _spec_freecam_speed * delta
-
-
-func _update_camera(_delta: float) -> void:
-	if not _spectator_camera:
-		return
-	if _spec_is_freecam:
-		_spectator_camera.position = _spec_freecam_offset
-	else:
-		if _follow_target and is_instance_valid(_follow_target):
-			_spectator_camera.global_position = _follow_target.global_position
-		else:
-			_cycle_target(1)
-
-
-func _cycle_target(direction: int) -> void:
-	var all_players := get_tree().get_nodes_in_group(GroupNames.PLAYERS)
-	var alive_players: Array[Node] = []
-	for p in all_players:
-		if is_instance_valid(p) and "health_state" in p and p.health_state == "alive":
-			alive_players.append(p)
-	if alive_players.is_empty():
-		_follow_target = null
-		return
-
-	var current_idx := -1
-	if _follow_target and is_instance_valid(_follow_target):
-		current_idx = alive_players.find(_follow_target)
-
-	var new_idx := current_idx + direction
-	while new_idx < 0:
-		new_idx += alive_players.size()
-	new_idx = new_idx % alive_players.size()
-
-	_follow_target = alive_players[new_idx]
-
-
-func _update_panel() -> void:
-	if not _spectator_panel:
-		return
-
-	if not _follow_target or not is_instance_valid(_follow_target):
-		_spectator_panel.set_target(-1, "?", "", null)
-		_spectator_panel.set_hp(0, 100)
-		return
-
-	var pid := _follow_target.get_multiplayer_authority()
-	if "health_state" in _follow_target and _follow_target.health_state != "alive":
-		_cycle_target(1)
-		return
-
-	var pdata: Dictionary = LobbyManager.players.get(pid, {})
-	var char_id: int = pdata.get("character_id", -1)
-	if char_id == -1 and "character_data" in _follow_target and _follow_target.character_data:
-		char_id = _follow_target.character_data.id
-
-	var display_name := "?"
-	var icon_frames: SpriteFrames = null
-	var fallback_tex: Texture2D = null
-	if char_id != -1:
-		var cdata: CharacterData = CharacterRegistry.get_character(char_id)
-		if cdata:
-			display_name = cdata.display_name
-			icon_frames = cdata.animation_frames
-			fallback_tex = cdata.icon
-
-	var player_name: String = pdata.get("name", "")
-	_spectator_panel.set_target(pid, display_name, player_name, icon_frames, fallback_tex)
-
-	var hp := 0
-	var max_hp := 100
-	if "health" in _follow_target:
-		hp = _follow_target.health
-	if "character_data" in _follow_target and _follow_target.character_data:
-		max_hp = _follow_target.character_data.max_health
-	_spectator_panel.set_hp(hp, max_hp)
-
-
-func _hide_canvas_modulates() -> void:
-	for cm in _get_all_nodes_of_type(get_tree().root, "CanvasModulate"):
-		cm.visible = false
 
 
 func _reveal_players() -> void:
@@ -200,12 +332,3 @@ func _reveal_players() -> void:
 			other.animated_sprite.visible = true
 		if other.has_node("NameTag"):
 			other.name_tag.visible = true
-
-
-func _get_all_nodes_of_type(from: Node, type_name: String) -> Array[Node]:
-	var result: Array[Node] = []
-	if from.get_class() == type_name:
-		result.append(from)
-	for child in from.get_children():
-		result.append_array(_get_all_nodes_of_type(child, type_name))
-	return result

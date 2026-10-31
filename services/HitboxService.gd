@@ -181,10 +181,15 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 	var origin: Vector2 = attacker_node.global_position
 	var aim_mode: String = config.get("aim_mode", "mouse")
 	var offset_val: float = config.get("offset", 40.0)
-	if config.has("position"):
-		hitbox.global_position = config["position"]
-	else:
-		hitbox.global_position = origin if aim_mode == "origin" else origin + direction * offset_val
+	var spawn_global: Vector2 = config["position"] if config.has("position") else \
+		(origin if aim_mode == "origin" else origin + direction * offset_val)
+	# El proyectil todavía no está en el árbol: asignar global_position acá
+	# guarda esa coordenada como local y, al colgar de World/Projectiles
+	# (que vive en MatchArea), se duplicaría el offset 50.000.
+	var spawn_parent := container as Node2D
+	var hitbox_2d := hitbox as Node2D
+	if spawn_parent and hitbox_2d:
+		hitbox_2d.position = spawn_parent.to_local(spawn_global)
 	if hitbox.has_method("set_direction"):
 		hitbox.set_direction(direction)
 	if hitbox.has_method("set_multiplayer_authority"):
@@ -203,6 +208,8 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 				area_walls.collision_mask |= 1
 
 	container.add_child(hitbox, true)
+	if not spawn_parent and hitbox_2d:
+		hitbox_2d.global_position = spawn_global
 
 	# NOTA: El MultiplayerSynchronizer se conserva para que el
 	# MultiplayerSpawner (World/ProjectileSpawner) replique el proyectil

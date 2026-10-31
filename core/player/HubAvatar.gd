@@ -110,6 +110,9 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if MenuUtils.is_any_menu_open(get_tree(), self):
+		velocity = Vector2.ZERO
+		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if dir.length() > 0.01:
 		velocity = dir.normalized() * SPEED
@@ -133,6 +136,8 @@ func _physics_process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _controls_enabled or not _can_move:
+		return
+	if MenuUtils.is_any_menu_open(get_tree(), self):
 		return
 	if event.is_action_pressed("world_interact"):
 		if _current == null or not is_instance_valid(_current):

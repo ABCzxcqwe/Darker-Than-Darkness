@@ -154,9 +154,10 @@ func _spawn_arena(center: Vector2) -> void:
 	if not container:
 		return
 	var arena = ARENA_SCENE.instantiate()
-	arena.configure(center, ARENA_RADIUS)
 	arena.set_multiplayer_authority(1)
 	container.add_child(arena, true)
+	# configure fija global_position; debe ejecutarse ya dentro del árbol.
+	arena.configure(center, ARENA_RADIUS)
 	_arena = arena
 
 

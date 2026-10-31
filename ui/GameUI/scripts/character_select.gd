@@ -18,6 +18,10 @@ var _focus_idx := 0
 var _selection_locked := false
 var _is_animating := false
 
+
+func is_open() -> bool:
+	return is_visible_in_tree()
+
 # Panel de desarrollador (combo de mando L1 + Select). Solo se crea si DevMode
 # está activo.
 var _dev_panel: Control = null
@@ -45,6 +49,7 @@ const CYLINDER_MIN_SCALE := 0.55
 
 func _ready() -> void:
 	add_to_group("character_select_screen")
+	add_to_group(GroupNames.GAME_MENU)
 
 	LobbyManager.lobby_updated.connect(_on_lobby_updated)
 	LobbyManager.character_selection_rejected.connect(_on_selection_rejected)
@@ -78,7 +83,6 @@ func _ready() -> void:
 
 	_build_character_options()
 	_setup_dev_panel()
-	_setup_dev_badge()
 	_on_lobby_updated()
 	_start_countdown()
 	# Recalcular en resize para responsividad
@@ -253,22 +257,6 @@ func _setup_dev_panel() -> void:
 	_refresh_dev_list()
 
 
-func _setup_dev_badge() -> void:
-	if not DevMode.is_enabled():
-		return
-	var badge := Label.new()
-	badge.name = "DevModeBadge"
-	badge.text = "DEV MODE — " + DevMode.build_kind().to_upper()
-	badge.position = Vector2(24, 22)
-	badge.z_index = 90
-	badge.add_theme_font_override("font", load("uid://dvelfumepo3c0"))
-	badge.add_theme_font_size_override("font_size", 16)
-	badge.add_theme_color_override("font_color", Color(1.0, 0.35, 0.9))
-	badge.add_theme_color_override("font_outline_color", Color.BLACK)
-	badge.add_theme_constant_override("outline_size", 4)
-	add_child(badge)
-
-
 func _refresh_dev_list() -> void:
 	if _dev_list == null:
 		return
@@ -375,8 +363,9 @@ func _layout_cylinder(animated: bool) -> void:
 			target_scale_val = CYLINDER_MIN_SCALE
 
 		vbox.z_index = target_z
-		# Orden de dibujo: centro arriba
-		vbox.z_as_relative = false
+		# Relativo al overlay: con un CanvasLayer dedicado, un z absoluto podía
+		# quedar por debajo del fondo del propio CharacterSelect.
+		vbox.z_as_relative = true
 
 		var target_pos := Vector2(target_x - (PANEL_W * target_scale_val) / 2.0 + (PANEL_W * target_scale_val) / 2.0 - (PANEL_W * target_scale_val)/2 + target_x - (PANEL_W*target_scale_val)/2, target_y)
 		# Simplificar: centrar: x = offset*step
@@ -574,22 +563,19 @@ func _on_lobby_updated() -> void:
 
 	selections_list.clear()
 	for p in LobbyManager.get_player_list():
-		var text = p.name
-		if p.id == multiplayer.get_unique_id():
+		# Solo los participantes de esta ronda; AFK/espectadores quedan en el hub.
+		if not LobbyManager.match_participants.is_empty() and not LobbyManager.is_match_participant(int(p.id)):
+			continue
+		if LobbyManager.is_spectator(int(p.id)) or LobbyManager.is_afk(int(p.id)):
+			continue
+
+		var text := str(p.name)
+		if int(p.id) == multiplayer.get_unique_id():
 			text += tr("HUD_YOU_SHORT")
-		var char_name = tr("HUD_CHOOSING")
-		var dot_color := Color.GRAY
-		if p.character_id != -1:
-			var data: CharacterData = CharacterRegistry.get_character(p.character_id)
-			if data:
-				char_name = data.display_name + (" (TEST)" if data.dev_only else "")
-				dot_color = data.theme_color
-		var display_role = p.get("assigned_role", "survivor").to_upper()
-		# bullet con color temático via unicode circle
-		var bullet := "●"
-		text = "%s %s -> %s [%s]" % [bullet, text, char_name, display_role]
-		var idx = selections_list.add_item(text)
-		selections_list.set_item_custom_fg_color(idx, dot_color if p.character_id != -1 else Color(0.7,0.7,0.7,1))
+		var display_role := str(p.get("assigned_role", "survivor")).to_upper()
+		var dot_color := Color(1.0, 0.35, 0.8, 1.0) if display_role == "KILLER" else Color(0.3, 0.85, 1.0, 1.0)
+		var idx := selections_list.add_item("● %s [%s]" % [text, display_role])
+		selections_list.set_item_custom_fg_color(idx, dot_color)
 
 	if _dev_panel and _dev_panel.visible:
 		_refresh_dev_list()

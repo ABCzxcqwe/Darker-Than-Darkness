@@ -16,8 +16,8 @@ func _run() -> void:
 
 	if not await _wait_until(func() -> bool:
 		return LobbyManager.current_phase == LobbyManager.GamePhase.CHARACTER_SELECT \
-			and _scene_name() == "CharacterSelect", 12.0):
-		_fail("no entró a CharacterSelect")
+			and _scene_name() == "Session" and current_scene_has_character_overlay(), 12.0):
+		_fail("no entró al overlay de CharacterSelect")
 		return
 
 	var my_id := multiplayer.get_unique_id()
@@ -66,6 +66,13 @@ func _run() -> void:
 func _scene_name() -> String:
 	var scene := get_tree().current_scene
 	return scene.name if scene else ""
+
+
+func current_scene_has_character_overlay() -> bool:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return false
+	return scene.find_child("CharacterSelectOverlay", true, false) != null
 
 
 func _wait_until(condition: Callable, timeout: float) -> bool:

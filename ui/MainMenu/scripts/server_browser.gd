@@ -366,7 +366,14 @@ func _highlight(idx: int, instant: bool) -> void:
 				if is_instance_valid(lbl) and lbl is Label:
 					lbl.modulate = sel if is_sel else dim
 		elif c is Button:
-			c.modulate = sel if j == idx else dim
+			# No modular el Button entero: el SoulCursor es hijo suyo y
+			# heredaría el verde de DEVICE, volviéndose negro. Pintamos solo
+			# el texto y dejamos el corazón intacto.
+			var btn_col: Color = sel if j == idx else dim
+			if _joining:
+				btn_col.a *= 0.6
+			c.add_theme_color_override("font_color", btn_col)
+			c.modulate = Color(1, 1, 1, 1)
 			c.disabled = _joining
 		elif c is LineEdit:
 			c.modulate = sel if j == idx else dim

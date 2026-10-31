@@ -28,8 +28,8 @@ func _run() -> void:
 		_fail("no entró a CHARACTER_SELECT")
 		return
 	if not await _wait_until(func() -> bool:
-		return _scene_name() == "CharacterSelect", 5.0):
-		_fail("no se cargó CharacterSelect")
+		return _scene_name() == "Session" and current_scene_has_character_overlay(), 5.0):
+		_fail("no se abrió el overlay de CharacterSelect")
 		return
 
 	var my_id := multiplayer.get_unique_id()
@@ -80,6 +80,8 @@ func _run() -> void:
 		return
 
 	print("[FlowHost] OK")
+	# Dar margen al cliente para observar el LOBBY antes de cerrar el servidor.
+	await get_tree().create_timer(1.0).timeout
 	get_tree().quit(0)
 
 
@@ -95,6 +97,13 @@ func _all_selected() -> bool:
 func _scene_name() -> String:
 	var scene := get_tree().current_scene
 	return scene.name if scene else ""
+
+
+func current_scene_has_character_overlay() -> bool:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return false
+	return scene.find_child("CharacterSelectOverlay", true, false) != null
 
 
 func _wait_until(condition: Callable, timeout: float) -> bool:

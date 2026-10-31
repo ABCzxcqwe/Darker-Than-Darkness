@@ -85,7 +85,9 @@ func _refresh() -> void:
 		rows.add_child(empty)
 		return
 
-	var my_id := multiplayer.get_unique_id()
+	var my_id := 1
+	if multiplayer != null and multiplayer.multiplayer_peer != null:
+		my_id = multiplayer.get_unique_id()
 	for p in players:
 		rows.add_child(_make_row(p, my_id))
 

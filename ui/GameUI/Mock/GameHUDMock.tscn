@@ -323,13 +323,13 @@ mouse_filter = 2
 
 [node name="ChatPanel" parent="." unique_id=191919196 instance=ExtResource("10_chat")]
 anchor_left = 0.05
-anchor_top = 0.08
+anchor_top = 0.5
 anchor_right = 0.4
-anchor_bottom = 0.3
+anchor_bottom = 0.5
 offset_left = 0.0
-offset_top = 0.0
+offset_top = -105.0
 offset_right = 0.0
-offset_bottom = 0.0
+offset_bottom = 105.0
 grow_horizontal = 2
 grow_vertical = 2
 

@@ -223,15 +223,16 @@ text = "VOLVER [X]"
 
 [node name="IPRow" type="HBoxContainer" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer" unique_id=9200018]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 50
 alignment = 1
 
 [node name="IPLabel" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200026]
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
-text = "DIRECCIÓN IP:   "
+text = "DIRECCIÓN IP:"
 
 [node name="IPInput" type="LineEdit" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200019]
 custom_minimum_size = Vector2(240, 32)
@@ -245,7 +246,7 @@ placeholder_text = "192.168.1.10"
 alignment = 1
 
 [node name="ConnectBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow" unique_id=9200020]
-custom_minimum_size = Vector2(320, 48)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 focus_mode = 0
 mouse_filter = 2
