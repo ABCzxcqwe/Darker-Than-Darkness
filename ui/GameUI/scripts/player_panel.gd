@@ -4,7 +4,8 @@
 # Estructura de nodos esperada en PlayerPanel.tscn:
 #   PlayerPanel (PanelContainer)
 #   └── HBoxContainer
-#       ├── IconRect (TextureRect)
+#       ├── IconOffset (Control)
+#       │   └── IconRect (TextureRect)
 #       ├── InfoColumn (VBoxContainer)
 #       │   ├── NameLabel (Label)
 #       │   └── HpRow (HBoxContainer)
@@ -16,7 +17,7 @@
 # desde el inspector (border_width_bottom = 0).
 extends PanelContainer
 
-@onready var icon_rect:    AnimatedIcon = $HBoxContainer/IconRect
+@onready var icon_rect:    AnimatedIcon = $HBoxContainer/IconOffset/IconRect
 @onready var name_label:   Label       = $HBoxContainer/NameLabel
 @onready var hp_bar:       ProgressBar = $HBoxContainer/InfoColumn/HpRow/HpBar
 @onready var hp_numbers:   Label       = $HBoxContainer/InfoColumn/HpNumbers

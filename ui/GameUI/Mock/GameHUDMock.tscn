@@ -149,9 +149,18 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="IconRect" type="TextureRect" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=824795816]
+[node name="IconOffset" type="Control" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="IconRect" type="TextureRect" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer/IconOffset" unique_id=824795816]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 0
+offset_left = 20.0
+offset_right = 100.0
+offset_bottom = 80.0
 size_flags_vertical = 4
 stretch_mode = 5
 script = ExtResource("12_icon")
