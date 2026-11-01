@@ -41,19 +41,18 @@ func _ready() -> void:
 	# Spawn determinista local: cada peer crea los nodos de jugador desde el
 	# roster. Sin MultiplayerSpawner el Synchronizer sincroniza por ruta.
 	var player_characters: Dictionary = get_meta("player_characters", {})
-	_spawn_players_locally(player_characters)
+	var spawned := _spawn_players_locally(player_characters)
 
 	if multiplayer.is_server():
 		await get_tree().process_frame
 		_position_players_in_spawns()
-		# El servidor otorga visibilidad (incluidos sus propios nodos) recién
-		# cuando ya existen y están posicionados.
-		_grant_all_visibility_to(multiplayer.get_unique_id())
 	else:
 		# Avisamos al servidor que nuestros nodos ya existen para que habilite la
-		# visibilidad de los Synchronizer hacia nosotros (evita mandar antes de
-		# que el nodo exista y perder el estado inicial).
-		rpc_id(1, "_peer_world_ready")
+		# visibilidad de los Synchronizer hacia nosotros. Le pasamos la lista
+		# exacta de nodos que tenemos: el motor manda el "path cache" de cada
+		# Synchronizer una sola vez por peer, así que otorgar visibilidad para un
+		# nodo que no existe acá dejaría ese canal muerto para siempre.
+		rpc_id(1, "_peer_world_ready", spawned)
 
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -107,15 +106,20 @@ func _load_map():
 ## Instancia todos los jugadores del roster localmente en este peer.
 ## Sin MultiplayerSpawner, el Synchronizer sincroniza por ruta, así que los
 ## peers que entran tarde también reciben el delta continuo.
-func _spawn_players_locally(player_characters: Dictionary) -> void:
+## Devuelve los peer_id de los nodos que realmente quedaron creados: el servidor
+## solo puede otorgar visibilidad de Synchronizer para esos (ver _peer_world_ready).
+func _spawn_players_locally(player_characters: Dictionary) -> Array:
+	var spawned: Array = []
 	for peer_id in player_characters:
-		_spawn_player_node(int(peer_id), int(player_characters[peer_id]))
+		if _spawn_player_node(int(peer_id), int(player_characters[peer_id])):
+			spawned.append(int(peer_id))
+	return spawned
 
 
-func _spawn_player_node(peer_id: int, char_id: int) -> void:
+func _spawn_player_node(peer_id: int, char_id: int) -> bool:
 	var node_name := str(peer_id)
 	if has_node(node_name):
-		return
+		return true
 
 	var role := "survivor"
 	if LobbyManager.players.has(peer_id):
@@ -128,7 +132,7 @@ func _spawn_player_node(peer_id: int, char_id: int) -> void:
 			push_error("[World] Peer %d sin personaje (id %d) y sin fallback para rol '%s'; no se spawnea." % [
 				peer_id, char_id, role
 			])
-			return
+			return false
 		resolved_id = fallback.id
 		push_warning("[World] Peer %d: ID %d no resuelto en este cliente; usando fallback '%s' (id %d)." % [
 			peer_id, char_id, fallback.display_name, fallback.id
@@ -143,28 +147,51 @@ func _spawn_player_node(peer_id: int, char_id: int) -> void:
 			peer_id, resolved_id
 		])
 		player.free()
-		return
+		return false
 	add_child(player)
 	print("[World] Jugador spawneado localmente: peer ", peer_id, " (char: ", resolved_id, ")")
+	return true
 
 
 ## Un peer avisa que ya creó sus nodos de jugador. En ese momento el servidor
 ## habilita la visibilidad del Synchronizer (autoridad del servidor) hacia ese
 ## peer, forzando el estado inicial y habilitando el delta continuo.
+##
+## `spawned_peers` es la lista de nodos que el cliente realmente creó. Es
+## imprescindible respetarla: el motor manda el "path cache" de un Synchronizer
+## una sola vez por peer y no reintenta, así que otorgar visibilidad para un
+## nodo que el cliente no tiene rompería ese canal para siempre (síntoma: el
+## espectador ve el teleport por RPC pero no el caminar).
 @rpc("any_peer", "reliable")
-func _peer_world_ready() -> void:
+func _peer_world_ready(spawned_peers: Array) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
 	if sender == 0:
 		return
-	_grant_all_visibility_to(sender)
-	# Asegurar el estado inicial de posición para el World que acaba de crear
-	# un espectador/late join. La visibilidad del Synchronizer sola puede
-	# tardar un frame en enviar el primer delta.
+
+	PlayerLifecycleManager.mark_peer_world_ready(sender)
+
+	var local_ids := {}
+	for pid in spawned_peers:
+		local_ids[int(pid)] = true
+
+	var granted := 0
 	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if is_instance_valid(player_node):
-			player_node.rpc_id(sender, "_sync_server_position", player_node.global_position)
+		if not is_instance_valid(player_node):
+			continue
+		var owner_id := player_node.get_multiplayer_authority()
+		if not local_ids.has(owner_id):
+			push_warning("[World] Peer %d no tiene el nodo de %d; se omite la visibilidad (evita romper su path cache)." % [
+				sender, owner_id
+			])
+			continue
+		PlayerLifecycleManager.grant_player_visibility_to_peer(player_node, sender)
+		# Estado inicial de posición: la visibilidad del Synchronizer sola puede
+		# tardar un frame en enviar el primer delta.
+		player_node.rpc_id(sender, "_sync_server_position", player_node.global_position)
+		granted += 1
+
 	# Late-join: si es espectador, mandarle el estado de audio completo
 	# (mapa + personajes + track prioritario/LMS con su posicion actual).
 	var player_characters: Dictionary = get_meta("player_characters", {})
@@ -174,16 +201,7 @@ func _peer_world_ready() -> void:
 		if relay:
 			relay.rpc_id(sender, "_rpc_sync_spectator_audio", GameData.selected_map,
 				data["priority"], data["position"], data["lms_peer"])
-	print("[World] Peer ", sender, " confirmó World listo; visibilidad de Synchronizer habilitada.")
-
-
-func _grant_all_visibility_to(peer_id: int) -> void:
-	if not multiplayer.is_server():
-		return
-	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if not is_instance_valid(player_node):
-			continue
-		PlayerLifecycleManager.grant_player_visibility_to_peer(player_node, peer_id)
+	print("[World] Peer ", sender, " confirmó World listo; visibilidad habilitada para ", granted, " jugador(es).")
 
 
 ## NUEVA FUNCIÓN: Distribuye los personajes según el bando de su CharacterData

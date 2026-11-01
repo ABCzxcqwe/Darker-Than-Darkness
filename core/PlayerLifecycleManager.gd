@@ -3,6 +3,38 @@
 # Elimina la duplicación de register/unregister en Player.gd, MultiplayerManager.gd, GameStateService.gd.
 extends Node
 
+## Peers que ya confirmaron tener su World local creado (y por lo tanto sus nodos
+## de jugador instanciados). Solo a ellos se les puede otorgar visibilidad de
+## Synchronizer.
+##
+## Por qué: el motor manda el "path cache" de cada MultiplayerSynchronizer una
+## única vez por peer (`SceneCacheInterface::send_object_cache` deja
+## `confirmed_peers[peer] = false` y no lo reintenta nunca). Si el peer todavía
+## no creó el nodo del jugador, `process_simplify_path` falla y ese canal de
+## sincronización queda muerto para siempre para ese peer. Ese era el bug del
+## espectador tardío: veía los teleports (que van por RPC y no usan visibilidad)
+## pero no el caminar (que va por el Synchronizer).
+var _world_ready_peers: Dictionary = {}
+
+
+func _ready() -> void:
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+
+
+func _on_peer_disconnected(peer_id: int) -> void:
+	# Si vuelve a conectarse, tiene que reconfirmar su World antes de recibir
+	# visibilidad otra vez.
+	_world_ready_peers.erase(peer_id)
+
+
+## El servidor marca a un peer como "World listo". A partir de acá es seguro
+## otorgarle visibilidad de Synchronizer (sus nodos ya existen en su escena).
+func mark_peer_world_ready(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	_world_ready_peers[peer_id] = true
+
+
 func register_player(player_node: Node, peer_id: int, character_data: Resource) -> void:
 	PlayerRegistry.register(peer_id, player_node)
 
@@ -45,24 +77,28 @@ func register_player(player_node: Node, peer_id: int, character_data: Resource) 
 		ms_svc.register_player(peer_id, character_data)
 
 
-## Otorga visibilidad de sincronización en ambas direcciones:
-## 1) El jugador recién registrado se hace visible para todos los peers ya conectados.
-## 2) Todos los jugadores ya existentes se hacen visibles para este peer nuevo.
+## Otorga visibilidad de sincronización en ambas direcciones, pero SOLO a/desde
+## peers que ya confirmaron tener su World creado (ver _world_ready_peers).
+## Si un peer todavía no lo confirmó, no se le manda nada: lo recibirá completo
+## desde World._peer_world_ready cuando avise que está listo.
 func _grant_synchronizer_visibility(new_player_node: Node, new_peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 
 	var viewers: Array = [1]
-	for pid in multiplayer.get_peers():
+	for pid in _world_ready_peers:
 		if pid not in viewers:
 			viewers.append(pid)
 
-	# 1) Nuevo jugador -> visible para todos los peers ya conectados (incluido el propio servidor)
+	# 1) Nuevo jugador -> visible para los peers que ya tienen su World listo
+	#    (incluido el propio servidor).
 	for viewer_id in viewers:
 		grant_player_visibility_to_peer(new_player_node, viewer_id)
-	print("[PlayerLifecycleManager] Visibilidad de peer ", new_peer_id, " despachada hacia: ", viewers)
 
-	# 2) Jugadores ya existentes -> visibles para el peer nuevo
+	# 2) Jugadores ya existentes -> visibles para el peer nuevo. Solo si ya
+	#    confirmó su World; si no, se hace en World._peer_world_ready.
+	if not _world_ready_peers.has(new_peer_id):
+		return
 	var count := 0
 	for existing_peer_id in PlayerRegistry.get_all_peer_ids():
 		if existing_peer_id == new_peer_id:
@@ -72,7 +108,7 @@ func _grant_synchronizer_visibility(new_player_node: Node, new_peer_id: int) -> 
 			continue
 		grant_player_visibility_to_peer(existing_node, new_peer_id)
 		count += 1
-	print("[PlayerLifecycleManager] Peer nuevo ", new_peer_id, " recibió visibilidad de ", count, " jugador(es) existentes.")
+	print("[PlayerLifecycleManager] Peer ", new_peer_id, " recibió visibilidad de ", count, " jugador(es) existentes.")
 
 
 ## API pública: otorga (o quita) la visibilidad del Synchronizer de 'player_node' hacia 'viewer_peer_id'.
