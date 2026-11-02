@@ -16,7 +16,6 @@ var timer_active: bool = true
 
 var _focus_idx := 0
 var _selection_locked := false
-var _is_animating := false
 
 
 func is_open() -> bool:
@@ -345,6 +344,11 @@ func _layout_cylinder(animated: bool) -> void:
 		var vbox: Control = panels_container.get_child(i)
 		var panel_wrap: PanelContainer = vbox.get_child(0) as PanelContainer
 		var offset: int = i - _focus_idx
+		# Envolver el offset al extremo más cercano para que el carrusel cicle
+		# (p. ej. pasar de Ralsei a Kris da 1 paso, no 2).
+		var half := int(count / 2)
+		if count > 1:
+			offset = posmod(offset + half, count) - half
 		var dist: float = abs(float(offset))
 
 		# Posición X cilíndrica con solapamiento; fuera de rango se atenúa más
@@ -372,13 +376,20 @@ func _layout_cylinder(animated: bool) -> void:
 		target_pos = Vector2(target_x - (PANEL_W * target_scale_val) / 2.0, target_y)
 
 		if animated and not _selection_locked:
+			var old_tw = vbox.get_meta("layout_tween", null)
+			if old_tw is Tween and old_tw.is_valid():
+				old_tw.kill()
 			var tw := create_tween()
+			vbox.set_meta("layout_tween", tw)
 			tw.set_parallel(true)
 			tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 			tw.tween_property(vbox, "position", target_pos, CYLINDER_ANIM_DURATION)
 			tw.tween_property(vbox, "scale", target_scale, CYLINDER_ANIM_DURATION)
 			tw.tween_property(vbox, "modulate:a", target_alpha, CYLINDER_ANIM_DURATION * 0.8)
 		else:
+			var old_tw2 = vbox.get_meta("layout_tween", null)
+			if old_tw2 is Tween and old_tw2.is_valid():
+				old_tw2.kill()
 			vbox.position = target_pos
 			vbox.scale = target_scale
 			vbox.modulate.a = target_alpha
@@ -424,20 +435,20 @@ func _update_name_labels() -> void:
 				name_label.modulate.a = 0.4
 
 
-func _animate_focus_change(prev_idx: int, new_idx: int) -> void:
-	if _is_animating:
-		return
-	_is_animating = true
+func _animate_focus_change(_prev_idx: int, new_idx: int) -> void:
+	# Siempre se re-layouta, incluso con pulsaciones rápidas, para que el foco
+	# visual nunca se desincronice del índice.
 	_layout_cylinder(true)
-	# Pequeño pulso en el nuevo foco
+	# Pequeño pulso en el nuevo foco (no bloquea la navegación).
 	if new_idx >= 0 and new_idx < panels_container.get_child_count():
 		var vbox: Control = panels_container.get_child(new_idx)
-		var orig_scale: Vector2 = vbox.scale
+		var old_pulse = vbox.get_meta("focus_pulse", null)
+		if old_pulse is Tween and old_pulse.is_valid():
+			old_pulse.kill()
 		var tw2 := create_tween()
-		tw2.tween_property(vbox, "scale", orig_scale * 1.06, 0.1).set_trans(Tween.TRANS_QUAD)
-		tw2.tween_property(vbox, "scale", orig_scale, 0.12).set_trans(Tween.TRANS_QUAD)
-		await tw2.finished
-	_is_animating = false
+		vbox.set_meta("focus_pulse", tw2)
+		tw2.tween_property(vbox, "self_modulate", Color(1.3, 1.3, 1.3, 1.0), 0.1).set_trans(Tween.TRANS_QUAD)
+		tw2.tween_property(vbox, "self_modulate", Color(1, 1, 1, 1), 0.12).set_trans(Tween.TRANS_QUAD)
 	_update_name_labels()
 
 

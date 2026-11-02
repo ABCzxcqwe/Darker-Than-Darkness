@@ -18,6 +18,10 @@ const DEADZONE_KEY := "stick_deadzone"
 
 const DEFAULT_DEADZONE := 0.2
 
+## Atajos universales de menú: Z acepta y X retrocede/cancela en toda la UI.
+const UNIVERSAL_ACCEPT_ACTIONS := ["ui_accept", "menu_accept"]
+const UNIVERSAL_CANCEL_ACTIONS := ["ui_cancel", "menu_cancel"]
+
 ## Acciones rebindeables por clase de dispositivo.
 ## Los ejes (aim_*, run/move_* del pad, menu_*, spec_*) quedan fuera.
 const REBINDABLE_KEYBOARD := [
@@ -57,6 +61,7 @@ func _ready() -> void:
 	_load_bindings()
 	_apply_bindings()
 	_apply_stick_deadzone()
+	_ensure_universal_shortcuts()
 
 
 func _input(event: InputEvent) -> void:
@@ -286,6 +291,29 @@ func _apply_stick_deadzone() -> void:
 	for action in DEADZONE_ACTIONS:
 		if InputMap.has_action(action):
 			InputMap.action_set_deadzone(action, stick_deadzone)
+
+
+# ─── Atajos universales de menú ───────────────────────────────────────
+
+func _ensure_universal_shortcuts() -> void:
+	_add_physical_key_to_actions(KEY_Z, UNIVERSAL_ACCEPT_ACTIONS)
+	_add_physical_key_to_actions(KEY_X, UNIVERSAL_CANCEL_ACTIONS)
+
+
+func _add_physical_key_to_actions(key: Key, actions: Array) -> void:
+	for action in actions:
+		if not InputMap.has_action(action):
+			continue
+		var exists := false
+		for existing in InputMap.action_get_events(action):
+			if existing is InputEventKey and existing.physical_keycode == key:
+				exists = true
+				break
+		if exists:
+			continue
+		var event := InputEventKey.new()
+		event.physical_keycode = key
+		InputMap.action_add_event(action, event)
 
 
 func _joypad_button_label(button_index: int) -> String:

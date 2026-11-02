@@ -158,6 +158,16 @@ func _build_ui() -> void:
 	_config_tab_btn = _make_tab_button("CONFIGURACIÓN")
 	_config_tab_btn.pressed.connect(_set_tab.bind(1))
 	tabs.add_child(_config_tab_btn)
+	_players_tab_btn.focus_neighbor_right = _players_tab_btn.get_path_to(_config_tab_btn)
+	_config_tab_btn.focus_neighbor_left = _config_tab_btn.get_path_to(_players_tab_btn)
+
+	var tab_hint := Label.new()
+	tab_hint.text = "IZQ/DER: PESTAÑA  |  Z/ENTER: ACEPTAR  |  X: CERRAR"
+	tab_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tab_hint.add_theme_font_override("font", FONT)
+	tab_hint.add_theme_font_size_override("font_size", 12)
+	tab_hint.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6, 1))
+	vbox.add_child(tab_hint)
 
 	var content := Control.new()
 	content.custom_minimum_size = Vector2(760, 390)
@@ -340,8 +350,10 @@ func _set_tab(tab: int) -> void:
 	_tab = tab
 	_players_tab.visible = tab == 0
 	_config_tab.visible = tab == 1
-	_players_tab_btn.disabled = tab == 0
-	_config_tab_btn.disabled = tab == 1
+	# No deshabilitar la pestaña activa: así conserva el foco y las flechas
+	# pueden navegar entre pestañas. La activa se marca visualmente.
+	_players_tab_btn.modulate = Color(1, 1, 1, 1) if tab == 0 else Color(0.6, 0.6, 0.6, 1)
+	_config_tab_btn.modulate = Color(1, 1, 1, 1) if tab == 1 else Color(0.6, 0.6, 0.6, 1)
 	_config_tab_btn.visible = _can_manage
 	_refresh()
 
@@ -487,6 +499,24 @@ func _change_max_players(direction: int) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
+
+	# Mover el foco entre pestañas con flechas (o A/D) cuando el foco está en ellas.
+	if _can_manage:
+		var vp_nav := get_viewport()
+		var focus: Control = vp_nav.gui_get_focus_owner() if vp_nav else null
+		var go_left := event.is_action_pressed("menu_left") or event.is_action_pressed("ui_left")
+		var go_right := event.is_action_pressed("menu_right") or event.is_action_pressed("ui_right")
+		if go_right and focus == _players_tab_btn and _config_tab_btn.visible:
+			_config_tab_btn.grab_focus()
+			if vp_nav:
+				vp_nav.set_input_as_handled()
+			return
+		if go_left and focus == _config_tab_btn:
+			_players_tab_btn.grab_focus()
+			if vp_nav:
+				vp_nav.set_input_as_handled()
+			return
+
 	if event.is_action_pressed("menu_cancel") \
 			or event.is_action_pressed("ui_cancel") \
 			or (event is InputEventKey and event.pressed and event.keycode == KEY_X):

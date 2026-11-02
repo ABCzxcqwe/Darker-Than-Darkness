@@ -24,6 +24,7 @@ var _master_rooms: Array[Dictionary] = []
 var _steam_lobbies: Array = []
 var _fallback_attempted := false
 var _join_serial := 0
+var _refresh_serial := 0
 
 @onready var _soul: TextureRect = $SoulCursor
 @onready var _title: Label = $CenterContainer/DeltaruneBox/Margin/VBox/Title
@@ -254,9 +255,6 @@ func _sync_focus_after_rebuild() -> void:
 	_position_soul(_index, true)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _busy and not _joining:
-		return
-
 	if _joining and event.is_action_pressed("menu_cancel"):
 		_cancel_join()
 		var vp2 := get_viewport()
@@ -429,6 +427,9 @@ func _confirm() -> void:
 	var cur := _focusables[_index]
 	if not is_instance_valid(cur):
 		return
+	# Durante una búsqueda no lanzar otra operación de red (sí se puede navegar/volver).
+	if _busy and cur is Control and str(cur.name) in ["RefreshBtn", "ConnectBtn"]:
+		return
 
 	var am := get_node_or_null("/root/AudioManager")
 
@@ -539,7 +540,9 @@ func _list_server_rooms() -> void:
 	_rebuild_focusables()
 	_sync_focus_after_rebuild()
 	_refresh_empty_state()
-	var rooms: Array = await cc.list_rooms_from(base)
+	var rooms: Array = await cc.list_rooms_from(base, JOIN_TIMEOUT)
+	if not is_inside_tree():
+		return
 	_busy = false
 	var mr := get_node_or_null("/root/MapRegistry")
 	for room in rooms:
@@ -763,6 +766,10 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 	_hint.text = tr("BROWSE_MSG_ROOMS_FOUND") % _mock_rooms.size() if not _mock_rooms.is_empty() else tr("BROWSE_MSG_NO_ROOMS")
 
 func _do_refresh() -> void:
+	if _busy:
+		return
+	_refresh_serial += 1
+	var serial := _refresh_serial
 	if _mode == MODE_ONLINE:
 		var nm := get_node_or_null("/root/NetworkManager")
 		var sm_ref := get_node_or_null("/root/SettingsManager")
@@ -782,8 +789,10 @@ func _do_refresh() -> void:
 		_refresh_empty_state()
 		nm.request_lobby_list()
 		await get_tree().create_timer(JOIN_TIMEOUT).timeout
-		if _busy and _master_rooms.is_empty():
-			_busy = false
+		if not is_inside_tree() or serial != _refresh_serial:
+			return
+		_busy = false
+		if _master_rooms.is_empty():
 			_hint.text = tr("BROWSE_MSG_NO_ONLINE_ROOMS")
 		return
 
