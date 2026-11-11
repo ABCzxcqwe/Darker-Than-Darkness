@@ -8,6 +8,7 @@ signal interactable_changed(prompt: String)
 signal interactable_cleared
 
 const SPEED := 240.0
+const SPRINT_MULT := 2.0
 const FRAME_TIME := 0.12
 const FRAME_COUNT := 4
 const SEND_INTERVAL := 0.1
@@ -96,7 +97,8 @@ func apply_remote_state(pos: Vector2, flip: bool) -> void:
 
 
 func _process(delta: float) -> void:
-	_frame_accum += delta
+	var anim_mult := SPRINT_MULT if velocity.length() > 0.01 and Input.is_action_pressed("run") else 1.0
+	_frame_accum += delta * anim_mult
 	if _frame_accum >= FRAME_TIME:
 		_frame_accum = 0.0
 		_frame = (_frame + 1) % FRAME_COUNT
@@ -114,8 +116,12 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if dir.length() <= 0.01:
+		dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	if dir.length() > 0.01:
-		velocity = dir.normalized() * SPEED
+		var sprint := Input.is_action_pressed("run")
+		var speed := SPEED * (SPRINT_MULT if sprint else 1.0)
+		velocity = dir.normalized() * speed
 		if absf(dir.x) > 0.01:
 			sprite.flip_h = dir.x < 0.0
 	else:
@@ -139,7 +145,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if MenuUtils.is_any_menu_open(get_tree(), self):
 		return
-	if event.is_action_pressed("world_interact"):
+	if event.is_action_pressed("world_interact") \
+			or event.is_action_pressed("menu_accept") \
+			or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Z):
 		if _current == null or not is_instance_valid(_current):
 			return
 		if not _current.has_method("interact"):

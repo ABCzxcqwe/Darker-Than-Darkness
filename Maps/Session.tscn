@@ -7,6 +7,11 @@
 [ext_resource type="PackedScene" path="res://ui/Hub/BoardPanel.tscn" id="6_board_panel"]
 [ext_resource type="PackedScene" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="7_chat"]
 [ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="8_menu"]
+[ext_resource type="PackedScene" path="res://ui/Shop/Shop.tscn" id="9_shop"]
+[ext_resource type="Script" path="res://core/interaction/HubInteractable.gd" id="10_interact"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
+size = Vector2(180, 120)
 
 [node name="Session" type="Node2D" unique_id=404635471]
 script = ExtResource("1_session")
@@ -20,6 +25,18 @@ position = Vector2(0, 200)
 
 [node name="HubBoard" parent="HubArea" unique_id=8377167 instance=ExtResource("5_board")]
 position = Vector2(-110, -1161)
+
+[node name="HubShop" type="Area2D" parent="HubArea"]
+position = Vector2(-370, -755)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("10_interact")
+prompt = "TIENDA"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HubArea/HubShop"]
+shape = SubResource("RectangleShape2D_shop")
 
 [node name="MatchArea" type="Node2D" parent="." unique_id=871562017]
 position = Vector2(50000, 50000)
@@ -57,7 +74,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.8, 1, 0.8, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 22
-text = "[E] INTERACTUAR"
+text = "[Z] INTERACTUAR"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -73,7 +90,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 18
-text = "WASD/FLECHAS MOVER   —   E INTERACTUAR   —   X SALIR"
+text = "WASD/FLECHAS MOVER   —   Z INTERACTUAR   —   X SALIR"
 vertical_alignment = 1
 
 [node name="ChatPanel" parent="UI" unique_id=191919197 instance=ExtResource("7_chat")]
@@ -88,6 +105,10 @@ offset_bottom = 306.0
 grow_horizontal = 0
 
 [node name="BoardPanel" parent="UI" unique_id=1143499273 instance=ExtResource("6_board_panel")]
+
+[node name="Shop" parent="UI" instance=ExtResource("9_shop")]
+visible = false
+z_index = 40
 
 [node name="DarkGameMenu" parent="UI" unique_id=1048152264 instance=ExtResource("8_menu")]
 z_index = 50

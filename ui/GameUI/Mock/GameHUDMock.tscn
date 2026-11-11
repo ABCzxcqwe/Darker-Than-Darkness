@@ -149,7 +149,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="IconOffset" type="Control" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer"]
+[node name="IconOffset" type="Control" parent="PlayerPanelWrap/PlayerPanel/HBoxContainer" unique_id=2105670659]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_vertical = 4

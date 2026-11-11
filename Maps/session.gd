@@ -29,6 +29,8 @@ const SPAWN_OFFSETS: Array[Vector2] = [
 @onready var status_label: Label = $UI/StatusLabel
 @onready var prompt_label: Label = $UI/PromptLabel
 @onready var board_panel: Control = $UI/BoardPanel
+@onready var hub_shop = $HubArea/HubShop
+@onready var shop = $UI/Shop
 
 var _avatars: Dictionary = {}
 var _local_avatar: Node = null
@@ -68,6 +70,9 @@ func _ready() -> void:
 	board_panel.cancel_requested.connect(_on_board_cancel_requested)
 	board_panel.afk_toggle_requested.connect(_on_board_afk_toggle)
 	board_panel.host_action_requested.connect(_on_board_host_action)
+
+	hub_shop.interacted.connect(_on_shop_interacted)
+	shop.closed.connect(_on_shop_closed)
 
 	_countdown_timer = Timer.new()
 	_countdown_timer.wait_time = 1.0
@@ -272,9 +277,9 @@ func _connect_local_avatar(avatar: Node) -> void:
 # ── Interacción / tablero ───────────────────────────────────────────────
 
 func _on_interactable_changed(prompt: String) -> void:
-	if prompt_label == null or board_panel.is_open():
+	if prompt_label == null or board_panel.is_open() or shop.is_open():
 		return
-	prompt_label.text = "[E] " + prompt
+	prompt_label.text = "[Z] " + prompt
 	prompt_label.visible = true
 
 
@@ -301,6 +306,30 @@ func _open_board_panel() -> void:
 
 
 func _on_board_closed() -> void:
+	if _at_hub and not is_instance_valid(_character_overlay) \
+			and _local_avatar and is_instance_valid(_local_avatar):
+		_local_avatar.set_controls_enabled(true)
+
+
+func _on_shop_interacted(player: Node) -> void:
+	if not _active or _in_match or not _at_hub:
+		return
+	if player != _local_avatar or board_panel.is_open() or shop.is_open():
+		return
+	_open_shop()
+
+
+func _open_shop() -> void:
+	if not _active or _in_match or not _at_hub:
+		return
+	if prompt_label:
+		prompt_label.visible = false
+	if _local_avatar and is_instance_valid(_local_avatar):
+		_local_avatar.set_controls_enabled(false)
+	shop.open_shop()
+
+
+func _on_shop_closed() -> void:
 	if _at_hub and not is_instance_valid(_character_overlay) \
 			and _local_avatar and is_instance_valid(_local_avatar):
 		_local_avatar.set_controls_enabled(true)

@@ -1,0 +1,82 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://ui/Shop/shop.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://ui/Shop/animations.tres" id="2_anim"]
+[ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
+[ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="4_font"]
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ShopAnim" type="AnimatedSprite2D" parent="."]
+position = Vector2(720, 540)
+scale = Vector2(6.2069, 6.2069)
+sprite_frames = ExtResource("2_anim")
+
+[node name="OptionsRoot" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SoulCursor" type="TextureRect" parent="OptionsRoot"]
+visible = false
+layout_mode = 0
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+texture = ExtResource("3_soul")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Options" type="VBoxContainer" parent="OptionsRoot"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -230.0
+offset_right = -64.0
+offset_bottom = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="SkinsLabel" type="Label" parent="OptionsRoot/Options"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "SKINS"
+horizontal_alignment = 2
+
+[node name="FondoLabel" type="Label" parent="OptionsRoot/Options"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "FONDO"
+horizontal_alignment = 2
+
+[node name="SalirLabel" type="Label" parent="OptionsRoot/Options"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "SALIR"
+horizontal_alignment = 2
