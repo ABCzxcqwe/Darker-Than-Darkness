@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://c18n2ullftwmq"]
 
-[ext_resource type="Script" path="res://ui/Shop/shop.gd" id="1_script"]
-[ext_resource type="SpriteFrames" path="res://ui/Shop/animations.tres" id="2_anim"]
+[ext_resource type="Script" uid="uid://ca0eqehtihhye" path="res://ui/Shop/shop.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://ow4ga142w1aa" path="res://ui/Shop/animations.tres" id="2_anim"]
 [ext_resource type="Texture2D" uid="uid://cn3fwx46ofue5" path="res://sprites/Soul.png" id="3_soul"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="4_font"]
 
@@ -18,6 +18,7 @@ script = ExtResource("1_script")
 position = Vector2(720, 540)
 scale = Vector2(6.2069, 6.2069)
 sprite_frames = ExtResource("2_anim")
+animation = &"shop_idle"
 
 [node name="OptionsRoot" type="Control" parent="."]
 layout_mode = 1
@@ -38,45 +39,183 @@ texture = ExtResource("3_soul")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Options" type="VBoxContainer" parent="OptionsRoot"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = -230.0
-offset_right = -64.0
-offset_bottom = -60.0
-grow_horizontal = 0
-grow_vertical = 0
-theme_override_constants/separation = 10
-alignment = 2
-
-[node name="SkinsLabel" type="Label" parent="OptionsRoot/Options"]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="SkinsLabel" type="Label" parent="OptionsRoot"]
+layout_mode = 0
+offset_left = 1040.0
+offset_top = 812.0
+offset_right = 1140.0
+offset_bottom = 852.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 30
 text = "SKINS"
-horizontal_alignment = 2
 
-[node name="FondoLabel" type="Label" parent="OptionsRoot/Options"]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="FondoLabel" type="Label" parent="OptionsRoot"]
+layout_mode = 0
+offset_left = 1030.0
+offset_top = 862.0
+offset_right = 1150.0
+offset_bottom = 902.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 30
 text = "FONDO"
-horizontal_alignment = 2
 
-[node name="SalirLabel" type="Label" parent="OptionsRoot/Options"]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="SalirLabel" type="Label" parent="OptionsRoot"]
+layout_mode = 0
+offset_left = 1050.0
+offset_top = 912.0
+offset_right = 1150.0
+offset_bottom = 952.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 30
 text = "SALIR"
-horizontal_alignment = 2
+
+[node name="SkinsMenu" type="Control" parent="OptionsRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CategoriesMenu" type="Control" parent="OptionsRoot/SkinsMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SurvivorsLabel" type="Label" parent="OptionsRoot/SkinsMenu/CategoriesMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 876.0
+offset_right = 380.0
+offset_bottom = 916.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "SUPERVIVIENTES"
+
+[node name="KillersLabel" type="Label" parent="OptionsRoot/SkinsMenu/CategoriesMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 926.0
+offset_right = 240.0
+offset_bottom = 966.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "KILLERS"
+
+[node name="SurvivorsMenu" type="Control" parent="OptionsRoot/SkinsMenu"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="KrisLabel" type="Label" parent="OptionsRoot/SkinsMenu/SurvivorsMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 876.0
+offset_right = 186.0
+offset_bottom = 916.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "KRIS"
+
+[node name="SusieLabel" type="Label" parent="OptionsRoot/SkinsMenu/SurvivorsMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 926.0
+offset_right = 216.0
+offset_bottom = 966.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "SUSIE"
+
+[node name="RalseiLabel" type="Label" parent="OptionsRoot/SkinsMenu/SurvivorsMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 976.0
+offset_right = 236.0
+offset_bottom = 1016.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "RALSEI"
+
+[node name="KillersMenu" type="Control" parent="OptionsRoot/SkinsMenu"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="JevilLabel" type="Label" parent="OptionsRoot/SkinsMenu/KillersMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 876.0
+offset_right = 216.0
+offset_bottom = 916.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "JEVIL"
+
+[node name="KingLabel" type="Label" parent="OptionsRoot/SkinsMenu/KillersMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 926.0
+offset_right = 200.0
+offset_bottom = 966.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "KING"
+
+[node name="KrisSkinsMenu" type="Control" parent="OptionsRoot/SkinsMenu"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SkinDefaultLabel" type="Label" parent="OptionsRoot/SkinsMenu/KrisSkinsMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 876.0
+offset_right = 396.0
+offset_bottom = 916.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "SKIN DEFAULT"
+
+[node name="NewKrisLabel" type="Label" parent="OptionsRoot/SkinsMenu/KrisSkinsMenu"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 926.0
+offset_right = 366.0
+offset_bottom = 966.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "NEW KRIS"

@@ -1,7 +1,40 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://ow4ga142w1aa"]
 
 [ext_resource type="Texture2D" uid="uid://mt2au68toh70" path="res://ui/Shop/shop_seam_idle.png" id="1_m44ff"]
+[ext_resource type="Texture2D" uid="uid://cpkqcsjlpj2wp" path="res://ui/Shop/shop_seam_act1.png" id="1_n0ttl"]
 [ext_resource type="Texture2D" uid="uid://bb1is1u6r2sfl" path="res://ui/Shop/shop_seam_laug.png" id="2_n0ttl"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7t06v"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(0, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4oc6c"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(232, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qjy4g"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(464, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m41fn"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(696, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s03au"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(928, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d4c0x"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(1160, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eubam"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(1392, 0, 232, 174)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vwr1a"]
+atlas = ExtResource("1_n0ttl")
+region = Rect2(1624, 0, 232, 174)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7yvyr"]
 atlas = ExtResource("1_m44ff")
@@ -73,6 +106,35 @@ region = Rect2(1160, 0, 232, 174)
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7t06v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4oc6c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qjy4g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m41fn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s03au")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4c0x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eubam")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vwr1a")
+}],
+"loop": 1,
+"name": &"shop_act1",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_7yvyr")
