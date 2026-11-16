@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "RadarService"
+
 enum ArrowType { HIT, DOWN, MAP, REVEAL }
 
 const HIT_DURATION := 2.5
@@ -16,7 +18,7 @@ func set_client_relay(relay: Node) -> void:
 func show_hit_indicator(player_node: Node, source_pos: Vector2, duration: float = HIT_DURATION) -> void:
 	if not multiplayer.is_server():
 		return
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not _is_survivor(peer_id):
 		return
 	var arrow_id := _next_id
@@ -26,7 +28,7 @@ func show_hit_indicator(player_node: Node, source_pos: Vector2, duration: float 
 		"filter_peer": peer_id,
 		"duration": duration
 	}
-	_client_relay.rpc("_rpc_add_arrow", arrow_id, ArrowType.HIT, source_pos.x, source_pos.y, 0, peer_id, duration)
+	_send_add_arrow(arrow_id, ArrowType.HIT, source_pos.x, source_pos.y, 0, peer_id, duration)
 	if duration > 0.0:
 		await get_tree().create_timer(duration).timeout
 		if _server_arrows.has(arrow_id):
@@ -36,7 +38,7 @@ func show_hit_indicator(player_node: Node, source_pos: Vector2, duration: float 
 func show_down_indicator(player_node: Node) -> void:
 	if not multiplayer.is_server():
 		return
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not _is_survivor(peer_id):
 		return
 	var arrow_id := _next_id
@@ -46,7 +48,7 @@ func show_down_indicator(player_node: Node) -> void:
 		"player_node": player_node,
 		"filter_peer": peer_id
 	}
-	_client_relay.rpc("_rpc_add_arrow", arrow_id, ArrowType.DOWN, player_node.global_position.x, player_node.global_position.y, peer_id, peer_id, 0.0)
+	_send_add_arrow(arrow_id, ArrowType.DOWN, player_node.global_position.x, player_node.global_position.y, peer_id, peer_id, 0.0)
 
 
 func remove_down_indicator(peer_id: int) -> void:
@@ -56,7 +58,7 @@ func remove_down_indicator(peer_id: int) -> void:
 		var entry = _server_arrows[arrow_id]
 		if entry.get("type") == ArrowType.DOWN and entry.get("filter_peer") == peer_id:
 			_server_arrows.erase(arrow_id)
-			_client_relay.rpc("_rpc_remove_arrow", arrow_id)
+			_send_remove_arrow(arrow_id)
 			return
 
 
@@ -69,7 +71,7 @@ func show_map_indicator(target_pos: Vector2, duration: float = 0.0, _target_peer
 		"type": ArrowType.MAP,
 		"duration": duration
 	}
-	_client_relay.rpc("_rpc_add_arrow", arrow_id, ArrowType.MAP, target_pos.x, target_pos.y, 0, 0, duration)
+	_send_add_arrow(arrow_id, ArrowType.MAP, target_pos.x, target_pos.y, 0, 0, duration)
 	if duration > 0.0:
 		await get_tree().create_timer(duration).timeout
 		if _server_arrows.has(arrow_id):
@@ -82,18 +84,18 @@ func remove_map_indicator(arrow_id: int) -> void:
 		return
 	if _server_arrows.has(arrow_id):
 		_server_arrows.erase(arrow_id)
-		_client_relay.rpc("_rpc_remove_arrow", arrow_id)
+		_send_remove_arrow(arrow_id)
 
 
 func reveal_enemies(caster_peer: int, duration: float = 10.0) -> void:
 	if not multiplayer.is_server():
 		return
-	for survivor in get_tree().get_nodes_in_group("survivor"):
+	for survivor in get_tree().get_nodes_in_group(GroupNames.SURVIVOR):
 		if not is_instance_valid(survivor):
 			continue
 		if survivor.get("health_state") != "alive":
 			continue
-		var peer_id: int = survivor.get_multiplayer_authority()
+		var peer_id: int = PlayerLifecycleManager.get_owner_peer_id(survivor)
 		if peer_id == caster_peer:
 			continue
 		var arrow_id := _next_id
@@ -102,7 +104,7 @@ func reveal_enemies(caster_peer: int, duration: float = 10.0) -> void:
 			"type": ArrowType.REVEAL,
 			"duration": duration
 		}
-		_client_relay.rpc("_rpc_add_arrow", arrow_id, ArrowType.REVEAL, survivor.global_position.x, survivor.global_position.y, peer_id, caster_peer, duration)
+		_send_add_arrow(arrow_id, ArrowType.REVEAL, survivor.global_position.x, survivor.global_position.y, peer_id, caster_peer, duration)
 		_auto_remove_arrow(arrow_id, duration)
 
 
@@ -119,3 +121,13 @@ func _is_survivor(peer_id: int) -> bool:
 	if not player_data:
 		return false
 	return player_data.get("assigned_role") == "survivor"
+
+
+func _send_add_arrow(arrow_id: int, type: int, x: float, y: float, track_peer: int, filter_peer: int, duration: float) -> void:
+	if _client_relay:
+		_client_relay.rpc("_rpc_add_arrow", arrow_id, type, x, y, track_peer, filter_peer, duration)
+
+
+func _send_remove_arrow(arrow_id: int) -> void:
+	if _client_relay:
+		_client_relay.rpc("_rpc_remove_arrow", arrow_id)

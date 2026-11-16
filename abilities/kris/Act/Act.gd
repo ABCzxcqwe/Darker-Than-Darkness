@@ -8,7 +8,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		push_warning("[ACT] player_node inválido.")
 		return
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var target_peer_id: int = pending_target_peer
 
 	if target_peer_id <= 0:

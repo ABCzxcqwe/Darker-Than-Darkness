@@ -1,4 +1,6 @@
 extends Control
+
+const TAG := "dark_game_menu"
 ## Menú de pausa in-game estilo "Dark World" de Deltarune, adaptado para
 ## un juego asimétrico online (Killer/Survivor).
 ##
@@ -709,7 +711,7 @@ func _set_row_value(row: HBoxContainer, text: String) -> void:
 
 func _get_local_role() -> String:
 	var my_id := multiplayer.get_unique_id()
-	var player := PlayerRegistry.get_player(my_id)
+	var player := PlayerLifecycleManager.get_player(my_id)
 	if player and player.character_data and "team" in player.character_data:
 		return str(player.character_data.team)
 	var ldata: Dictionary = LobbyManager.players.get(my_id, {})

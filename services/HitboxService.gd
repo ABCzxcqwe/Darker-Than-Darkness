@@ -25,19 +25,23 @@
 #     on_end       : Callable     — func(hit_count)   al expirar
 extends Node
 
-const HITBOX_SCRIPT := preload("uid://ct6ctabp7nijt")
+const TAG := "HitboxService"
+
+const HITBOX_UID := "uid://ct6ctabp7nijt"
+
+var _hitbox_script: Script = null
 
 var _game_state_service: Node = null
 
 
 func create(config: Dictionary) -> Node:
 	if not multiplayer.is_server():
-		push_warning("[HitboxService] Solo el servidor puede crear hitboxes.")
+		NetLog.warn_parts(TAG, ["[HitboxService] Solo el servidor puede crear hitboxes."])
 		return null
 
 	var state = _game_state_service
 	if not state or not state.is_in_game():
-		push_warning("[HitboxService] No hay partida activa.")
+		NetLog.warn_parts(TAG, ["[HitboxService] No hay partida activa."])
 		return null
 
 	# ── Leer config ───────────────────────────────────────────────────
@@ -57,7 +61,7 @@ func create(config: Dictionary) -> Node:
 	var on_end:        Callable    = config.get("on_end",        Callable())
 
 	if attacker_id == -1 or not is_instance_valid(attacker_node):
-		push_error("[HitboxService] 'attacker_id' y 'attacker_node' son obligatorios.")
+		NetLog.error_parts(TAG, ["[HitboxService] 'attacker_id' y 'attacker_node' son obligatorios."])
 		return null
 
 	# ── Resolver dirección según aim_mode ────────────────────────────
@@ -68,17 +72,17 @@ func create(config: Dictionary) -> Node:
 		var spawned = _spawn_projectile(config, attacker_node, direction, lifetime, speed)
 		if spawned:
 			return spawned
-		push_warning("[HitboxService] Falló spawn por ProjectileSpawner, usando modo local.")
+		NetLog.warn_parts(TAG, ["[HitboxService] Falló spawn por ProjectileSpawner, usando modo local."])
 
 	# ── Crear hitbox ──────────────────────────────────────────────────
 	var hitbox: Node
 	if shape_scene:
 		hitbox = shape_scene.instantiate()
 		if not config.get("custom_hitbox", false):
-			hitbox.set_script(HITBOX_SCRIPT)
+			hitbox.set_script(_get_hitbox_script())
 	else:
 		hitbox = Area2D.new()
-		hitbox.set_script(HITBOX_SCRIPT)
+		hitbox.set_script(_get_hitbox_script())
 
 	# ── Asignar propiedades (duck-typing para soportar Node2D contenedor) ──
 	if "attacker_id" in hitbox: hitbox.attacker_id = attacker_id
@@ -128,14 +132,14 @@ func create(config: Dictionary) -> Node:
 	if hitbox.has_method("set_multiplayer_authority"):
 		hitbox.set_multiplayer_authority(1)
 	_setup_hitbox_layers(hitbox, team_filter, attacker_node)
-	print("[HitboxService] Hitbox posición final: ", hitbox.global_position, " | direction: ", direction, " | offset: ", offset)
+	NetLog.debug_parts(TAG, ["[HitboxService] Hitbox posición final: ", hitbox.global_position, " | direction: ", direction, " | offset: ", offset])
 	add_child(hitbox)
 	var dbg_mask = hitbox.get("collision_mask") if "collision_mask" in hitbox else _find_hurtbox_area(hitbox).collision_mask if _find_hurtbox_area(hitbox) else -1
-	print("[HitboxService] Hitbox añadido al árbol. Colisión mask: ", dbg_mask)
+	NetLog.debug_parts(TAG, ["[HitboxService] Hitbox añadido al árbol. Colisión mask: ", dbg_mask])
 
-	print("[HitboxService] Hitbox creado | tipo:", type,
+	NetLog.debug_parts(TAG, ["[HitboxService] Hitbox creado | tipo:", type,
 		  " | aim:", aim_mode, " | atacante:", attacker_id,
-		  " | daño:", damage)
+		  " | daño:", damage])
 	return hitbox
 
 
@@ -154,7 +158,7 @@ func _spawn_projectile(config: Dictionary, attacker_node: Node, direction: Vecto
 
 	var hitbox: Node = shape_scene.instantiate()
 	if not config.get("custom_hitbox", false):
-		hitbox.set_script(HITBOX_SCRIPT)
+		hitbox.set_script(_get_hitbox_script())
 
 	# Asignación duck-typing para soportar Node2D contenedor (TopoSpear) y Area2D/CharacterBody2D
 	if "attacker_id" in hitbox: hitbox.attacker_id = config.get("attacker_id", -1)
@@ -234,7 +238,7 @@ func _resolve_direction(aim_mode: String, config: Dictionary, attacker_node: Nod
 			# La habilidad pasa la posición del mouse desde el cliente
 			var mouse_pos: Vector2 = config.get("mouse_pos", Vector2.ZERO)
 			if mouse_pos == Vector2.ZERO:
-				push_warning("[HitboxService] aim_mode 'mouse' sin mouse_pos — usando facing.")
+				NetLog.warn_parts(TAG, ["[HitboxService] aim_mode 'mouse' sin mouse_pos — usando facing."])
 				return _get_facing(attacker_node)
 			return (mouse_pos - attacker_node.global_position).normalized()
 
@@ -277,7 +281,7 @@ func _setup_hitbox_layers(hitbox: Node, team_filter: String, attacker_node: Node
 		# Node2D contenedor (TopoSpear, futuros visuales) — buscar Area2D hijo
 		target = _find_hurtbox_area(hitbox)
 		if not target:
-			push_warning("[HitboxService] Node2D hitbox sin Area2D hijo para capas | ", hitbox.name)
+			NetLog.warn_parts(TAG, ["[HitboxService] Node2D hitbox sin Area2D hijo para capas | ", hitbox.name])
 			return
 	var attacker_team: String = ""
 	if attacker_node and attacker_node.character_data:
@@ -317,4 +321,12 @@ func _find_hurtbox_area(root: Node) -> Area2D:
 
 
 func _exit_tree() -> void:
-	print("[HitboxService] Limpiado.")
+	NetLog.debug_parts(TAG, ["[HitboxService] Limpiado."])
+
+
+func _get_hitbox_script() -> Script:
+	if _hitbox_script == null:
+		_hitbox_script = load(HITBOX_UID) as Script
+		if _hitbox_script == null:
+			NetLog.error(TAG, "No se pudo cargar el script de hitbox (%s)." % HITBOX_UID)
+	return _hitbox_script

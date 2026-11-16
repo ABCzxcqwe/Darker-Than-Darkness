@@ -21,7 +21,7 @@ var _rage_exits_closed: Array[String] = []
 func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_index: int = -1) -> void:
 	if not player_node.multiplayer.is_server():
 		return
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_player_node = player_node
 	_data = data
 	_slot_index = slot_index if slot_index >= 0 else RAGE_SLOT_INDEX

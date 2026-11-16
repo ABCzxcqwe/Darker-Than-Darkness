@@ -32,7 +32,7 @@ func _build() -> void:
 
 	# Killers ven a todos los survivors; survivors ven a sus compañeros survivors
 	for player in get_tree().get_nodes_in_group("players"):
-		if player.get_multiplayer_authority() == _my_peer_id:
+		if PlayerLifecycleManager.get_owner_peer_id(player) == _my_peer_id:
 			continue
 		if not player.is_in_group("survivor"):
 			continue

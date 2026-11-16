@@ -1,6 +1,8 @@
-# res://services/GameStateService.gd
+# res://Network/services/GameStateService.gd
 # State machine del match: INTRO → PLAYING → ENDED
 extends Node
+
+const TAG := "GameStateService"
 
 enum State { INTRO, PLAYING, ENDED }
 
@@ -62,8 +64,17 @@ func _connect_services() -> void:
 func _set_state(new: State) -> void:
 	var old = current_state
 	current_state = new
-	state_changed.emit(new, old)
+
+	# GameStateService.State es el sub-estado de gameplay; SessionState.phase es
+	# la fase visible de sala/partida. Los mantenemos alineados en el servidor.
 	if multiplayer.is_server():
+		if new == State.PLAYING:
+			SessionState.phase = NetEnums.Phase.PLAYING
+		elif new == State.ENDED:
+			SessionState.phase = NetEnums.Phase.ENDED
+
+	state_changed.emit(new, old)
+	if multiplayer.is_server() and _client_relay:
 		_client_relay.rpc("_sync_game_state", new, old)
 
 
@@ -72,7 +83,6 @@ func is_in_game() -> bool:
 
 
 ## True si es una sesión de pruebas dev con exactamente un jugador no espectador.
-## Se usa para no cerrar la partida por no haber survivors/killer suficientes.
 func _is_dev_solo() -> bool:
 	if not DevMode.is_enabled():
 		return false
@@ -114,7 +124,8 @@ func transition_to_ended(reason: String, extra: Dictionary = {}) -> void:
 func _setup_map_audio() -> void:
 	if not multiplayer.is_server():
 		return
-	_client_relay.rpc("_rpc_setup_map_audio", GameData.selected_map)
+	if _client_relay:
+		_client_relay.rpc("_rpc_setup_map_audio", SessionState.active_map_id)
 
 
 func _cleanup_match_audio() -> void:
@@ -126,12 +137,8 @@ func _cleanup_match_audio() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_cleanup_match_audio() -> void:
-	# Silencio total replicado a todos los peers (fix: antes solo servidor)
 	AudioManager.reset_match_audio()
-	# reset_match_audio ya detiene lms/rage y resetea prioridad, pero
-	# aseguramos desactivación sin rebote extra de RPC N^2
 	if AudioManager.has_method("_rpc_deactivate_rage_music"):
-		# llamada directa local: el rpc desde servidor ya llegó a todos via este _rpc_cleanup
 		if AudioManager._current_priority == AudioManager.PriorityLevel.SPECIAL:
 			AudioManager._current_priority = AudioManager.PriorityLevel.NONE
 			if AudioManager.lms_music_player:
@@ -171,7 +178,7 @@ func _start_timer() -> void:
 	var initial_time = BASE_TIME + (survivor_count * TIME_PER_SURVIVOR)
 	if _is_dev_solo():
 		initial_time = DEV_SOLO_TIME
-		print("[GameStateService] Dev solo: temporizador de pruebas = ", DEV_SOLO_TIME, "s")
+		NetLog.debug(TAG, "Dev solo: temporizador de pruebas = %ss." % DEV_SOLO_TIME)
 	_timer_service.start_timer(initial_time)
 
 
@@ -208,13 +215,10 @@ func _on_survivor_death(_peer_id: int) -> void:
 
 # ─── DISCONNECT ──────────────────────────────────────────
 
-# Llamado por señal LobbyManager.player_left (el jugador ya fue borrado del diccionario)
-# Solo usamos esto para cleanup de servicios, no para lógica de partida.
 func _on_network_player_left(peer_id: int) -> void:
 	_unregister_player_services(peer_id)
 
 
-# Llamado directamente por NetworkManager con el rol capturado ANTES de borrar al jugador
 func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 	if not multiplayer.is_server():
 		return
@@ -227,12 +231,11 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 	elif abandoned_role == "survivor":
 		_timer_service.modify_time(15.0)
 		if _lms_service and _lms_service.is_lms_active() and _lms_service.get_active_survivor() \
-				and _lms_service.get_active_survivor().get_multiplayer_authority() == peer_id:
+				and PlayerLifecycleManager.get_owner_peer_id(_lms_service.get_active_survivor()) == peer_id:
 			_lms_service.stop_lms()
 
-		# PARCHE C1: NetworkManager ya borró al peer antes de llegar aquí,
-		# así que _count_alive_survivors() lo omite y puede devolver 0 survivors
-		# totales sin detectar fin de partida. Consultamos HealthService directamente.
+		# NetworkManager ya borró al peer antes de llegar aquí, así que
+		# _count_alive_survivors() lo omite. Consultamos HealthService directamente.
 		var alive_in_health := 0
 		for pid in _health_service._states.keys():
 			if not _health_service.is_dead(pid):
@@ -248,7 +251,7 @@ func handle_player_disconnect(peer_id: int, abandoned_role: String) -> void:
 
 
 func _unregister_player_services(peer_id: int) -> void:
-	var player_node = PlayerRegistry.get_player(peer_id)
+	var player_node = PlayerLifecycleManager.get_player(peer_id)
 	if player_node:
 		PlayerLifecycleManager.unregister_player(peer_id, player_node)
 
@@ -258,7 +261,6 @@ func _unregister_player_services(peer_id: int) -> void:
 func _evaluate_match() -> void:
 	if not multiplayer.is_server():
 		return
-	# Sandbox dev solo: no cerrar por falta de survivors, muerte o desconexión.
 	if _is_dev_solo():
 		return
 	var alive = _count_alive_survivors()
@@ -301,23 +303,23 @@ func _count_alive_survivors() -> int:
 
 func _find_last_survivor() -> Node:
 	var coord = _map_event_coordinator
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
-			var pid = p.get_multiplayer_authority()
+			var pid = PlayerLifecycleManager.get_owner_peer_id(p)
 			if not _health_service.is_dead(pid) and not (coord and coord.has_player_escaped(pid)):
 				return p
 	return null
 
 
 func _find_killer_node() -> Node:
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if "character_data" in p and p.character_data and p.character_data.team == "killer":
 			return p
 	return null
 
 
 func _find_any_survivor_node() -> Node:
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if "character_data" in p and p.character_data and p.character_data.team == "survivor":
 			return p
 	return null
@@ -328,8 +330,6 @@ func _find_any_survivor_node() -> Node:
 func evaluate_sudden_death_condition() -> void:
 	if not multiplayer.is_server():
 		return
-	# Sandbox dev solo: el jugador puede quedar downed/muerto sin que la
-	# partida termine automáticamente a los 3 segundos.
 	if _is_dev_solo():
 		return
 	if current_state != State.PLAYING or _ending_sequence_started:
@@ -362,10 +362,6 @@ func _add_start_of_match_points() -> void:
 # ─── END MATCH ───────────────────────────────────────────
 
 func _calculate_killer_points(reason: String) -> void:
-	# El killer forzado tenía 99 solo para garantizar la selección; su verdadero
-	# valor previo se guarda en _prev_killer_points. Como _add_start ya reseteó
-	# al killer a 0, solo necesitamos limpiar el backup sin restaurar.
-	# Nota: si la partida no llegó a _add_start (aborto), clear restaurará el 99.
 	for pid in LobbyManager.players:
 		if not LobbyManager.players.has(pid):
 			continue
@@ -380,11 +376,9 @@ func _calculate_killer_points(reason: String) -> void:
 				LobbyManager.players[pid]["killer_points"] += 1
 			else:
 				LobbyManager.players[pid]["killer_points"] += 2
-	# Limpiar backup del forzado (si existía) y flag
 	if LobbyManager.forced_killer_peer != -1:
 		var fk: int = LobbyManager.forced_killer_peer
 		if LobbyManager.players.has(fk) and LobbyManager.players[fk].has("_prev_killer_points"):
-			# Si nunca se reseteó (partida abortada antes de PLAYING), el valor aún es 99
 			if LobbyManager.players[fk].get("killer_points", 0) == 99:
 				LobbyManager.players[fk]["killer_points"] = LobbyManager.players[fk]["_prev_killer_points"]
 			LobbyManager.players[fk].erase("_prev_killer_points")

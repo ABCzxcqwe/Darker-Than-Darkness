@@ -8,7 +8,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if not is_instance_valid(player_node):
 		return
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 
 	var tp_svc = GameServiceLocator.tp
 	if data.tp_cost > 0.0 and tp_svc:

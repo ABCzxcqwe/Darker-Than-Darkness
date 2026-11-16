@@ -1,4 +1,6 @@
 extends Control
+
+const TAG := "lobby"
 ##  Lobby — verde #008000/#00FF00 soul rojo, casi fullscreen, teclado-only Z/X
 ##  Host puede seleccionar jugadores y aplicar: espectador / forzar killer / kick
 
@@ -856,8 +858,8 @@ func _confirm_action() -> void:
 
 func _execute_spectator() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("host_set_spectator"):
-		var ok: bool = lm.host_set_spectator(_selected_target_id)
+	if lm and lm.has_method("request_set_spectator"):
+		var ok: bool = lm.request_set_spectator(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -865,8 +867,8 @@ func _execute_spectator() -> void:
 
 func _execute_survivor() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("host_set_survivor"):
-		var ok: bool = lm.host_set_survivor(_selected_target_id)
+	if lm and lm.has_method("request_set_survivor"):
+		var ok: bool = lm.request_set_survivor(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -874,8 +876,8 @@ func _execute_survivor() -> void:
 
 func _execute_killer() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("host_force_killer"):
-		var ok: bool = lm.host_force_killer(_selected_target_id)
+	if lm and lm.has_method("request_force_killer"):
+		var ok: bool = lm.request_force_killer(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -913,8 +915,8 @@ func _confirm_confirm() -> void:
 
 func _execute_kick() -> void:
 	var lm := get_node_or_null("/root/LobbyManager")
-	if lm and lm.has_method("host_kick_player"):
-		var ok: bool = lm.host_kick_player(_selected_target_id)
+	if lm and lm.has_method("request_kick"):
+		var ok: bool = lm.request_kick(_selected_target_id)
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx_ui"):
 			am.play_sfx_ui(SfxId.SELECT if ok else SfxId.ERROR)
@@ -1026,7 +1028,7 @@ func _on_start_pressed() -> void:
 	if is_host:
 		lm.host_start_character_selection()
 	else:
-		lm.rpc_id(1, "request_start_match")
+		lm.request_start()
 
 func _on_leave_pressed() -> void:
 	if _action_visible:

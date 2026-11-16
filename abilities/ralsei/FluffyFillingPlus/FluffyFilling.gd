@@ -36,7 +36,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		return
 
 	_player_node = player_node
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_slot_index = slot_index
 	_tp_svc = GameServiceLocator.tp
 	_cd_svc = GameServiceLocator.cooldown
@@ -162,7 +162,7 @@ func _on_projectile_hit(target_node: Node) -> void:
 		return
 
 	var health_svc = GameServiceLocator.health
-	var target_id: int = target_node.get_multiplayer_authority()
+	var target_id: int = PlayerLifecycleManager.get_owner_peer_id(target_node)
 
 	if health_svc and not health_svc.is_alive(target_id):
 		return

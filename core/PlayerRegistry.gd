@@ -1,30 +1,31 @@
-# res://core/PlayerRegistry.gd (Autoload)
-# Registro central de nodos de jugador por peer_id.
-# Reemplaza el patrón get_tree().root.find_child(str(peer_id)).
 extends Node
+## Facade de compatibilidad para consumidores viejos.
+##
+## El registro real vive en `PlayerLifecycleManager` (reescritura de red).
+## Se mantiene este autoload para abilities/UI que todavía llaman
+## `PlayerRegistry.get_player()`.
 
-var _players: Dictionary = {}
-
- 
 func register(peer_id: int, player_node: Node) -> void:
-	_players[peer_id] = player_node
+	PlayerLifecycleManager.register_node(peer_id, player_node)
 
 
 func unregister(peer_id: int) -> void:
-	_players.erase(peer_id)
+	var node := PlayerLifecycleManager.get_player(peer_id)
+	if node != null:
+		PlayerLifecycleManager.unregister_player(peer_id, node)
 
 
 func get_player(peer_id: int) -> Node:
-	return _players.get(peer_id, null)
+	return PlayerLifecycleManager.get_player(peer_id)
 
 
 func has_player(peer_id: int) -> bool:
-	return _players.has(peer_id)
+	return PlayerLifecycleManager.has_player(peer_id)
 
 
 func get_all_players() -> Array:
-	return _players.values()
+	return PlayerLifecycleManager.get_all_players()
 
 
 func get_all_peer_ids() -> Array:
-	return _players.keys()
+	return PlayerLifecycleManager.get_all_peer_ids()

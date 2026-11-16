@@ -1,5 +1,7 @@
 extends Control
 
+const TAG := "character_select"
+
 @onready var timer_label: Label = $TopBar/TimerLabel
 @onready var timer_sub_label: Label = $TopBar/TimerSubLabel
 @onready var role_label: Label = $BottomBar/RoleLabel
@@ -191,7 +193,7 @@ func _build_character_options() -> void:
 		_layout_cylinder(false)
 		_update_name_labels()
 	else:
-		push_warning("[CharacterSelect] No hay personajes para rol: " + local_role)
+		NetLog.warn_parts(TAG, ["[CharacterSelect] No hay personajes para rol: " + local_role])
 
 
 # ── Modo desarrollador ────────────────────────────────────────────────
@@ -658,7 +660,7 @@ func _on_timeout_expired() -> void:
 		LobbyManager.select_character_in_screen(random_id)
 		_focus_idx = available_char_ids.find(random_id)
 		_layout_cylinder(true)
-		print("[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id)
+		NetLog.debug_parts(TAG, ["[CharacterSelect] Jugador AFK. Auto-seleccionado ID: ", random_id])
 
 	# El lanzamiento de la partida lo controla el servidor (MatchCoordinator),
 	# no la UI, para que arranque aunque el host sea espectador.

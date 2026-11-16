@@ -1,3 +1,5 @@
+# res://Gameplay/camera/SpectatorController.gd
+# Adaptado de core/SpectatorController.gd para usar CameraRig + Phantom Camera.
 class_name SpectatorController
 extends Node
 
@@ -7,7 +9,6 @@ const SPECTATOR_ZOOM := 0.7
 
 var _active := false
 var _ui_layer: CanvasLayer = null
-var _spectator_camera: Camera2D = null
 var _spectator_panel: PanelContainer = null
 var _target_label: Label = null
 var _chat_panel: Control = null
@@ -37,10 +38,7 @@ func activate() -> void:
 	_session = get_tree().get_first_node_in_group("hub_session")
 	print("[SpectatorController] Modo espectador activado para el peer local")
 
-	_disable_local_player_camera()
 	_build_ui()
-	_spectator_camera.enabled = true
-	_spectator_camera.make_current()
 	_spectator_panel.visible = true
 
 	_reveal_players()
@@ -52,9 +50,13 @@ func activate() -> void:
 		_ensure_chat_panel()
 
 	_select_initial_target()
+	var rig := CameraRig.find_for(get_parent())
+	if rig:
+		rig.spectate_zoom = SPECTATOR_ZOOM
+		rig.set_view_mode("spectate")
+		rig.set_spectate_target(_follow_target, true)
 	# La cámara nace en (0,0). Si el objetivo está en MatchArea (offset 50.000)
-	# y dejamos position_smoothing activo, tarda en "volar" hasta la partida y
-	# durante ese tiempo parece que el mapa/las posiciones no sincronizaron.
+	# y dejamos damping activo, tarda en "volar" hasta la partida.
 	_snap_camera_to_target()
 
 	# Mantiene el World en el mismo estado aunque la activación venga desde la
@@ -73,10 +75,11 @@ func deactivate() -> void:
 	_active = false
 	set_process(false)
 	if _follow_target and is_instance_valid(_follow_target):
-		_last_target_peer_id = _follow_target.get_multiplayer_authority()
+		_last_target_peer_id = PlayerLifecycleManager.get_owner_peer_id(_follow_target)
 	_follow_target = null
-	if _spectator_camera:
-		_spectator_camera.enabled = false
+	var rig := CameraRig.find_for(get_parent())
+	if rig:
+		rig.set_view_mode("disabled")
 	if _spectator_panel:
 		_spectator_panel.visible = false
 	if _chat_panel and is_instance_valid(_chat_panel):
@@ -100,14 +103,6 @@ func _build_ui() -> void:
 	_ui_layer.name = "SpectatorCanvasLayer"
 	_ui_layer.layer = 5
 	add_child(_ui_layer)
-
-	_spectator_camera = Camera2D.new()
-	_spectator_camera.name = "SpectatorCamera"
-	_spectator_camera.enabled = false
-	_spectator_camera.zoom = Vector2(SPECTATOR_ZOOM, SPECTATOR_ZOOM)
-	_spectator_camera.position_smoothing_enabled = true
-	_spectator_camera.position_smoothing_speed = 10.0
-	add_child(_spectator_camera)
 
 	_spectator_panel = PanelContainer.new()
 	_spectator_panel.name = "SpectatorPanel"
@@ -203,11 +198,11 @@ func _select_initial_target() -> void:
 		return
 	if _last_target_peer_id > 0:
 		for p in alive:
-			if p.get_multiplayer_authority() == _last_target_peer_id:
+			if PlayerLifecycleManager.get_owner_peer_id(p) == _last_target_peer_id:
 				_follow_target = p
 				return
 	_follow_target = alive[0]
-	_last_target_peer_id = _follow_target.get_multiplayer_authority()
+	_last_target_peer_id = PlayerLifecycleManager.get_owner_peer_id(_follow_target)
 
 
 func _alive_players() -> Array[Node]:
@@ -218,7 +213,7 @@ func _alive_players() -> Array[Node]:
 		if "health_state" in p and p.health_state == "alive":
 			result.append(p)
 	result.sort_custom(func(a: Node, b: Node) -> bool:
-		return a.get_multiplayer_authority() < b.get_multiplayer_authority()
+		return PlayerLifecycleManager.get_owner_peer_id(a) < PlayerLifecycleManager.get_owner_peer_id(b)
 	)
 	return result
 
@@ -250,21 +245,23 @@ func _handle_input() -> void:
 
 
 func _update_camera() -> void:
-	if _spectator_camera == null:
+	var rig := CameraRig.find_for(get_parent())
+	if rig == null:
 		return
 	if _follow_target and is_instance_valid(_follow_target) \
 			and (not ("health_state" in _follow_target) or _follow_target.health_state == "alive"):
-		_spectator_camera.global_position = _follow_target.global_position
+		if rig.get_target() != _follow_target:
+			rig.set_spectate_target(_follow_target as Node2D)
 	else:
 		_cycle_target(1)
 
 
 func _snap_camera_to_target() -> void:
-	if _spectator_camera == null or _follow_target == null \
-			or not is_instance_valid(_follow_target):
+	if _follow_target == null or not is_instance_valid(_follow_target):
 		return
-	_spectator_camera.global_position = _follow_target.global_position
-	_spectator_camera.reset_smoothing()
+	var rig := CameraRig.find_for(get_parent())
+	if rig:
+		rig.set_spectate_target(_follow_target as Node2D, true)
 
 
 func _cycle_target(direction: int) -> void:
@@ -285,9 +282,11 @@ func _cycle_target(direction: int) -> void:
 	new_idx %= alive.size()
 
 	_follow_target = alive[new_idx]
-	_last_target_peer_id = _follow_target.get_multiplayer_authority()
+	_last_target_peer_id = PlayerLifecycleManager.get_owner_peer_id(_follow_target)
 	if _active:
-		_snap_camera_to_target()
+		var rig := CameraRig.find_for(get_parent())
+		if rig:
+			rig.set_spectate_target(_follow_target as Node2D, true)
 
 
 func _update_panel() -> void:
@@ -296,7 +295,7 @@ func _update_panel() -> void:
 	if _follow_target == null or not is_instance_valid(_follow_target):
 		_target_label.text = "ESPECTANDO: SIN JUGADORES VIVOS"
 		return
-	var pid := _follow_target.get_multiplayer_authority()
+	var pid := PlayerLifecycleManager.get_owner_peer_id(_follow_target)
 	var pdata: Dictionary = LobbyManager.players.get(pid, {})
 	var display_name := str(pdata.get("name", "")).strip_edges()
 	if display_name == "":
@@ -306,7 +305,7 @@ func _update_panel() -> void:
 
 func _current_target_peer_id() -> int:
 	if _follow_target and is_instance_valid(_follow_target):
-		return _follow_target.get_multiplayer_authority()
+		return PlayerLifecycleManager.get_owner_peer_id(_follow_target)
 	return _last_target_peer_id
 
 
@@ -315,12 +314,6 @@ func _is_chat_input_active() -> bool:
 		if panel.has_method("is_input_active") and panel.is_input_active():
 			return true
 	return false
-
-
-func _disable_local_player_camera() -> void:
-	var my_player := PlayerRegistry.get_player(multiplayer.get_unique_id())
-	if my_player and my_player.has_node("Camera2D"):
-		my_player.get_node("Camera2D").enabled = false
 
 
 func _reveal_players() -> void:

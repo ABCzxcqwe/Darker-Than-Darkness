@@ -1,5 +1,7 @@
 extends Control
 
+const TAG := "settings"
+
 ##  Settings lateral — pestañas izquierda General/Audio/Video/Controles/Volver
 ## Derecha lista única scroll, teclado-only Z/X/C, soul rojo, #008000/#00FF00
 
@@ -243,6 +245,8 @@ func _provider_label(provider_id: String) -> String:
 	match provider_id.to_lower():
 		"steam":
 			return "STEAM"
+		"eosg":
+			return "EPIC ONLINE"
 		_:
 			return provider_id.to_upper()
 
@@ -297,19 +301,19 @@ func _sync_from_settings() -> void:
 			else:
 				var labels: Array = []
 				for p in providers:
-					labels.append(_provider_label(str(p)))
+					labels.append(_provider_label(NetEnums.provider_to_id(p)))
 				prov_row["options"] = labels
 				prov_row["provider_ids"] = providers
 				prov_row["disabled"] = false
-				var saved := str(sm.get("online_provider")).to_lower()
+				var saved := NetworkSettings.get_provider()
 				var cur_idx := 0
 				for i in providers.size():
-					if str(providers[i]).to_lower() == saved:
+					if providers[i] == saved:
 						cur_idx = i
 						break
 				prov_row["value"] = cur_idx
-				if saved != str(providers[cur_idx]).to_lower():
-					sm.online_provider = str(providers[cur_idx]).to_lower()
+				if saved != providers[cur_idx]:
+					NetworkSettings.set_provider(providers[cur_idx])
 
 		if tm and tm.has_method("list_all_ids"):
 			var theme_i := _row_index("GENERAL", "theme")
@@ -539,11 +543,11 @@ func _persist_row(tab_name: String, idx: int) -> void:
 				var cur2: int = int(data.get("value", 0))
 				if cur2 < 0 or cur2 >= ids.size():
 					return
-				var provider := str(ids[cur2]).to_lower()
-				sm.online_provider = provider
+				var provider: int = int(ids[cur2])
+				NetworkSettings.set_provider(provider)
 				if sm.has_method("save_settings"): sm.save_settings()
 				if _hint:
-					_hint.text = _tr_or("SET_MSG_PROVIDER", "Proveedor online: %s") % _provider_label(provider)
+					_hint.text = _tr_or("SET_MSG_PROVIDER", "Proveedor online: %s") % _provider_label(NetEnums.provider_to_id(provider))
 			elif row_id == "theme":
 				var tids: PackedStringArray = data.get("theme_ids", PackedStringArray())
 				var cur: int = int(data.get("value", 0))

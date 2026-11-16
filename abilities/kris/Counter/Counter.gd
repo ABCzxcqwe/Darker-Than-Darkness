@@ -9,7 +9,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		push_warning("[Counter] player_node inválido.")
 		return
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 
 	var combat = GameServiceLocator.combat_mediator
 	if not combat:
@@ -85,7 +85,7 @@ func try_intercept(target: Node, attacker: Node, data: AbilityData, slot_index: 
 	if not is_instance_valid(target):
 		return false
 
-	var caster_id: int = target.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	var abs_svc = GameServiceLocator.ability_state
 	if not abs_svc or not abs_svc.is_mode_active(caster_id, slot_index):
 		return false

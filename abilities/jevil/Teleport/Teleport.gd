@@ -31,7 +31,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		return
 
 	_player_node = player_node
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_data = data
 	_slot_index = slot_index
 	_active = true
@@ -232,7 +232,7 @@ func _find_random_target():
 	for s in survivors:
 		if is_instance_valid(s):
 			var hp_svc = GameServiceLocator.health
-			if hp_svc and hp_svc.is_alive(s.get_multiplayer_authority()):
+			if hp_svc and hp_svc.is_alive(PlayerLifecycleManager.get_owner_peer_id(s)):
 				alive.append(s)
 	if alive.is_empty():
 		return null

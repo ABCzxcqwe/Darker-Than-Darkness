@@ -21,7 +21,7 @@ func setup(player_node: Node) -> void:
 	if not player_node.character_data:
 		push_warning("[AbilityBar] Player sin character_data.")
 		return
-	var peer_id: int = player_node.get_multiplayer_authority()
+	var peer_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var slots: Array = player_node.character_data.ability_slots
 	for i in slots.size():
 		var data: AbilityData = slots[i]
@@ -84,7 +84,7 @@ func enter_fase2_mode(entry_slot: int) -> void:
 	_fase2_last_phase = ""
 	for slot in _buttons:
 		_buttons[slot].visible = false
-	var peer_id: int = _player_node.get_multiplayer_authority()
+	var peer_id: int = PlayerLifecycleManager.get_owner_peer_id(_player_node)
 	var entry_data: AbilityData = null
 	var slots: Array = _player_node.character_data.ability_slots if _player_node.character_data else []
 	if entry_slot >= 0 and entry_slot < slots.size():

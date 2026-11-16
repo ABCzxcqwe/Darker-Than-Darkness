@@ -1,4 +1,4 @@
-# res://core/player/Player.gd
+# res://Gameplay/player/Player.gd
 class_name Player
 extends CharacterBody2D
 
@@ -11,8 +11,13 @@ const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const INVISIBILITY_ALPHA_SELF: float = 0.5
 const HEAL_FIELD_SCENE := preload("res://abilities/ralsei/HealPrayer/HealingField.tscn")
-@onready var synchronizer      = $Synchronizer
-@onready var synchronizer_anim = $SynchronizerAnim
+## Identidad lógica del jugador. Con netfox el nodo Player pertenece al servidor
+## (autoridad 1) y el dueño real se guarda acá.
+var owner_peer_id: int = 0
+
+@onready var net_input: Node = get_node_or_null("NetInput")
+@onready var rollback_synchronizer: Node = get_node_or_null("RollbackSynchronizer")
+@onready var tick_interpolator: Node = get_node_or_null("TickInterpolator")
 @onready var animated_sprite   = $AnimatedSprite2D
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var world_c           = $CollisionShape2D
@@ -39,15 +44,17 @@ var facing: Vector2 = Vector2.RIGHT
 ## Estado de movimiento replicado por el servidor (0 idle / 1 walk / 2 run).
 var move_state: int = 0
 var move_facing_down: bool = false
-## Posicion autoritativa del servidor; los remotos interpolan hacia aca.
+## Posicion autoritativa del servidor. La escribe netfox; los remotos la usan
+## para animar/interpolar. Se conserva por compatibilidad con el gameplay.
 var net_position: Vector2 = Vector2.ZERO
 
-## Input de red: el servidor guarda aca el ultimo movimiento recibido del dueño
-## de este nodo. La simulacion autoritativa del servidor lo consume.
+## Flags de movilidad resueltos por el servidor y replicados por rollback.
+var sprint_allowed: bool = true
+var movement_locked: bool = false
+
+## Input actual del dueño. Lo llena NetInput antes de cada tick de netfox.
 var net_move_input: Vector2 = Vector2.ZERO
 var net_sprint: bool = false
-## Ultima secuencia de input aplicada por el servidor (para reconciliar al dueño).
-var net_last_input_seq: int = 0
 
 var active_effects: Dictionary = {}
 var state: int       = AnimState.IDLE
@@ -93,19 +100,29 @@ var _active_emote_slot: int = -1
 
 
 func _ready() -> void:
-	print("[Player] _ready() | nombre: ", name, " | autoridad: ", is_multiplayer_authority())
+	if owner_peer_id <= 0:
+		push_error("[Player] owner_peer_id no asignado; revisá World._spawn_player_node().")
+		owner_peer_id = multiplayer.get_unique_id()
+	# El Player siempre pertenece al servidor; el dueño real vive en owner_peer_id.
+	set_multiplayer_authority(1)
+	if net_input == null:
+		push_error("[Player] Falta el nodo 'NetInput' (PlayerNetInput.gd).")
+	if rollback_synchronizer == null:
+		push_error("[Player] Falta el nodo 'RollbackSynchronizer' (netfox).")
+	_setup_netfox_authority()
+
+	print("[Player] _ready() | nombre: ", name, " | dueño: ", owner_peer_id,
+		" | autoridad de red: ", get_multiplayer_authority())
 
 	movement_component = $PlayerMovementComponent
 	interaction.initialize(self)
 	animation_component.initialize(self)
 	movement_component.initialize(self)
 	input_component.initialize(self)
+	if net_input and net_input.has_method("initialize"):
+		net_input.initialize(self)
 	if character_data:
 		movement_component.speed = character_data.speed
-
-	if not synchronizer:
-		push_error("[Player] No se encontró 'Synchronizer'. Revisa player.tscn")
-	_setup_synchronizer_authority()
 
 	if character_data:
 		add_to_group(character_data.team)
@@ -114,24 +131,21 @@ func _ready() -> void:
 
 	add_to_group(GroupNames.PLAYERS)
 
-	if not is_multiplayer_authority():
-		if $Camera2D:
-			$Camera2D.enabled = false
-	else:
+	if is_local_owner():
 		var listener = AudioListener2D.new()
 		add_child(listener)
 		listener.make_current()
 
 	if character_data:
-		PlayerRegistry.register(get_multiplayer_authority(), self)
+		PlayerLifecycleManager.register_node(owner_peer_id, self)
 		if multiplayer.is_server():
-			PlayerLifecycleManager.register_player(self, get_multiplayer_authority(), character_data)
-		elif is_multiplayer_authority():
+			PlayerLifecycleManager.register_player(self, owner_peer_id, character_data)
+		elif is_local_owner():
 			# Le avisamos al servidor que nuestra copia local de este nodo ya existe y
 			# está lista para recibir el RPC que activa la visibilidad de su Synchronizer.
 			# Evita la race condition de pedirle a un cliente que modifique un nodo que
 			# todavía no terminó de instanciar (llega por red, no es instantáneo).
-			PlayerLifecycleManager.rpc_id(1, "_notify_player_node_ready", get_multiplayer_authority())
+			PlayerLifecycleManager.rpc_id(1, "_notify_player_node_ready", owner_peer_id)
 
 	if animated_sprite and animated_sprite.animation_finished.is_connected(_on_anim_finished) == false:
 		animated_sprite.animation_finished.connect(_on_anim_finished)
@@ -146,30 +160,79 @@ func _ready() -> void:
 		relay.camera_shake.connect(_on_camera_shake)
 
 
-## La posicion/salud las replica el SERVIDOR; la animacion/apuntado los sigue
-## calculando el DUEÑO. Se separan en dos MultiplayerSynchronizer con autoridades
-## distintas (ver player.tscn) para no tener que cambiar la autoridad del nodo
-## (que se usa como identidad en todo el proyecto).
-func _setup_synchronizer_authority() -> void:
-	var owner_peer := get_multiplayer_authority()
-	if synchronizer:
-		synchronizer.set_multiplayer_authority(1)
-	if synchronizer_anim:
-		synchronizer_anim.set_multiplayer_authority(owner_peer)
-	# El dueño predice su posicion localmente: no le reenviamos su propia
-	# posicion autoritativa (evita rubber-banding). El resto de peers si la recibe.
-	if multiplayer.is_server() and synchronizer and owner_peer != 1:
-		synchronizer.set_visibility_for(owner_peer, false)
+## Identidad lógica para el resto del gameplay.
+func get_owner_peer_id() -> int:
+	return owner_peer_id
+
+
+## True solo en la copia local del jugador dueño (no en el servidor ni en remotos).
+func is_local_owner() -> bool:
+	if multiplayer.multiplayer_peer == null:
+		return false
+	return owner_peer_id > 0 and multiplayer.get_unique_id() == owner_peer_id
+
+
+## Configura las autoridades que espera netfox:
+## - Player/RollbackSynchronizer: servidor (peer 1), dueño del estado.
+## - NetInput: dueño real, dueño del input.
+## Hay que llamar a process_settings después de cambiar autoridades.
+func _setup_netfox_authority() -> void:
+	if net_input:
+		net_input.set_multiplayer_authority(owner_peer_id)
+	if rollback_synchronizer:
+		rollback_synchronizer.set_multiplayer_authority(1)
+		rollback_synchronizer.set("root", self)
+		# Vida/estados/fase2 NO entran al rollback: se sincronizan por RPC
+		# autoritativo. Incluirlos haría que una resimulación pisara el daño o
+		# una habilidad aplicada fuera del tick.
+		var state_props: Array[String] = [
+			":position",
+			":velocity",
+			":move_state",
+			":facing_right",
+			":move_facing_down",
+			":sprint_allowed",
+			":movement_locked",
+		]
+		var input_props: Array[String] = []
+		if net_input != null:
+			input_props = ["NetInput:move", "NetInput:sprint", "NetInput:aim_dir"]
+		rollback_synchronizer.set("state_properties", state_props)
+		rollback_synchronizer.set("input_properties", input_props)
+		# El servidor simula a todos; el cliente solo predice su propio jugador.
+		# Los jugadores remotos en un cliente se limitan a aplicar el estado.
+		rollback_synchronizer.set(
+			"enable_prediction", multiplayer.is_server() or is_local_owner()
+		)
+		# El input viaja solo al servidor; el estado lo difunde el servidor.
+		rollback_synchronizer.set("enable_input_broadcast", false)
+		if multiplayer.is_server():
+			var filter = rollback_synchronizer.get("visibility_filter")
+			if filter != null:
+				# Hasta que el peer confirme que sus nodos existen, no le enviamos
+				# estados a rutas inexistentes.
+				filter.default_visibility = false
+		if rollback_synchronizer.has_method("process_settings"):
+			rollback_synchronizer.process_settings.call_deferred()
+	if tick_interpolator:
+		tick_interpolator.set("root", self)
+		var interpolated_props: Array[String] = [":position"]
+		tick_interpolator.set("properties", interpolated_props)
+		tick_interpolator.set("record_first_state", true)
+		# El servidor simula todos los jugadores; el dueño predice. Solo se
+		# interpolan las copias de jugadores remotos en clientes.
+		tick_interpolator.enabled = not multiplayer.is_server() and not is_local_owner()
+		if tick_interpolator.has_method("process_settings"):
+			tick_interpolator.process_settings.call_deferred()
 
 
 func _physics_process(_delta: float) -> void:
 	if not multiplayer.multiplayer_peer:
 		return
-	if multiplayer.is_server():
-		# El servidor publica su posicion autoritativa para que la replique el Synchronizer.
-		net_position = global_position
-		return
-	if is_multiplayer_authority():
+	# El estado lo simula netfox en _rollback_tick. Acá solo actualizamos la
+	# animación derivada de remotos.
+	net_position = global_position
+	if is_local_owner():
 		return
 	_apply_networked_anim()
 
@@ -200,23 +263,24 @@ func _submit_facing(right: bool) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
 	facing_right = right
 	facing = Vector2.RIGHT if right else Vector2.LEFT
 
 
 func _on_camera_shake(intensity: float, duration: float) -> void:
-	if not is_multiplayer_authority():
+	if not is_local_owner():
 		return
-	if has_node("Camera2D"):
-		$Camera2D.shake(intensity, duration)
+	var rig := CameraRig.get_active()
+	if rig:
+		rig.shake(intensity, duration)
 
 
 func _setup_name_tag() -> void:
-	var peer_id := get_multiplayer_authority()
+	var peer_id := owner_peer_id
 
-	if is_multiplayer_authority():
+	if is_local_owner():
 		name_tag.visible = false
 		return
 
@@ -256,7 +320,7 @@ func _process(_delta: float) -> void:
 	if active_effects.has("invisibility"):
 		# Invisible: el propio jugador se ve al 50% de alfa; los demás lo ven al 0%.
 		# Prioridad sobre flicker de invencibilidad y heal flash.
-		target_modulate.a = INVISIBILITY_ALPHA_SELF if is_multiplayer_authority() else 0.0
+		target_modulate.a = INVISIBILITY_ALPHA_SELF if is_local_owner() else 0.0
 	else:
 		if now < invincible_until and state != AnimState.ABILITY:
 			var _show := (sin(now * 0.015) * 0.5 + 0.5) > 0.35
@@ -291,16 +355,16 @@ func _try_revive() -> void:
 	if multiplayer.is_server():
 		GameServiceLocator.revive.request_revive(self, closest_target)
 	else:
-		rpc_id(1, "_request_revive", closest_target.get_multiplayer_authority())
+		rpc_id(1, "_request_revive", PlayerLifecycleManager.get_owner_peer_id(closest_target))
 
 
 @rpc("any_peer", "reliable")
 func _request_revive(target_peer_id: int) -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
-	if caller_id != get_multiplayer_authority(): return
+	if caller_id != owner_peer_id: return
 
 	var rescuer_node := interaction.get_self_on_server()
-	var target_node  := PlayerRegistry.get_player(target_peer_id)
+	var target_node  := PlayerLifecycleManager.get_player(target_peer_id)
 	if not rescuer_node or not target_node: return
 
 	GameServiceLocator.revive.request_revive(rescuer_node, target_node)
@@ -309,14 +373,14 @@ func _request_revive(target_peer_id: int) -> void:
 @rpc("any_peer", "reliable")
 func _request_cancel_revive() -> void:
 	var caller_id := multiplayer.get_remote_sender_id()
-	if caller_id != get_multiplayer_authority(): return
-	GameServiceLocator.revive.cancel_revive(get_multiplayer_authority())
+	if caller_id != owner_peer_id: return
+	GameServiceLocator.revive.cancel_revive(owner_peer_id)
 
 
 func _exit_tree() -> void:
 	var peer_id : int = -1
 	if multiplayer.multiplayer_peer != null:
-		peer_id = get_multiplayer_authority()
+		peer_id = owner_peer_id
 	if peer_id != -1:
 		PlayerLifecycleManager.unregister_player(peer_id, self)
 
@@ -330,7 +394,7 @@ func is_pause_menu_open() -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_multiplayer_authority(): return
+	if not is_local_owner(): return
 
 	if interaction.is_spectator:
 		return
@@ -432,7 +496,7 @@ func _input(event: InputEvent) -> void:
 				if fase2_phase == "channel":
 					if action == "ability_3":
 						print("[Player] X detectada en canalización → cancelando slot ", aiming_slot)
-						var channel_peer = get_multiplayer_authority()
+						var channel_peer = owner_peer_id
 						if multiplayer.is_server():
 							AbilityRouter.cancel_aim(channel_peer, aiming_slot)
 						else:
@@ -458,7 +522,7 @@ func _input(event: InputEvent) -> void:
 						print("[Player] Lockout de cancelación activo; X ignorada.")
 						return
 					print("[Player] X detectada en fase2 → cancelando slot ", aiming_slot)
-					var peer_id = get_multiplayer_authority()
+					var peer_id = owner_peer_id
 					if multiplayer.is_server():
 						AbilityRouter.cancel_aim(peer_id, aiming_slot)
 					else:
@@ -493,7 +557,7 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_released("interact"):
 		if multiplayer.is_server():
-			GameServiceLocator.revive.cancel_revive(get_multiplayer_authority())
+			GameServiceLocator.revive.cancel_revive(owner_peer_id)
 		else:
 			rpc_id(1, "_request_cancel_revive")
 
@@ -505,7 +569,7 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
 		return
-	if not is_multiplayer_authority():
+	if not is_local_owner():
 		return
 
 	if multiplayer.is_server():
@@ -519,7 +583,7 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 		return
 	var filter_peer_id: int = -1
 	if selection_type == 0: # ALLY
-		filter_peer_id = get_multiplayer_authority()
+		filter_peer_id = owner_peer_id
 
 	var can_target_self: bool = false
 	if character_data and slot >= 0 and slot < character_data.ability_slots.size():
@@ -533,7 +597,7 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 			if _pending_selection_slot == slot:
 				_pending_selection_slot = -1
 				if multiplayer.is_server():
-					AbilityRouter._dispatch_with_target(slot, target_peer_id, get_multiplayer_authority())
+					AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id)
 				else:
 					rpc_id(1, "_confirm_ability_selection", slot, target_peer_id),
 		func() -> void:
@@ -566,9 +630,9 @@ func _confirm_ability_selection(slot: int, target_peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
-	AbilityRouter._dispatch_with_target(slot, target_peer_id, get_multiplayer_authority())
+	AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -576,7 +640,7 @@ func _server_prepare_ability(slot: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != get_multiplayer_authority():
+	if sender != owner_peer_id:
 		return
 	_play_ability_prepare(slot)
 
@@ -586,14 +650,14 @@ func _cancel_ability_selection(slot: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
 
 	if state == AnimState.PREPARE and active_ability_slot == slot:
 		GameServiceLocator.combat_mediator.remove_root(self)
 		rpc("_sync_cancel_ability")
 
-	print("[Ability] Selección cancelada: slot ", slot, " | peer: ", get_multiplayer_authority())
+	print("[Ability] Selección cancelada: slot ", slot, " | peer: ", owner_peer_id)
 
 
 # ── Configuración de personaje ────────────────────────────────────────
@@ -605,7 +669,7 @@ func set_character(char_id: int) -> void:
 		# recurso de este ID. Preferimos un personaje válido del bando antes que
 		# dejar el nodo sin character_data (HUD/habilidades rotas).
 		var role := "survivor"
-		var peer_id := get_multiplayer_authority()
+		var peer_id := owner_peer_id
 		var lm := get_node_or_null("/root/LobbyManager")
 		if lm and lm.players.has(peer_id):
 			role = String(lm.players[peer_id].get("assigned_role", role))
@@ -639,20 +703,6 @@ func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 		var s: float = data.sprite_scale if data.sprite_scale > 0.0 else 1.0
 		$AnimatedSprite2D.scale = Vector2.ONE * s
 	_setup_collision_layers(data)
-	_apply_camera_config(data)
-
-
-func _apply_camera_config(data: CharacterData) -> void:
-	var cam: Camera2D = $Camera2D
-	if not cam:
-		return
-	cam.zoom_base = data.camera_zoom_base
-	cam.zoom_sprint = data.camera_zoom_sprint
-	cam.zoom_speed = data.camera_zoom_speed
-	cam.smooth_speed = data.camera_smooth_speed
-	cam.position_smoothing_speed = data.camera_smooth_speed
-	cam.mouse_peek_amount = data.camera_mouse_peek_amount
-	cam.mouse_peek_limit = data.camera_mouse_peek_limit
 
 
 func _setup_collision_layers(data: CharacterData) -> void:
@@ -838,7 +888,7 @@ func _request_emote(slot: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
 	if not character_data:
 		return
@@ -920,7 +970,7 @@ func _server_cancel_emote() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != get_multiplayer_authority():
+	if sender != owner_peer_id:
 		return
 	cancel_emote()
 
@@ -962,7 +1012,7 @@ func _sync_aim_dir(dir: Vector2, distance: float = -1.0) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
 	if dir != Vector2.ZERO:
 		_latest_aim_dir = dir
@@ -970,36 +1020,8 @@ func _sync_aim_dir(dir: Vector2, distance: float = -1.0) -> void:
 		_latest_aim_distance = distance
 
 
-## Input del dueño hacia el servidor. El servidor lo guarda y lo aplica en su
-## simulacion autoritativa (PlayerMovementComponent). Solo movimiento; el
-## apuntado sigue siendo 100% del cliente.
-@rpc("any_peer", "unreliable_ordered")
-func _submit_input(seq: int, move: Vector2, sprint: bool) -> void:
-	if not multiplayer.is_server():
-		return
-	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
-		return
-	if seq <= net_last_input_seq:
-		return  # paquete viejo/duplicado
-	net_move_input = move
-	net_sprint = sprint
-	net_last_input_seq = seq
-
-
-## Estado autoritativo que el servidor manda SOLO al dueño para reconciliar su
-## prediccion local (esta excluido de la sync normal de posicion).
-@rpc("any_peer", "unreliable")
-func _reconcile_state(server_pos: Vector2, ack_seq: int) -> void:
-	if multiplayer.is_server():
-		return
-	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
-		return
-	if not is_multiplayer_authority():
-		return
-	if movement_component:
-		movement_component.reconcile(server_pos, ack_seq)
+## El input de movimiento lo replica netfox vía RollbackSynchronizer/NetInput.
+## Estos RPC se eliminaron junto con la reconciliación manual.
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -1007,7 +1029,7 @@ func _request_secret_heal() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if sender != 0 and sender != owner_peer_id:
 		return
 	_activate_secret_heal()
 
@@ -1039,7 +1061,7 @@ func _rpc_spawn_secret_visual(caster_peer_id: int) -> void:
 	if sender != 0 and sender != 1:
 		return
 
-	var survivor := PlayerRegistry.get_player(caster_peer_id) as Node2D
+	var survivor := PlayerLifecycleManager.get_player(caster_peer_id) as Node2D
 	if not survivor:
 		return
 
@@ -1071,7 +1093,7 @@ func _rpc_soul_protect_show(peer_id: int) -> void:
 	if sender != 0 and sender != 1:
 		return
 
-	var player := PlayerRegistry.get_player(peer_id) as Node2D
+	var player := PlayerLifecycleManager.get_player(peer_id) as Node2D
 	if not player:
 		return
 
@@ -1098,7 +1120,7 @@ func _rpc_soul_protect_break(peer_id: int) -> void:
 	if sender != 0 and sender != 1:
 		return
 
-	var player := PlayerRegistry.get_player(peer_id) as Node2D
+	var player := PlayerLifecycleManager.get_player(peer_id) as Node2D
 	if not player:
 		return
 
@@ -1186,8 +1208,10 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 	invincible_until = Time.get_ticks_msec() + invincibility_duration_ms
 	if new_health < old_health:
 		hurt_flash_until = Time.get_ticks_msec() + HURT_FLASH_DURATION_MS
-		if is_multiplayer_authority():
-			$Camera2D.shake(3.0, 0.15)
+		if is_local_owner():
+			var rig := CameraRig.get_active()
+			if rig:
+				rig.shake(3.0, 0.15)
 	elif new_health > old_health:
 		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
 
@@ -1197,8 +1221,13 @@ func _sync_speed(new_speed: float) -> void:
 	movement_component.speed = new_speed
 
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func _sync_aiming_mode(slot: int, active: bool) -> void:
+	# Con netfox el Player es autoridad del servidor, pero el dueño también
+	# necesita reflejar su propio estado visual de apuntado.
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1 and sender != owner_peer_id:
+		return
 	aiming_slot = slot if active else -1
 
 
@@ -1320,7 +1349,7 @@ func _update_rage_blink(now: int) -> float:
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_vision_reduction(factor: float, duration: float) -> void:
-	if not is_multiplayer_authority():
+	if not is_local_owner():
 		return
 	_vision_scale = factor
 	_vision_scale_until = Time.get_ticks_msec() + int(duration * 1000.0)
@@ -1356,21 +1385,18 @@ func _sync_state(new_state: String, new_health: int) -> void:
 					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
 				animated_sprite.play(anim)
 				last_animation = anim
-				if synchronizer:
-					synchronizer.queue_free()
-				if synchronizer_anim:
-					synchronizer_anim.queue_free()
 				animated_sprite.reparent(interaction.get_corpse_container(), true)
 				animated_sprite.z_index = 2
 			interaction.disable_corpse()
 			interaction.is_spectator = true
-			if is_multiplayer_authority():
+			if is_local_owner():
 				_activate_spectator_controller()
 			if name_tag:
 				name_tag.visible = false
 
+	_mutate_rollback()
 	if multiplayer.is_server():
-		GameServiceLocator.health.player_state_changed.emit(get_multiplayer_authority(), new_state)
+		GameServiceLocator.health.player_state_changed.emit(owner_peer_id, new_state)
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -1381,7 +1407,7 @@ func _sync_escape() -> void:
 		name_tag.visible = false
 	interaction.disable_corpse()
 	interaction.is_spectator = true
-	if is_multiplayer_authority():
+	if is_local_owner():
 		_activate_spectator_controller()
 
 
@@ -1389,18 +1415,60 @@ func _sync_escape() -> void:
 func _request_sprint(sprinting: bool) -> void:
 	if not multiplayer.is_server():
 		return
-	GameServiceLocator.stamina.set_sprinting(get_multiplayer_authority(), sprinting)
+	GameServiceLocator.stamina.set_sprinting(owner_peer_id, sprinting)
 
 
 @rpc("authority", "call_local", "reliable")
 func _sync_forced_position(new_pos: Vector2, locked: bool) -> void:
-	global_position = new_pos
-	net_position = new_pos
+	_force_position(new_pos)
 	if locked:
 		state = AnimState.ABILITY
 		active_ability_slot = -1  # sin slot específico, solo bloqueo
 	else:
 		state = AnimState.IDLE
+	_mutate_rollback()
+
+
+## Posición impuesta por el servidor (spawn, teleport, agarre de King). Se
+## aplica dentro del tick de rollback porque `:position` es estado de netfox:
+## escribirla solo en _physics_process hace que el rollback reaplique la
+## posición anterior y el desplazamiento no se replique.
+var _forced_position: Vector2 = Vector2.ZERO
+var _forced_from_tick: int = -1
+var _forced_until_tick: int = -1
+
+
+## Fuerza la posición durante los próximos `ticks` ticks de rollback.
+## Mientras el efecto la renueve cada frame (agarre), la ventana sigue abierta.
+func _force_position(pos: Vector2, ticks: int = 2) -> void:
+	var now: int = NetworkRollback.tick
+	if now > _forced_until_tick:
+		_forced_from_tick = now
+	_forced_position = pos
+	_forced_until_tick = maxi(_forced_until_tick, now + ticks)
+	global_position = pos
+	net_position = pos
+	NetworkRollback.mutate(self)
+	if movement_component:
+		NetworkRollback.mutate(movement_component)
+
+
+## Aplica la posición forzada si `tick` cae en la ventana del efecto.
+## La llama PlayerMovementComponent._rollback_tick (no el root): así el Player
+## sigue sin ser "rollback aware" y netfox no deja de difundir su posición.
+func _apply_forced_position_tick(tick: int) -> bool:
+	if _forced_until_tick < 0:
+		return false
+	if tick < _forced_from_tick or tick > _forced_until_tick:
+		return false
+	global_position = _forced_position
+	net_position = _forced_position
+	return true
+
+
+## Coloca al jugador en su spawn inicial (servidor y copias locales de cada peer).
+func set_spawn_position(pos: Vector2) -> void:
+	_force_position(pos)
 
 
 ## El servidor fuerza una posición en el cliente (usado por habilidades como Teleport).
@@ -1409,8 +1477,14 @@ func _sync_server_position(pos: Vector2) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
 		return
-	global_position = pos
-	net_position = pos
+	_force_position(pos)
+	_mutate_rollback()
+
+
+## Un cambio externo de posición/estado debe invalidar la resimulación vieja.
+func _mutate_rollback() -> void:
+	if movement_component:
+		NetworkRollback.mutate(movement_component)
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -1468,17 +1542,17 @@ func _sync_hide_pacify_indicator() -> void:
 const SECRET_HEAL_DURATION: float = 1.5
 
 
-## Despachado por el servidor hacia el peer dueño de este nodo (o ejecutado localmente
-## si el dueño es el propio servidor). set_visibility_for solo surte efecto si corre en
-## la máquina que es la autoridad de multijugador de este nodo — por eso no se puede
-## llamar directo desde el servidor cuando el dueño es un cliente remoto.
+## Compatibilidad con el flujo viejo de visibilidad. Con netfox el filtro vive
+## en el RollbackSynchronizer del servidor (autoridad del estado).
 @rpc("any_peer", "reliable")
 func _rpc_set_synchronizer_visibility(viewer_peer_id: int, is_visible: bool) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != 1:
 		return
-	if synchronizer:
-		synchronizer.set_visibility_for(viewer_peer_id, is_visible)
-		if is_visible:
-			synchronizer.update_visibility(viewer_peer_id)
-		print("[Player] (", name, ") visibilidad de Synchronizer hacia peer ", viewer_peer_id, " = ", is_visible)
+	if rollback_synchronizer == null:
+		return
+	var filter = rollback_synchronizer.get("visibility_filter")
+	if filter == null:
+		return
+	filter.set_visibility_for(viewer_peer_id, is_visible)
+	filter.update_visibility()

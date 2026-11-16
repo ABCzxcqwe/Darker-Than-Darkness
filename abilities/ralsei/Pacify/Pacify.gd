@@ -16,7 +16,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		return
 
 	_player_node = player_node
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_data = data
 	_slot_index = slot_index
 	_active = true
@@ -138,7 +138,7 @@ func _apply_effects(combat: Node) -> void:
 	var lms_svc = GameServiceLocator.lms
 	if lms_svc and lms_svc.is_lms_active():
 		var lms_survivor = lms_svc.get_active_survivor()
-		if lms_survivor and lms_survivor.get_multiplayer_authority() == _caster_id:
+		if lms_survivor and PlayerLifecycleManager.get_owner_peer_id(lms_survivor) == _caster_id:
 			slow_dur = 7.0
 
 	for killer in _player_node.get_tree().get_nodes_in_group("killer"):

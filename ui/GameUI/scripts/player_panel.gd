@@ -36,7 +36,7 @@ func setup(player_node: Node) -> void:
 		push_warning("[PlayerPanel] Player sin character_data.")
 		return
 
-	_peer_id     = player_node.get_multiplayer_authority()
+	_peer_id     = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var data: CharacterData = player_node.character_data
 	_max_hp      = data.max_health
 	_theme_color = data.theme_color

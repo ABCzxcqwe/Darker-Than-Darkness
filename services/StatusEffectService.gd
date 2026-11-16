@@ -8,6 +8,8 @@
 #   Survivor → reducción de daño opcional, activada por la habilidad via params["post_stun_dr"]
 extends Node
 
+const TAG := "StatusEffectService"
+
 const EFFECT_TYPES := ["stun", "slow", "root", "silence", "blind", "speed_boost", "stamina_reduction", "protection", "bleed", "burn", "damage_boost", "damage_reduction", "invisibility", "sprint_disabled"]
 
 # Efectos con acumulación por fuente: cada fuente distinta crea su propia
@@ -42,12 +44,6 @@ func _process(delta: float) -> void:
 		return
 	if multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		return
-	for __dbg_pid in _effects.keys():
-		for __dbg_eff in ["root", "silence"]:
-			if has_effect(__dbg_pid, __dbg_eff):
-				var __dbg_t: float = _effects[__dbg_pid][__dbg_eff][0]["timer"] if _effects[__dbg_pid][__dbg_eff].size() > 0 else -1.0
-				if int(Time.get_ticks_msec() / 500) % 4 == 0:
-					print("[StatusEffectService][DBG] peer ", __dbg_pid, " ", __dbg_eff, " timer=", __dbg_t)
 	for peer_id in _effects.keys().duplicate():
 		var changed := false
 	
@@ -74,7 +70,7 @@ func _process(delta: float) -> void:
 					var expired_instance: Dictionary = instances[i]
 					instances.remove_at(i)
 					changed = true
-					print("[StatusEffectService] ", effect_name, " expiró para peer ", peer_id)
+					NetLog.debug_parts(TAG, ["[StatusEffectService] ", effect_name, " expiró para peer ", peer_id])
 
 					if effect_name == "stun":
 						_on_stun_expired(peer_id, expired_instance)
@@ -100,14 +96,14 @@ func _process(delta: float) -> void:
 		_stun_immunity[peer_id] -= delta
 		if _stun_immunity[peer_id] <= 0.0:
 			_stun_immunity.erase(peer_id)
-			print("[StatusEffectService] Inmunidad post-stun expiró para peer ", peer_id)
+			NetLog.debug_parts(TAG, ["[StatusEffectService] Inmunidad post-stun expiró para peer ", peer_id])
 
 	# Tick de reducción de daño post-stun (survivors)
 	for peer_id in _post_stun_dr.keys().duplicate():
 		_post_stun_dr[peer_id]["timer"] -= delta
 		if _post_stun_dr[peer_id]["timer"] <= 0.0:
 			_post_stun_dr.erase(peer_id)
-			print("[StatusEffectService] DR post-stun expiró para peer ", peer_id)
+			NetLog.debug_parts(TAG, ["[StatusEffectService] DR post-stun expiró para peer ", peer_id])
 			
 
 
@@ -123,10 +119,10 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 	if not multiplayer.is_server():
 		return
 	if not effect_name in EFFECT_TYPES:
-		push_warning("[StatusEffectService] Efecto desconocido: ", effect_name)
+		NetLog.warn_parts(TAG, ["[StatusEffectService] Efecto desconocido: ", effect_name])
 		return
 
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var duration: float = params.get("duration", 1.0)
 
 	# Soporte opcional vía params (desacoplado): si Rage pasa stun_resistance directo, úsalo preferente.
@@ -135,14 +131,14 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 		if resist_param > 0.0:
 			var orig_p := duration
 			duration = maxf(0.2, duration * (1.0 - resist_param))
-			print("[StatusEffectService] Rage resistencia (param) stun peer ", peer_id, " ", resist_param*100, "% ", orig_p, "->", duration)
+			NetLog.debug_parts(TAG, ["[StatusEffectService] Rage resistencia (param) stun peer ", peer_id, " ", resist_param*100, "% ", orig_p, "->", duration])
 	else:
 		if effect_name == "stun" and _is_rage_active(peer_id):
 			var resist := _get_rage_resistance(peer_id)
 			if resist > 0.0:
 				var orig := duration
 				duration = maxf(0.2, duration * (1.0 - resist))
-				print("[StatusEffectService] Rage resistencia stun peer ", peer_id, " ", resist*100, "% ", orig, "->", duration)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] Rage resistencia stun peer ", peer_id, " ", resist*100, "% ", orig, "->", duration])
 				_rage_stun_hits[peer_id] = _rage_stun_hits.get(peer_id, 0) + 1
 				# Sincroniza también con AbilityStateService si está disponible
 				if _ability_state_service and _ability_state_service.has_method("consume_rage_stun_hit"):
@@ -152,7 +148,7 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 
 	# Bloquear stun si el killer tiene inmunidad post-stun
 	if effect_name == "stun" and _stun_immunity.has(peer_id):
-		print("[StatusEffectService] Stun bloqueado — killer ", peer_id, " tiene inmunidad post-stun.")
+		NetLog.debug_parts(TAG, ["[StatusEffectService] Stun bloqueado — killer ", peer_id, " tiene inmunidad post-stun."])
 		return
 
 	_ensure_registered(peer_id)
@@ -167,8 +163,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			instances[0]["timer_original"] = minf(instances[0].get("timer_original", 0.0) + duration, max_stun)
 			if params.has("post_stun_dr"):
 				instances[0]["post_stun_dr"] = params.get("post_stun_dr")
-			print("[StatusEffectService] stun acumulado para peer ", peer_id,
-				  " | duración total restante: ", instances[0]["timer"])
+			NetLog.debug_parts(TAG, ["[StatusEffectService] stun acumulado para peer ", peer_id,
+				  " | duración total restante: ", instances[0]["timer"]])
 		else:
 			# Los efectos acumulables gestionan su propio refresh por fuente.
 			if not effect_name in ACCUMULATE_EFFECTS:
@@ -185,8 +181,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			instances[0]["stacks"] = stacks
 			instances[0]["max_stacks"] = max_stacks
 			instances[0]["timer"] = maxf(float(instances[0]["timer"]), duration)
-			print("[StatusEffectService] burn stack ", stacks, "/", max_stacks,
-					" para peer ", peer_id, " | timer: ", instances[0]["timer"])
+			NetLog.debug_parts(TAG, ["[StatusEffectService] burn stack ", stacks, "/", max_stacks,
+					" para peer ", peer_id, " | timer: ", instances[0]["timer"]])
 
 		# BUG 3 FIX: el slow acumulable necesita append, no refresh.
 		# _calculate_speed suma todas las instancias del array, pero apply()
@@ -205,8 +201,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			if not found:
 				# Fuente distinta — agregar nueva instancia acumulable
 				instances.append({ "timer": duration, "magnitude": incoming_magnitude })
-				print("[StatusEffectService] slow acumulado para peer ", peer_id,
-					  " | magnitude: ", incoming_magnitude)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] slow acumulado para peer ", peer_id,
+					  " | magnitude: ", incoming_magnitude])
 
 		if effect_name == "bleed":
 			var incoming_dps: float = params.get("dps", 5.0)
@@ -225,8 +221,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 					"tick_interval": incoming_interval,
 					"tick_timer": incoming_interval,
 				})
-				print("[StatusEffectService] bleed acumulado para peer ", peer_id,
-					  " | dps: ", incoming_dps, " | intervalo: ", incoming_interval)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] bleed acumulado para peer ", peer_id,
+					  " | dps: ", incoming_dps, " | intervalo: ", incoming_interval])
 
 		if effect_name == "damage_boost":
 			var incoming_mult: float = params.get("multiplier", 1.5)
@@ -238,8 +234,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 					break
 			if not found_boost:
 				instances.append({ "timer": duration, "multiplier": incoming_mult })
-				print("[StatusEffectService] damage_boost acumulado para peer ", peer_id,
-					  " | multiplier: ", incoming_mult)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] damage_boost acumulado para peer ", peer_id,
+					  " | multiplier: ", incoming_mult])
 
 		if effect_name == "damage_reduction":
 			var incoming_mag: float = params.get("magnitude", 0.5)
@@ -251,8 +247,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 					break
 			if not found_red:
 				instances.append({ "timer": duration, "magnitude": incoming_mag })
-				print("[StatusEffectService] damage_reduction acumulado para peer ", peer_id,
-					  " | magnitude: ", incoming_mag)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] damage_reduction acumulado para peer ", peer_id,
+					  " | magnitude: ", incoming_mag])
 
 		if effect_name == "blind":
 			var incoming_factor: float = params.get("vision_factor", 0.5)
@@ -270,8 +266,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 					"vision_factor": incoming_factor,
 					"miss_chance": incoming_miss,
 				})
-				print("[StatusEffectService] blind acumulado para peer ", peer_id,
-					  " | factor: ", incoming_factor, " | miss: ", incoming_miss)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] blind acumulado para peer ", peer_id,
+					  " | factor: ", incoming_factor, " | miss: ", incoming_miss])
 
 		if effect_name == "stamina_reduction":
 			var incoming_magnitude: float = params.get("magnitude", 0.7)
@@ -283,12 +279,12 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 					break
 			if not found:
 				instances.append({ "timer": duration, "magnitude": incoming_magnitude })
-				print("[StatusEffectService] stamina_reduction acumulado para peer ", peer_id,
-					  " | magnitude: ", incoming_magnitude)
+				NetLog.debug_parts(TAG, ["[StatusEffectService] stamina_reduction acumulado para peer ", peer_id,
+					  " | magnitude: ", incoming_magnitude])
 			_recalculate_stamina_drain(peer_id, player_node)
 
-		print("[StatusEffectService] ", effect_name, " refrescado para peer ", peer_id,
-			  " | duración: ", instances[0]["timer"])
+		NetLog.debug_parts(TAG, ["[StatusEffectService] ", effect_name, " refrescado para peer ", peer_id,
+			  " | duración: ", instances[0]["timer"]])
 	else:
 		var instance := { "timer": duration }
 		if effect_name == "slow":
@@ -326,8 +322,8 @@ func apply(player_node: Node, effect_name: String, params: Dictionary) -> void:
 			if not _stamina_drain_originals.has(peer_id):
 				_stamina_drain_originals[peer_id] = player_node.character_data.stamina_sprint_drain
 			_recalculate_stamina_drain(peer_id, player_node)
-		print("[StatusEffectService] ", effect_name, " aplicado a peer ", peer_id,
-			  " | duración: ", duration)
+		NetLog.debug_parts(TAG, ["[StatusEffectService] ", effect_name, " aplicado a peer ", peer_id,
+			  " | duración: ", duration])
 
 		if effect_name in ["stun", "root"]:
 			var revive_svc = _revive_service
@@ -423,9 +419,9 @@ func clear_rage_resistance(peer_id: int) -> void:
 func register(player_node: Node) -> void:
 	if not multiplayer.is_server():
 		return
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_ensure_registered(peer_id)
-	print("[StatusEffectService] ", peer_id, " registrado.")
+	NetLog.debug_parts(TAG, ["[StatusEffectService] ", peer_id, " registrado."])
 
 
 func _is_rage_active(peer_id: int) -> bool:
@@ -465,14 +461,14 @@ func _get_rage_resistance(peer_id: int) -> float:
 func unregister(player_node: Node) -> void:
 	if not multiplayer.is_server():
 		return
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_effects.erase(peer_id)
 	_last_speed.erase(peer_id)
 	_stun_immunity.erase(peer_id)
 	_post_stun_dr.erase(peer_id)
 	_stamina_drain_originals.erase(peer_id)
 	_rage_stun_hits.erase(peer_id)
-	print("[StatusEffectService] ", peer_id, " desregistrado.")
+	NetLog.debug_parts(TAG, ["[StatusEffectService] ", peer_id, " desregistrado."])
 
 
 # ── Post-stun ──────────────────────────────────────────────────────────
@@ -489,8 +485,8 @@ func _on_stun_expired(peer_id: int, instance: Dictionary) -> void:
 		_stun_immunity[peer_id] = immunity_duration
 		player_node.invincible_until = Time.get_ticks_msec() + int(immunity_duration * 1000)
 		player_node.rpc("_sync_invincibility", int(immunity_duration * 1000))
-		print("[StatusEffectService] Killer ", peer_id,
-			  " tiene inmunidad post-stun por ", immunity_duration, "s")
+		NetLog.debug_parts(TAG, ["[StatusEffectService] Killer ", peer_id,
+			  " tiene inmunidad post-stun por ", immunity_duration, "s"])
 	else:
 		var dr: float = instance.get("post_stun_dr", 0.0)
 		if dr > 0.0:
@@ -498,8 +494,8 @@ func _on_stun_expired(peer_id: int, instance: Dictionary) -> void:
 				"timer":     immunity_duration,
 				"magnitude": dr,
 			}
-			print("[StatusEffectService] Survivor ", peer_id,
-				  " tiene DR post-stun ", dr * 100, "% por ", immunity_duration, "s")
+			NetLog.debug_parts(TAG, ["[StatusEffectService] Survivor ", peer_id,
+				  " tiene DR post-stun ", dr * 100, "% por ", immunity_duration, "s"])
 
 
 # ── Stamina Reduction ──────────────────────────────────────────────────
@@ -586,7 +582,7 @@ func _recalculate_speed(peer_id: int) -> void:
 	if not is_equal_approx(new_speed, last):
 		_last_speed[peer_id] = new_speed
 		player_node.rpc("_sync_speed", new_speed)
-		print("[StatusEffectService] Speed de ", peer_id, " → ", new_speed)
+		NetLog.debug_parts(TAG, ["[StatusEffectService] Speed de ", peer_id, " → ", new_speed])
 
 
 func _calculate_speed(peer_id: int, base_speed: float) -> float:
@@ -630,18 +626,18 @@ func _sync_effect_to_clients(peer_id: int, effect_name: String, active: bool, du
 
 
 func _get_player(peer_id: int) -> Node:
-	return PlayerRegistry.get_player(peer_id)
+	return PlayerLifecycleManager.get_player(peer_id)
 
 func remove_modifier(modifier_id: String, player_node: Node = null) -> void:
 	if not multiplayer.is_server():
 		return
 		
-	print("[StatusEffectService] Intento de remover modificador: ", modifier_id)
+	NetLog.debug_parts(TAG, ["[StatusEffectService] Intento de remover modificador: ", modifier_id])
 	
 	# Si nos pasan el nodo del jugador, forzamos un recálculo de su velocidad 
 	# para asegurarnos de que limpie cualquier rastro visual o mecánico.
 	if is_instance_valid(player_node):
-		var peer_id := player_node.get_multiplayer_authority()
+		var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 		_recalculate_speed(peer_id)
 	elif modifier_id == "lms_buff":
 		# Si no hay nodo pero es el buff de LMS, recalculamos a todos los peers activos
@@ -652,10 +648,10 @@ func remove_effect(player_node: Node, effect_name: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if not effect_name in EFFECT_TYPES:
-		push_warning("[StatusEffectService] remove_effect: efecto desconocido: ", effect_name)
+		NetLog.warn_parts(TAG, ["[StatusEffectService] remove_effect: efecto desconocido: ", effect_name])
 		return
  
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not _effects.has(peer_id):
 		return
 	if _effects[peer_id][effect_name].is_empty():
@@ -671,7 +667,7 @@ func remove_effect(player_node: Node, effect_name: String) -> void:
 		_refresh_blind_visual(peer_id)
 	_sync_effect_to_clients(peer_id, effect_name, false)
 
-	print("[StatusEffectService] ", effect_name, " eliminado manualmente para peer ", peer_id)
+	NetLog.debug_parts(TAG, ["[StatusEffectService] ", effect_name, " eliminado manualmente para peer ", peer_id])
  
 
 func _exit_tree() -> void:
@@ -681,4 +677,4 @@ func _exit_tree() -> void:
 	_post_stun_dr.clear()
 	_stamina_drain_originals.clear()
 	_rage_stun_hits.clear()
-	print("[StatusEffectService] Limpiado.")
+	NetLog.debug_parts(TAG, ["[StatusEffectService] Limpiado."])

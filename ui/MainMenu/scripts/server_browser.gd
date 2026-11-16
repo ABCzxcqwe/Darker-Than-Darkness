@@ -1,4 +1,6 @@
 extends Control
+
+const TAG := "server_browser"
 ## ServerBrowser — LAN IP real + ONLINE real, timeout anti-atasco, soul rojo
 
 const MODE_ONLINE := "ONLINE"
@@ -21,7 +23,7 @@ const HEADER_KEYS := {
 }
 var _mock_rooms: Array[Dictionary] = []
 var _master_rooms: Array[Dictionary] = []
-var _steam_lobbies: Array = []
+var _online_lobbies: Array = []
 var _fallback_attempted := false
 var _join_serial := 0
 var _refresh_serial := 0
@@ -68,21 +70,20 @@ func _ready() -> void:
 			nm.connection_failed.connect(_on_connection_failed)
 		if not nm.server_disconnected.is_connected(_on_server_disconnected):
 			nm.server_disconnected.connect(_on_server_disconnected)
-		if not nm.steam_lobby_list_updated.is_connected(_on_steam_lobby_list):
-			nm.steam_lobby_list_updated.connect(_on_steam_lobby_list)
+		_bind_lobby_list_signal(nm, true)
 		
 		var sm := get_node_or_null("/root/SettingsManager")
 		if _mode == MODE_ONLINE:
-			var provider := "steam"
-			if sm and "online_provider" in sm:
-				provider = str(sm.online_provider).to_lower()
+			var provider := NetworkSettings.get_provider()
 			var ok = false
-			if nm.has_method("initialize_online"):
+			if nm.has_method("initialize_online_async"):
+				ok = await nm.initialize_online_async(provider)
+			elif nm.has_method("initialize_online"):
 				ok = nm.initialize_online(provider)
 			elif nm.has_method("initialize_steam"):
 				ok = nm.initialize_steam()
 			if not ok or not nm.is_online_available(provider):
-				print("[ServerBrowser] Online no disponible, forzando LAN")
+				NetLog.debug_parts(TAG, ["[ServerBrowser] Online no disponible, forzando LAN"])
 				_mode = MODE_LAN
 				_set_title()
 				_configure_search_row()
@@ -90,17 +91,17 @@ func _ready() -> void:
 				cfg2.load("user://mock_playmode.cfg")
 				cfg2.set_value("mock", "mode", _mode)
 				cfg2.save("user://mock_playmode.cfg")
+				NetworkSettings.set_mode(NetEnums.Mode.LAN)
 				if sm:
-					sm.network_mode = 0
 					sm.save_settings()
 				nm.set_lan_mode()
 			else:
+				NetworkSettings.set_mode(NetEnums.Mode.ONLINE)
 				if sm:
-					sm.network_mode = 1
 					sm.save_settings()
 		else:
+			NetworkSettings.set_mode(NetEnums.Mode.LAN)
 			if sm:
-				sm.network_mode = 0
 				sm.save_settings()
 			nm.set_lan_mode()
 
@@ -214,9 +215,9 @@ func _configure_search_row(preserve_text: bool = false) -> void:
 func _load_mode() -> String:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:
-		return MODE_ONLINE if sm.network_mode == 1 else MODE_LAN
+		return MODE_ONLINE if NetworkSettings.get_mode() == NetEnums.Mode.ONLINE else MODE_LAN
 	var nm := get_node_or_null("/root/NetworkManager")
-	if nm and nm.network_mode == 1:
+	if nm and nm.network_mode == nm.NetworkMode.ONLINE:
 		return MODE_ONLINE
 	return MODE_LAN
 
@@ -480,8 +481,8 @@ func _confirm() -> void:
 						row_index = count_hbox
 						break
 					count_hbox += 1
-			if row_index >= 0 and row_index < _steam_lobbies.size():
-				_try_join_steam(_steam_lobbies[row_index])
+			if row_index >= 0 and row_index < _mock_rooms.size():
+				_try_join_online(_mock_rooms[row_index])
 		else:
 			var row_idx2 := -1
 			var cnt2 := 0
@@ -516,7 +517,7 @@ func _apply_server_base(base: String) -> void:
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:
-		sm.coordinator_url = base
+		NetworkSettings.set_coordinator_url(base)
 		sm.save_settings()
 
 
@@ -598,7 +599,7 @@ func _try_join_lan_with_ip(ip: String) -> void:
 	if nm2 == null:
 		_hint.text = tr("BROWSE_MSG_NO_NM")
 		return
-	if nm2.network_mode != nm2.NetworkMode.LAN:
+	if NetworkSettings.get_mode() != NetEnums.Mode.LAN:
 		nm2.set_lan_mode()
 	_begin_join(tr("BROWSE_MSG_CONNECTING") % ip, nm2, player_name2, ip)
 
@@ -606,12 +607,17 @@ func _try_join_lan() -> void:
 	var ip := _ip_edit.text.strip_edges()
 	_try_join_lan_with_ip(ip)
 
-func _try_join_steam(lobby_id: int) -> void:
+func _try_join_online(summary: Dictionary) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	var player_name: String = sm.player_name if sm and sm.player_name != "" else tr("BROWSE_DEFAULT_NAME")
 	var nm := get_node_or_null("/root/NetworkManager")
-	if nm == null or not nm.is_steam_ready():
+	var provider := NetworkSettings.get_provider()
+	if nm == null or not nm.is_online_available(provider):
 		_hint.text = tr("BROWSE_MSG_ONLINE_NA")
+		return
+	var lobby_id := String(summary.get("id", ""))
+	if lobby_id == "":
+		_hint.text = tr("BROWSE_MSG_NO_SERVER")
 		return
 	_begin_join(tr("BROWSE_MSG_CONNECTING_ONLINE"), nm, player_name, lobby_id)
 
@@ -638,9 +644,12 @@ func _begin_join(msg: String, nm, player_name: String, target, reset_fallback: b
 	if serial != _join_serial:
 		return  # intento viejo: ya hay otro join en curso
 	if _joining:
-		var fell_back: bool = await _try_fallback_normal_room()
-		if fell_back:
-			return
+		# El fallback al coordinador es solo para LAN. En online el proveedor
+		# (Steam/EOSG) ya tiene su propio timeout.
+		if _mode == MODE_LAN:
+			var fell_back: bool = await _try_fallback_normal_room()
+			if fell_back:
+				return
 		_end_join(tr("BROWSE_MSG_NO_RESPONSE"))
 
 func _end_join(msg: String) -> void:
@@ -713,7 +722,7 @@ func _try_fallback_normal_room() -> bool:
 		if room_host == "":
 			room_host = coord_host
 		var target := "%s:%d" % [room_host, port]
-		print("[ServerBrowser] Fallback a sala normal: ", target)
+		NetLog.debug_parts(TAG, ["[ServerBrowser] Fallback a sala normal: ", target])
 		# reset_fallback=false: no reiniciar el guard (evita loops de fallback).
 		_begin_join(tr("BROWSE_MSG_JOINING_NORMAL"), nm, pname, target, false)
 		return true
@@ -727,9 +736,7 @@ func _coordinator_host() -> String:
 	if cc and "base_url" in cc:
 		base = String(cc.base_url)
 	if base.strip_edges() == "":
-		var sm := get_node_or_null("/root/SettingsManager")
-		if sm:
-			base = String(sm.coordinator_url)
+		base = NetworkSettings.get_coordinator_url()
 	base = base.replace("https://", "").replace("http://", "")
 	var host := base.split("/")[0]
 	if host.contains(":"):
@@ -739,23 +746,33 @@ func _coordinator_host() -> String:
 func _on_server_disconnected() -> void:
 	_end_join(tr("BROWSE_MSG_DISCONNECTED"))
 
-func _on_steam_lobby_list(lobbies: Array) -> void:
-	_steam_lobbies = lobbies
+func _on_online_lobby_list(lobbies: Array) -> void:
+	_online_lobbies = lobbies
 	_master_rooms.clear()
 	_mock_rooms.clear()
-	var usteam = Engine.get_singleton("Steam")
-	for lobby_id in lobbies:
-		var name_text: String = usteam.getLobbyData(lobby_id, "name") if usteam else str(lobby_id)
-		var map_text: String = usteam.getLobbyData(lobby_id, "map") if usteam else "?"
-		var members: int = usteam.getNumLobbyMembers(lobby_id) if usteam else 1
-		var mode_text: String = GAME_MODES[0]
-		var maxp: int = 10
-		if usteam:
-			var m = usteam.getLobbyData(lobby_id, "mode")
-			if m != "": mode_text = m
-			var mp_str: String = str(usteam.getLobbyData(lobby_id, "max_players"))
-			if mp_str != "": maxp = int(mp_str)
-		var d := {"nombre": name_text, "host": name_text, "mapa": map_text, "jugadores": "%d/%d" % [members, maxp], "modo": mode_text, "estado": "online", "ip": name_text}
+	for entry in lobbies:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var name_text := String(entry.get("name", "")).strip_edges()
+		if name_text == "":
+			name_text = String(entry.get("id", "Lobby"))
+		var map_text := String(entry.get("map", "?"))
+		var mode_text := String(entry.get("mode", GAME_MODES[0]))
+		var members := int(entry.get("players", 1))
+		var maxp := int(entry.get("max_players", 10))
+		var host_text := String(entry.get("host", name_text))
+		var d := {
+			"nombre": name_text,
+			"host": host_text,
+			"mapa": map_text,
+			"jugadores": "%d/%d" % [members, maxp],
+			"modo": mode_text,
+			"estado": "online",
+			"ip": name_text,
+			"id": String(entry.get("id", "")),
+			"lobby_id": String(entry.get("id", "")),
+			"provider": String(entry.get("provider", "")),
+		}
 		_master_rooms.append(d)
 	_mock_rooms = _master_rooms.duplicate()
 	_populate_rooms()
@@ -765,6 +782,24 @@ func _on_steam_lobby_list(lobbies: Array) -> void:
 	_busy = false
 	_hint.text = tr("BROWSE_MSG_ROOMS_FOUND") % _mock_rooms.size() if not _mock_rooms.is_empty() else tr("BROWSE_MSG_NO_ROOMS")
 
+
+func _bind_lobby_list_signal(nm: Node, bind: bool) -> void:
+	if nm == null:
+		return
+	var target := Callable(self, "_on_online_lobby_list")
+	if nm.has_signal("online_lobby_list_updated"):
+		if bind and not nm.online_lobby_list_updated.is_connected(target):
+			nm.online_lobby_list_updated.connect(target)
+		elif not bind and nm.online_lobby_list_updated.is_connected(target):
+			nm.online_lobby_list_updated.disconnect(target)
+		return
+	# Compatibilidad con NetworkManager viejo.
+	if nm.has_signal("steam_lobby_list_updated"):
+		if bind and not nm.steam_lobby_list_updated.is_connected(target):
+			nm.steam_lobby_list_updated.connect(target)
+		elif not bind and nm.steam_lobby_list_updated.is_connected(target):
+			nm.steam_lobby_list_updated.disconnect(target)
+
 func _do_refresh() -> void:
 	if _busy:
 		return
@@ -772,10 +807,7 @@ func _do_refresh() -> void:
 	var serial := _refresh_serial
 	if _mode == MODE_ONLINE:
 		var nm := get_node_or_null("/root/NetworkManager")
-		var sm_ref := get_node_or_null("/root/SettingsManager")
-		var provider := "steam"
-		if sm_ref and "online_provider" in sm_ref:
-			provider = str(sm_ref.online_provider).to_lower()
+		var provider := NetworkSettings.get_provider()
 		if nm == null or not nm.is_online_available(provider):
 			_hint.text = tr("BROWSE_MSG_ONLINE_NA")
 			return
@@ -968,5 +1000,4 @@ func _exit_tree() -> void:
 			nm.connection_failed.disconnect(_on_connection_failed)
 		if nm.server_disconnected.is_connected(_on_server_disconnected):
 			nm.server_disconnected.disconnect(_on_server_disconnected)
-		if nm.steam_lobby_list_updated.is_connected(_on_steam_lobby_list):
-			nm.steam_lobby_list_updated.disconnect(_on_steam_lobby_list)
+		_bind_lobby_list_signal(nm, false)

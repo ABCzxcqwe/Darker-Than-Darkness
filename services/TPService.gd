@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "TPService"
+
 signal tp_changed(peer_id: int, current_tp: float, max_tp: float)
 
 var _tp: Dictionary = {} # {peer_id: current_tp}
@@ -71,7 +73,7 @@ func add_tp(peer_id: int, amount_type: String) -> void:
 	tp_changed.emit(peer_id, current_tp, max_tp)
 	
 	# 2. Sincronizar con todos los clientes vía RPC
-	_client_relay.rpc("sync_tp_to_client", peer_id, current_tp, max_tp)
+	_sync_tp(peer_id, current_tp, max_tp)
 
 	# Log para debug
 	# print("[TPService] ", _get_log_name(peer_id), " +", amount, " TP (", amount_type, ") | Total: ", current_tp)
@@ -128,7 +130,7 @@ func add_tp_custom(peer_id: int, amount: float = 15.0) -> void:
 	
 	# Sincronizamos con los clientes
 	tp_changed.emit(peer_id, _tp[peer_id], data.tp_max)
-	_client_relay.rpc("sync_tp_to_client", peer_id, _tp[peer_id], data.tp_max)
+	_sync_tp(peer_id, _tp[peer_id], data.tp_max)
 	
 	# print("[TPService] TP Custom añadido: ", amount, " para peer: ", peer_id)
 
@@ -142,8 +144,7 @@ func dev_set_tp(peer_id: int, value: float) -> void:
 	var clamped: float = clampf(value, 0.0, data.tp_max)
 	_tp[peer_id] = clamped
 	tp_changed.emit(peer_id, clamped, data.tp_max)
-	if _client_relay:
-		_client_relay.rpc("sync_tp_to_client", peer_id, clamped, data.tp_max)
+	_sync_tp(peer_id, clamped, data.tp_max)
 
 
 func consume_tp(peer_id: int, amount: float) -> bool:
@@ -162,7 +163,12 @@ func consume_tp(peer_id: int, amount: float) -> bool:
 
 	# Sincronización local y remota compartiendo tu pipeline existente
 	tp_changed.emit(peer_id, new_tp, max_tp)
-	_client_relay.rpc("sync_tp_to_client", peer_id, new_tp, max_tp)
+	_sync_tp(peer_id, new_tp, max_tp)
 	
-	print("[TPService] %s consumió %d TP | Restante: %d" % [_get_log_name(peer_id), amount, new_tp])
+	NetLog.debug_parts(TAG, ["[TPService] %s consumió %d TP | Restante: %d" % [_get_log_name(peer_id), amount, new_tp]])
 	return true
+
+
+func _sync_tp(peer_id: int, current_tp: float, max_tp: float) -> void:
+	if _client_relay:
+		_client_relay.rpc("sync_tp_to_client", peer_id, current_tp, max_tp)

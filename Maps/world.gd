@@ -1,45 +1,51 @@
-# res://Maps/world.gd
+# res://Session/world.gd
 extends Node2D
+## Orquestador del World de partida: carga de mapa, spawns, visibilidad de
+## RollbackSynchronizer (netfox) y transición a PLAYING.
+##
+## HUD/scoreboard viven en WorldHud; el modo de vista local en WorldView.
 
-const GAME_HUD_SCENE := preload("uid://cvjakwoxx54w4")
-const GAME_HUD_MOCK_SCENE := preload("res://ui/GameUI/Mock/GameHUDMock.tscn")
-const PLAYER_SCENE := preload("uid://djw510qiudh6e")
-const DEV_MENU_SCENE := preload("res://ui/InGameMenu/DevMenu.tscn")
-const SCOREBOARD_SCENE := preload("res://ui/GameUI/Scenes/Scoreboard.tscn")
-const USE_MOCK_HUD := true
+const TAG := "World"
 
 @export var services_config: GameServicesConfig = null
 
 @onready var map_container: Node2D = $MapContainer
 
-var _hud: CanvasLayer = null
-var _scoreboard: Node = null
+var hud: WorldHud
+var view: WorldView
 var current_map_node: BaseMap = null
-## "play" | "spectate" | "hub". En "hub" el servidor sigue simulando pero no
-## muestra ni HUD ni cámara de la partida localmente.
-var _local_view_mode := "play"
-var _local_view_ready := false
-var _applying_local_view := false
-var _match_canvas_modulates: Array[CanvasModulate] = []
+var _player_scene: PackedScene = null
+
 
 func _ready() -> void:
 	if not services_config:
-		push_error("[World] No hay services_config asignado.")
+		NetLog.error(TAG, "No hay services_config asignado.")
 		return
 
-	_local_view_mode = String(get_meta("local_view_mode", "play"))
+	_player_scene = load(NetScenes.PLAYER_UID) as PackedScene
+
+	hud = WorldHud.new()
+	hud.name = "WorldHud"
+	add_child(hud)
+	hud.setup(self)
+
+	view = WorldView.new()
+	view.name = "WorldView"
+	add_child(view)
+	view.setup(self)
+	view.set_initial_mode(String(get_meta("local_view_mode", "play")))
+
 	GameServiceLocator.register_all(services_config)
-
 	await _load_map()
-	_collect_match_canvas_modulates()
+	_apply_camera_bounds()
+	view.collect_canvas_modulates()
 
-	# Inicializar eventos del mapa (coordinador)
 	var coordinator = GameServiceLocator.map_event_coordinator
 	if coordinator and coordinator.has_method("setup") and current_map_node:
 		coordinator.setup(current_map_node)
 
 	# Spawn determinista local: cada peer crea los nodos de jugador desde el
-	# roster. Sin MultiplayerSpawner el Synchronizer sincroniza por ruta.
+	# roster. Sin MultiplayerSpawner, netfox sincroniza por ruta de nodo.
 	var player_characters: Dictionary = get_meta("player_characters", {})
 	var spawned := _spawn_players_locally(player_characters)
 
@@ -48,72 +54,139 @@ func _ready() -> void:
 		_position_players_in_spawns()
 	else:
 		# Avisamos al servidor que nuestros nodos ya existen para que habilite la
-		# visibilidad de los Synchronizer hacia nosotros. Le pasamos la lista
-		# exacta de nodos que tenemos: el motor manda el "path cache" de cada
-		# Synchronizer una sola vez por peer, así que otorgar visibilidad para un
-		# nodo que no existe acá dejaría ese canal muerto para siempre.
-		rpc_id(1, "_peer_world_ready", spawned)
+		# visibilidad de los RollbackSynchronizer hacia nosotros. Le pasamos la
+		# lista exacta de nodos que este peer tiene, para no enviarle RPC a rutas
+		# inexistentes.
+		rpc_id(LobbyManager.server_peer_id, "_peer_world_ready", spawned)
 
 	await get_tree().process_frame
 	await get_tree().process_frame
-	_setup_scoreboard()
-	await _setup_hud()
-	_local_view_ready = true
-	_apply_local_view_mode()
+	await hud.setup_for_mode(view.get_mode())
+	view.mark_ready()
+	view.apply()
 
 	if multiplayer.is_server():
 		var tp = GameServiceLocator.tp
 		if tp:
 			tp.start_passive_gain()
 		else:
-			push_warning("[World] TPService no disponible — ganancia pasiva no iniciada.")
-	
-	print("[World] Mapa cargado e inicializado correctamente.")
+			NetLog.warn(TAG, "TPService no disponible — ganancia pasiva no iniciada.")
+
+	NetLog.info(TAG, "Mapa cargado e inicializado correctamente.")
 
 	var game_state = GameServiceLocator.game_state
 	if game_state:
 		game_state.transition_to_playing()
 
-func _load_map():
-	var map_id: String = GameData.selected_map
+
+func _apply_camera_bounds() -> void:
+	if current_map_node == null:
+		return
+	if not current_map_node.has_method("get_camera_bounds"):
+		return
+	var rig := CameraRig.get_active()
+	if rig == null:
+		return
+	var bounds: Variant = current_map_node.get_camera_bounds()
+	if bounds is Rect2:
+		rig.set_map_bounds(bounds)
+
+
+func _load_map() -> void:
+	var map_id: String = SessionState.active_map_id
 	if map_id == "":
-		push_warning("[World] GameData.selected_map está vacío — no se cargará ningún mapa.")
+		map_id = LobbyManager.selected_map
+	if map_id == "":
+		NetLog.warn(TAG, "active_map_id vacío — no se cargará ningún mapa.")
 		return
 
 	var map_data: MapData = MapRegistry.get_map(map_id)
 	if not map_data:
-		push_error("[World] No se encontró MapData para id '", map_id, "'")
+		NetLog.error(TAG, "No se encontró MapData para id '%s'." % map_id)
 		return
-
 	if not map_data.map_scene:
-		push_error("[World] MapData '", map_id, "' no tiene map_scene asignada.")
+		NetLog.error(TAG, "MapData '%s' no tiene map_scene asignada." % map_id)
 		return
 
 	var map_instance := map_data.map_scene.instantiate()
 	map_container.add_child(map_instance)
-	
-	# Guardamos la referencia
 	current_map_node = map_instance as BaseMap
-	
-	# ¡LA CLAVE!: Si el mapa aún no está listo en el árbol, esperamos a que su señal 'ready' se emita.
-	# Esto garantiza que todos sus @onready e hijos internos existan antes de que _ready() en World continúe.
+
 	if not map_instance.is_node_ready():
 		await map_instance.ready
 
-	print("[World] Mapa '", map_data.display_name, "' cargado e inicializado correctamente.")
+	NetLog.info(TAG, "Mapa '%s' cargado e inicializado correctamente." % map_data.display_name)
 
 
 ## Instancia todos los jugadores del roster localmente en este peer.
-## Sin MultiplayerSpawner, el Synchronizer sincroniza por ruta, así que los
-## peers que entran tarde también reciben el delta continuo.
-## Devuelve los peer_id de los nodos que realmente quedaron creados: el servidor
-## solo puede otorgar visibilidad de Synchronizer para esos (ver _peer_world_ready).
+## Devuelve los peer_id de los nodos que realmente quedaron creados.
 func _spawn_players_locally(player_characters: Dictionary) -> Array:
 	var spawned: Array = []
-	for peer_id in player_characters:
-		if _spawn_player_node(int(peer_id), int(player_characters[peer_id])):
-			spawned.append(int(peer_id))
+	var peer_ids: Array = player_characters.keys()
+	peer_ids.sort()
+
+	# Reparto determinista: mismo orden de peers y de marcadores en todos los
+	# peers, así cada jugador aparece en su spawn designado aunque todavía no
+	# haya llegado el estado del servidor.
+	var killer_spawns := _map_spawn_positions("killer")
+	var survivor_spawns := _map_spawn_positions("survivor")
+	var killer_index := 0
+	var survivor_index := 0
+
+	for peer_id in peer_ids:
+		var pid := int(peer_id)
+		if not _spawn_player_node(pid, int(player_characters[peer_id])):
+			continue
+		spawned.append(pid)
+
+		var player_node := get_node_or_null(str(pid))
+		if player_node == null:
+			continue
+		var team := "survivor"
+		if player_node.character_data != null:
+			team = String(player_node.character_data.team)
+
+		var spawn_position: Vector2
+		if team == "killer":
+			spawn_position = _pick_spawn(
+				killer_spawns, killer_index, _map_fallback_position(), Vector2(0.0, -96.0)
+			)
+			killer_index += 1
+		else:
+			spawn_position = _pick_spawn(
+				survivor_spawns, survivor_index, _map_fallback_position(), Vector2(96.0, 0.0)
+			)
+			survivor_index += 1
+
+		player_node.set_meta("spawn_position", spawn_position)
+		_apply_spawn_position(player_node, spawn_position)
 	return spawned
+
+
+func _map_spawn_positions(team: String) -> Array[Vector2]:
+	if current_map_node == null:
+		return []
+	if team == "killer":
+		if current_map_node.has_method("get_killer_spawn_positions"):
+			return current_map_node.get_killer_spawn_positions()
+	elif current_map_node.has_method("get_survivor_spawn_positions"):
+		return current_map_node.get_survivor_spawn_positions()
+	return []
+
+
+func _map_fallback_position() -> Vector2:
+	if current_map_node != null:
+		return current_map_node.global_position
+	return global_position
+
+
+func _apply_spawn_position(player_node: Node, spawn_position: Vector2) -> void:
+	if player_node == null or not is_instance_valid(player_node):
+		return
+	if player_node.has_method("set_spawn_position"):
+		player_node.set_spawn_position(spawn_position)
+		return
+	player_node.global_position = spawn_position
 
 
 func _spawn_player_node(peer_id: int, char_id: int) -> bool:
@@ -121,7 +194,11 @@ func _spawn_player_node(peer_id: int, char_id: int) -> bool:
 	if has_node(node_name):
 		return true
 
-	var role := "survivor"
+	if _player_scene == null:
+		NetLog.error(TAG, "No se pudo cargar la escena de jugador (%s)." % NetScenes.PLAYER_UID)
+		return false
+
+	var role := PlayerInfo.ROLE_SURVIVOR
 	if LobbyManager.players.has(peer_id):
 		role = String(LobbyManager.players[peer_id].get("assigned_role", role))
 
@@ -129,39 +206,30 @@ func _spawn_player_node(peer_id: int, char_id: int) -> bool:
 	if char_id <= 0 or not CharacterRegistry.has_character(char_id):
 		var fallback := CharacterRegistry.get_fallback(role)
 		if fallback == null:
-			push_error("[World] Peer %d sin personaje (id %d) y sin fallback para rol '%s'; no se spawnea." % [
-				peer_id, char_id, role
-			])
+			NetLog.error(TAG, "Peer %d sin personaje (id %d) y sin fallback para rol '%s'." % [peer_id, char_id, role])
 			return false
 		resolved_id = fallback.id
-		push_warning("[World] Peer %d: ID %d no resuelto en este cliente; usando fallback '%s' (id %d)." % [
+		NetLog.warn(TAG, "Peer %d: ID %d no resuelto; usando fallback '%s' (id %d)." % [
 			peer_id, char_id, fallback.display_name, fallback.id
 		])
 
-	var player := PLAYER_SCENE.instantiate()
+	var player := _player_scene.instantiate()
 	player.name = node_name
-	player.set_multiplayer_authority(peer_id)
+	# netfox: el Player es autoridad del servidor y el dueño real va en owner_peer_id.
+	player.owner_peer_id = peer_id
+	player.set_multiplayer_authority(1)
 	player.set_character(resolved_id)
 	if player.character_data == null:
-		push_error("[World] Peer %d quedó sin character_data tras set_character(%d); no se spawnea." % [
-			peer_id, resolved_id
-		])
+		NetLog.error(TAG, "Peer %d quedó sin character_data tras set_character(%d)." % [peer_id, resolved_id])
 		player.free()
 		return false
 	add_child(player)
-	print("[World] Jugador spawneado localmente: peer ", peer_id, " (char: ", resolved_id, ")")
+	NetLog.debug(TAG, "Jugador spawneado: peer %d (char %d)." % [peer_id, resolved_id])
 	return true
 
 
-## Un peer avisa que ya creó sus nodos de jugador. En ese momento el servidor
-## habilita la visibilidad del Synchronizer (autoridad del servidor) hacia ese
-## peer, forzando el estado inicial y habilitando el delta continuo.
-##
-## `spawned_peers` es la lista de nodos que el cliente realmente creó. Es
-## imprescindible respetarla: el motor manda el "path cache" de un Synchronizer
-## una sola vez por peer y no reintenta, así que otorgar visibilidad para un
-## nodo que el cliente no tiene rompería ese canal para siempre (síntoma: el
-## espectador ve el teleport por RPC pero no el caminar).
+## Un peer avisa que ya creó sus nodos de jugador. El servidor habilita la
+## visibilidad del RollbackSynchronizer y fuerza el estado inicial de posición.
 @rpc("any_peer", "reliable")
 func _peer_world_ready(spawned_peers: Array) -> void:
 	if not multiplayer.is_server():
@@ -180,201 +248,63 @@ func _peer_world_ready(spawned_peers: Array) -> void:
 	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
 		if not is_instance_valid(player_node):
 			continue
-		var owner_id := player_node.get_multiplayer_authority()
+		var owner_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 		if not local_ids.has(owner_id):
-			push_warning("[World] Peer %d no tiene el nodo de %d; se omite la visibilidad (evita romper su path cache)." % [
-				sender, owner_id
-			])
+			NetLog.warn(TAG, "Peer %d no tiene el nodo de %d; se omite visibilidad." % [sender, owner_id])
 			continue
 		PlayerLifecycleManager.grant_player_visibility_to_peer(player_node, sender)
-		# Estado inicial de posición: la visibilidad del Synchronizer sola puede
-		# tardar un frame en enviar el primer delta.
 		player_node.rpc_id(sender, "_sync_server_position", player_node.global_position)
+		# La vida/estado quedan fuera del rollback: mandamos un snapshot al peer
+		# que recién entra (p. ej. espectador tardío).
+		if player_node.has_method("_sync_state"):
+			player_node.rpc_id(sender, "_sync_state", player_node.health_state, player_node.health)
 		granted += 1
 
-	# Late-join: si es espectador, mandarle el estado de audio completo
-	# (mapa + personajes + track prioritario/LMS con su posicion actual).
+	# Late-join: si es espectador, mandarle el estado de audio completo.
 	var player_characters: Dictionary = get_meta("player_characters", {})
 	if not player_characters.has(sender):
 		var data: Dictionary = AudioManager.get_priority_sync_data()
 		var relay := GameServiceLocator.get_client_relay()
 		if relay:
-			relay.rpc_id(sender, "_rpc_sync_spectator_audio", GameData.selected_map,
+			relay.rpc_id(sender, "_rpc_sync_spectator_audio", SessionState.active_map_id,
 				data["priority"], data["position"], data["lms_peer"])
-	print("[World] Peer ", sender, " confirmó World listo; visibilidad habilitada para ", granted, " jugador(es).")
+
+	NetLog.debug(TAG, "Peer %d confirmó World listo; visibilidad para %d jugador(es)." % [sender, granted])
 
 
-## NUEVA FUNCIÓN: Distribuye los personajes según el bando de su CharacterData
 func _position_players_in_spawns() -> void:
+	if not current_map_node and map_container and map_container.get_child_count() > 0:
+		current_map_node = map_container.get_child(0) as BaseMap
 	if not current_map_node:
-		push_error("[World] Imposible posicionar jugadores: No hay un mapa válido cargado.")
+		NetLog.error(TAG, "Imposible posicionar jugadores: no hay mapa cargado.")
 		return
 
-	# Buscamos a todos los nodos de jugador que el Spawner ya colgó en la escena
-	# Nota: Ajusta la ruta si tus jugadores se spawnean bajo un contenedor específico (ej. $Players)
 	for player_node in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if player_node.has_method("get_character_data") or "character_data" in player_node:
-			if player_node.character_data == null:
-				await get_tree().process_frame
-			
-			var data: CharacterData = player_node.character_data
-			if data:
-				var target_position := Vector2.ZERO
-				
-				if data.team == "killer":
-					target_position = current_map_node.get_random_killer_spawn()
-					print("[World] Posicionando Killer (Peer: ", player_node.name, ") en: ", target_position)
-				else:
-					target_position = current_map_node.get_random_survivor_spawn()
-					print("[World] Posicionando Survivor (Peer: ", player_node.name, ") en: ", target_position)
-
-				# BaseMap ya devuelve posiciones globales (los marcadores viven
-				# dentro del mapa, que a su vez está dentro de MatchArea).
-				# Asignamos la posición en el servidor; MultiplayerSynchronizer se encargará de replicarlo a los clientes.
-				# Además forzamos el spawn al dueño (el Synchronizer de posición no le
-				# replica su propia posición para evitar rubber-banding).
-				player_node.global_position = target_position
-				player_node.net_position = target_position
-				player_node.rpc("_sync_server_position", target_position)
+		if not is_instance_valid(player_node):
+			continue
+		var spawn_position: Vector2 = player_node.get_meta("spawn_position", Vector2.ZERO)
+		_apply_spawn_position(player_node, spawn_position)
+		player_node.rpc("_sync_server_position", spawn_position)
+		var team := "survivor"
+		if player_node.character_data != null:
+			team = String(player_node.character_data.team)
+		NetLog.debug(TAG, "Spawn %s (%s) -> %s" % [player_node.name, team, spawn_position])
 
 
-func _setup_scoreboard() -> void:
-	var ds := get_node_or_null("/root/DedicatedServer")
-	if ds and ds.is_dedicated:
-		return
-	if _local_view_mode != "play":
-		return
-	_scoreboard = SCOREBOARD_SCENE.instantiate()
-	add_child(_scoreboard)
+func _pick_spawn(spawns: Array[Vector2], index: int, fallback: Vector2, team_shift: Vector2) -> Vector2:
+	if spawns.is_empty():
+		return fallback + team_shift + Vector2(64.0 * index, 0.0)
+	if index < spawns.size():
+		return spawns[index]
+	var base := spawns[index % spawns.size()]
+	var cycle := int(floor(float(index) / float(spawns.size()))) + 1
+	var angle := TAU * float(index) / float(spawns.size())
+	return base + Vector2(cos(angle), sin(angle)) * (72.0 * cycle)
 
 
-func _setup_hud() -> void:
-	if _local_view_mode == "hub":
-		return
-	if _local_view_mode == "spectate":
-		_activate_spectator_local()
-		return
-
-	var my_peer_id := multiplayer.get_unique_id()
-
-	var player_characters: Dictionary = get_meta("player_characters", {})
-	var is_spectator := LobbyManager.is_spectator(my_peer_id) \
-			or not player_characters.has(my_peer_id)
-
-	if is_spectator:
-		_activate_spectator_local()
-		print("[World] Espectador local listo (nodos del roster ya creados localmente).")
-		return
-
-	var my_player: Node = null
-
-	var timeout := 2.0
-	var elapsed := 0.0
-	while not my_player and elapsed < timeout:
-		await get_tree().process_frame
-		elapsed += get_process_delta_time()
-		my_player = PlayerRegistry.get_player(my_peer_id)
-
-	if not my_player:
-		push_warning("[World] No se encontró el nodo del jugador local tras esperar.")
-		return
-
-	var cd_elapsed := 0.0
-	while (not "character_data" in my_player or my_player.character_data == null) \
-			and cd_elapsed < 1.0:
-		await get_tree().process_frame
-		cd_elapsed += get_process_delta_time()
-
-	if not "character_data" in my_player or my_player.character_data == null:
-		push_warning("[World] character_data nunca llegó al jugador local.")
-		return
-
-	if USE_MOCK_HUD and ResourceLoader.exists("res://ui/GameUI/Mock/GameHUDMock.tscn"):
-		_hud = GAME_HUD_MOCK_SCENE.instantiate()
-		print("[World] Usando GameHUDMock (TpBarCustom paralelogramo inline)")
-	else:
-		_hud = GAME_HUD_SCENE.instantiate()
-	add_child(_hud)
-	_hud.setup(my_player)
-	_set_local_player_camera(true)
-
-	# Menú Dev in-game: solo para el host local con jugador y con DevMode activo.
-	if DevMode.is_enabled() and multiplayer.is_server():
-		var ds := get_node_or_null("/root/DedicatedServer")
-		if not (ds and ds.is_dedicated):
-			var dev_menu := DEV_MENU_SCENE.instantiate()
-			_hud.add_child(dev_menu)
-			dev_menu.setup(my_player)
-			print("[World] DevMenu host-only instanciado.")
-
-
-## Cambia la vista local dentro de la misma instancia de World. En "hub" el
-## servidor sigue simulando la partida, pero el cliente local no muestra HUD ni
-## cámara de juego.
 func set_local_view_mode(mode: String) -> void:
-	if mode not in ["play", "spectate", "hub"]:
-		return
-	_local_view_mode = mode
-	set_meta("local_view_mode", mode)
-	if _local_view_ready and not _applying_local_view:
-		_apply_local_view_mode()
-
-
-func _apply_local_view_mode() -> void:
-	if not _local_view_ready:
-		return
-	_applying_local_view = true
-	match _local_view_mode:
-		"play":
-			_set_match_canvas_modulates_visible(true)
-			# El scoreboard se muestra solo con Tab; no forzarlo visible al
-			# entrar en play o queda el overlay "JUGADORES" durante la partida.
-			_deactivate_spectator_local()
-			_set_local_player_camera(true)
-			if _hud:
-				_hud.process_mode = Node.PROCESS_MODE_INHERIT
-				_hud.visible = true
-				if _hud.has_method("set_spectator_ui_active"):
-					_hud.set_spectator_ui_active(false)
-		"spectate":
-			# El espectador ve el mundo sin la oscuridad ambiental del mapa.
-			_set_match_canvas_modulates_visible(false)
-			if _scoreboard and is_instance_valid(_scoreboard):
-				_scoreboard.visible = false
-			_set_local_player_camera(false)
-			if _hud:
-				_hud.process_mode = Node.PROCESS_MODE_INHERIT
-				_hud.visible = true
-				if _hud.has_method("set_spectator_ui_active"):
-					_hud.set_spectator_ui_active(true)
-			_activate_spectator_local()
-		"hub":
-			# El CanvasModulate del mapa es global para su canvas: si queda
-			# visible, oscurece también el hub que ahora coexiste en Session.
-			_set_match_canvas_modulates_visible(false)
-			if _scoreboard and is_instance_valid(_scoreboard):
-				_scoreboard.visible = false
-			_deactivate_spectator_local()
-			_set_local_player_camera(false)
-			for panel in get_tree().get_nodes_in_group("chat_panel"):
-				if panel.has_method("close_input"):
-					panel.close_input()
-			if _hud:
-				_hud.visible = false
-				_hud.process_mode = Node.PROCESS_MODE_DISABLED
-	_applying_local_view = false
-
-
-func _activate_spectator_local() -> void:
-	var ctrl := get_spectator_controller()
-	if ctrl and ctrl.has_method("activate"):
-		ctrl.activate()
-
-
-func _deactivate_spectator_local() -> void:
-	var ctrl := get_spectator_controller()
-	if ctrl and ctrl.has_method("deactivate"):
-		ctrl.deactivate()
+	if view:
+		view.set_local_view_mode(mode)
 
 
 func get_spectator_controller() -> Node:
@@ -382,31 +312,6 @@ func get_spectator_controller() -> Node:
 	if ctrl:
 		return ctrl
 	return get_tree().get_first_node_in_group(GroupNames.SPECTATOR)
-
-
-func _set_local_player_camera(enabled: bool) -> void:
-	var player := PlayerRegistry.get_player(multiplayer.get_unique_id())
-	if not player or not is_instance_valid(player):
-		return
-	var cam := player.get_node_or_null("Camera2D") as Camera2D
-	if cam == null:
-		return
-	cam.enabled = enabled
-	if enabled:
-		cam.make_current()
-
-
-func _collect_match_canvas_modulates() -> void:
-	_match_canvas_modulates.clear()
-	for node in find_children("*", "CanvasModulate", true, false):
-		if node is CanvasModulate:
-			_match_canvas_modulates.append(node)
-
-
-func _set_match_canvas_modulates_visible(visible_now: bool) -> void:
-	for cm in _match_canvas_modulates:
-		if is_instance_valid(cm):
-			cm.visible = visible_now
 
 
 func _exit_tree() -> void:

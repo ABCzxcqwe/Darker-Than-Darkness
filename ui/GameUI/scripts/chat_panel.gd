@@ -2,6 +2,8 @@
 # Panel de chat superpuesto en el HUD, arriba a la izquierda.
 extends Control
 
+const TAG := "chat_panel"
+
 @onready var history_label: RichTextLabel = $VBoxContainer/HistoryLabel
 @onready var input_box: LineEdit = $VBoxContainer/InputBox
 @onready var separator: ColorRect = $VBoxContainer/Separator
@@ -102,7 +104,7 @@ func _close_input() -> void:
 
 func _set_player_movement(enabled: bool) -> void:
 	var my_id = multiplayer.get_unique_id()
-	var player = PlayerRegistry.get_player(my_id)
+	var player = PlayerLifecycleManager.get_player(my_id)
 	if not player or not is_instance_valid(player):
 		return
 	var mov = player.get_node_or_null("PlayerMovementComponent")

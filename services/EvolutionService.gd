@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "EvolutionService"
+
 signal slot_evolved(peer_id: int, slot_index: int)
 signal slot_devolved(peer_id: int, slot_index: int)
 
@@ -25,7 +27,7 @@ func register_player(peer_id: int, _data: Resource = null) -> void:
 		return
 	_evolved_slots[peer_id] = [0, 0, 0, 0, 0]
 	_tp_ready_slots[peer_id] = [false, false, false, false, false]
-	print("[EvolutionService] Jugador ", peer_id, " registrado.")
+	NetLog.debug_parts(TAG, ["[EvolutionService] Jugador ", peer_id, " registrado."])
 
 
 func unregister_player(peer_id: int) -> void:
@@ -106,7 +108,7 @@ func _clear_if_temporary(peer_id: int, slot_index: int) -> void:
 
 
 func _is_permanent_evolution(peer_id: int, slot_index: int) -> bool:
-	var player = PlayerRegistry.get_player(peer_id)
+	var player = PlayerLifecycleManager.get_player(peer_id)
 	if not player or not player.character_data:
 		return false
 	var slots: Array = player.character_data.ability_slots
@@ -121,7 +123,7 @@ func _is_permanent_evolution(peer_id: int, slot_index: int) -> bool:
 ## Cuántas evoluciones encadena el slot desde su versión base (stage máximo).
 ## P. ej. base → A → B → C tiene max_stage 3.
 func _get_max_stage(peer_id: int, slot_index: int) -> int:
-	var player = PlayerRegistry.get_player(peer_id)
+	var player = PlayerLifecycleManager.get_player(peer_id)
 	if not player or not player.character_data:
 		return 0
 	var slots: Array = player.character_data.ability_slots
@@ -156,7 +158,7 @@ func _clear_and_sync_slot(peer_id: int, slot_index: int) -> void:
 
 
 func _sync_visual_to_client(peer_id: int, slot_index: int, stage: int) -> void:
-	if LobbyManager.players.has(peer_id):
+	if _client_relay and LobbyManager.players.has(peer_id):
 		_client_relay.rpc_id(peer_id, "_rpc_evolve_slot", slot_index, stage)
 
 
@@ -167,7 +169,7 @@ func _sync_evolve_local(slot_index: int, stage: int) -> void:
 	if slot_index >= 0 and slot_index < 5:
 		_client_evolved_slots[peer_id][slot_index] = stage
 
-	var huds = get_tree().get_nodes_in_group("game_hud")
+	var huds = get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
 	for hud in huds:
 		if stage > 0:
 			if hud.has_method("visual_evolve_slot"):
@@ -178,7 +180,7 @@ func _sync_evolve_local(slot_index: int, stage: int) -> void:
 
 
 func resync_client_visuals(peer_id: int) -> void:
-	if LobbyManager.players.has(peer_id):
+	if _client_relay and LobbyManager.players.has(peer_id):
 		var evolved = _evolved_slots.get(peer_id)
 		if evolved == null:
 			return
@@ -193,7 +195,7 @@ func _on_tp_changed(peer_id: int, current_tp: float, _max_tp: float) -> void:
 	if not _tp_ready_slots.has(peer_id):
 		return
 
-	var player = PlayerRegistry.get_player(peer_id)
+	var player = PlayerLifecycleManager.get_player(peer_id)
 	if not player or not player.character_data:
 		return
 	var slots: Array = player.character_data.ability_slots
@@ -225,12 +227,12 @@ func _set_tp_ready(peer_id: int, slot_index: int, is_ready: bool) -> void:
 		return
 
 	_tp_ready_slots[peer_id][slot_index] = is_ready
-	if LobbyManager.players.has(peer_id):
+	if _client_relay and LobbyManager.players.has(peer_id):
 		_client_relay.rpc_id(peer_id, "_rpc_tp_ready", slot_index, is_ready)
 
 
 func _sync_tp_ready_local(slot_index: int, is_ready: bool) -> void:
-	var huds = get_tree().get_nodes_in_group("game_hud")
+	var huds = get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
 	if huds.is_empty():
 		return
 	var hud = huds[0]

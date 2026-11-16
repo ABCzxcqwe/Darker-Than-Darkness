@@ -337,7 +337,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if not target or not target.is_in_group(GroupNames.PLAYERS):
 		return
 
-	var target_id: int = target.get_multiplayer_authority()
+	var target_id: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	if target_id == attacker_id:
 		return
 	if not _passes_team_filter(target):
@@ -362,7 +362,7 @@ func _refresh_burn_targets() -> void:
 		var target: Node = area.get_parent()
 		if not target or not target.is_in_group(GroupNames.PLAYERS):
 			continue
-		var target_id: int = target.get_multiplayer_authority()
+		var target_id: int = PlayerLifecycleManager.get_owner_peer_id(target)
 		if target_id == attacker_id:
 			continue
 		if not _passes_team_filter(target):

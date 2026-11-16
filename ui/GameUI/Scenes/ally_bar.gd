@@ -35,7 +35,7 @@ func setup(player_node: Node) -> void:
 		push_warning("[AllyBar] Player sin character_data.")
 		return
 
-	_peer_id     = player_node.get_multiplayer_authority()
+	_peer_id     = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_player_node = player_node
 	var data     = player_node.character_data
 	_theme_color = data.theme_color

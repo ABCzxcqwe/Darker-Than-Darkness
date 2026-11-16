@@ -35,7 +35,7 @@ func _forward_device_changed(device: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if player and not player.is_multiplayer_authority():
+	if player and not player.is_local_owner():
 		return
 	# La detección de dispositivo la hace InputService global.
 

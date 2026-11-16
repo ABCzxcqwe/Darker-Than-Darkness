@@ -1,7 +1,11 @@
+# res://Gameplay/services/LMSService.gd
+# Last Man Standing: activa el modo, aplica evoluciones automáticas y gestiona audio/timer.
 extends Node
 
 signal lms_activated(survivor_node: Node, killer_node: Node, duration: float)
 signal lms_ended()
+
+const TAG := "LMSService"
 
 var is_active: bool = false
 var active_survivor: Node = null
@@ -33,7 +37,7 @@ func start_lms(survivor_node: Node, killer_node: Node) -> void:
 	is_active = true
 	active_survivor = survivor_node
 	active_killer = killer_node
-	_lms_survivor_peer = survivor_node.get_multiplayer_authority()
+	_lms_survivor_peer = PlayerLifecycleManager.get_owner_peer_id(survivor_node)
 	_evolved_lms_slots.clear()
 
 	var char_data = survivor_node.character_data
@@ -43,10 +47,8 @@ func start_lms(survivor_node: Node, killer_node: Node) -> void:
 	if _health_service:
 		_health_service.heal(survivor_node, heal_amount)
 
-	# Auto-evolucionar slots con lms_auto_evolve
 	_apply_lms_evolutions()
 
-	# Forzar re-sincronización visual en el cliente (robustez ante RPCs perdidos)
 	if _evolution_service and _evolution_service.has_method("resync_client_visuals"):
 		_evolution_service.resync_client_visuals(_lms_survivor_peer)
 
@@ -63,9 +65,7 @@ func start_lms(survivor_node: Node, killer_node: Node) -> void:
 
 
 func stop_lms() -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_active:
+	if not multiplayer.is_server() or not is_active:
 		return
 
 	is_active = false
@@ -104,7 +104,7 @@ func _apply_lms_evolutions() -> void:
 		if data and data.lms_auto_evolve and data.evolved_version:
 			_evolution_service.evolve_slot(_lms_survivor_peer, i, false)
 			_evolved_lms_slots.append(i)
-			print("[LMSService] Slot ", i, " (", data.display_name, ") auto-evolucionado para LMS")
+			NetLog.debug(TAG, "Slot %d (%s) auto-evolucionado para LMS." % [i, data.display_name])
 
 
 func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
@@ -118,4 +118,4 @@ func _on_slot_devolved(peer_id: int, slot_index: int) -> void:
 			var data = char_data.ability_slots[slot_index]
 			if data and data.lms_auto_evolve and data.evolved_version:
 				_evolution_service.evolve_slot(peer_id, slot_index, false)
-				print("[LMSService] Slot ", slot_index, " re-evolucionado tras consumo en LMS")
+				NetLog.debug(TAG, "Slot %d re-evolucionado tras consumo en LMS." % slot_index)

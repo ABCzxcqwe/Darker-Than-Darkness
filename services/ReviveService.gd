@@ -3,6 +3,8 @@
 # Cancela el progreso si se alejan, si reciben daño o si son aturdidos.
 extends Node
 
+const TAG := "ReviveService"
+
 # { rescuer_peer_id: { "target": Node, "timer": float, "duration": float } }
 var _sessions: Dictionary = {}
 var _client_relay: Node
@@ -30,7 +32,7 @@ func _connect_to_services() -> void:
 	if health_svc:
 		# Si tu HealthService no tiene esta señal, podemos interceptar vía el método take_damage o herencia.
 		# Por ahora, escucharemos si el estado del jugador cambia a downed/dead para cancelar.
-		print("[ReviveService] Conectado de forma segura a los servicios de control.")
+		NetLog.debug_parts(TAG, ["[ReviveService] Conectado de forma segura a los servicios de control."])
 
 
 func _process(delta: float) -> void:
@@ -54,7 +56,7 @@ func _process(delta: float) -> void:
 
 		# 2. VALIDACIÓN DE INTERRUPCIÓN POR ESTADOS (Stun, Root, Silenciado, Downed)
 		if _is_player_interrupted(rescuer_id):
-			print("[ReviveService] Rescate interrumpido por estado alterado/daño en peer: ", rescuer_id)
+			NetLog.debug_parts(TAG, ["[ReviveService] Rescate interrumpido por estado alterado/daño en peer: ", rescuer_id])
 			_cancel(rescuer_id, true)
 			continue
 
@@ -62,7 +64,7 @@ func _process(delta: float) -> void:
 		var _range: float = rescuer_node.character_data.revive_range if rescuer_node.character_data else 80.0
 		var dist: float = rescuer_node.global_position.distance_to(target_node.global_position)
 		if dist > _range:
-			print("[ReviveService] ", rescuer_id, " se alejó demasiado. Cancelando rescate.")
+			NetLog.debug_parts(TAG, ["[ReviveService] ", rescuer_id, " se alejó demasiado. Cancelando rescate."])
 			_cancel(rescuer_id, true)
 			continue
 
@@ -82,7 +84,7 @@ func start_revive(rescuer_id: int, target_node: Node) -> void:
 	if not is_instance_valid(target_node):
 		return
 		
-	var target_id = target_node.get_multiplayer_authority()
+	var target_id = PlayerLifecycleManager.get_owner_peer_id(target_node)
 	
 	# Si el rescatador ya está reanimando a alguien, cancelamos la anterior
 	if _sessions.has(rescuer_id):
@@ -100,10 +102,11 @@ func start_revive(rescuer_id: int, target_node: Node) -> void:
 		"duration": duration
 	}
 	
-	print("[ReviveService] Rescate iniciado -> Rescatador: ", rescuer_id, " | Objetivo: ", target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] Rescate iniciado -> Rescatador: ", rescuer_id, " | Objetivo: ", target_id])
 	
 	# Notificar de forma fiable a los clientes para activar la UI
-	_client_relay.rpc("_notify_revive_started", rescuer_id, target_id, duration)
+	if _client_relay:
+		_client_relay.rpc("_notify_revive_started", rescuer_id, target_id, duration)
 
 
 ## Fuerza la cancelación externa (por ejemplo, llamada desde un hit de habilidad directo)
@@ -112,14 +115,14 @@ func force_cancel_by_hit(peer_id: int) -> void:
 		return
 	# Si el peer_id es un rescatador activo, lo cancelamos
 	if _sessions.has(peer_id):
-		print("[ReviveService] Cancelación forzada por impacto directo al peer: ", peer_id)
+		NetLog.debug_parts(TAG, ["[ReviveService] Cancelación forzada por impacto directo al peer: ", peer_id])
 		_cancel(peer_id, true)
 
 
 # ── LOGICA INTERNA DE CONTROL ─────────────────────────────────────────
 
 func _complete_revive(rescuer_id: int, target_node: Node) -> void:
-	var target_id = target_node.get_multiplayer_authority()
+	var target_id = PlayerLifecycleManager.get_owner_peer_id(target_node)
 	_sessions.erase(rescuer_id)
 
 	var health_svc = _health_service
@@ -134,8 +137,9 @@ func _complete_revive(rescuer_id: int, target_node: Node) -> void:
 				if is_instance_valid(target_node):
 					target_node.rpc("_sync_state", "alive", rev_hp)
 
-	print("[ReviveService] ¡Rescate completado! ", rescuer_id, " levantó a ", target_id)
-	_client_relay.rpc("_notify_revive_completed", rescuer_id, target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] ¡Rescate completado! ", rescuer_id, " levantó a ", target_id])
+	if _client_relay:
+		_client_relay.rpc("_notify_revive_completed", rescuer_id, target_id)
 
 
 func _cancel(rescuer_id: int, notify: bool) -> void:
@@ -147,13 +151,14 @@ func _cancel(rescuer_id: int, notify: bool) -> void:
 	if not is_instance_valid(target_node):
 		_sessions.erase(rescuer_id)
 		return
-	var target_id: int = target_node.get_multiplayer_authority()
+	var target_id: int = PlayerLifecycleManager.get_owner_peer_id(target_node)
 
 	_sessions.erase(rescuer_id)
-	print("[ReviveService] Rescate cancelado para el peer: ", rescuer_id, " -> target: ", target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] Rescate cancelado para el peer: ", rescuer_id, " -> target: ", target_id])
 
 	if notify:
-		_client_relay.rpc("_notify_revive_cancelled", rescuer_id, target_id)
+		if _client_relay:
+			_client_relay.rpc("_notify_revive_cancelled", rescuer_id, target_id)
 
 
 ## Helper para comprobar si el jugador está incapacitado en otros servicios
@@ -176,26 +181,26 @@ func _is_player_interrupted(peer_id: int) -> bool:
 
 
 func _get_player(peer_id: int) -> Node:
-	return PlayerRegistry.get_player(peer_id)
+	return PlayerLifecycleManager.get_player(peer_id)
 
 
 # ── RPCs DE SINCRONIZACIÓN VISUAL (EJECUTADOS EN CLIENTES) ─────────────
 
 @rpc("authority", "call_local", "reliable")
 func _notify_revive_started(rescuer_id: int, target_id: int, duration: float) -> void:
-	print("[ReviveService] RPC: Rescate iniciado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] RPC: Rescate iniciado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id])
 	revive_started.emit(rescuer_id, target_id, duration)
 
 
 @rpc("authority", "call_local", "reliable")
 func _notify_revive_cancelled(rescuer_id: int, target_id: int) -> void:
-	print("[ReviveService] RPC: Rescate cancelado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] RPC: Rescate cancelado | Rescatador: ", rescuer_id, " -> Objetivo: ", target_id])
 	revive_cancelled.emit(rescuer_id, target_id)
 
 
 @rpc("authority", "call_local", "reliable")
 func _notify_revive_completed(rescuer_id: int, target_id: int) -> void:
-	print("[ReviveService] RPC: Rescate exitoso | ", rescuer_id, " salvó a ", target_id)
+	NetLog.debug_parts(TAG, ["[ReviveService] RPC: Rescate exitoso | ", rescuer_id, " salvó a ", target_id])
 	revive_completed.emit(rescuer_id, target_id)
 
 func cancel_revive(peer_id: int) -> void:
@@ -223,11 +228,11 @@ func request_revive(rescuer: Variant, target: Variant) -> void:
 
 	# 3. Validar de forma segura que las instancias existan antes de proceder
 	if not is_instance_valid(rescuer_node) or not is_instance_valid(target_node):
-		print("[ReviveService] Error: Nodos inválidos en request_revive (Rescatador o Objetivo faltante).")
+		NetLog.debug_parts(TAG, ["[ReviveService] Error: Nodos inválidos en request_revive (Rescatador o Objetivo faltante)."])
 		return
 
 	# Obtener la ID de red del rescatador para tu diccionario de sesiones
-	var rescuer_id := rescuer_node.get_multiplayer_authority()
+	var rescuer_id := PlayerLifecycleManager.get_owner_peer_id(rescuer_node)
 
 	# Ejecutar tu lógica original usando el nodo de la víctima
 	start_revive(rescuer_id, target_node)

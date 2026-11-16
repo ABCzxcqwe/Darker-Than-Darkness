@@ -6,7 +6,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, _slot_i
 	if not player_node.multiplayer.is_server():
 		return
 
-	var caster_id := player_node.get_multiplayer_authority()
+	var caster_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	player_node.rpc("_rpc_spawn_secret_visual", caster_id)
 
 	var heal_amt: int = data.base_heal if data.base_heal > 0 else 40

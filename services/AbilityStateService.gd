@@ -25,6 +25,8 @@
 # ============================================================
 extends Node
 
+const TAG := "AbilityStateService"
+
 
 # ── ESTRUCTURA INTERNA ───────────────────────────────────────────────────
 #
@@ -80,7 +82,7 @@ func register_player(peer_id: int, char_data: Resource = null) -> void:
 
 		_states[peer_id][slot] = _build_initial_state(ability_data)
 
-	print("[AbilityStateService] Jugador ", peer_id, " registrado con ", SLOT_COUNT, " slots.")
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Jugador ", peer_id, " registrado con ", SLOT_COUNT, " slots."])
 
 
 ## Limpia al salir o desconectarse.
@@ -89,7 +91,7 @@ func unregister_player(peer_id: int) -> void:
 		return
 	if _states.has(peer_id):
 		_states.erase(peer_id)
-		print("[AbilityStateService] Datos eliminados para peer: ", peer_id)
+		NetLog.debug_parts(TAG, ["[AbilityStateService] Datos eliminados para peer: ", peer_id])
 
 
 ## Construye el estado inicial de un slot leyendo los valores base del AbilityData.
@@ -144,10 +146,10 @@ func register_use(peer_id: int, slot_index: int, ability_data: Resource) -> int:
 		if _client_relay and LobbyManager.players.has(peer_id):
 			_client_relay.rpc_id(peer_id, "_rpc_dynamic_tp_cost", slot_index, s["dynamic_tp_cost"])
 
-	print("[AbilityStateService] Uso registrado | peer: ", peer_id,
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Uso registrado | peer: ", peer_id,
 		  " | slot: ", slot_index, " | usos totales: ", uses,
 		  " | cd actual: ", s["dynamic_cooldown"],
-		  " | tp actual: ", s["dynamic_tp_cost"])
+		  " | tp actual: ", s["dynamic_tp_cost"]])
 
 	return uses
 
@@ -204,8 +206,8 @@ func add_hit(peer_id: int, slot_index: int) -> int:
 		return 0
 	_states[peer_id][slot_index]["hit_counter"] += 1
 	var total: int = _states[peer_id][slot_index]["hit_counter"]
-	print("[AbilityStateService] Hit registrado | peer: ", peer_id,
-		  " | slot: ", slot_index, " | total: ", total)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Hit registrado | peer: ", peer_id,
+		  " | slot: ", slot_index, " | total: ", total])
 	return total
 
 
@@ -225,8 +227,8 @@ func reset_hit_counter(peer_id: int, slot_index: int) -> void:
 	if not _ensure_state(peer_id, slot_index):
 		return
 	_states[peer_id][slot_index]["hit_counter"] = 0
-	print("[AbilityStateService] Hit counter reseteado | peer: ", peer_id,
-		  " | slot: ", slot_index)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Hit counter reseteado | peer: ", peer_id,
+		  " | slot: ", slot_index])
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -249,8 +251,8 @@ func activate_mode(peer_id: int, slot_index: int, data: Dictionary = {}) -> void
 		return
 	_states[peer_id][slot_index]["mode_active"] = true
 	_states[peer_id][slot_index]["mode_data"]   = data.duplicate()
-	print("[AbilityStateService] Modo ACTIVADO | peer: ", peer_id,
-		  " | slot: ", slot_index, " | data: ", data)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Modo ACTIVADO | peer: ", peer_id,
+		  " | slot: ", slot_index, " | data: ", data])
 
 
 ## Desactiva el modo y limpia mode_data.
@@ -261,8 +263,8 @@ func deactivate_mode(peer_id: int, slot_index: int) -> void:
 		return
 	_states[peer_id][slot_index]["mode_active"] = false
 	_states[peer_id][slot_index]["mode_data"]   = {}
-	print("[AbilityStateService] Modo DESACTIVADO | peer: ", peer_id,
-		  " | slot: ", slot_index)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Modo DESACTIVADO | peer: ", peer_id,
+		  " | slot: ", slot_index])
 
 
 ## Devuelve true si el modo está activo en ese slot.
@@ -289,8 +291,8 @@ func update_mode_data(peer_id: int, slot_index: int, key: String, value: Variant
 	if not _ensure_state(peer_id, slot_index):
 		return
 	if not _states[peer_id][slot_index]["mode_active"]:
-		push_warning("[AbilityStateService] update_mode_data llamado con modo inactivo | peer: ",
-					 peer_id, " | slot: ", slot_index)
+		NetLog.warn_parts(TAG, ["[AbilityStateService] update_mode_data llamado con modo inactivo | peer: ",
+					 peer_id, " | slot: ", slot_index])
 		return
 	_states[peer_id][slot_index]["mode_data"][key] = value
 
@@ -328,7 +330,7 @@ func reset_slot(peer_id: int, slot_index: int, ability_data: Resource = null) ->
 	if not _states.has(peer_id):
 		return
 	_states[peer_id][slot_index] = _build_initial_state(ability_data)
-	print("[AbilityStateService] Slot ", slot_index, " reseteado para peer: ", peer_id)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Slot ", slot_index, " reseteado para peer: ", peer_id])
 
 
 ## Resetea todos los slots de un jugador. Llámalo al terminar la partida.
@@ -339,7 +341,7 @@ func reset_player(peer_id: int) -> void:
 		return
 	for slot in _states[peer_id].keys():
 		_states[peer_id][slot] = _build_initial_state(null)
-	print("[AbilityStateService] Todos los slots reseteados para peer: ", peer_id)
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Todos los slots reseteados para peer: ", peer_id])
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -350,8 +352,8 @@ func reset_player(peer_id: int) -> void:
 ## Devuelve false si el peer no está registrado (indica un bug de registro).
 func _ensure_state(peer_id: int, slot_index: int) -> bool:
 	if not _states.has(peer_id):
-		push_warning("[AbilityStateService] Peer ", peer_id,
-					 " no registrado. ¿Se llamó register_player()?")
+		NetLog.warn_parts(TAG, ["[AbilityStateService] Peer ", peer_id,
+					 " no registrado. ¿Se llamó register_player()?"])
 		return false
 	if not _states[peer_id].has(slot_index):
 		_states[peer_id][slot_index] = _build_initial_state(null)
@@ -360,4 +362,4 @@ func _ensure_state(peer_id: int, slot_index: int) -> bool:
 
 func _exit_tree() -> void:
 	_states.clear()
-	print("[AbilityStateService] Limpiado.")
+	NetLog.debug_parts(TAG, ["[AbilityStateService] Limpiado."])

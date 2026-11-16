@@ -12,14 +12,14 @@ var _is_aiming: bool = false
 func _ready() -> void:
 	_player = get_parent()
 	z_index = 50
-	set_process(_player != null and _player.is_multiplayer_authority())
+	set_process(_player != null and _player.is_local_owner())
 
 
 func _process(_delta: float) -> void:
 	if not _player or not is_instance_valid(_player):
 		visible = false
 		return
-	if not _player.is_multiplayer_authority():
+	if not _player.is_local_owner():
 		visible = false
 		return
 

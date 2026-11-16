@@ -1,10 +1,11 @@
-# res://services/TimerService.gd
-# Servicio independiente encargado de la gestión, cálculo y sincronización del tiempo de juego.
-# Controla pausas lógicas y modificaciones directas al reloj de la ronda.
+# res://Gameplay/services/TimerService.gd
+# Servicio de tiempo de ronda: pausas lógicas, modificaciones y sincronización.
 extends Node
 
 signal timer_changed(current_time: float)
 signal timeout()
+
+const TAG := "TimerService"
 
 var time_left: float = 0.0
 var is_active: bool = false
@@ -17,50 +18,50 @@ var _client_relay: Node
 func set_client_relay(relay: Node) -> void:
 	_client_relay = relay
 
+
 func _process(delta: float) -> void:
 	if not is_active or is_paused:
 		return
-		
-	if multiplayer.is_server():
-		time_left -= delta
-		if time_left <= 0.0:
-			time_left = 0.0
-			is_active = false
-			timeout.emit()
-			
-		timer_changed.emit(time_left)
-		
-		# Sincronizar con clientes únicamente cada 1 segundo
-		_sync_accumulator += delta
-		if _sync_accumulator >= 1.0:
-			_sync_accumulator = 0.0
+	if not multiplayer.is_server():
+		return
+
+	time_left -= delta
+	if time_left <= 0.0:
+		time_left = 0.0
+		is_active = false
+		timeout.emit()
+
+	timer_changed.emit(time_left)
+
+	# Sincronizar con clientes cada 1 segundo.
+	_sync_accumulator += delta
+	if _sync_accumulator >= 1.0:
+		_sync_accumulator = 0.0
+		if _client_relay:
 			_client_relay.rpc("_sync_time_client", time_left)
 
 
-## Inicializa y arranca el reloj con una duración específica
 func start_timer(duration: float) -> void:
 	if not multiplayer.is_server():
 		return
 	time_left = duration
 	is_active = true
 	is_paused = false
-	print("[TimerService] Reloj iniciado con: ", duration, "s")
+	NetLog.debug(TAG, "Reloj iniciado con %ss." % duration)
 
 
-## Detiene por completo el reloj
 func stop_timer() -> void:
 	if not multiplayer.is_server():
 		return
 	is_active = false
-	print("[TimerService] Reloj detenido.")
+	NetLog.debug(TAG, "Reloj detenido.")
 
 
-## Pausa o reanuda el avance del tiempo de forma lógica
 func set_paused(paused: bool) -> void:
 	if not multiplayer.is_server():
 		return
 	is_paused = paused
-	print("[TimerService] Estado de pausa cambiado a: ", paused)
+	NetLog.debug(TAG, "Pausa cambiada a %s." % str(paused))
 
 
 @rpc("authority", "call_local", "reliable")
@@ -68,9 +69,8 @@ func _rpc_set_paused(paused: bool) -> void:
 	is_paused = paused
 
 
-## Añade o resta segundos al tiempo actual de la ronda
 func modify_time(seconds: float) -> void:
 	if not multiplayer.is_server() or not is_active:
 		return
 	time_left = maxf(time_left + seconds, 0.0)
-	print("[TimerService] Tiempo modificado en ", seconds, "s. Restante: ", time_left)
+	NetLog.debug(TAG, "Tiempo modificado en %ss. Restante: %ss." % [seconds, time_left])

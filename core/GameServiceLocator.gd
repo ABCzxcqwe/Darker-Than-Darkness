@@ -3,7 +3,7 @@
 # El World llama a register_all() al iniciar y clear() al terminar.
 extends Node
 
-const CLIENT_RELAY_CLASS := preload("res://core/ClientRelay.gd")
+const CLIENT_RELAY_CLASS := preload("res://Network/replication/client_relay.gd")
 const _GameStateService := preload("res://services/GameStateService.gd")
 const _TimerService := preload("res://services/TimerService.gd")
 const _CooldownService := preload("res://services/CooldownService.gd")

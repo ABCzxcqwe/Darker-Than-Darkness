@@ -17,7 +17,7 @@ func _cache_common(player_node: Node, data: AbilityData, slot_index: int) -> boo
 	if not is_instance_valid(player_node):
 		return false
 	_player_node = player_node
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_data = data
 	_slot_index = slot_index
 	_cd_svc = GameServiceLocator.cooldown

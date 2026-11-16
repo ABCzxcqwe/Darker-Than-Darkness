@@ -119,7 +119,7 @@ func _handle_mine_hit(target: Node) -> void:
 	var tp_svc = GameServiceLocator.tp
 	if not tp_svc:
 		return
-	var target_id = target.get_multiplayer_authority()
+	var target_id = PlayerLifecycleManager.get_owner_peer_id(target)
 	if target.is_in_group("killer"):
 		if tp_svc.consume_tp(target_id, mine_tp_amount):
 			tp_svc.add_tp_custom(attacker_id, mine_tp_amount)
@@ -143,7 +143,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if not target or not target.is_in_group("players"):
 		print("[FluffyProj] target no es players o es null")
 		return
-	if target.get_multiplayer_authority() == attacker_id:
+	if PlayerLifecycleManager.get_owner_peer_id(target) == attacker_id:
 		print("[FluffyProj] self-hit ignorado")
 		return
 

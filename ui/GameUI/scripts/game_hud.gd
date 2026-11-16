@@ -3,6 +3,8 @@
 # Gestiona: timer, TP, panel de jugador, habilidades, aliados y menú contextual estático.
 extends CanvasLayer
 
+const TAG := "game_hud"
+
 # ── Nodos ──────────────────────────────────────────────────────────────
 @onready var timer_panel:      PanelContainer = $TimerPanel
 @onready var timer_label:      Label          = $TimerPanel/VBoxContainer/TimerLabel
@@ -122,7 +124,7 @@ func setup(player_node: Node) -> void:
 	var my_id := _my_id
 
 	if not player_node.character_data:
-		push_warning("[GameHUD] Player sin character_data en setup.")
+		NetLog.warn_parts(TAG, ["[GameHUD] Player sin character_data en setup."])
 		return
 
 	_my_team     = player_node.character_data.team
@@ -210,7 +212,7 @@ func setup(player_node: Node) -> void:
 			if not relay.ability_slot_updated.is_connected(_on_ability_slot_updated):
 				relay.ability_slot_updated.connect(_on_ability_slot_updated)
 	_sync_rage_state()
-	print("[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team)
+	NetLog.debug_parts(TAG, ["[GameHUD] HUD configurado para peer: ", my_id, " | equipo: ", _my_team])
 
 # ── Configuración de HP del Killer ─────────────────────────────────────
 func _configure_killer_hp_visibility(_node: Node) -> void:
@@ -309,7 +311,7 @@ func resync_evolution_state() -> void:
 	var relay = GameServiceLocator.get_client_relay()
 	if not relay or not relay.has_method("get_evolved_stage"):
 		return
-	var peer_id = _player_node.get_multiplayer_authority()
+	var peer_id = PlayerLifecycleManager.get_owner_peer_id(_player_node)
 	var slots = _player_node.character_data.ability_slots if _player_node.character_data else []
 	for i in slots.size():
 		var stage: int = relay.get_evolved_stage(peer_id, i)
@@ -401,7 +403,7 @@ func request_selection(title: String, on_confirm: Callable, on_cancel: Callable 
 	# Si el único objetivo válido es el caster y puede auto-curarse, no
 	# hace falta mostrar la rueda.
 	if options.size() == 1 and can_target_self and int((options[0] as Dictionary).get("peer_id", -1)) == caster_id:
-		print("[GameHUD] Solo el caster disponible — auto-curando")
+		NetLog.debug_parts(TAG, ["[GameHUD] Solo el caster disponible — auto-curando"])
 		if on_confirm.is_valid():
 			on_confirm.call(caster_id)
 		selection_confirmed.emit(caster_id)
@@ -446,7 +448,7 @@ func _build_context_options(selection_type: int, caster_id: int, can_target_self
 		if not data:
 			continue
 
-		var p_id: int = player.get_multiplayer_authority()
+		var p_id: int = PlayerLifecycleManager.get_owner_peer_id(player)
 		var team := str(data.team)
 		if selection_type == 0 and team != "survivor": # ALLY
 			continue
@@ -509,13 +511,13 @@ func _on_player_state_changed(peer_id: int, state: String) -> void:
 
 func _find_player_by_peer_id(peer_id: int) -> Node:
 	for p in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
-		if p.get_multiplayer_authority() == peer_id:
+		if PlayerLifecycleManager.get_owner_peer_id(p) == peer_id:
 			return p
 	return null
 
 
 func _create_revive_prompt(player_node: Node) -> void:
-	var pid = player_node.get_multiplayer_authority()
+	var pid = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if _revive_prompts.has(pid):
 		return
 

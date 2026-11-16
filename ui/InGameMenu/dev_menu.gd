@@ -8,6 +8,8 @@
 # porque se registra en GroupNames.GAME_MENU.
 extends Control
 
+const TAG := "dev_menu"
+
 const FONT_UID := "uid://dvelfumepo3c0"
 const DEV_COLOR := Color(1.0, 0.35, 0.9)
 const GOLD := Color(1.0, 0.82, 0.3)
@@ -463,7 +465,7 @@ func _selected_player() -> Node:
 	var peer := _selected_peer_id()
 	if peer <= 0:
 		return null
-	return PlayerRegistry.get_player(peer)
+	return PlayerLifecycleManager.get_player(peer)
 
 
 func _selected_character_data() -> CharacterData:

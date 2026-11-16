@@ -14,7 +14,7 @@ var _hud: CanvasLayer = null
 func _ready() -> void:
 	_hud = get_tree().get_first_node_in_group("game_hud")
 	var player = get_parent()
-	if not player or not player.is_multiplayer_authority():
+	if not player or not player.is_local_owner():
 		return
 	_setup_vision_lights(player)
 
@@ -30,8 +30,10 @@ func _setup_vision_lights(player: Node2D) -> void:
 	$"../VisionCone".blend_mode = Light2D.BLEND_MODE_MIX
 
 func _process(_delta: float) -> void:
+	if multiplayer.multiplayer_peer == null:
+		return
 	var player = get_parent()
-	if not player or not player.is_multiplayer_authority():
+	if not player or not player.is_local_owner():
 		return
 	if player.interaction.is_spectator:
 		$"../VisionCircle".visible = false

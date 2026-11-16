@@ -148,6 +148,6 @@ func _process(delta: float) -> void:
 
 func _find_player_by_peer_id(peer_id: int) -> Node:
 	for p in get_tree().get_nodes_in_group("players"):
-		if p.get_multiplayer_authority() == peer_id:
+		if PlayerLifecycleManager.get_owner_peer_id(p) == peer_id:
 			return p
 	return null

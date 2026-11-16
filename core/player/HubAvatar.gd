@@ -1,7 +1,8 @@
-# res://core/player/HubAvatar.gd
+# res://Gameplay/player/HubAvatar.gd
 # Avatar liviano del hub. No usa Player.gd ni servicios de combate.
 # Por ahora usa el idle existente del Vessel y se mueve en top-down.
 # El movimiento se replica por RPC a través de Session (posición + flip).
+# La cámara la maneja el CameraRig de Session.tscn (Phantom Camera).
 extends CharacterBody2D
 
 signal interactable_changed(prompt: String)
@@ -16,7 +17,6 @@ const INTERP_SPEED := 14.0
 const SNAP_DISTANCE := 600.0
 
 @onready var sprite: Sprite2D = $Sprite
-@onready var camera: Camera2D = $Camera2D
 @onready var name_tag: Label = $NameTag
 @onready var interaction_area: Area2D = $InteractionArea
 
@@ -35,11 +35,6 @@ func _ready() -> void:
 	# En el spike local no hay red; en red, solo el dueño mueve su avatar.
 	var networked := multiplayer.get_peers().size() > 0 or multiplayer.get_unique_id() > 1
 	_can_move = not networked or is_multiplayer_authority()
-	if camera:
-		camera.enabled = _can_move
-		if _can_move:
-			camera.make_current()
-
 	_net_target_position = global_position
 	_has_net_target = not is_multiplayer_authority()
 

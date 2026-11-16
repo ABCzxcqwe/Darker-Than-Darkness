@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "StaminaService"
+
 signal stamina_changed(peer_id: int, current_stamina: float, max_stamina: float)
 
 const EXHAUST_DURATION: float = 3.0
@@ -34,7 +36,7 @@ func register_player(peer_id: int, data: Resource) -> void:
 	_sprinting[peer_id] = false
 	_exhausted[peer_id] = -1.0
 	stamina_changed.emit(peer_id, data.stamina_max, data.stamina_max)
-	_client_relay.rpc("sync_stamina_to_client", peer_id, data.stamina_max, data.stamina_max)
+	_sync_stamina(peer_id, data.stamina_max, data.stamina_max)
 
 
 func unregister_player(peer_id: int) -> void:
@@ -67,8 +69,7 @@ func dev_set_stamina(peer_id: int, value: float) -> void:
 	_stamina[peer_id] = clamped
 	_exhausted[peer_id] = -1.0
 	stamina_changed.emit(peer_id, clamped, max_s)
-	if _client_relay:
-		_client_relay.rpc("sync_stamina_to_client", peer_id, clamped, max_s)
+	_sync_stamina(peer_id, clamped, max_s)
 
 
 func has_stamina(peer_id: int) -> bool:
@@ -86,7 +87,7 @@ func set_sprinting(peer_id: int, sprinting: bool) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != peer_id and sender != 1:
+	if sender != 0 and sender != peer_id and sender != LobbyManager.server_peer_id:
 		return
 	_sprinting[peer_id] = sprinting
 
@@ -127,7 +128,7 @@ func _on_tick() -> void:
 		if not is_equal_approx(new_val, current):
 			_stamina[pid] = new_val
 			stamina_changed.emit(pid, new_val, data.stamina_max)
-			_client_relay.rpc("sync_stamina_to_client", pid, new_val, data.stamina_max)
+			_sync_stamina(pid, new_val, data.stamina_max)
 
 
 func reset() -> void:
@@ -151,7 +152,7 @@ func _is_sprint_suppressed(pid: int) -> bool:
 		if status.has_method("is_sprint_disabled") and status.is_sprint_disabled(pid):
 			return true
 
-	var node = PlayerRegistry.get_player(pid)
+	var node = PlayerLifecycleManager.get_player(pid)
 	if is_instance_valid(node) and node.get("health_state") != null and node.health_state != "alive":
 		return true
 
@@ -166,3 +167,8 @@ func _get_rage_drain_mult(pid: int) -> float:
 	if abs_svc and abs_svc.is_mode_active(pid, 4):
 		return abs_svc.get_mode_data(pid, 4).get("stamina_drain_mult", 1.0)
 	return 1.0
+
+
+func _sync_stamina(peer_id: int, current: float, max_s: float) -> void:
+	if _client_relay:
+		_client_relay.rpc("sync_stamina_to_client", peer_id, current, max_s)

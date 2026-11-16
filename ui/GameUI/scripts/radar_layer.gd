@@ -163,6 +163,6 @@ static func _rotated(v: Vector2, cos_a: float, sin_a: float) -> Vector2:
 
 func _find_player(peer_id: int) -> Node:
 	for p in get_tree().get_nodes_in_group("players"):
-		if p.get_multiplayer_authority() == peer_id:
+		if PlayerLifecycleManager.get_owner_peer_id(p) == peer_id:
 			return p
 	return null

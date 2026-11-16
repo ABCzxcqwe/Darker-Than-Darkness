@@ -349,7 +349,7 @@ func _update_proximities(player: Node, delta: float) -> void:
 		for s in survivors:
 			if not is_instance_valid(s): continue
 			if "health_state" in s and s.health_state != "alive": continue
-			if relay and relay.has_player_escaped(s.get_multiplayer_authority()): continue
+			if relay and relay.has_player_escaped(PlayerLifecycleManager.get_owner_peer_id(s)): continue
 			var d: float = player.global_position.distance_to(s.global_position)
 			if d <= chase_range:
 				target_in_chase = true
@@ -408,7 +408,7 @@ func _is_on_last_life(node: Node) -> bool:
 		return false
 	var relay = GameServiceLocator.get_client_relay()
 	if relay and relay.has_method("is_on_last_life"):
-		return relay.is_on_last_life(node.get_multiplayer_authority())
+		return relay.is_on_last_life(PlayerLifecycleManager.get_owner_peer_id(node))
 	return false
 
 
@@ -583,6 +583,8 @@ func apply_synced_priority(priority: int, position: float, lms_peer: int = -1) -
 
 ## Resync periodico (servidor -> clientes) de la posicion del track prioritario.
 func _on_music_resync_timeout() -> void:
+	if multiplayer.multiplayer_peer == null:
+		return
 	if not multiplayer.is_server():
 		return
 	if _current_priority == PriorityLevel.NONE:

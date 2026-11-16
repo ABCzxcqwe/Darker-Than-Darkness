@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "MapEventCoordinator"
+
 signal exit_activated(exit_id: String)
 signal exit_deactivated(exit_id: String)
 signal player_escaped(peer_id: int, exit_id: String)
@@ -62,7 +64,8 @@ func _on_lms_activated(survivor_node: Node, _killer_node: Node, _duration: float
 		return
 	var threshold = _get_lms_exit_threshold(survivor_node)
 	_sync_lms_state(threshold)
-	_client_relay.rpc("_sync_lms_state", threshold)
+	if _client_relay:
+		_client_relay.rpc("_sync_lms_state", threshold)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -78,7 +81,8 @@ func _on_lms_ended() -> void:
 	if not multiplayer.is_server():
 		return
 	_sync_lms_ended()
-	_client_relay.rpc("_sync_lms_ended")
+	if _client_relay:
+		_client_relay.rpc("_sync_lms_ended")
 
 
 @rpc("authority", "call_local", "reliable")
@@ -188,10 +192,10 @@ func _scan_map_events() -> void:
 
 	_scan_children(_map_node)
 
-	print("[MapEventCoordinator] Exits: ", _exits.keys(),
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Exits: ", _exits.keys(),
 		" | Triggers: ", _triggers.keys(),
 		" | SpawnPoints: ", _spawn_points.keys(),
-		" | PhaseEvents: ", _phase_events.size())
+		" | PhaseEvents: ", _phase_events.size()])
 
 
 func _scan_children(node: Node) -> void:
@@ -274,7 +278,7 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 	if not multiplayer.is_server():
 		return
 	if not _exits.has(exit_id):
-		push_warning("[MapEventCoordinator] Exit '", exit_id, "' no encontrado.")
+		NetLog.warn_parts(TAG, ["[MapEventCoordinator] Exit '", exit_id, "' no encontrado."])
 		return
 	var exit = _exits[exit_id]
 	if _rage_active and not force:
@@ -292,7 +296,7 @@ func activate_exit(exit_id: String, force: bool = false) -> void:
 			var arrow_id = radar.show_map_indicator(exit.global_position)
 			if arrow_id >= 0:
 				_exit_arrows[exit_id] = arrow_id
-	print("[MapEventCoordinator] Exit '", exit_id, "' activado.")
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Exit '", exit_id, "' activado."])
 
 
 func deactivate_exit(exit_id: String) -> void:
@@ -338,12 +342,12 @@ func get_active_exits() -> Array[String]:
 func _on_player_entered_exit(body: Node, exit_id: String) -> void:
 	if not multiplayer.is_server():
 		return
-	if not body.is_in_group("players"):
+	if not body.is_in_group(GroupNames.PLAYERS):
 		return
 	var exit = _exits.get(exit_id)
 	if not exit or not exit.is_active:
 		return
-	var peer_id = body.get_multiplayer_authority()
+	var peer_id = PlayerLifecycleManager.get_owner_peer_id(body)
 	if peer_id < 0:
 		return
 	if LobbyManager.players.get(peer_id, {}).get("assigned_role") != "survivor":
@@ -364,9 +368,10 @@ func _process_escape(peer_id: int, exit_id: String) -> void:
 		return
 
 	_escaped_players.append(peer_id)
-	_client_relay.rpc("_sync_escaped_players", _escaped_players)
+	if _client_relay:
+		_client_relay.rpc("_sync_escaped_players", _escaped_players)
 	player_escaped.emit(peer_id, exit_id)
-	print("[MapEventCoordinator] Jugador ", peer_id, " escapó por '", exit_id, "'.")
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Jugador ", peer_id, " escapó por '", exit_id, "'."])
 
 	var hp_svc = GameServiceLocator.health
 	if hp_svc and hp_svc.has_method("set_escaped"):
@@ -392,11 +397,11 @@ func _check_match_end() -> void:
 			escaped_count += 1
 			continue
 		var dead = _health_service and _health_service.is_dead(pid)
-		print("[MapEventCoordinator] _check_match_end: pid=", pid, " dead=", dead, " escaped=false")
+		NetLog.debug_parts(TAG, ["[MapEventCoordinator] _check_match_end: pid=", pid, " dead=", dead, " escaped=false"])
 		if not dead:
 			return
 
-	print("[MapEventCoordinator] _check_match_end: COMPLETO -> escaped=", escaped_count, "/", total_survivors)
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] _check_match_end: COMPLETO -> escaped=", escaped_count, "/", total_survivors])
 	if _game_state_service:
 		_game_state_service.transition_to_ended("survivors_escaped", {
 			"escaped_count": escaped_count,
@@ -442,22 +447,22 @@ func get_spawn_point_position(spawn_id: String) -> Vector2:
 # ── Effects / Ambiente (placeholders para futuro) ─────────
 
 func _play_effect(effect_name: String) -> void:
-	print("[MapEventCoordinator] Efecto '", effect_name, "' solicitado (sin implementar).")
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Efecto '", effect_name, "' solicitado (sin implementar)."])
 
 
 func _set_ambient(ambient_name: String) -> void:
-	print("[MapEventCoordinator] Ambiente '", ambient_name, "' solicitado (sin implementar).")
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Ambiente '", ambient_name, "' solicitado (sin implementar)."])
 
 
 func _call_custom_event(event: MapPhaseEvent) -> void:
-	print("[MapEventCoordinator] Evento custom '", event.event_id, "' (sin implementar).")
+	NetLog.debug_parts(TAG, ["[MapEventCoordinator] Evento custom '", event.event_id, "' (sin implementar)."])
 
 
 # ── Helpers ───────────────────────────────────────────────
 
 func _find_player(peer_id: int) -> Node:
-	for player in get_tree().get_nodes_in_group("players"):
-		if player.get_multiplayer_authority() == peer_id:
+	for player in get_tree().get_nodes_in_group(GroupNames.PLAYERS):
+		if PlayerLifecycleManager.get_owner_peer_id(player) == peer_id:
 			return player
 	return null
 
@@ -484,7 +489,8 @@ func get_escaped_count() -> int:
 func _register_escaped(peer_id: int) -> void:
 	if not peer_id in _escaped_players:
 		_escaped_players.append(peer_id)
-		_client_relay.rpc("_sync_escaped_players", _escaped_players)
+		if _client_relay:
+			_client_relay.rpc("_sync_escaped_players", _escaped_players)
 
 
 func clear() -> void:
@@ -495,7 +501,8 @@ func clear() -> void:
 	_spawn_points.clear()
 	_phase_events.clear()
 	_escaped_players.clear()
-	_client_relay.rpc("_sync_escaped_players", [])
+	if _client_relay:
+		_client_relay.rpc("_sync_escaped_players", [])
 	if _radar_service:
 		for arrow_id in _exit_arrows.values():
 			_radar_service.remove_map_indicator(arrow_id)

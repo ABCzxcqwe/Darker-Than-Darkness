@@ -210,7 +210,7 @@ func _resolve_ability_version(peer_id: int, slot_index: int, base_data: AbilityD
 	if stage <= 0 and base_data.lms_auto_evolve and base_data.evolved_version:
 		if lms_svc and lms_svc.is_lms_active():
 			var lms_survivor = lms_svc.get_active_survivor()
-			if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
+			if lms_survivor and PlayerLifecycleManager.get_owner_peer_id(lms_survivor) == peer_id:
 				lms_wants_evolve = true
 	if lms_wants_evolve:
 		stage = 1
@@ -275,7 +275,7 @@ func _validate_tp(peer_id: int, ability_data: AbilityData, slot_index: int,
 		elif is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
 			if lms_svc and lms_svc.is_lms_active():
 				var lms_survivor = lms_svc.get_active_survivor()
-				if lms_survivor and lms_survivor.get_multiplayer_authority() == peer_id:
+				if lms_survivor and PlayerLifecycleManager.get_owner_peer_id(lms_survivor) == peer_id:
 					is_evolved = false
 					ability_data = base_data
 					effective_tp_cost = _resolve_tp_cost(base_data, peer_id, slot_index, abs_svc)
@@ -502,7 +502,7 @@ func start_fase2(player_node: Node, data: AbilityData, slot_index: int) -> bool:
 	if slot_index < 0:
 		return false
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var abs_svc: Node = GameServiceLocator.ability_state
 	if not abs_svc:
 		push_error("[AbilityRouter] start_fase2 sin AbilityStateService.")
@@ -718,7 +718,7 @@ func get_fase2_damage_reduction(peer_id: int) -> float:
 func apply_fase2_fire_iframes(player_node: Node, slot_index: int, anim_duration: float) -> void:
 	if not is_instance_valid(player_node) or not multiplayer.is_server():
 		return
-	var md := _get_fase2_mode(player_node.get_multiplayer_authority(), slot_index)
+	var md := _get_fase2_mode(PlayerLifecycleManager.get_owner_peer_id(player_node), slot_index)
 	if md.is_empty():
 		return
 	var mode: int = int(md.get("fire_iframes_mode", 0))
@@ -734,7 +734,7 @@ func apply_fase2_fire_iframes(player_node: Node, slot_index: int, anim_duration:
 	var ms: int = maxi(remaining, int(duration * 1000.0))
 	player_node.invincible_until = now + ms
 	player_node.rpc("_sync_invincibility", ms)
-	print("[AbilityRouter] I-frames de disparo | peer: ", player_node.get_multiplayer_authority(),
+	print("[AbilityRouter] I-frames de disparo | peer: ", PlayerLifecycleManager.get_owner_peer_id(player_node),
 		  " | ", ms, "ms")
 
 

@@ -124,7 +124,7 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 
 	# Sin auto-golpe
-	var target_id: int = target.get_multiplayer_authority()
+	var target_id: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	if target_id == attacker_id:
 		return
 

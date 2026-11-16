@@ -3,6 +3,8 @@
 # Cualquier jugador puede cerrarlo (no es exclusivo del host).
 extends Control
 
+const TAG := "match_stats"
+
 const FONT := preload("res://Fonts/deltarune font.ttf")
 
 @onready var title_label: Label = $Label
@@ -300,4 +302,4 @@ func _record_theme_progress() -> void:
 		sm.record_win_for_character(my_char)
 		if not was_unlocked and sm.is_theme_unlocked("light"):
 			# Notificación: se auto-activa vía SettingsManager.unlock_theme -> menu_theme
-			print("[MatchStats] ¡Tema LIGHT desbloqueado! Tema auto-activado.")
+			NetLog.debug_parts(TAG, ["[MatchStats] ¡Tema LIGHT desbloqueado! Tema auto-activado."])

@@ -2,13 +2,15 @@
 
 [ext_resource type="Script" uid="uid://b7nfismr7jhw4" path="res://core/player/Player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://csdkgopacglu8" path="res://ui/Old/scripts/hurtbox.gd" id="2_onrkg"]
-[ext_resource type="Script" uid="uid://w20tlfoj15jv" path="res://core/player_camera.gd" id="3_cam"]
 [ext_resource type="Script" uid="uid://bh5kx55xyka6g" path="res://core/player_vision.gd" id="4_vis"]
 [ext_resource type="Script" uid="uid://cdve0tt16kqmj" path="res://core/player/PlayerInteractionComponent.gd" id="5_interaction"]
 [ext_resource type="Script" uid="uid://dhto4ds8dqhya" path="res://core/player/PlayerAnimationComponent.gd" id="6_animation"]
 [ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://core/player/PlayerMovementComponent.gd" id="7_movement"]
 [ext_resource type="Script" uid="uid://cja6xwd2n8ocv" path="res://core/player/PlayerInputComponent.gd" id="8_input"]
 [ext_resource type="Script" uid="uid://bmlyo5sy67r1p" path="res://core/player/AimIndicator.gd" id="9_aim"]
+[ext_resource type="Script" path="res://core/player/PlayerNetInput.gd" id="10_netinput"]
+[ext_resource type="Script" path="res://addons/netfox/rollback/rollback-synchronizer.gd" id="11_rbs"]
+[ext_resource type="Script" path="res://addons/netfox/tick-interpolator.gd" id="12_tick"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -25,37 +27,6 @@ size = Vector2(54, 60)
 radius = 31.0
 height = 112.0
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sync"]
-properties/0/path = NodePath(".:net_position")
-properties/0/spawn = true
-properties/0/replication_mode = 2
-properties/1/path = NodePath(".:health")
-properties/1/spawn = true
-properties/1/replication_mode = 2
-properties/2/path = NodePath(".:health_state")
-properties/2/spawn = true
-properties/2/replication_mode = 2
-properties/3/path = NodePath(".:move_state")
-properties/3/spawn = true
-properties/3/replication_mode = 2
-properties/4/path = NodePath(".:facing_right")
-properties/4/spawn = true
-properties/4/replication_mode = 2
-properties/5/path = NodePath(".:move_facing_down")
-properties/5/spawn = true
-properties/5/replication_mode = 2
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_anim"]
-properties/0/path = NodePath("AnimatedSprite2D:animation")
-properties/0/spawn = true
-properties/0/replication_mode = 2
-properties/1/path = NodePath("AnimatedSprite2D:flip_h")
-properties/1/spawn = true
-properties/1/replication_mode = 2
-properties/2/path = NodePath("AnimatedSprite2D:frame")
-properties/2/spawn = true
-properties/2/replication_mode = 2
-
 [node name="CharacterBody2D" type="CharacterBody2D" unique_id=156327789]
 collision_layer = 2
 script = ExtResource("1_onrkg")
@@ -66,10 +37,6 @@ sprite_frames = SubResource("SpriteFrames_4flbx")
 animation = &"idle_horizontal"
 frame_progress = 0.35946932
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
-zoom = Vector2(0.7, 0.7)
-script = ExtResource("3_cam")
-zoom_sprint = 0.65
 
 [node name="Vision" type="Node" parent="." unique_id=1869788754]
 script = ExtResource("4_vis")
@@ -107,13 +74,7 @@ layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Synchronizer" type="MultiplayerSynchronizer" parent="." unique_id=576798975]
-replication_config = SubResource("SceneReplicationConfig_sync")
-public_visibility = false
 
-[node name="SynchronizerAnim" type="MultiplayerSynchronizer" parent="."]
-replication_config = SubResource("SceneReplicationConfig_anim")
-public_visibility = true
 
 [node name="PlayerInteractionComponent" type="Node" parent="." unique_id=1178568243]
 script = ExtResource("5_interaction")
@@ -126,6 +87,15 @@ script = ExtResource("7_movement")
 
 [node name="PlayerInputComponent" type="Node" parent="."]
 script = ExtResource("8_input")
+
+[node name="NetInput" type="Node" parent="."]
+script = ExtResource("10_netinput")
+
+[node name="RollbackSynchronizer" type="Node" parent="."]
+script = ExtResource("11_rbs")
+
+[node name="TickInterpolator" type="Node" parent="."]
+script = ExtResource("12_tick")
 
 [node name="VisionCircle" type="PointLight2D" parent="." unique_id=433607292]
 energy = 1.25

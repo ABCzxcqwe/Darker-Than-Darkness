@@ -137,7 +137,7 @@ func _on_area_entered(area: Area2D) -> void:
 	var target: Node = area.get_parent()
 	if not target or not target.is_in_group("players"):
 		return
-	if target.get_multiplayer_authority() == attacker_id:
+	if PlayerLifecycleManager.get_owner_peer_id(target) == attacker_id:
 		return
 	if not _passes_team_filter(target):
 		return

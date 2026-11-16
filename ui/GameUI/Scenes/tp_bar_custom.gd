@@ -1,4 +1,6 @@
 extends Control
+
+const TAG := "tp_bar_custom"
 ## TpBarCustom — Barra TP horizontal paralelogramo 340x38
 ## Más grande, separada del panel, sin fondo propio, bordes negros.
 ## Muestra TP a la izquierda y puntos actuales/max a la derecha (fuera de la barra).
@@ -218,7 +220,7 @@ func _get_bar_width() -> float:
 
 func _find_player(peer_id: int) -> Node:
 	for p in get_tree().get_nodes_in_group("players"):
-		if p.get_multiplayer_authority() == peer_id:
+		if PlayerLifecycleManager.get_owner_peer_id(p) == peer_id:
 			return p
 	return null
 

@@ -15,7 +15,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if not is_instance_valid(player_node):
 		return
 
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_target_peer_id = pending_target_peer
 	_player_node = player_node
 

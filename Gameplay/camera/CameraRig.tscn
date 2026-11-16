@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Gameplay/camera/CameraRig.gd" id="1_rig"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="2_host"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_2d.gd" id="3_pcam"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_2d.gd" id="4_noise"]
+
+[node name="CameraRig" type="Node2D"]
+script = ExtResource("1_rig")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true
+
+[node name="PhantomCameraHost" type="Node" parent="Camera2D"]
+script = ExtResource("2_host")
+interpolation_mode = 1
+
+[node name="FollowPCam" type="Node2D" parent="."]
+script = ExtResource("3_pcam")
+follow_mode = 2
+follow_damping = true
+follow_damping_value = Vector2(0.2, 0.2)
+zoom = Vector2(0.7, 0.7)
+tween_on_load = false
+
+[node name="NoiseEmitter" type="Node2D" parent="."]
+script = ExtResource("4_noise")
+noise_emitter_layer = 1

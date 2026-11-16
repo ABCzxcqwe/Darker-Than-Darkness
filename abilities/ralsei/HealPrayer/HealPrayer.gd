@@ -34,7 +34,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 	if not player_node.multiplayer.is_server():
 		return
 
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_player_node = player_node
 	_data = data
 	_slot_index = slot_index if slot_index >= 0 else 1
@@ -129,7 +129,7 @@ func _tick() -> void:
 		AudioManager.play_sfx_networked.rpc(
 			SfxId.HEAL, target.global_position.x, target.global_position.y)
 		print("[HealPrayer] Tick | caster: ", _caster_id,
-			" | target: ", target.get_multiplayer_authority(), " | HP: ", healed)
+			" | target: ", PlayerLifecycleManager.get_owner_peer_id(target), " | HP: ", healed)
 
 
 func _pick_target() -> Node:

@@ -3,6 +3,8 @@
 # No muestra rol, vida ni estado. Se mantiene Tab para verlo.
 extends CanvasLayer
 
+const TAG := "scoreboard"
+
 const FONT := preload("res://Fonts/deltarune font.ttf")
 const FALLBACK_ICON := preload("res://sprites/Soul.png")
 const ROW_ICON_SIZE := Vector2(40, 40)

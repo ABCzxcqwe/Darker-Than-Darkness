@@ -19,7 +19,7 @@ func _ready() -> void:
 func _on_body_entered(body: Node) -> void:
 	if has_fired and one_shot:
 		return
-	if not body.is_in_group("players"):
+	if not body.is_in_group(GroupNames.PLAYERS):
 		return
 	if not _passes_filter(body):
 		return
@@ -27,7 +27,7 @@ func _on_body_entered(body: Node) -> void:
 	triggered.emit(trigger_id, body)
 
 func _on_body_exited(body: Node) -> void:
-	if not body.is_in_group("players"):
+	if not body.is_in_group(GroupNames.PLAYERS):
 		return
 	player_exited.emit(trigger_id, body)
 

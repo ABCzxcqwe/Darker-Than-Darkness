@@ -20,7 +20,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 	var tp_svc = GameServiceLocator.tp
 	var cd = GameServiceLocator.cooldown
 
-	var attacker_id: int = player_node.get_multiplayer_authority()
+	var attacker_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var dmg: int         = int(data.base_damage * data.evo_damage_multiplier)
 	var atk_type: String = data.attack_type
 	var stun_dur: float  = data.stun_duration + data.evo_status_duration_bonus

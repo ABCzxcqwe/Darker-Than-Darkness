@@ -27,7 +27,7 @@ func find_closest_revivable_target(revive_range: float) -> Node:
 
 
 func get_self_on_server() -> Node:
-	return PlayerRegistry.get_player(player.get_multiplayer_authority())
+	return PlayerLifecycleManager.get_player(player.get_owner_peer_id())
 
 
 # ── Corpse ─────────────────────────────────────────────────────────────

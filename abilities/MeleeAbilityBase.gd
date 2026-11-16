@@ -22,7 +22,7 @@ func _execute(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 
 	var combat = GameServiceLocator.combat_mediator
 
-	var attacker_id: int = player_node.get_multiplayer_authority()
+	var attacker_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var dmg_mult = cfg.get("damage_multiplier", 1.0)
 	var dmg: int = int(data.base_damage * dmg_mult)
 	var atk_type: String = data.attack_type

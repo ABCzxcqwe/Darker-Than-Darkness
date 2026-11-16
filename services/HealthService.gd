@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "HealthService"
+
 signal survivor_died_permanently(peer_id: int)
 signal health_changed(peer_id: int, current_hp: int, max_hp: int)
 signal player_state_changed(peer_id: int, state: String)
@@ -41,7 +43,7 @@ func take_damage(player_node: Node, amount: int, damage_kind: String = "direct")
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not is_alive(peer_id):
 		return
 
@@ -50,7 +52,7 @@ func take_damage(player_node: Node, amount: int, damage_kind: String = "direct")
 
 	var new_health = player_node.health - amount
 
-	print("[HealthService] ", peer_id, " recibió ", amount, " daño (", damage_kind, ") | vida: ", new_health)
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " recibió ", amount, " daño (", damage_kind, ") | vida: ", new_health])
 
 	var revive_svc = _revive_service
 	if revive_svc:
@@ -74,7 +76,7 @@ func take_damage(player_node: Node, amount: int, damage_kind: String = "direct")
 		player_node.reset_ability_state()
 		if is_instance_valid(player_node):
 			player_node.rpc("_sync_cancel_ability")
-		print("[HealthService] Habilidad cancelada en peer ", peer_id, " por recibir daño.")
+		NetLog.debug_parts(TAG, ["[HealthService] Habilidad cancelada en peer ", peer_id, " por recibir daño."])
 
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
@@ -96,14 +98,14 @@ func heal(player_node: Node, amount: int) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not is_alive(peer_id):
 		return
 
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 	var new_health = mini(player_node.health + amount, max_hp)
 
-	print("[HealthService] ", peer_id, " curado | vida: ", new_health)
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " curado | vida: ", new_health])
 
 	broadcast_health_update(peer_id, new_health, max_hp, "alive")
 	if is_instance_valid(player_node):
@@ -115,7 +117,7 @@ func revive(player_node: Node) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not is_downed(peer_id):
 		return
 
@@ -131,7 +133,7 @@ func revive(player_node: Node) -> void:
 	player_node.health = revive_hp
 	_set_state(peer_id, "alive")
 
-	print("[HealthService] ", peer_id, " rescatado | vida: ", revive_hp)
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " rescatado | vida: ", revive_hp])
 
 	broadcast_health_update(peer_id, revive_hp, max_hp, "alive")
 	if is_instance_valid(player_node):
@@ -142,7 +144,7 @@ func execute(player_node: Node) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	if not is_downed(peer_id):
 		return
 
@@ -155,12 +157,12 @@ func execute(player_node: Node) -> void:
 		combat = GameServiceLocator.combat_mediator
 	if combat and combat.has_method("has_death_shield") and combat.has_death_shield(peer_id):
 		var protectors: Array = combat.consume_death_shield(peer_id)
-		print("[HealthService] Execute bloqueado por DEATH_SHIELD para peer ", peer_id, " protectores: ", protectors)
+		NetLog.debug_parts(TAG, ["[HealthService] Execute bloqueado por DEATH_SHIELD para peer ", peer_id, " protectores: ", protectors])
 		# Romper FX visual en el objetivo y en sus protectores (Kris <-> aliado)
 		if is_instance_valid(player_node):
 			player_node.rpc("_rpc_soul_protect_break", peer_id)
 			for pid in protectors:
-				var protector_node: Node = PlayerRegistry.get_player(pid)
+				var protector_node: Node = PlayerLifecycleManager.get_player(pid)
 				if is_instance_valid(protector_node):
 					protector_node.rpc("_rpc_soul_protect_break", pid)
 				else:
@@ -173,20 +175,20 @@ func execute(player_node: Node) -> void:
 
 
 func register(player_node: Node) -> void:
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_states[peer_id] = { "state": "alive", "timer": null, "down_count": 0 }
-	print("[HealthService] ", peer_id, " registrado con 0 caídas.")
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " registrado con 0 caídas."])
 
 
 func unregister(peer_id: int) -> void:
 	_cancel_bleed_timer(peer_id)
 	if _states.has(peer_id):
 		_states.erase(peer_id)
-	print("[HealthService] Peer ", peer_id, " eliminado de los estados de salud.")
+	NetLog.debug_parts(TAG, ["[HealthService] Peer ", peer_id, " eliminado de los estados de salud."])
 
 
 func _down(player_node: Node) -> void:
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
 	# Caer siempre cierra cualquier fase 2, independientemente de flags.
@@ -196,7 +198,7 @@ func _down(player_node: Node) -> void:
 		_states[peer_id]["down_count"] += 1
 
 	if _states.has(peer_id) and _states[peer_id]["down_count"] >= 2:
-		print("[HealthService] Peer ", peer_id, " cayó por segunda vez. Muerte automática aplicada.")
+		NetLog.debug_parts(TAG, ["[HealthService] Peer ", peer_id, " cayó por segunda vez. Muerte automática aplicada."])
 		_kill(player_node)
 		return
 
@@ -208,7 +210,7 @@ func _down(player_node: Node) -> void:
 			alive_survivor_count += 1
 
 	if alive_survivor_count <= 1:
-		print("[HealthService] Último sobreviviente caído — nadie puede revivirlo. Fin del juego.")
+		NetLog.debug_parts(TAG, ["[HealthService] Último sobreviviente caído — nadie puede revivirlo. Fin del juego."])
 		_kill(player_node)
 		return
 
@@ -221,7 +223,7 @@ func _down(player_node: Node) -> void:
 	if radar_svc:
 		radar_svc.show_down_indicator(player_node)
 
-	print("[HealthService] ", peer_id, " ha caído por primera vez!")
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " ha caído por primera vez!"])
 
 	broadcast_health_update(peer_id, 0, max_hp, "downed")
 	if is_instance_valid(player_node):
@@ -251,7 +253,7 @@ func _down(player_node: Node) -> void:
 
 
 func _kill(player_node: Node) -> void:
-	var peer_id := player_node.get_multiplayer_authority()
+	var peer_id := PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var max_hp: int = player_node.character_data.max_health if player_node.character_data else 100
 
 	# La muerte siempre cierra cualquier fase 2.
@@ -266,16 +268,17 @@ func _kill(player_node: Node) -> void:
 	_set_state(peer_id, "dead")
 	_permanently_dead[peer_id] = true
 
-	print("[HealthService] ", peer_id, " ha muerto.")
+	NetLog.debug_parts(TAG, ["[HealthService] ", peer_id, " ha muerto."])
 
 	broadcast_health_update(peer_id, 0, max_hp, "dead")
 	survivor_died_permanently.emit(peer_id)
-	_client_relay.rpc("_sync_survivor_died", peer_id)
+	if _client_relay:
+		_client_relay.rpc("_sync_survivor_died", peer_id)
 
 	var cd = _cooldown_service
 	if cd and cd.has_method("clear_player"):
 		cd.clear_player(peer_id)
-		print("[HealthService] Cooldowns limpiados para peer ", peer_id, " al morir.")
+		NetLog.debug_parts(TAG, ["[HealthService] Cooldowns limpiados para peer ", peer_id, " al morir."])
 
 	if is_instance_valid(player_node):
 		player_node.rpc("_sync_state", "dead", 0)
@@ -319,12 +322,13 @@ func broadcast_health_update(peer_id: int, current_hp: int, max_hp: int, state: 
 	var down_count: int = int(_states.get(peer_id, {}).get("down_count", 0))
 	health_changed.emit(peer_id, current_hp, max_hp)
 	player_state_changed.emit(peer_id, state)
-	_client_relay.rpc("_sync_global_health", peer_id, current_hp, max_hp, state, down_count)
+	if _client_relay:
+		_client_relay.rpc("_sync_global_health", peer_id, current_hp, max_hp, state, down_count)
 
 
 @rpc("authority", "reliable", "call_local")
 func _sync_global_health(peer_id: int, current_hp: int, max_hp: int, state: String) -> void:
-	print("[Global Sync] Jugador %d: HP=%d/%d, Estado=%s" % [peer_id, current_hp, max_hp, state])
+	NetLog.debug_parts(TAG, ["[Global Sync] Jugador %d: HP=%d/%d, Estado=%s" % [peer_id, current_hp, max_hp, state]])
 	health_changed.emit(peer_id, current_hp, max_hp)
 	player_state_changed.emit(peer_id, state)
 
@@ -342,7 +346,7 @@ func check_all_survivors_incapacitated() -> bool:
 			total_survivors += 1
 			var downed: bool = is_downed(peer_id)
 			var dead_state: bool = is_dead(peer_id)
-			var player_node = PlayerRegistry.get_player(peer_id)
+			var player_node = PlayerLifecycleManager.get_player(peer_id)
 			var permanent_death: bool = dead_state or not is_instance_valid(player_node)
 			if downed or permanent_death:
 				incapacitated_survivors += 1
@@ -351,7 +355,7 @@ func check_all_survivors_incapacitated() -> bool:
 
 func _exit_tree() -> void:
 	_states.clear()
-	print("[HealthService] Limpiado.")
+	NetLog.debug_parts(TAG, ["[HealthService] Limpiado."])
 
 
 func _play_downed_sound(player_node: Node) -> void:

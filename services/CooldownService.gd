@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "CooldownService"
+
 const LOCK_TIMEOUT_MS: int = 30000
 
 # _cooldowns = { peer_id: { slot_index: { "lock": bool, "expiry": int, "lock_time": int } } }
@@ -29,9 +31,9 @@ func start_lock(peer_id: int, slot_index: int) -> void:
 	_cooldowns[peer_id][slot_index]["lock"] = true
 	_cooldowns[peer_id][slot_index]["expiry"] = 0
 	_cooldowns[peer_id][slot_index]["lock_time"] = Time.get_ticks_msec()
-	print("[CooldownService] Lock activado -> Peer: ", peer_id, " | Slot: ", slot_index)
+	NetLog.debug_parts(TAG, ["[CooldownService] Lock activado -> Peer: ", peer_id, " | Slot: ", slot_index])
 	if LobbyManager.players.has(peer_id):
-		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, -1.0)
+		_send_cooldown(peer_id, slot_index, -1.0)
 
 
 ## Libera el lock sin iniciar cooldown. El slot queda listo inmediatamente.
@@ -41,9 +43,9 @@ func release_lock(peer_id: int, slot_index: int) -> void:
 	_ensure(peer_id, slot_index)
 	_cooldowns[peer_id][slot_index]["lock"] = false
 	_cooldowns[peer_id][slot_index]["expiry"] = 0
-	print("[CooldownService] Lock liberado -> Peer: ", peer_id, " | Slot: ", slot_index)
+	NetLog.debug_parts(TAG, ["[CooldownService] Lock liberado -> Peer: ", peer_id, " | Slot: ", slot_index])
 	if LobbyManager.players.has(peer_id):
-		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+		_send_cooldown(peer_id, slot_index, 0.0)
 
 
 ## Inicia cooldown normal. Libera el lock si estaba activo.
@@ -53,9 +55,9 @@ func start(peer_id: int, slot_index: int, duration: float) -> void:
 	_ensure(peer_id, slot_index)
 	_cooldowns[peer_id][slot_index]["lock"] = false
 	_cooldowns[peer_id][slot_index]["expiry"] = Time.get_ticks_msec() + int(duration * 1000)
-	print("[CooldownService] Cooldown iniciado -> Peer: ", peer_id, " | Slot: ", slot_index, " | Duración: ", duration, "s")
+	NetLog.debug_parts(TAG, ["[CooldownService] Cooldown iniciado -> Peer: ", peer_id, " | Slot: ", slot_index, " | Duración: ", duration, "s"])
 	if LobbyManager.players.has(peer_id):
-		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, duration)
+		_send_cooldown(peer_id, slot_index, duration)
 
 
 ## True si el slot está listo (sin lock y sin cooldown pendiente).
@@ -68,11 +70,11 @@ func is_ready(peer_id: int, slot_index: int) -> bool:
 	if state["lock"]:
 		var lock_time: int = state.get("lock_time", 0)
 		if lock_time > 0 and Time.get_ticks_msec() - lock_time > LOCK_TIMEOUT_MS:
-			push_warning("[CooldownService] Lock timeout para peer ", peer_id, " slot ", slot_index, " — liberando automáticamente.")
+			NetLog.warn_parts(TAG, ["[CooldownService] Lock timeout para peer ", peer_id, " slot ", slot_index, " — liberando automáticamente."])
 			state["lock"] = false
 			state["expiry"] = 0
 			if LobbyManager.players.has(peer_id):
-				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+				_send_cooldown(peer_id, slot_index, 0.0)
 			return true
 		return false
 	if state["expiry"] == 0:
@@ -89,11 +91,11 @@ func get_remaining(peer_id: int, slot_index: int) -> float:
 	if state["lock"]:
 		var lock_time: int = state.get("lock_time", 0)
 		if lock_time > 0 and Time.get_ticks_msec() - lock_time > LOCK_TIMEOUT_MS:
-			push_warning("[CooldownService] Lock timeout en get_remaining para peer ", peer_id, " slot ", slot_index, " — liberando.")
+			NetLog.warn_parts(TAG, ["[CooldownService] Lock timeout en get_remaining para peer ", peer_id, " slot ", slot_index, " — liberando."])
 			state["lock"] = false
 			state["expiry"] = 0
 			if LobbyManager.players.has(peer_id):
-				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, 0.0)
+				_send_cooldown(peer_id, slot_index, 0.0)
 			return 0.0
 		return -1.0
 	if state["expiry"] == 0:
@@ -110,8 +112,8 @@ func clear_player(peer_id: int) -> void:
 		_cooldowns.erase(peer_id)
 		if LobbyManager.players.has(peer_id):
 			for slot in range(5):
-				_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot, 0.0)
-		print("[CooldownService] Cooldowns limpiados para peer: ", peer_id)
+				_send_cooldown(peer_id, slot, 0.0)
+		NetLog.debug_parts(TAG, ["[CooldownService] Cooldowns limpiados para peer: ", peer_id])
 
 
 func _exit_tree() -> void:
@@ -125,17 +127,22 @@ func _exit_tree() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_cooldown_state(slot_index: int, duration: float) -> void:
-	var huds = get_tree().get_nodes_in_group("game_hud")
+	var huds = get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
 	if huds.is_empty():
 		for i in range(3):
 			await get_tree().process_frame
-			huds = get_tree().get_nodes_in_group("game_hud")
+			huds = get_tree().get_nodes_in_group(GroupNames.GAME_HUD)
 			if not huds.is_empty():
 				break
 	if huds.is_empty():
-		push_warning("[CooldownService] HUD no encontrado para actualizar cooldown.")
+		NetLog.warn_parts(TAG, ["[CooldownService] HUD no encontrado para actualizar cooldown."])
 		return
 	var hud = huds[0]
 	if not hud.has_method("on_cooldown_state_changed"):
 		return
 	hud.on_cooldown_state_changed(slot_index, duration)
+
+
+func _send_cooldown(peer_id: int, slot_index: int, duration: float) -> void:
+	if _client_relay:
+		_client_relay.rpc_id(peer_id, "_rpc_cooldown_state", slot_index, duration)

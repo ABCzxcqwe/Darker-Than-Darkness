@@ -9,12 +9,15 @@
 [ext_resource type="PackedScene" uid="uid://50v1655uyic8" path="res://ui/InGameMenu/DarkGameMenu.tscn" id="8_menu"]
 [ext_resource type="PackedScene" path="res://ui/Shop/Shop.tscn" id="9_shop"]
 [ext_resource type="Script" path="res://core/interaction/HubInteractable.gd" id="10_interact"]
+[ext_resource type="PackedScene" path="res://Gameplay/camera/CameraRig.tscn" id="11_camrig"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
 size = Vector2(180, 120)
 
 [node name="Session" type="Node2D" unique_id=404635471]
 script = ExtResource("1_session")
+
+[node name="CameraRig" parent="." instance=ExtResource("11_camrig")]
 
 [node name="HubArea" type="Node2D" parent="." unique_id=355188946]
 

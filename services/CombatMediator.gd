@@ -1,5 +1,7 @@
 extends Node
 
+const TAG := "CombatMediator"
+
 const SPEED_BOOST_DURATION: float = 1.5
 const SPEED_BOOST_MULTIPLIER: float = 1.3
 
@@ -42,7 +44,7 @@ func is_intangible(player_node: Node) -> bool:
 	var status = _status_effect_service
 	if not status or not status.has_method("has_stun_immunity"):
 		return false
-	return status.has_stun_immunity(player_node.get_multiplayer_authority())
+	return status.has_stun_immunity(PlayerLifecycleManager.get_owner_peer_id(player_node))
 
 
 func _broadcast_damage_number(attacker: Node, target_peer: int, amount: int, pos: Vector2) -> void:
@@ -75,7 +77,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 	if final_damage <= 0:
 		return 0
 
-	var target_peer: int = target.get_multiplayer_authority()
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	var health_svc = _health_service
 	if not health_svc:
 		return 0
@@ -100,7 +102,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 
 	# Blind: un atacante cegado puede fallar el golpe (sin número de daño).
 	if is_instance_valid(attacker) and status_svc and status_svc.has_method("get_blind_miss_chance"):
-		var miss_chance: float = status_svc.get_blind_miss_chance(attacker.get_multiplayer_authority())
+		var miss_chance: float = status_svc.get_blind_miss_chance(PlayerLifecycleManager.get_owner_peer_id(attacker))
 		if miss_chance > 0.0 and randf() < miss_chance:
 			return 0
 
@@ -119,7 +121,7 @@ func apply_damage(attacker: Node, target: Node, base_damage: int, attack_type: S
 			"multiplier": SPEED_BOOST_MULTIPLIER
 		})
 
-	var att_id: int = attacker.get_multiplayer_authority() if attacker else 0
+	var att_id: int = PlayerLifecycleManager.get_owner_peer_id(attacker) if attacker else 0
 	damage_dealt.emit(att_id, target_peer, final_damage, attack_type)
 
 	_broadcast_damage_number(attacker, target_peer, final_damage, target.global_position)
@@ -143,7 +145,7 @@ func apply_dot_damage(_attacker: Node, target: Node, amount: int) -> int:
 	var health_svc = _health_service
 	if not health_svc:
 		return 0
-	var target_peer: int = target.get_multiplayer_authority()
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	if not health_svc.is_alive(target_peer):
 		return 0
 
@@ -182,13 +184,13 @@ func apply_heal(caster: Node, target: Node, amount: int) -> int:
 	if not health_svc:
 		return 0
 
-	var target_peer: int = target.get_multiplayer_authority()
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target)
 	if not health_svc.is_alive(target_peer):
 		return 0
 
 	health_svc.heal(target, amount)
 
-	var caster_id: int = caster.get_multiplayer_authority() if caster else 0
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(caster) if caster else 0
 	heal_applied.emit(caster_id, target_peer, amount)
 	return amount
 
@@ -203,12 +205,12 @@ func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_t
 	if not target.character_data:
 		return maxi(1, damage)
 
-	var target_peer: int = target.get_multiplayer_authority()
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target)
 
 	var lms_svc = _lms_service
 	if lms_svc and lms_svc.is_lms_active():
 		var lms_survivor = lms_svc.get_active_survivor()
-		if lms_survivor and lms_survivor.get_multiplayer_authority() == target_peer:
+		if lms_survivor and PlayerLifecycleManager.get_owner_peer_id(lms_survivor) == target_peer:
 			var resistance: float = target.character_data.lms_damage_resistance
 			if resistance > 0.0:
 				damage = ceili(damage * (1.0 - resistance))
@@ -221,7 +223,7 @@ func _calculate_damage(attacker: Node, target: Node, base_damage: int, _attack_t
 
 		# Buff ofensivo del atacante (damage_boost)
 		if is_instance_valid(attacker):
-			var atk_peer: int = attacker.get_multiplayer_authority()
+			var atk_peer: int = PlayerLifecycleManager.get_owner_peer_id(attacker)
 			if status.has_method("get_damage_boost"):
 				damage = ceili(damage * status.get_damage_boost(atk_peer))
 		# Buff defensivo del objetivo (damage_reduction)
@@ -248,7 +250,7 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 	if not char_data or not char_data.ability_slots:
 		return false
 
-	var target_peer: int = target.get_multiplayer_authority()
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target)
 
 	for slot_index in char_data.ability_slots.size():
 		if not abs_svc.is_mode_active(target_peer, slot_index):
@@ -265,7 +267,7 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 		if not is_evolved and base_data.lms_auto_evolve and base_data.evolved_version:
 			if lms_svc and lms_svc.is_lms_active():
 				var lms_survivor = lms_svc.get_active_survivor()
-				if lms_survivor and lms_survivor.get_multiplayer_authority() == target_peer:
+				if lms_survivor and PlayerLifecycleManager.get_owner_peer_id(lms_survivor) == target_peer:
 					is_evolved = true
 
 		var ability_data: AbilityData = base_data.evolved_version if (is_evolved and base_data.evolved_version) else base_data
@@ -278,8 +280,8 @@ func _check_intercept(attacker: Node, target: Node) -> bool:
 
 		var intercepted: bool = handler.try_intercept(target, attacker, ability_data, slot_index)
 		if intercepted:
-			print("[CombatMediator] Daño interceptado por slot ", slot_index,
-				  " (", ability_data.display_name, ") | peer: ", target_peer)
+			NetLog.debug_parts(TAG, ["[CombatMediator] Daño interceptado por slot ", slot_index,
+				  " (", ability_data.display_name, ") | peer: ", target_peer])
 			return true
 
 	return false
@@ -292,11 +294,11 @@ func apply_stun(target: Node, duration: float, post_stun_dr: float = 0.0, attack
 	if target and target.character_data and target.character_data.team == "killer":
 		_play_killer_hit_sound(target)
 
-	var target_peer: int = target.get_multiplayer_authority() if target else -1
+	var target_peer: int = PlayerLifecycleManager.get_owner_peer_id(target) if target else -1
 	stun_applied.emit(target_peer, duration)
 
 	if attacker and is_instance_valid(attacker):
-		var attacker_peer: int = attacker.get_multiplayer_authority()
+		var attacker_peer: int = PlayerLifecycleManager.get_owner_peer_id(attacker)
 		stun_applied_by.emit(attacker_peer, target_peer, duration)
 
 	var status = _status_effect_service
@@ -560,7 +562,7 @@ func _apply_protections(peer_id: int, player_node: Node, amount: int) -> int:
 
 
 func _find_player_node_by_peer_id(peer_id: int) -> Node:
-	return PlayerRegistry.get_player(peer_id)
+	return PlayerLifecycleManager.get_player(peer_id)
 
 
 func _play_hurt_sound(target: Node) -> void:

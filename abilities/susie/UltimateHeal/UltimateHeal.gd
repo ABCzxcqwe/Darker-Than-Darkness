@@ -8,7 +8,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		push_warning("[UltimateHealth] player_node inválido.")
 		return
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 
 	var target_node: Node = _resolve_target(player_node, caster_id)
 	if not is_instance_valid(target_node):
@@ -16,7 +16,7 @@ func activate(player_node: Node, data: AbilityData, _direction: Vector2, slot_in
 		_release_lock_for(caster_id, slot_index)
 		return
 
-	var target_peer_id: int = target_node.get_multiplayer_authority()
+	var target_peer_id: int = PlayerLifecycleManager.get_owner_peer_id(target_node)
 
 	var health_svc = GameServiceLocator.health
 	if not health_svc:

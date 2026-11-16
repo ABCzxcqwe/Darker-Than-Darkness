@@ -38,3 +38,6 @@ steam_appid.txt
 /coordinator/darker-coordinator
 /server-dist/
 /android
+
+# Credenciales EOSG (no commitear)
+eosg.cfg

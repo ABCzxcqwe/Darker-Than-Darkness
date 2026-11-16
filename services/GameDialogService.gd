@@ -1,9 +1,15 @@
+# res://Gameplay/services/GameDialogService.gd
+# Puente server-side entre eventos de partida y diálogos de la UI.
 extends Node
+
+const TAG := "GameDialogService"
 
 var _client_relay: Node
 
+
 func set_client_relay(relay: Node) -> void:
 	_client_relay = relay
+
 
 func _ready() -> void:
 	var coordinator = GameServiceLocator.map_event_coordinator
@@ -16,12 +22,14 @@ func _ready() -> void:
 		if not lms.lms_activated.is_connected(_on_lms_activated):
 			lms.lms_activated.connect(_on_lms_activated)
 
+
 func _on_exit_activated(_exit_id: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if _client_relay and _client_relay.has_method("_rpc_push_dialog"):
-		# Se envía ID, cada cliente lo traduce a su idioma al recibirlo.
+		# Se envía un ID; cada cliente lo traduce a su idioma.
 		_client_relay.rpc("_rpc_push_dialog", "dialog_exits_open", 0)
+
 
 func _on_lms_activated(_survivor_node: Node, _killer_node: Node, _duration: float) -> void:
 	if not multiplayer.is_server():

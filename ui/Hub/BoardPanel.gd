@@ -3,6 +3,8 @@
 # host en otra. No muestra el personaje elegido por cada jugador.
 extends Control
 
+const TAG := "BoardPanel"
+
 signal start_requested
 signal cancel_requested
 signal closed

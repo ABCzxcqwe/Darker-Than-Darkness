@@ -8,6 +8,8 @@
 # TODO el tracking corre solo en el servidor; los clientes consultan vía RPC/snapshot.
 extends Node
 
+const TAG := "MatchStatsService"
+
 signal stuns_received_changed(peer_id: int, total: int)
 signal rage_charge_changed(peer_id: int, charged: bool, progress: int, required: int)
 
@@ -52,7 +54,7 @@ func _connect_combat_signals() -> void:
 	if not combat:
 		combat = GameServiceLocator.combat_mediator
 	if not combat:
-		push_warning("[MatchStatsService] CombatMediator no disponible; sin tracking de combate.")
+		NetLog.warn_parts(TAG, ["[MatchStatsService] CombatMediator no disponible; sin tracking de combate."])
 		return
 	if not combat.damage_dealt.is_connected(_on_damage_dealt):
 		combat.damage_dealt.connect(_on_damage_dealt)
@@ -83,7 +85,7 @@ func register_player(peer_id: int, _data: Resource = null) -> void:
 		"stuns_applied": 0,
 		"time_in_danger": 0.0,
 	}
-	print("[MatchStatsService] Jugador ", peer_id, " registrado.")
+	NetLog.debug_parts(TAG, ["[MatchStatsService] Jugador ", peer_id, " registrado."])
 
 
 func unregister_player(peer_id: int) -> void:
@@ -133,7 +135,7 @@ func _on_survivor_died(_victim_peer_id: int) -> void:
 	var killer_node := _find_killer_node()
 	if not is_instance_valid(killer_node):
 		return
-	var killer_peer: int = killer_node.get_multiplayer_authority()
+	var killer_peer: int = PlayerLifecycleManager.get_owner_peer_id(killer_node)
 	if _stats.has(killer_peer):
 		_stats[killer_peer]["kills"] = int(_stats[killer_peer].get("kills", 0)) + 1
 
@@ -153,12 +155,12 @@ func _on_danger_tick() -> void:
 	var chase_radius: float = killer_node.character_data.chase_radius
 	var relay = GameServiceLocator.get_client_relay()
 
-	for s in get_tree().get_nodes_in_group("survivor"):
+	for s in get_tree().get_nodes_in_group(GroupNames.SURVIVOR):
 		if not is_instance_valid(s):
 			continue
 		if "health_state" in s and s.health_state != "alive":
 			continue
-		var pid: int = s.get_multiplayer_authority()
+		var pid: int = PlayerLifecycleManager.get_owner_peer_id(s)
 		if relay and relay.has_player_escaped(pid):
 			continue
 		if s.global_position.distance_to(killer_node.global_position) <= chase_radius:
@@ -172,7 +174,7 @@ func _is_match_playing() -> bool:
 
 
 func _find_killer_node() -> Node:
-	for p in get_tree().get_nodes_in_group("killer"):
+	for p in get_tree().get_nodes_in_group(GroupNames.KILLER):
 		return p
 	return null
 
@@ -201,8 +203,8 @@ func _update_rage_progress(killer_peer_id: int) -> void:
 	rage_charge_changed.emit(killer_peer_id, charged, charge["progress"], required)
 
 	if charged:
-		print("[MatchStatsService] ¡Ultimate cargado! | peer: ", killer_peer_id,
-			  " | stuns: ", charge["progress"], "/", required)
+		NetLog.debug_parts(TAG, ["[MatchStatsService] ¡Ultimate cargado! | peer: ", killer_peer_id,
+			  " | stuns: ", charge["progress"], "/", required])
 
 
 ## True si el ultimate está listo para usar.
@@ -217,7 +219,7 @@ func consume_rage_charge(peer_id: int) -> bool:
 	var required := _get_rage_stuns_required(peer_id)
 	_rage_charge[peer_id] = { "progress": 0, "charged": false }
 	rage_charge_changed.emit(peer_id, false, 0, required)
-	print("[MatchStatsService] Ultimate consumido | peer: ", peer_id)
+	NetLog.debug_parts(TAG, ["[MatchStatsService] Ultimate consumido | peer: ", peer_id])
 	return true
 
 
@@ -248,13 +250,13 @@ func debug_force_charge(peer_id: int) -> void:
 		required = 1
 	_rage_charge[peer_id] = { "progress": required, "charged": true }
 	rage_charge_changed.emit(peer_id, true, required, required)
-	print("[MatchStatsService] DEBUG: Ultimate forzado | peer: ", peer_id)
+	NetLog.debug_parts(TAG, ["[MatchStatsService] DEBUG: Ultimate forzado | peer: ", peer_id])
 
 
 ## Umbral de stuns para el ultimate del peer. Usa .get() para tolerar
 ## CharacterData cuyo slot 4 aún no tenga el campo rage_stuns_required.
 func _get_rage_stuns_required(peer_id: int) -> int:
-	var player = PlayerRegistry.get_player(peer_id)
+	var player = PlayerLifecycleManager.get_player(peer_id)
 	if not player or not player.character_data:
 		return 0
 	var slots: Array = player.character_data.ability_slots

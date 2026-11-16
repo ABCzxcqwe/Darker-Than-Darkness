@@ -23,7 +23,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		push_warning("[LaserBurn] has_fase2/kind no configurado en el .tres.")
 		return
 
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var entry_slot: int = slot_index if slot_index >= 0 else 0
 	var abs_svc = GameServiceLocator.ability_state
 
@@ -45,7 +45,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 # ── Disparo ─────────────────────────────────────────────────────────────────
 
 func _fire(player_node: Node, data: AbilityData, direction: Vector2, entry_slot: int) -> void:
-	var caster_id: int = player_node.get_multiplayer_authority()
+	var caster_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var hs = GameServiceLocator.hitbox
 	var tp_svc = GameServiceLocator.tp
 
@@ -167,7 +167,7 @@ func _on_beam_hit(target: Node, data: AbilityData) -> void:
 		"tick_damage": data.burn_tick_damage,
 		"max_stacks": data.burn_max_stacks,
 	})
-	print("[LaserBurn] Burn aplicado | target: ", target.get_multiplayer_authority(),
+	print("[LaserBurn] Burn aplicado | target: ", PlayerLifecycleManager.get_owner_peer_id(target),
 			" | dps: ", data.burn_dps, " | dur: ", data.burn_duration)
 
 

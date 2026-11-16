@@ -24,7 +24,7 @@ func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_ind
 		return
 
 	_player_node = player_node
-	_caster_id = player_node.get_multiplayer_authority()
+	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	_data = data
 	_slot_index = slot_index
 	_active = true

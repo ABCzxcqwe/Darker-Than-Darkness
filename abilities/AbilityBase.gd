@@ -48,7 +48,7 @@ static func unregister_active(peer_id: int, slot_index: int) -> void:
 static func find_active_for(player_node: Node, slot_index: int) -> AbilityBase:
 	if not is_instance_valid(player_node):
 		return null
-	var peer_id: int = player_node.get_multiplayer_authority()
+	var peer_id: int = PlayerLifecycleManager.get_owner_peer_id(player_node)
 	var key: String = _registry_key(peer_id, slot_index)
 	if not _active_registry.has(key):
 		return null

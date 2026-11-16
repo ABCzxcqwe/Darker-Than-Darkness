@@ -6,9 +6,9 @@ const ONLINE = NetworkMode.ONLINE
 
 const PORT := 4242
 const MAX_LOBBIES := 16
-const GAME_ID_FILTER := "darker_than_darkness"
+const GAME_ID_FILTER := "Darker_Than_Darkness"
 ## Frecuencia de replicacion de red (Hz), desacoplada del render (max_fps=30).
-const NETWORK_TICK_HZ := 45.0
+const NETWORK_TICK_HZ := 60.0
 
 signal connection_succeeded()
 signal connection_failed()

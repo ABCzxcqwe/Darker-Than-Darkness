@@ -1,4 +1,6 @@
 extends Control
+
+const TAG := "play_mode"
 ## PlayMode — ONLINE / LAN — Deltarune, ONLINE oculto si no disponible.
 
 const ALL_OPTIONS := ["LAN", "ONLINE"]
@@ -128,11 +130,11 @@ func _rebuild_options() -> void:
 	var providers: Array = []
 	if nm and nm.has_method("get_online_providers"):
 		providers = nm.get_online_providers()
-	if not providers.is_empty() and sm:
+	if not providers.is_empty():
 		# Si el proveedor guardado ya no está, usar el primero disponible.
-		var saved := str(sm.get("online_provider")).to_lower()
-		if saved == "" or not providers.has(saved):
-			sm.online_provider = str(providers[0]).to_lower()
+		var saved := NetworkSettings.get_provider()
+		if not providers.has(saved):
+			NetworkSettings.set_provider(providers[0])
 	if not providers.is_empty():
 		_visible_options = ["LAN", "ONLINE"]
 		_visible_hints = [tr("NET_HINT_LAN"), tr("NET_HINT_ONLINE")]
@@ -227,11 +229,11 @@ func _open_browser(mode: String) -> void:
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
 		if mode == "ONLINE":
-			var prov := "steam"
-			if sm and "online_provider" in sm:
-				prov = str(sm.online_provider).to_lower()
+			var prov := NetworkSettings.get_provider()
 			var ok := false
-			if nm.has_method("initialize_online"):
+			if nm.has_method("initialize_online_async"):
+				ok = await nm.initialize_online_async(prov)
+			elif nm.has_method("initialize_online"):
 				ok = nm.initialize_online(prov)
 			elif nm.has_method("initialize_steam"):
 				ok = nm.initialize_steam()
@@ -245,11 +247,8 @@ func _open_browser(mode: String) -> void:
 		else:
 			nm.set_lan_mode()
 	if sm:
-		sm.network_mode = 1 if mode == "ONLINE" else 0
-		if "online_provider" in sm and mode == "ONLINE":
-			var prov2 := "steam"
-			if "online_provider" in sm:
-				prov2 = str(sm.online_provider).to_lower()
-			sm.online_provider = prov2
+		NetworkSettings.set_mode(
+			NetEnums.Mode.ONLINE if mode == "ONLINE" else NetEnums.Mode.LAN
+		)
 		sm.save_settings()
 	get_tree().change_scene_to_file("res://ui/MainMenu/scenes/ServerBrowser.tscn")
