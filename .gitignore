@@ -27,9 +27,7 @@ addons/*/.git
 Thumbs.db
 
 # Steam App ID (cada desarrollador necesita el suyo)
-steam_appid.txt
 
-/addons
 
 # Coordinator (Go) build artifacts / deploy
 /coordinator/coordinator
@@ -40,4 +38,3 @@ steam_appid.txt
 /android
 
 # Credenciales EOSG (no commitear)
-eosg.cfg
