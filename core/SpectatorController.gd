@@ -4,6 +4,10 @@ extends Node
 const CHAT_PANEL_SCENE := preload("res://ui/GameUI/Scenes/ChatPanel.tscn")
 const FONT := preload("res://Fonts/deltarune font.ttf")
 const SPECTATOR_ZOOM := 0.7
+const SPECTATOR_ZOOM_STEP := 0.05
+const SPECTATOR_ZOOM_MIN := SPECTATOR_ZOOM
+const SPECTATOR_ZOOM_MAX := 1.0
+const SPECTATOR_ZOOM_SPEED := 4.0
 
 var _active := false
 var _ui_layer: CanvasLayer = null
@@ -14,11 +18,29 @@ var _chat_panel: Control = null
 var _follow_target: Node = null
 var _last_target_peer_id := -1
 var _session: Node = null
+var _target_zoom: float = SPECTATOR_ZOOM
 
 
 func _ready() -> void:
 	add_to_group(GroupNames.SPECTATOR)
 	set_process(false)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _active:
+		return
+	if MenuUtils.is_any_menu_open(get_tree(), self):
+		return
+	if _is_chat_input_active():
+		return
+	if not (event is InputEventMouseButton and event.pressed):
+		return
+	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_target_zoom = clampf(_target_zoom + SPECTATOR_ZOOM_STEP, SPECTATOR_ZOOM_MIN, SPECTATOR_ZOOM_MAX)
+		get_viewport().set_input_as_handled()
+	elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_target_zoom = clampf(_target_zoom - SPECTATOR_ZOOM_STEP, SPECTATOR_ZOOM_MIN, SPECTATOR_ZOOM_MAX)
+		get_viewport().set_input_as_handled()
 
 
 func is_active() -> bool:
@@ -223,7 +245,7 @@ func _alive_players() -> Array[Node]:
 	return result
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not _active:
 		return
 	if MenuUtils.is_any_menu_open(get_tree(), self):
@@ -231,7 +253,7 @@ func _process(_delta: float) -> void:
 	if _is_chat_input_active():
 		return
 	_handle_input()
-	_update_camera()
+	_update_camera(delta)
 	_update_panel()
 
 
@@ -249,9 +271,12 @@ func _handle_input() -> void:
 		_cycle_target(direction)
 
 
-func _update_camera() -> void:
+func _update_camera(delta: float) -> void:
 	if _spectator_camera == null:
 		return
+	var target_zoom := Vector2(_target_zoom, _target_zoom)
+	_spectator_camera.zoom = _spectator_camera.zoom.lerp(
+			target_zoom, clampf(delta * SPECTATOR_ZOOM_SPEED, 0.0, 1.0))
 	if _follow_target and is_instance_valid(_follow_target) \
 			and (not ("health_state" in _follow_target) or _follow_target.health_state == "alive"):
 		_spectator_camera.global_position = _follow_target.global_position

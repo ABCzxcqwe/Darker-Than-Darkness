@@ -27,7 +27,7 @@ var movement_component: PlayerMovementComponent
 var character_data:   CharacterData
 var health:           int    = 0
 var health_state:     String = "alive"
-var last_animation:   String = "idle_horizontal"
+var last_animation:   String = ""
 var facing_right:     bool   = true
 var invincible_until: int    = 0
 var hurt_flash_until: int    = 0
@@ -35,6 +35,7 @@ var heal_flash_until: int    = 0
 var _original_modulate: Color
 
 var facing: Vector2 = Vector2.RIGHT
+var last_move_dir: Vector2 = Vector2.DOWN
 
 ## Estado de movimiento replicado por el servidor (0 idle / 1 walk / 2 run).
 var move_state: int = 0
@@ -138,6 +139,8 @@ func _ready() -> void:
 
 	if animated_sprite:
 		_original_modulate = animated_sprite.modulate
+		if not animated_sprite.animation_changed.is_connected(_on_sprite_animation_changed):
+			animated_sprite.animation_changed.connect(_on_sprite_animation_changed)
 
 	_setup_name_tag()
 
@@ -185,13 +188,10 @@ func _apply_networked_anim() -> void:
 		return
 	var is_moving: bool = move_state == 1 or move_state == 2
 	var is_running: bool = move_state == 2
-	var move_dir: Vector2 = Vector2(0, 1) if move_facing_down else Vector2.ZERO
 	var anim_name: String = animation_component.select_movement_anim(
-			is_moving, is_running, animation_component.should_use_hurt_sprite(), move_dir)
-	if anim_name != "default" and animated_sprite.animation != anim_name:
-		animated_sprite.play(anim_name)
-		last_animation = anim_name
-	animated_sprite.flip_h = not facing_right
+			is_moving, is_running, animation_component.should_use_hurt_sprite(), last_move_dir)
+	if anim_name != "default":
+		animation_component.apply_movement_anim(anim_name, is_moving)
 
 
 ## El dueño avisa el cambio de facing al servidor (que lo replica por el Synchronizer).
@@ -636,10 +636,25 @@ func set_character(char_id: int) -> void:
 func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 	if $AnimatedSprite2D:
 		$AnimatedSprite2D.sprite_frames = data.animation_frames
-		var s: float = data.sprite_scale if data.sprite_scale > 0.0 else 1.0
-		$AnimatedSprite2D.scale = Vector2.ONE * s
+		_refresh_sprite_scale()
 	_setup_collision_layers(data)
 	_apply_camera_config(data)
+
+
+func _on_sprite_animation_changed() -> void:
+	_refresh_sprite_scale()
+
+
+func _refresh_sprite_scale() -> void:
+	if not animated_sprite or not character_data:
+		return
+	var base: float = character_data.sprite_scale if character_data.sprite_scale > 0.0 else 1.0
+	var multiplier := 1.0
+	var anim_name := str(animated_sprite.animation)
+	var is_move := animation_component and animation_component.is_move_anim(anim_name)
+	if is_move and character_data.directional_sprite_scale > 0.0:
+		multiplier = character_data.directional_sprite_scale
+	animated_sprite.scale = Vector2.ONE * base * multiplier
 
 
 func _apply_camera_config(data: CharacterData) -> void:
@@ -1270,7 +1285,8 @@ func _sync_effect(effect_name: String, active: bool) -> void:
 			if animated_sprite.sprite_frames.has_animation("stun"):
 				animated_sprite.play("stun")
 			else:
-				animated_sprite.play("idle_horizontal")
+				var fallback := animation_component.select_movement_anim(false, false, false)
+				animation_component.apply_movement_anim(fallback, false)
 	else:
 		active_effects.erase(effect_name)
 		if effect_name == "rage_blink":
@@ -1343,19 +1359,21 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		"downed":
 			movement_component.speed = 0
 			if animated_sprite:
-				var anim := "life_down"
-				if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
-					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
-				animated_sprite.play(anim)
-				last_animation = anim
+				if animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("life_down"):
+					animated_sprite.play("life_down")
+					last_animation = "life_down"
+				else:
+					var fallback := animation_component.select_movement_anim(false, false, false)
+					animation_component.apply_movement_anim(fallback, false)
 		"dead":
 			movement_component.speed = 0
 			if animated_sprite and is_instance_valid(animated_sprite):
-				var anim := "player_dead"
-				if animated_sprite.sprite_frames and not animated_sprite.sprite_frames.has_animation(anim):
-					anim = "idle_horizontal" if animated_sprite.sprite_frames.has_animation("idle_horizontal") else "default"
-				animated_sprite.play(anim)
-				last_animation = anim
+				if animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("player_dead"):
+					animated_sprite.play("player_dead")
+					last_animation = "player_dead"
+				else:
+					var fallback := animation_component.select_movement_anim(false, false, false)
+					animation_component.apply_movement_anim(fallback, false)
 				if synchronizer:
 					synchronizer.queue_free()
 				if synchronizer_anim:

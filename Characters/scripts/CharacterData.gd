@@ -127,6 +127,7 @@ const KILLER_ONLY := [
 ## Escala visual del AnimatedSprite2D. 1.0 = tamaño original del sprite.
 ## Útil para arte pixelado de baja resolución que necesita ampliarse.
 @export var sprite_scale: float = 1.0
+@export var directional_sprite_scale: float = 1.0
 ## Color temático del personaje — se usa en la barra de HP y bordes del panel.
 ## Ejemplos: Kris = cian, Susie = magenta, Ralsei = verde claro.
 @export var theme_color: Color = Color(0.27, 0.78, 0.95)

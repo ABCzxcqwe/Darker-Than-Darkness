@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bil21rmef5gen"
-path="res://.godot/imported/kris_idle.png-a663615193af8839050396608b7f4277.ctex"
+uid="uid://cji8aeqh7wg42"
+path="res://.godot/imported/kris_down.png-a2730ca0fe1af31142d58f99b76866aa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Kris/assets/Sprites/kris_idle.png"
-dest_files=["res://.godot/imported/kris_idle.png-a663615193af8839050396608b7f4277.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/kris_down/kris_down.png"
+dest_files=["res://.godot/imported/kris_down.png-a2730ca0fe1af31142d58f99b76866aa.ctex"]
 
 [params]
 

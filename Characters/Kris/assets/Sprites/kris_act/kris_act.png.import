@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bcr05vr8g3nbg"
-path="res://.godot/imported/kris_pirouette.png-71a7d044b6f50249fbad8dba05f9cf00.ctex"
+uid="uid://bexvk7ewfyq00"
+path="res://.godot/imported/kris_act.png-7543336134b9df02c693aef238129e4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Kris/assets/Sprites/kris_pirouette.png"
-dest_files=["res://.godot/imported/kris_pirouette.png-71a7d044b6f50249fbad8dba05f9cf00.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/kris_act/kris_act.png"
+dest_files=["res://.godot/imported/kris_act.png-7543336134b9df02c693aef238129e4c.ctex"]
 
 [params]
 

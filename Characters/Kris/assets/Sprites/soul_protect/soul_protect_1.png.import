@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjgdxig30u53w"
-path="res://.godot/imported/kris_run.png-5361b241c28fee52a43eb081cea25472.ctex"
+uid="uid://8is43bkudyi0"
+path="res://.godot/imported/soul_protect_1.png-b955f534e29926c1b42e634b85c5e6c3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Kris/assets/Sprites/kris_run.png"
-dest_files=["res://.godot/imported/kris_run.png-5361b241c28fee52a43eb081cea25472.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/soul_protect/soul_protect_1.png"
+dest_files=["res://.godot/imported/soul_protect_1.png-b955f534e29926c1b42e634b85c5e6c3.ctex"]
 
 [params]
 

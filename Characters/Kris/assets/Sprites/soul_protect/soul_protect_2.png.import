@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c68pj5uody2f4"
-path="res://.godot/imported/soul_protect_2.png-4ef9f5f6a41e552fe765b61d855c6654.ctex"
+path="res://.godot/imported/soul_protect_2.png-b376af2b42cbafc35e524d99fd8e2784.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Kris/assets/Sprites/soul_protect_2.png"
-dest_files=["res://.godot/imported/soul_protect_2.png-4ef9f5f6a41e552fe765b61d855c6654.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/soul_protect/soul_protect_2.png"
+dest_files=["res://.godot/imported/soul_protect_2.png-b376af2b42cbafc35e524d99fd8e2784.ctex"]
 
 [params]
 

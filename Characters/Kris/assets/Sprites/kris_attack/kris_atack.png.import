@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://k8pohb1hsr2x"
-path="res://.godot/imported/kris_prepare.png-c18d155099f666d9a46fc4b7b020cf8e.ctex"
+uid="uid://8n28wot35fa5"
+path="res://.godot/imported/kris_atack.png-b958811f612532445488c12f35aec847.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Kris/assets/Sprites/kris_prepare.png"
-dest_files=["res://.godot/imported/kris_prepare.png-c18d155099f666d9a46fc4b7b020cf8e.ctex"]
+source_file="res://Characters/Kris/assets/Sprites/kris_attack/kris_atack.png"
+dest_files=["res://.godot/imported/kris_atack.png-b958811f612532445488c12f35aec847.ctex"]
 
 [params]
 

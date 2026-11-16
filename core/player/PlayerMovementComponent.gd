@@ -127,6 +127,8 @@ func _owner_process(_delta: float) -> void:
 
 	if _can_move_now():
 		var input_dir: Vector2 = _get_move_vector()
+		if input_dir.length() > IDLE_MOVE_THRESHOLD:
+			player.last_move_dir = _cardinal_direction(input_dir)
 		player.move_facing_down = _is_down_input(input_dir)
 
 		var want_sprint = Input.is_action_pressed("run") and input_dir.length() > IDLE_MOVE_THRESHOLD
@@ -161,9 +163,7 @@ func _owner_process(_delta: float) -> void:
 				var is_running = vel_len > WALK_SPEED_THRESHOLD
 				var use_hurt = player.animation_component.should_use_hurt_sprite()
 				var anim_name = player.animation_component.select_movement_anim(is_moving, is_running, use_hurt, input_dir)
-				if player.last_animation != anim_name:
-					player.animated_sprite.play(anim_name)
-					player.last_animation = anim_name
+				player.animation_component.apply_movement_anim(anim_name, is_moving)
 	else:
 		player.velocity = Vector2.ZERO
 		player.move_facing_down = false
@@ -202,9 +202,7 @@ func _update_fase2_animation() -> void:
 
 	if anim_name == "" or anim_name == "default" or not _has_animation(anim_name):
 		return
-	if player.last_animation != anim_name:
-		player.animated_sprite.play(anim_name)
-		player.last_animation = anim_name
+	player.animation_component.apply_movement_anim(anim_name, is_moving)
 
 
 func _has_animation(anim_name: String) -> bool:
@@ -309,6 +307,8 @@ func _server_process(_delta: float) -> void:
 		# Anti speed-hack: el cliente solo aporta direccion, nunca magnitud.
 		if input_dir.length() > 1.0:
 			input_dir = input_dir.normalized()
+		if input_dir.length() > IDLE_MOVE_THRESHOLD:
+			player.last_move_dir = _cardinal_direction(input_dir)
 		player.move_facing_down = _is_down_input(input_dir)
 		var want_sprint: bool = player.net_sprint and input_dir.length() > IDLE_MOVE_THRESHOLD
 		if player.fase2_active:
@@ -361,6 +361,12 @@ func update_facing_and_flip(dir: Vector2) -> void:
 		# El dueño avisa el cambio de facing al servidor para que lo replique.
 		if changed and not player.multiplayer.is_server():
 			player.rpc_id(1, "_submit_facing", new_right)
+
+
+func _cardinal_direction(dir: Vector2) -> Vector2:
+	if absf(dir.x) >= absf(dir.y):
+		return Vector2.RIGHT if dir.x > 0.0 else Vector2.LEFT
+	return Vector2.DOWN if dir.y > 0.0 else Vector2.UP
 
 
 func _is_down_input(dir: Vector2) -> bool:

@@ -22,12 +22,12 @@ func _ready() -> void:
 	var anim_ok := false
 	if has_sync:
 		var s := p.get_node("Synchronizer") as MultiplayerSynchronizer
-		sync_ok = s.replication_config != null and s.replication_config.get_properties().size() == 3
+		sync_ok = s.replication_config != null and s.replication_config.get_properties().size() == 6
 	if has_anim:
 		var a := p.get_node("SynchronizerAnim") as MultiplayerSynchronizer
-		anim_ok = a.replication_config != null and a.replication_config.get_properties().size() == 3
+		anim_ok = a.replication_config != null and a.replication_config.get_properties().size() == 4
 
-	print("[CHECK] player.tscn Synchronizer=", has_sync, " (props=3:", sync_ok,
-		") SynchronizerAnim=", has_anim, " (props=3:", anim_ok, ")")
+	print("[CHECK] player.tscn Synchronizer=", has_sync, " (props=6:", sync_ok,
+		") SynchronizerAnim=", has_anim, " (props=4:", anim_ok, ")")
 	p.free()
 	get_tree().quit(0 if (has_sync and has_anim and sync_ok and anim_ok) else 1)

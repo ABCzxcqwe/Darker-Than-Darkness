@@ -6,6 +6,8 @@ extends Camera2D
 @export var zoom_sprint: float = 0.45
 @export var zoom_speed: float = 3.0
 @export var smooth_speed: float = 5.0
+@export var user_zoom_step: float = 0.05
+@export var user_zoom_max: float = 1.0
 
 ## Multiplicador de zoom cuando el jugador está cegado (>1 = más cerca).
 const BLIND_ZOOM_MULTIPLIER: float = 1.4
@@ -14,11 +16,34 @@ var _shake_intensity: float = 0.0
 var _shake_remaining: float = 0.0
 var _shake_duration: float = 0.0
 var _shake_offset: Vector2 = Vector2.ZERO
+var _user_zoom_offset: float = 0.0
 
 
 func _ready() -> void:
 	position_smoothing_enabled = true
 	position_smoothing_speed = smooth_speed
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not enabled or not is_multiplayer_authority():
+		return
+	var parent = get_parent()
+	if not parent or parent.interaction.is_spectator:
+		return
+	if MenuUtils.is_any_menu_open(get_tree()):
+		return
+	if not (event is InputEventMouseButton and event.pressed):
+		return
+	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_user_zoom_offset = _clamp_user_zoom_offset(_user_zoom_offset + user_zoom_step)
+		get_viewport().set_input_as_handled()
+	elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_user_zoom_offset = _clamp_user_zoom_offset(_user_zoom_offset - user_zoom_step)
+		get_viewport().set_input_as_handled()
+
+
+func _clamp_user_zoom_offset(value: float) -> float:
+	return clampf(value, 0.0, maxf(user_zoom_max - zoom_base, 0.0))
 
 
 func _process(delta: float) -> void:
@@ -71,6 +96,7 @@ func _update_zoom(parent: Node2D, delta: float) -> void:
 		target = zoom_base * BLIND_ZOOM_MULTIPLIER
 	elif parent.movement_component.is_sprinting():
 		target = zoom_sprint
+	target = minf(target + _user_zoom_offset, user_zoom_max)
 	zoom = zoom.lerp(Vector2(target, target), zoom_speed * delta)
 
 

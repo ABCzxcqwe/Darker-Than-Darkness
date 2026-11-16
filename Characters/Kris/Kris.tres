@@ -42,4 +42,5 @@ vision_cone_range = 1000.0
 icon = ExtResource("6_kpcxu")
 panel_texture = ExtResource("8_hywcm")
 animation_frames = ExtResource("5_uf4gy")
+directional_sprite_scale = 4.0
 metadata/_custom_type_script = "uid://2kq331ai6c40"
