@@ -75,6 +75,11 @@ func _rollback_tick(_delta: float, _tick: int, is_fresh: bool) -> void:
 		player.facing_right = net.aim_dir.x > 0.0
 		player.facing = Vector2.RIGHT if player.facing_right else Vector2.LEFT
 
+	# Dirección cardinal del último movimiento: se replica como estado para que
+	# los clientes remotos elijan la animación direccional correcta.
+	if move.length() > IDLE_MOVE_THRESHOLD:
+		player.last_move_dir = _cardinal_direction(move)
+
 	if player.multiplayer.is_server():
 		_update_server_mobility()
 
@@ -253,9 +258,7 @@ func _update_fase2_animation() -> void:
 
 	if anim_name == "" or anim_name == "default" or not _has_animation(anim_name):
 		return
-	if player.last_animation != anim_name:
-		player.animated_sprite.play(anim_name)
-		player.last_animation = anim_name
+	player.animation_component.apply_movement_anim(anim_name, is_moving)
 
 
 func _has_animation(anim_name: String) -> bool:
@@ -289,6 +292,12 @@ func update_facing_and_flip(dir: Vector2) -> void:
 		player.facing = Vector2.RIGHT if new_right else Vector2.LEFT
 		# El servidor recalcula el facing desde NetInput:aim_dir en cada tick,
 		# así que no hace falta un RPC adicional para replicarlo.
+
+
+func _cardinal_direction(dir: Vector2) -> Vector2:
+	if absf(dir.x) >= absf(dir.y):
+		return Vector2.RIGHT if dir.x > 0.0 else Vector2.LEFT
+	return Vector2.DOWN if dir.y > 0.0 else Vector2.UP
 
 
 func _is_down_input(dir: Vector2) -> bool:

@@ -2,7 +2,8 @@ class_name PlayerAnimationComponent
 extends Node
 
 const MOVE_EPSILON: float = 0.1
-const KRIS_CHARACTER_ID: int = 1
+const DIRECTIONAL_ANIM_PREFIXES := ["move_", "walk_", "run_", "idle_"]
+const DIRECTIONAL_ANIM_SUFFIXES := ["_down", "_up", "_left", "_right"]
 
 var player: CharacterBody2D = null
 
@@ -13,41 +14,97 @@ func initialize(body: CharacterBody2D) -> void:
 
 # ── Movement animation helpers ─────────────────────────────────────────
 
+func is_directional_anim(anim_name: String) -> bool:
+	for prefix: String in DIRECTIONAL_ANIM_PREFIXES:
+		if anim_name.begins_with(prefix):
+			for suffix: String in DIRECTIONAL_ANIM_SUFFIXES:
+				if anim_name.ends_with(suffix):
+					return true
+			return false
+	return false
+
+
+func is_move_anim(anim_name: String) -> bool:
+	return anim_name.begins_with("move_") and is_directional_anim(anim_name)
+
+
+func _has_usable_animation(frames, anim_name: String) -> bool:
+	return frames != null and frames.has_animation(anim_name) and frames.get_frame_count(anim_name) > 0
+
+
+func _direction_from_vector(dir: Vector2) -> String:
+	if absf(dir.x) >= absf(dir.y):
+		return "right" if dir.x > 0.0 else "left"
+	return "down" if dir.y > 0.0 else "up"
+
+
+func resolve_direction(move_dir: Vector2) -> String:
+	if move_dir.length() > MOVE_EPSILON:
+		return _direction_from_vector(move_dir)
+	if player and player.last_move_dir.length() > MOVE_EPSILON:
+		return _direction_from_vector(player.last_move_dir)
+	return "down"
+
+
 func select_movement_anim(is_moving: bool, is_running: bool, use_hurt: bool, move_dir: Vector2 = Vector2.ZERO) -> String:
 	var frames = player.animated_sprite.sprite_frames if player.animated_sprite else null
-
-	if _is_kris_pressing_down(move_dir):
-		for anim_name: String in ["walk_down", "idle_down"]:
-			if frames and frames.has_animation(anim_name):
-				return anim_name
-
+	var direction := resolve_direction(move_dir)
 	var prioritized: Array[String] = []
+
+	if is_moving:
+		prioritized.append("move_" + direction)
+		if is_running:
+			prioritized.append("run_" + direction)
+		prioritized.append("walk_" + direction)
+	else:
+		prioritized.append("idle_" + direction)
 
 	if use_hurt:
 		if is_running:
-			prioritized = ["run_hurt_horizontal", "run_horizontal", "walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"]
+			prioritized.append_array(["run_hurt_horizontal", "run_horizontal", "walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"])
 		elif is_moving:
-			prioritized = ["walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"]
+			prioritized.append_array(["walk_hurt_horizontal", "walk_horizontal", "idle_hurt_horizontal", "idle_horizontal"])
 		else:
-			prioritized = ["idle_hurt_horizontal", "idle_horizontal"]
+			prioritized.append_array(["idle_hurt_horizontal", "idle_horizontal"])
 	else:
 		if is_running:
-			prioritized = ["run_horizontal", "walk_horizontal", "idle_horizontal"]
+			prioritized.append_array(["run_horizontal", "walk_horizontal", "idle_horizontal"])
 		elif is_moving:
-			prioritized = ["walk_horizontal", "idle_horizontal"]
+			prioritized.append_array(["walk_horizontal", "idle_horizontal"])
 		else:
-			prioritized = ["idle_horizontal"]
+			prioritized.append_array(["idle_horizontal"])
+
+	if not is_moving:
+		prioritized.append("move_" + direction)
 
 	for anim_name in prioritized:
-		if frames and frames.has_animation(anim_name):
+		if _has_usable_animation(frames, anim_name):
 			return anim_name
 	return "default"
 
 
-func _is_kris_pressing_down(move_dir: Vector2) -> bool:
-	if not player.character_data or player.character_data.id != KRIS_CHARACTER_ID:
-		return false
-	return move_dir.y > MOVE_EPSILON and absf(move_dir.y) >= absf(move_dir.x)
+func apply_movement_anim(anim_name: String, is_moving: bool) -> void:
+	if anim_name == "" or anim_name == "default":
+		return
+	var sprite: AnimatedSprite2D = player.animated_sprite
+	if not sprite:
+		return
+	var directional := is_directional_anim(anim_name)
+	var current_anim := str(sprite.animation)
+	sprite.flip_h = false if directional else not player.facing_right
+
+	if not is_moving and is_move_anim(anim_name):
+		if current_anim != anim_name:
+			sprite.play(anim_name)
+		if sprite.is_playing():
+			sprite.pause()
+		sprite.frame = 0
+		player.last_animation = anim_name
+		return
+
+	if current_anim != anim_name or not sprite.is_playing():
+		sprite.play(anim_name)
+	player.last_animation = anim_name
 
 
 func should_use_hurt_sprite() -> bool:
@@ -67,14 +124,12 @@ func restore_idle() -> void:
 		return
 	if player.active_effects.has("stun"):
 		player.state = Player.AnimState.STUNNED
-		if player.animated_sprite.sprite_frames.has_animation("stun"):
+		if _has_usable_animation(player.animated_sprite.sprite_frames, "stun"):
 			player.animated_sprite.play("stun")
 			player.last_animation = "stun"
 		return
-	player.animated_sprite.flip_h = not player.facing_right
 	var anim_name = select_movement_anim(false, false, should_use_hurt_sprite())
-	player.animated_sprite.play(anim_name)
-	player.last_animation = anim_name
+	apply_movement_anim(anim_name, false)
 
 
 func end_stun() -> void:

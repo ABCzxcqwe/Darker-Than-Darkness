@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_khpcl"]
 [ext_resource type="SpriteFrames" uid="uid://nj314d6c3tkg" path="res://Characters/Fleetway/animations.tres" id="2_labjy"]
+[ext_resource type="Resource" path="res://Characters/Fleetway/visual/default.tres" id="20_visual"]
 [ext_resource type="Resource" uid="uid://daf3a1b2d4e67" path="res://abilities/jevil/M1Circle/M1Circle.tres" id="2_y0is7"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_y0is7"]
 [ext_resource type="Texture2D" uid="uid://bjxvglye3kwnb" path="res://Characters/Fleetway/icon.png" id="4_lokpx"]
@@ -36,6 +37,7 @@ vision_cone_angle = 110.0
 icon = ExtResource("4_lokpx")
 panel_texture = ExtResource("5_t7m4y")
 animation_frames = ExtResource("2_labjy")
+default_visual = ExtResource("20_visual")
 sprite_scale = 4.0
 theme_color = Color(1, 0.82, 0.1, 1)
 dev_only = true

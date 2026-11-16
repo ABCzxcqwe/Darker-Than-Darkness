@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://core/player/PlayerNetInput.gd" id="10_netinput"]
 [ext_resource type="Script" path="res://addons/netfox/rollback/rollback-synchronizer.gd" id="11_rbs"]
 [ext_resource type="Script" path="res://addons/netfox/tick-interpolator.gd" id="12_tick"]
+[ext_resource type="Script" uid="uid://c3nymn3pjg6aq" path="res://core/player/LayeredAnimatedSprite2D.gd" id="10_layers"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -36,6 +37,7 @@ z_index = 2
 sprite_frames = SubResource("SpriteFrames_4flbx")
 animation = &"idle_horizontal"
 frame_progress = 0.35946932
+script = ExtResource("10_layers")
 
 
 [node name="Vision" type="Node" parent="." unique_id=1869788754]

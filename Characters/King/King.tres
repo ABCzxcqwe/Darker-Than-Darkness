@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1_ad"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_cd"]
 [ext_resource type="SpriteFrames" uid="uid://6vxtusofmwbg" path="res://Characters/King/animations.tres" id="3_anim"]
+[ext_resource type="Resource" path="res://Characters/King/visual/default.tres" id="20_visual"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="3_cg5l8"]
 [ext_resource type="PackedScene" uid="uid://bck5gaco7ipxq" path="res://Hitboxes/King/basic/KingHitbox.tscn" id="4_hitbox"]
 [ext_resource type="Texture2D" uid="uid://dx03238ecyyfh" path="res://Characters/King/assets/Sprites/icon.png" id="4_icon"]
@@ -56,4 +57,5 @@ camera_zoom_sprint = 0.55
 icon = ExtResource("4_icon")
 panel_texture = ExtResource("5_panel")
 animation_frames = ExtResource("3_anim")
+default_visual = ExtResource("20_visual")
 theme_color = Color(0.12941177, 0.34117648, 0.77254903, 1)

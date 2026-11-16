@@ -5,6 +5,7 @@
 [ext_resource type="Resource" path="res://abilities/susie/RudeBusterAim/RudeBusterAim.tres" id="3_vjxak"]
 [ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal/UltimateHeal.tres" id="4_2iktt"]
 [ext_resource type="SpriteFrames" uid="uid://bbodi1wks2w6k" path="res://Characters/Susie_LMS/animations.tres" id="5_1e2ql"]
+[ext_resource type="Resource" path="res://Characters/Susie_LMS/visual/default.tres" id="20_visual"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_er8to"]
 [ext_resource type="Texture2D" uid="uid://b8j5ipk11wnms" path="res://Characters/Susie_LMS/assets/Sprites/icon.png" id="6_wghvt"]
 [ext_resource type="AudioStream" uid="uid://x11owyieepwu" path="res://Characters/Susie_LMS/assets/Music/VS Susie Reprise.mp3" id="7_kafre"]
@@ -34,5 +35,6 @@ stamina_sprint_drain = 35.0
 icon = ExtResource("6_wghvt")
 panel_texture = ExtResource("6_wghvt")
 animation_frames = ExtResource("5_1e2ql")
+default_visual = ExtResource("20_visual")
 theme_color = Color(0.9781738, 0.42510337, 0.93142635, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"
