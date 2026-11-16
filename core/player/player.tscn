@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://ba1n4yb2tert6" path="res://core/player/PlayerMovementComponent.gd" id="7_movement"]
 [ext_resource type="Script" uid="uid://cja6xwd2n8ocv" path="res://core/player/PlayerInputComponent.gd" id="8_input"]
 [ext_resource type="Script" uid="uid://bmlyo5sy67r1p" path="res://core/player/AimIndicator.gd" id="9_aim"]
+[ext_resource type="Script" uid="uid://c3nymn3pjg6aq" path="res://core/player/LayeredAnimatedSprite2D.gd" id="10_layers"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4flbx"]
 animations = [{
@@ -68,6 +69,7 @@ z_index = 2
 sprite_frames = SubResource("SpriteFrames_4flbx")
 animation = &"idle_horizontal"
 frame_progress = 0.35946932
+script = ExtResource("10_layers")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=407213022]
 zoom = Vector2(0.7, 0.7)

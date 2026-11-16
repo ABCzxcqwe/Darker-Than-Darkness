@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="5_ueqpj"]
 [ext_resource type="Texture2D" uid="uid://b4y1arwhoqfb8" path="res://Characters/Jevil/assets/Sprites/icon.png" id="6_fnfn6"]
 [ext_resource type="SpriteFrames" uid="uid://cf8j6vv6rebpw" path="res://Characters/Jevil/animations.tres" id="7_8bkff"]
+[ext_resource type="Resource" path="res://Characters/Jevil/visual/default.tres" id="20_visual"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Music/Sonic.exe LAYER.ogg" id="7_hq0h8"]
 [ext_resource type="Texture2D" uid="uid://cekacln1fbfw1" path="res://Characters/Jevil/assets/Sprites/jevil_panel.png" id="8_bkbox"]
 [ext_resource type="Resource" uid="uid://dwxwdg3talehj" path="res://abilities/jevil/Teleport/Teleport.tres" id="8_teleport"]
@@ -67,5 +68,6 @@ emote_slots = Array[ExtResource("1_emote")]([ExtResource("11_emote1"), null, nul
 icon = ExtResource("6_fnfn6")
 panel_texture = ExtResource("8_bkbox")
 animation_frames = ExtResource("7_8bkff")
+default_visual = ExtResource("20_visual")
 theme_color = Color(0.5860059, 0.25085285, 1, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"

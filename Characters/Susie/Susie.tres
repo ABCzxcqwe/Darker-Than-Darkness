@@ -4,6 +4,7 @@
 [ext_resource type="Resource" uid="uid://fy2b3ca2wy3d" path="res://abilities/susie/AxeSlash/AxeSlash.tres" id="2_66qii"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="2_royjo"]
 [ext_resource type="SpriteFrames" uid="uid://qsxkpkuh7q3s" path="res://Characters/Susie/animations.tres" id="3_66qii"]
+[ext_resource type="Resource" path="res://Characters/Susie/visual/default.tres" id="20_visual"]
 [ext_resource type="Resource" uid="uid://b2crfnqna57t1" path="res://abilities/susie/RudeBuster/RudeBuster.tres" id="5_1w3rf"]
 [ext_resource type="Texture2D" uid="uid://dewc4pci4l1c2" path="res://Characters/Susie/assets/Sprites/icon.png" id="6_23gak"]
 [ext_resource type="Resource" uid="uid://n06e5je8jbxx" path="res://abilities/susie/UltimateHeal/UltimateHeal.tres" id="6_pssrv"]
@@ -37,5 +38,6 @@ vision_cone_range = 1050.0
 icon = ExtResource("6_23gak")
 panel_texture = ExtResource("7_xc3v2")
 animation_frames = ExtResource("3_66qii")
+default_visual = ExtResource("20_visual")
 theme_color = Color(0.9781738, 0.42510337, 0.93142635, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"

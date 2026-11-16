@@ -124,6 +124,8 @@ const KILLER_ONLY := [
 @export var icon: Texture2D
 @export var panel_texture: Texture2D
 @export var animation_frames: SpriteFrames
+@export var default_visual: CharacterVisualData
+@export var skins: Array[CharacterVisualData] = []
 ## Escala visual del AnimatedSprite2D. 1.0 = tamaño original del sprite.
 ## Útil para arte pixelado de baja resolución que necesita ampliarse.
 @export var sprite_scale: float = 1.0

@@ -4,6 +4,7 @@
 [ext_resource type="Resource" uid="uid://dhdv5nhtwrkf8" path="res://abilities/ralsei/HealPrayer/HealPrayer.tres" id="2_krx5n"]
 [ext_resource type="Resource" uid="uid://crpks76wmrx48" path="res://abilities/ralsei/Pacify/Pacify.tres" id="3_pacify"]
 [ext_resource type="SpriteFrames" uid="uid://bwxd5203gvpts" path="res://Characters/Ralsei/animations.tres" id="4_btwx3"]
+[ext_resource type="Resource" path="res://Characters/Ralsei/visual/default.tres" id="20_visual"]
 [ext_resource type="AudioStream" uid="uid://b3imse5pxqpel" path="res://Characters/Ralsei/assets/Music/DELTARUNE Chapter 2 OST Kris Vs. Ralsei.mp3" id="5_o4xcy"]
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_juiwq"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_qrkhd"]
@@ -24,5 +25,6 @@ stamina_regen_rate = 22.0
 stamina_sprint_drain = 30.0
 panel_texture = ExtResource("6_t4xhp")
 animation_frames = ExtResource("4_btwx3")
+default_visual = ExtResource("20_visual")
 theme_color = Color(0.12078262, 0.8748105, 0, 1)
 metadata/_custom_type_script = "uid://2kq331ai6c40"

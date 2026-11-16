@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="CharacterVisualData" format=3]
+
+[ext_resource type="Script" uid="uid://bk0ls2r17jq4g" path="res://Characters/scripts/CharacterVisualData.gd" id="1_visual"]
+
+[resource]
+script = ExtResource("1_visual")

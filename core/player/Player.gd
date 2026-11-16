@@ -635,7 +635,7 @@ func set_character(char_id: int) -> void:
 
 func _apply_character_visuals_and_collision(data: CharacterData) -> void:
 	if $AnimatedSprite2D:
-		$AnimatedSprite2D.sprite_frames = data.animation_frames
+		$AnimatedSprite2D.setup_visual(data.default_visual, data.animation_frames)
 		_refresh_sprite_scale()
 	_setup_collision_layers(data)
 	_apply_camera_config(data)
