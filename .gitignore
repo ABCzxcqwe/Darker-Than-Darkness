@@ -38,3 +38,5 @@ Thumbs.db
 /android
 
 # Credenciales EOSG (no commitear)
+*.zip
+/addons/godotsteam
