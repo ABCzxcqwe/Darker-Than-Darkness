@@ -6,8 +6,6 @@
 export.cfg
 # export_presets.cfg  # <- Descomentado: necesitamos trackear el fix anti-TrapMine (embed_pck, VersionInfo, icono)
 
-# Imported translations (automatically generated from CSV files)
-*.translation
 
 # Mono-specific ignores (C#)
 .mono/
