@@ -49,6 +49,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed:
 		_layer_input_handled()
 		_skip()
+	elif event is InputEventScreenTouch and event.pressed:
+		_layer_input_handled()
+		_skip()
 	elif event.is_action_pressed("ui_accept") and _waiting_for_input():
 		_layer_input_handled()
 		_advance_manual()

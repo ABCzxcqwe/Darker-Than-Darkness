@@ -68,7 +68,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Opt1" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9100011]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_fonts/font = ExtResource("2_font")
@@ -76,7 +76,7 @@ theme_override_font_sizes/font_size = 22
 text = " LAN"
 
 [node name="Opt0" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9100010]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_fonts/font = ExtResource("2_font")
@@ -90,6 +90,17 @@ theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
 text = "Partidas por Internet"
 horizontal_alignment = 1
+
+[node name="BackBtn" type="Button" parent="CenterContainer/DeltaruneBox/Margin/VBox" unique_id=9100016]
+custom_minimum_size = Vector2(320, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("4_box")
+text = "VOLVER"
 
 [node name="SoulCursor" type="TextureRect" parent="." unique_id=9100014]
 z_index = 10

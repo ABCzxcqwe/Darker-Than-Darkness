@@ -138,11 +138,12 @@ func _build_character_options() -> void:
 		border_locked.shadow_color = Color(1, 1, 0, 0.6)
 		border_locked.shadow_size = 12
 
-		# Wrapper vertical: panel + name label (solo teclado — sin mouse)
+		# Wrapper vertical: panel + name label. En móvil el toque confirma.
 		var vbox := VBoxContainer.new()
 		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 		vbox.custom_minimum_size = Vector2(PANEL_W, PANEL_H + 44)
-		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.mouse_filter = Control.MOUSE_FILTER_STOP
+		vbox.gui_input.connect(_on_option_gui_input.bind(char_id))
 		vbox.set_meta("char_id", char_id)
 		vbox.set_meta("border_on", border_on)
 		vbox.set_meta("border_locked", border_locked)
@@ -542,6 +543,15 @@ func _on_character_clicked(char_id: int) -> void:
 	var prev = _focus_idx
 	_focus_idx = idx
 	_animate_focus_change(prev, _focus_idx)
+
+
+## Toque/click directo sobre una tarjeta de personaje: la enfoca y confirma.
+func _on_option_gui_input(event: InputEvent, char_id: int) -> void:
+	if _selection_locked or not timer_active or not MenuUtils.is_tap(event):
+		return
+	_on_character_clicked(char_id)
+	_confirm_selection(char_id)
+	accept_event()
 
 
 func _confirm_selection(char_id: int) -> void:

@@ -1,6 +1,7 @@
 # res://ui/Hub/BoardPanel.gd
 # Tablero de sala del hub: roster/AFK en una pestaña y configuración del
-# host en otra. No muestra el personaje elegido por cada jugador.
+# host en otra. La UI vive en BoardPanel.tscn (editable/tematizable) y este
+# script sólo contiene la lógica, como el resto de menús.
 extends Control
 
 const TAG := "BoardPanel"
@@ -14,21 +15,32 @@ signal host_action_requested(action: String, peer_id: int)
 
 const FONT := preload("res://Fonts/deltarune font.ttf")
 
-var _ui: Control
-var _players_tab: Control
-var _config_tab: Control
-var _players_list: VBoxContainer
-var _players_tab_btn: Button
-var _config_tab_btn: Button
-var _afk_btn: Button
-var _start_btn: Button
-var _cancel_btn: Button
-var _status_label: Label
-var _map_label: Label
-var _info_label: Label
-var _max_label: Label
-var _max_minus: Button
-var _max_plus: Button
+@onready var _panel: PanelContainer = $Center/Panel
+@onready var _title: Label = $Center/Panel/Margin/VBox/Title
+@onready var _players_tab_btn: Button = $Center/Panel/Margin/VBox/Tabs/PlayersTabBtn
+@onready var _config_tab_btn: Button = $Center/Panel/Margin/VBox/Tabs/ConfigTabBtn
+@onready var _tab_hint: Label = $Center/Panel/Margin/VBox/TabHint
+@onready var _players_tab: Control = $Center/Panel/Margin/VBox/Content/PlayersTab
+@onready var _config_tab: Control = $Center/Panel/Margin/VBox/Content/ConfigTab
+@onready var _players_list: VBoxContainer = $Center/Panel/Margin/VBox/Content/PlayersTab/Scroll/PlayersList
+@onready var _afk_btn: Button = $Center/Panel/Margin/VBox/Content/PlayersTab/AfkBtn
+@onready var _spectator_btn: Button = $Center/Panel/Margin/VBox/Content/PlayersTab/Actions/SpectatorBtn
+@onready var _survivor_btn: Button = $Center/Panel/Margin/VBox/Content/PlayersTab/Actions/SurvivorBtn
+@onready var _killer_btn: Button = $Center/Panel/Margin/VBox/Content/PlayersTab/Actions/KillerBtn
+@onready var _kick_btn: Button = $Center/Panel/Margin/VBox/Content/PlayersTab/Actions/KickBtn
+@onready var _prev_map_btn: Button = $Center/Panel/Margin/VBox/Content/ConfigTab/MapRow/PrevMapBtn
+@onready var _map_label: Label = $Center/Panel/Margin/VBox/Content/ConfigTab/MapRow/MapLabel
+@onready var _next_map_btn: Button = $Center/Panel/Margin/VBox/Content/ConfigTab/MapRow/NextMapBtn
+@onready var _max_title: Label = $Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow/MaxTitle
+@onready var _max_minus: Button = $Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow/MaxMinus
+@onready var _max_label: Label = $Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow/MaxLabel
+@onready var _max_plus: Button = $Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow/MaxPlus
+@onready var _info_label: Label = $Center/Panel/Margin/VBox/Content/ConfigTab/InfoLabel
+@onready var _status_label: Label = $Center/Panel/Margin/VBox/StatusLabel
+@onready var _start_btn: Button = $Center/Panel/Margin/VBox/Footer/StartBtn
+@onready var _cancel_btn: Button = $Center/Panel/Margin/VBox/Footer/CancelBtn
+@onready var _close_btn: Button = $Center/Panel/Margin/VBox/Footer/CloseBtn
+
 var _action_buttons: Dictionary = {}
 var _selected_pid := -1
 var _can_manage := false
@@ -36,20 +48,47 @@ var _tab := 0
 var _maps: Array = []
 var _map_index := 0
 var _countdown := 0.0
+var _auto_map_requested := false
 
 
 func _ready() -> void:
 	add_to_group("hub_ui")
 	add_to_group(GroupNames.GAME_MENU)
-	# Ocultar la UI vieja del .tscn; construimos la nueva acá.
-	var old_dim := get_node_or_null("Dim")
-	var old_center := get_node_or_null("Center")
-	if old_dim:
-		old_dim.visible = false
-	if old_center:
-		old_center.visible = false
-	_build_ui()
+	_action_buttons = {
+		"spectator": _spectator_btn,
+		"survivor": _survivor_btn,
+		"killer": _killer_btn,
+		"kick": _kick_btn,
+	}
+	_wire_buttons()
+	_connect_theme()
+	_apply_theme()
 	visible = false
+
+
+func _wire_buttons() -> void:
+	_bind(_players_tab_btn, _set_tab.bind(0))
+	_bind(_config_tab_btn, _set_tab.bind(1))
+	_bind(_prev_map_btn, _cycle_map.bind(-1))
+	_bind(_next_map_btn, _cycle_map.bind(1))
+	_bind(_max_minus, _change_max_players.bind(-1))
+	_bind(_max_plus, _change_max_players.bind(1))
+	_bind(_afk_btn, func() -> void: afk_toggle_requested.emit())
+	_bind(_start_btn, func() -> void: start_requested.emit())
+	_bind(_cancel_btn, func() -> void: cancel_requested.emit())
+	_bind(_close_btn, close_panel)
+	for action in _action_buttons:
+		_bind(_action_buttons[action], _on_host_action.bind(action))
+
+
+func _bind(btn: BaseButton, handler: Callable) -> void:
+	if btn and not btn.pressed.is_connected(handler):
+		btn.pressed.connect(handler)
+
+
+func _on_host_action(action: String) -> void:
+	if _selected_pid > 0:
+		host_action_requested.emit(action, _selected_pid)
 
 
 func is_open() -> bool:
@@ -58,6 +97,7 @@ func is_open() -> bool:
 
 func open_panel(can_manage: bool) -> void:
 	_can_manage = can_manage
+	_auto_map_requested = false
 	visible = true
 	_tab = 0
 	_refresh()
@@ -89,10 +129,6 @@ func set_countdown(seconds: float) -> void:
 		else:
 			_status_label.text = ""
 			_status_label.visible = false
-	if _start_btn:
-		_start_btn.disabled = _countdown > 0.0 or not _can_manage
-	if _cancel_btn:
-		_cancel_btn.visible = _countdown > 0.0 and _can_manage
 	_refresh_config()
 
 
@@ -106,245 +142,93 @@ func refresh_map_info() -> void:
 	_refresh_map()
 
 
-func _build_ui() -> void:
-	_ui = Control.new()
-	_ui.name = "LobbyUI"
-	_ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_ui)
+# ── Tema ─────────────────────────────────────────────────────────────
 
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.62)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_ui.add_child(dim)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_ui.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(820, 600)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.02, 0.02, 0.025, 0.97)
-	style.border_width_left = 3
-	style.border_width_top = 3
-	style.border_width_right = 3
-	style.border_width_bottom = 3
-	style.border_color = Color(0.2, 0.8, 0.35, 1)
-	style.content_margin_left = 26
-	style.content_margin_top = 20
-	style.content_margin_right = 26
-	style.content_margin_bottom = 18
-	panel.add_theme_stylebox_override("panel", style)
-	center.add_child(panel)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	panel.add_child(vbox)
-
-	var title := Label.new()
-	title.text = "SALA"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_override("font", FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color(0.5, 1.0, 0.55, 1))
-	vbox.add_child(title)
-
-	var tabs := HBoxContainer.new()
-	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
-	tabs.add_theme_constant_override("separation", 12)
-	vbox.add_child(tabs)
-	_players_tab_btn = _make_tab_button("JUGADORES")
-	_players_tab_btn.pressed.connect(_set_tab.bind(0))
-	tabs.add_child(_players_tab_btn)
-	_config_tab_btn = _make_tab_button("CONFIGURACIÓN")
-	_config_tab_btn.pressed.connect(_set_tab.bind(1))
-	tabs.add_child(_config_tab_btn)
-	_players_tab_btn.focus_neighbor_right = _players_tab_btn.get_path_to(_config_tab_btn)
-	_config_tab_btn.focus_neighbor_left = _config_tab_btn.get_path_to(_players_tab_btn)
-
-	var tab_hint := Label.new()
-	tab_hint.text = "IZQ/DER: PESTAÑA  |  Z/ENTER: ACEPTAR  |  X: CERRAR"
-	tab_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tab_hint.add_theme_font_override("font", FONT)
-	tab_hint.add_theme_font_size_override("font_size", 12)
-	tab_hint.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6, 1))
-	vbox.add_child(tab_hint)
-
-	var content := Control.new()
-	content.custom_minimum_size = Vector2(760, 390)
-	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(content)
-
-	_build_players_tab(content)
-	_build_config_tab(content)
-
-	_status_label = Label.new()
-	_status_label.visible = false
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status_label.add_theme_font_override("font", FONT)
-	_status_label.add_theme_font_size_override("font_size", 15)
-	_status_label.add_theme_color_override("font_color", Color(1, 0.75, 0.35, 1))
-	vbox.add_child(_status_label)
-
-	var close := Button.new()
-	close.text = "CERRAR [X]"
-	close.custom_minimum_size = Vector2(0, 38)
-	close.add_theme_font_override("font", FONT)
-	close.add_theme_font_size_override("font_size", 18)
-	close.pressed.connect(close_panel)
-	vbox.add_child(close)
+func _connect_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm:
+		if tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_arg):
+			tm.theme_changed.connect(_on_theme_arg)
+		if tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_theme_arg):
+			tm.palette_changed.connect(_on_theme_arg)
 
 
-func _build_players_tab(parent: Control) -> void:
-	_players_tab = VBoxContainer.new()
-	_players_tab.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_players_tab.add_theme_constant_override("separation", 8)
-	parent.add_child(_players_tab)
-
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(760, 250)
-	_players_tab.add_child(scroll)
-
-	_players_list = VBoxContainer.new()
-	_players_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_players_list.add_theme_constant_override("separation", 4)
-	scroll.add_child(_players_list)
-
-	_afk_btn = Button.new()
-	_afk_btn.custom_minimum_size = Vector2(0, 38)
-	_afk_btn.add_theme_font_override("font", FONT)
-	_afk_btn.add_theme_font_size_override("font_size", 17)
-	_afk_btn.pressed.connect(func() -> void: afk_toggle_requested.emit())
-	_players_tab.add_child(_afk_btn)
-
-	var actions := HBoxContainer.new()
-	actions.alignment = BoxContainer.ALIGNMENT_CENTER
-	actions.add_theme_constant_override("separation", 8)
-	_players_tab.add_child(actions)
-	_add_action_button(actions, "ESPECTADOR", "spectator")
-	_add_action_button(actions, "SURVIVOR", "survivor")
-	_add_action_button(actions, "KILLER", "killer")
-	_add_action_button(actions, "EXPULSAR", "kick")
+func _on_theme_arg(_arg: Variant = null) -> void:
+	_apply_theme()
+	if visible:
+		_refresh()
 
 
-func _build_config_tab(parent: Control) -> void:
-	_config_tab = VBoxContainer.new()
-	_config_tab.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_config_tab.add_theme_constant_override("separation", 12)
-	parent.add_child(_config_tab)
+func _apply_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null or not tm.has_method("get_palette"):
+		return
+	var pal: Dictionary = tm.get_palette()
+	var font: Font = tm.get_font() if tm.has_method("get_font") else null
+	if _panel and tm.has_method("make_box_style"):
+		_panel.add_theme_stylebox_override("panel", tm.make_box_style())
 
-	var map_row := HBoxContainer.new()
-	map_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	map_row.add_theme_constant_override("separation", 10)
-	_config_tab.add_child(map_row)
+	var title_c: Color = pal.get("title", Color(0, 1, 0, 1))
+	var hint_c: Color = pal.get("hint", title_c)
+	var dim_c: Color = pal.get("dim", title_c)
+	for lbl in [_title, _tab_hint, _info_label, _status_label, _map_label, _max_label, _max_title]:
+		if lbl == null:
+			continue
+		if lbl == _title:
+			lbl.add_theme_color_override("font_color", title_c)
+		elif lbl == _status_label:
+			lbl.add_theme_color_override("font_color", hint_c)
+		elif lbl == _map_label:
+			lbl.add_theme_color_override("font_color", hint_c)
+		else:
+			lbl.add_theme_color_override("font_color", dim_c)
+		if font:
+			lbl.add_theme_font_override("font", font)
 
-	var prev := Button.new()
-	prev.text = "<"
-	prev.custom_minimum_size = Vector2(48, 40)
-	prev.add_theme_font_override("font", FONT)
-	prev.add_theme_font_size_override("font_size", 20)
-	prev.pressed.connect(_cycle_map.bind(-1))
-	map_row.add_child(prev)
-
-	_map_label = Label.new()
-	_map_label.custom_minimum_size = Vector2(400, 40)
-	_map_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_map_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_map_label.add_theme_font_override("font", FONT)
-	_map_label.add_theme_font_size_override("font_size", 18)
-	map_row.add_child(_map_label)
-
-	var next := Button.new()
-	next.text = ">"
-	next.custom_minimum_size = Vector2(48, 40)
-	next.add_theme_font_override("font", FONT)
-	next.add_theme_font_size_override("font_size", 20)
-	next.pressed.connect(_cycle_map.bind(1))
-	map_row.add_child(next)
-
-	var max_row := HBoxContainer.new()
-	max_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	max_row.add_theme_constant_override("separation", 10)
-	_config_tab.add_child(max_row)
-	var max_title := Label.new()
-	max_title.text = "MÁXIMO JUGADORES"
-	max_title.add_theme_font_override("font", FONT)
-	max_title.add_theme_font_size_override("font_size", 16)
-	max_row.add_child(max_title)
-	_max_minus = Button.new()
-	_max_minus.text = "-"
-	_max_minus.custom_minimum_size = Vector2(42, 34)
-	_max_minus.pressed.connect(_change_max_players.bind(-1))
-	max_row.add_child(_max_minus)
-	_max_label = Label.new()
-	_max_label.custom_minimum_size = Vector2(60, 34)
-	_max_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_max_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_max_label.add_theme_font_override("font", FONT)
-	_max_label.add_theme_font_size_override("font_size", 18)
-	max_row.add_child(_max_label)
-	_max_plus = Button.new()
-	_max_plus.text = "+"
-	_max_plus.custom_minimum_size = Vector2(42, 34)
-	_max_plus.pressed.connect(_change_max_players.bind(1))
-	max_row.add_child(_max_plus)
-
-	_info_label = Label.new()
-	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_info_label.add_theme_font_override("font", FONT)
-	_info_label.add_theme_font_size_override("font_size", 16)
-	_info_label.add_theme_color_override("font_color", Color(0.75, 0.85, 0.75, 1))
-	_config_tab.add_child(_info_label)
-
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_config_tab.add_child(spacer)
-
-	_start_btn = Button.new()
-	_start_btn.text = "INICIAR PARTIDA"
-	_start_btn.custom_minimum_size = Vector2(0, 46)
-	_start_btn.add_theme_font_override("font", FONT)
-	_start_btn.add_theme_font_size_override("font_size", 21)
-	_start_btn.pressed.connect(func() -> void: start_requested.emit())
-	_config_tab.add_child(_start_btn)
-
-	_cancel_btn = Button.new()
-	_cancel_btn.text = "CANCELAR INICIO"
-	_cancel_btn.custom_minimum_size = Vector2(0, 38)
-	_cancel_btn.add_theme_font_override("font", FONT)
-	_cancel_btn.add_theme_font_size_override("font_size", 17)
-	_cancel_btn.visible = false
-	_cancel_btn.pressed.connect(func() -> void: cancel_requested.emit())
-	_config_tab.add_child(_cancel_btn)
+	for btn in [
+		_players_tab_btn, _config_tab_btn, _afk_btn, _spectator_btn,
+		_survivor_btn, _killer_btn, _kick_btn, _prev_map_btn, _next_map_btn,
+		_max_minus, _max_plus, _start_btn, _cancel_btn, _close_btn,
+	]:
+		_style_button(btn, true)
+		if btn and font:
+			btn.add_theme_font_override("font", font)
+	if visible:
+		_refresh_players()
 
 
-func _make_tab_button(text: String) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(180, 36)
-	b.add_theme_font_override("font", FONT)
-	b.add_theme_font_size_override("font_size", 17)
-	return b
+## Estilo temático compartido por todos los botones del tablero.
+func _style_button(btn: Button, highlighted: bool = true) -> void:
+	if btn == null:
+		return
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null or not tm.has_method("get_palette"):
+		return
+	var pal: Dictionary = tm.get_palette()
+	var selected: Color = pal.get("selected", Color(0, 1, 0, 1))
+	var dim: Color = pal.get("dim", selected)
+	var bg: Color = pal.get("bg", Color(0, 0, 0, 1))
+	var base: StyleBoxFlat = tm.make_box_style() if tm.has_method("make_box_style") else null
+	if base:
+		btn.add_theme_stylebox_override("normal", base)
+		var hover: StyleBoxFlat = base.duplicate()
+		hover.bg_color = Color(selected.r, selected.g, selected.b, 0.12)
+		btn.add_theme_stylebox_override("hover", hover)
+		var pressed: StyleBoxFlat = base.duplicate()
+		pressed.bg_color = Color(selected.r, selected.g, selected.b, 0.24)
+		btn.add_theme_stylebox_override("pressed", pressed)
+		var disabled: StyleBoxFlat = base.duplicate()
+		disabled.bg_color = Color(bg.r, bg.g, bg.b, 0.35)
+		disabled.border_color = Color(dim.r, dim.g, dim.b, 0.6)
+		btn.add_theme_stylebox_override("disabled", disabled)
+	var text_c := selected if highlighted else dim
+	btn.add_theme_color_override("font_color", text_c)
+	btn.add_theme_color_override("font_hover_color", selected)
+	btn.add_theme_color_override("font_pressed_color", selected)
+	btn.add_theme_color_override("font_disabled_color", dim)
 
 
-func _add_action_button(parent: HBoxContainer, text: String, action: String) -> void:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(150, 36)
-	b.add_theme_font_override("font", FONT)
-	b.add_theme_font_size_override("font_size", 15)
-	b.pressed.connect(func() -> void:
-		if _selected_pid > 0:
-			host_action_requested.emit(action, _selected_pid)
-	)
-	_action_buttons[action] = b
-	parent.add_child(b)
-
+# ── Pestañas ─────────────────────────────────────────────────────────
 
 func _set_tab(tab: int) -> void:
 	if tab == 1 and not _can_manage:
@@ -352,16 +236,20 @@ func _set_tab(tab: int) -> void:
 	_tab = tab
 	_players_tab.visible = tab == 0
 	_config_tab.visible = tab == 1
-	# No deshabilitar la pestaña activa: así conserva el foco y las flechas
-	# pueden navegar entre pestañas. La activa se marca visualmente.
-	_players_tab_btn.modulate = Color(1, 1, 1, 1) if tab == 0 else Color(0.6, 0.6, 0.6, 1)
-	_config_tab_btn.modulate = Color(1, 1, 1, 1) if tab == 1 else Color(0.6, 0.6, 0.6, 1)
+	var tm := get_node_or_null("/root/ThemeManager")
+	var pal: Dictionary = tm.get_palette() if tm and tm.has_method("get_palette") else {}
+	var sel: Color = pal.get("selected", Color(0, 1, 0, 1))
+	var dim: Color = pal.get("dim", Color(0, 0.5, 0, 1))
+	_players_tab_btn.add_theme_color_override("font_color", sel if tab == 0 else dim)
+	_config_tab_btn.add_theme_color_override("font_color", sel if tab == 1 else dim)
 	_config_tab_btn.visible = _can_manage
 	_refresh()
 
 
+# ── Refresco de datos ────────────────────────────────────────────────
+
 func _refresh() -> void:
-	if _ui == null:
+	if _panel == null or not is_inside_tree():
 		return
 	_players_tab_btn.visible = true
 	_config_tab_btn.visible = _can_manage
@@ -411,11 +299,11 @@ func _refresh_players() -> void:
 		var row := Button.new()
 		row.text = text
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		row.custom_minimum_size = Vector2(720, 34)
+		row.custom_minimum_size = Vector2(760, 48)
 		row.add_theme_font_override("font", FONT)
-		row.add_theme_font_size_override("font_size", 16)
-		if int(pid) == _selected_pid:
-			row.add_theme_color_override("font_color", Color(1, 0.9, 0.35, 1))
+		row.add_theme_font_size_override("font_size", 17)
+		row.focus_mode = Control.FOCUS_NONE
+		_style_button(row, int(pid) == _selected_pid)
 		row.pressed.connect(_select_player.bind(int(pid)))
 		_players_list.add_child(row)
 
@@ -443,19 +331,27 @@ func _refresh_map() -> void:
 	var map_id := LobbyManager.selected_map
 	var map_name := "SIN MAPA"
 	_map_index = 0
+	var found := false
 	for i in _maps.size():
 		if str(_maps[i].id) == map_id:
 			_map_index = i
 			map_name = str(_maps[i].display_name)
+			found = true
 			break
+	# Si el host entra sin mapa (p. ej. hub tras reinicio), elegimos el primero
+	# para que INICIAR PARTIDA no quede bloqueado sin explicación.
+	if not found and _can_manage and not _maps.is_empty() and not _auto_map_requested:
+		_auto_map_requested = true
+		_map_index = 0
+		map_name = str(_maps[0].display_name)
+		map_selected.emit(str(_maps[0].id))
 	if _map_label:
 		_map_label.text = "MAPA: " + map_name
-	# Los botones de mapa se deshabilitan si no es host o hay partida.
-	for child in _config_tab.get_children():
-		if child is HBoxContainer:
-			for c in child.get_children():
-				if c is Button and (c.text == "<" or c.text == ">"):
-					c.disabled = not _can_manage or LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY
+	var can_change := _can_manage and LobbyManager.current_phase == LobbyManager.GamePhase.LOBBY
+	if _prev_map_btn:
+		_prev_map_btn.disabled = not can_change
+	if _next_map_btn:
+		_next_map_btn.disabled = not can_change
 
 
 func _refresh_config() -> void:
@@ -468,17 +364,33 @@ func _refresh_config() -> void:
 	]
 	if _max_label:
 		_max_label.text = str(LobbyManager.max_players)
+	var can_change := _can_manage and LobbyManager.current_phase == LobbyManager.GamePhase.LOBBY
 	if _max_minus:
-		_max_minus.disabled = not _can_manage or LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY
+		_max_minus.disabled = not can_change
 	if _max_plus:
-		_max_plus.disabled = not _can_manage or LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY
+		_max_plus.disabled = not can_change
 	if _start_btn:
-		var enough := LobbyManager.get_active_participants().size() >= 2 or DevMode.is_enabled()
+		var active := LobbyManager.get_active_participants().size()
+		var enough := active >= 2 or DevMode.is_enabled()
 		var map_ok := LobbyManager.selected_map != "" and MapRegistry.has_map(LobbyManager.selected_map)
-		var can_start := _can_manage and LobbyManager.current_phase == LobbyManager.GamePhase.LOBBY \
+		var can_start := _can_manage \
+			and LobbyManager.current_phase == LobbyManager.GamePhase.LOBBY \
 			and _countdown <= 0.0 and enough and map_ok
 		_start_btn.disabled = not can_start
-		_start_btn.text = "INICIAR PARTIDA" if _can_manage else "ESPERANDO AL HOST"
+		if can_start:
+			_start_btn.text = "INICIAR PARTIDA"
+		elif not _can_manage:
+			_start_btn.text = "ESPERANDO AL HOST"
+		elif LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY:
+			_start_btn.text = "PARTIDA EN CURSO"
+		elif _countdown > 0.0:
+			_start_btn.text = "INICIANDO..."
+		elif not enough:
+			_start_btn.text = "FALTAN JUGADORES (%d/2)" % active
+		elif not map_ok:
+			_start_btn.text = "ELEGÍ UN MAPA"
+		else:
+			_start_btn.text = "INICIAR PARTIDA"
 	if _cancel_btn:
 		_cancel_btn.visible = _can_manage and _countdown > 0.0
 
@@ -502,7 +414,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
 
-	# Mover el foco entre pestañas con flechas (o A/D) cuando el foco está en ellas.
 	if _can_manage:
 		var vp_nav := get_viewport()
 		var focus: Control = vp_nav.gui_get_focus_owner() if vp_nav else null
@@ -526,3 +437,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if vp:
 			vp.set_input_as_handled()
 		close_panel()
+
+
+func _exit_tree() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm:
+		if tm.has_signal("theme_changed") and tm.theme_changed.is_connected(_on_theme_arg):
+			tm.theme_changed.disconnect(_on_theme_arg)
+		if tm.has_signal("palette_changed") and tm.palette_changed.is_connected(_on_theme_arg):
+			tm.palette_changed.disconnect(_on_theme_arg)

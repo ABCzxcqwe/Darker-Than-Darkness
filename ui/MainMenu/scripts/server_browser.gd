@@ -36,7 +36,7 @@ var _refresh_serial := 0
 
 # Nodos UI
 @onready var _controls_container: VBoxContainer = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer
-@onready var _ip_edit: LineEdit = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPInput
+@onready var _ip_edit: LineEdit = $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow/IPRow/IPInput
 
 var _header: HBoxContainer = null
 
@@ -61,6 +61,7 @@ func _ready() -> void:
 	_set_title()
 	_configure_search_row()
 	_refresh_static_texts()
+	_wire_touch_controls()
 
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm:
@@ -139,6 +140,40 @@ func _on_ip_submitted(_text: String) -> void:
 
 func _on_ip_focus_exited() -> void:
 	grab_focus.call_deferred()
+
+## ── Toque/click directo (móvil) ──────────────────────────────────────
+## Los botones y filas de sala reutilizan la selección + _confirm() del
+## teclado, así no se duplica la lógica de red.
+func _wire_touch_controls() -> void:
+	for path in ["ActionRow/RefreshBtn", "ActionRow/CreateBtn", "ActionRow/BackBtn", "IPRow/ConnectBtn"]:
+		var btn := _controls_container.get_node_or_null(path) as BaseButton
+		if btn and not btn.pressed.is_connected(_on_control_tapped):
+			btn.pressed.connect(_on_control_tapped.bind(btn))
+
+
+func _on_control_tapped(c: Control) -> void:
+	if _joining:
+		return
+	var idx := _focusables.find(c)
+	if idx < 0:
+		return
+	_index = idx
+	_highlight(_index, false)
+	_position_soul(_index, false)
+	_confirm()
+
+
+func _on_room_row_tapped(event: InputEvent, row: Control) -> void:
+	if _joining or not MenuUtils.is_tap(event):
+		return
+	var idx := _focusables.find(row)
+	if idx < 0:
+		return
+	_index = idx
+	_highlight(_index, false)
+	_position_soul(_index, false)
+	_confirm()
+	accept_event()
 
 func _relocate_header() -> void:
 	_header = get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/Header") as HBoxContainer
@@ -861,6 +896,9 @@ func _populate_rooms() -> void:
 	for r in _mock_rooms:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
+		row.custom_minimum_size = Vector2(0, 44)
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.gui_input.connect(_on_room_row_tapped.bind(row))
 		var cols := ["nombre", "host", "mapa", "jugadores", "modo", "estado"]
 		var widths := [170, 130, 145, 70, 85, 80]
 		for i in cols.size():
@@ -869,7 +907,8 @@ func _populate_rooms() -> void:
 			lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
 			lbl.add_theme_font_size_override("font_size", 18)
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			lbl.custom_minimum_size = Vector2(widths[i], 22)
+			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			lbl.custom_minimum_size = Vector2(widths[i], 44)
 			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(lbl)
 		_list_container.add_child(row)

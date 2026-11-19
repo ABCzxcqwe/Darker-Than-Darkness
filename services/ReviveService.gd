@@ -85,7 +85,34 @@ func start_revive(rescuer_id: int, target_node: Node) -> void:
 		return
 		
 	var target_id = PlayerLifecycleManager.get_owner_peer_id(target_node)
-	
+
+	# Validación de servidor: no confiar en el peer_id que manda el cliente.
+	var rescuer_node = _get_player(rescuer_id)
+	if not is_instance_valid(rescuer_node):
+		return
+	if target_id == rescuer_id:
+		return
+
+	var rescuer_2d := rescuer_node as Node2D
+	var target_2d := target_node as Node2D
+	if not rescuer_2d or not target_2d:
+		return
+
+	var rescuer_data: CharacterData = rescuer_node.get("character_data") as CharacterData
+	var target_data: CharacterData = target_node.get("character_data") as CharacterData
+	if not rescuer_data or not target_data:
+		return
+	if rescuer_data.team != target_data.team:
+		NetLog.warn_parts(TAG, ["[ReviveService] Rescate rechazado: equipos distintos."])
+		return
+	var health_svc = GameServiceLocator.health
+	if health_svc and health_svc.has_method("is_downed") and not bool(health_svc.call("is_downed", target_id)):
+		NetLog.warn_parts(TAG, ["[ReviveService] Rescate rechazado: el objetivo no está derribado."])
+		return
+	if rescuer_2d.global_position.distance_to(target_2d.global_position) > rescuer_data.revive_range:
+		NetLog.warn_parts(TAG, ["[ReviveService] Rescate rechazado: objetivo fuera de rango."])
+		return
+
 	# Si el rescatador ya está reanimando a alguien, cancelamos la anterior
 	if _sessions.has(rescuer_id):
 		_cancel(rescuer_id, false)

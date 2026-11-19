@@ -496,6 +496,18 @@ enum Fase2Iframes { NONE, FIXED, COVER_ANIMATION }
 ## Tiempo extra de i-frames al cubrir la animación de disparo.
 @export var fase2_fire_iframes_extra: float = 0.0
 
+## Cadencia entre disparos mientras el AIM sigue abierto (segundos).
+## 0.0 = solo un disparo por AIM (comportamiento clásico).
+@export var fase2_fire_cadence: float = 0.0
+
+## Nº máximo de disparos por apertura de AIM. 1 = un solo disparo.
+@export var fase2_max_shots: int = 1
+
+## TP mínimo para entrar en AIM. 0.0 = usa tp_cost.
+## Permite que la entrada cueste más que cada disparo
+## (ej: Fluffy Filling: 20 para entrar, 10 por disparo).
+@export var fase2_entry_tp_cost: float = 0.0
+
 # ── Fase 3 opcional: canalización tras disparar ────────────────────────────
 
 ## Si true, tras disparar la habilidad entra en fase CHANNEL en vez de

@@ -214,6 +214,8 @@ func _process(_delta: float) -> void:
 
 
 func _update_owner_animation() -> void:
+	if player.fase2_fire_animating:
+		return
 	if player.health_state != "alive":
 		return
 	if player.state == Player.AnimState.ABILITY:

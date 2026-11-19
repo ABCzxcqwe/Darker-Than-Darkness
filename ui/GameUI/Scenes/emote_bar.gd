@@ -17,6 +17,7 @@ func setup(player_node: Node) -> void:
 		var btn := _build_button(i)
 
 		add_child(btn)
+		btn.gui_input.connect(_on_slot_gui_input.bind(i, btn))
 		_buttons.append({"slot": i, "btn": btn})
 
 	if InputService.device_changed.is_connected(_on_device_changed):
@@ -30,11 +31,12 @@ func _build_button(slot: int) -> Control:
 	var data: EmoteData = _player_node.character_data.emote_slots[slot]
 
 	var btn := Control.new()
-	btn.custom_minimum_size = Vector2(75, 75)
+	btn.custom_minimum_size = Vector2(88, 88)
 
 	# Panel con fondo oscuro + borde naranja
 	var panel := Panel.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0, 0, 0, 0.47)
 	style.border_width_left = 2
@@ -92,3 +94,12 @@ func _refresh_labels() -> void:
 
 func _on_device_changed(_device: int) -> void:
 	_refresh_labels()
+
+
+## Tocar un emote lo envía directo (móvil), sin pasar por teclas 1-4.
+func _on_slot_gui_input(event: InputEvent, slot: int, btn: Control) -> void:
+	if not (event is InputEventScreenTouch and event.pressed):
+		return
+	if _player_node and _player_node.has_method("request_emote_slot"):
+		_player_node.request_emote_slot(slot)
+	btn.accept_event()

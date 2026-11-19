@@ -78,6 +78,14 @@ region = Rect2(2496, 0, 624, 528)
 atlas = ExtResource("5_i264h")
 region = Rect2(3120, 0, 624, 528)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_6y7ls"]
+atlas = ExtResource("5_i264h")
+region = Rect2(0, 0, 624, 528)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3gg1y"]
+atlas = ExtResource("5_i264h")
+region = Rect2(624, 0, 624, 528)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_0ht6f"]
 atlas = ExtResource("5_0ht6f")
 region = Rect2(0, 0, 432, 432)
@@ -353,6 +361,17 @@ animations = [{
 }],
 "loop": 0,
 "name": &"king_lanza",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6y7ls")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3gg1y")
+}],
+"loop": 1,
+"name": &"king_lanza_prepare",
 "speed": 5.0
 }, {
 "frames": [{

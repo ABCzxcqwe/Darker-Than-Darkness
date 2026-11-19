@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://ndbs3mvoredu"]
 
 [ext_resource type="Script" uid="uid://ds2gtpl6hs8ny" path="res://Hitboxes/King/Lanza/LanzaProjectile.gd" id="1_lanza"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_detector"]
-radius = 65.0
+[ext_resource type="Script" path="res://Hitboxes/King/Lanza/LanzaShaftVisual.gd" id="2_shaft"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_head"]
 size = Vector2(70, 70)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detector"]
+radius = 65.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lanza"]
 properties/0/path = NodePath(".:position")
@@ -34,6 +35,11 @@ collision_mask = 0
 
 [node name="DetectShape" type="CollisionShape2D" parent="HurtboxDetector" unique_id=104]
 shape = SubResource("CircleShape2D_detector")
+
+[node name="ShaftVisual" type="Node2D" parent="."]
+z_index = 1
+z_as_relative = false
+script = ExtResource("2_shaft")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=105]
 replication_config = SubResource("SceneReplicationConfig_lanza")

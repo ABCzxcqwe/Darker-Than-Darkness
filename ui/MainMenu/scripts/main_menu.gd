@@ -34,6 +34,9 @@ func _ready() -> void:
 	for c in menu_vbox.get_children():
 		if c is Label:
 			_labels.append(c)
+			# Toque/click directo sobre la opción (móvil).
+			c.mouse_filter = Control.MOUSE_FILTER_STOP
+			c.gui_input.connect(_on_menu_label_gui_input.bind(_labels.size() - 1))
 
 	_apply_theme()
 
@@ -171,6 +174,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _index != 0:
 			_set_index(0)
 		vp.set_input_as_handled()
+
+func _on_menu_label_gui_input(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	_set_index(idx)
+	_confirm()
+	accept_event()
+
 
 func _move(dir: int) -> void:
 	var new_idx := clampi(_index + dir, 0, _labels.size() - 1)

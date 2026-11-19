@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1"]
+[ext_resource type="Script" path="res://abilities/ralsei/FluffyFillingAim/FluffyFillingAim.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://d2fluffypj35hitbox" path="res://Hitboxes/Ralsei/FluffyFilling/FluffyHitbox.tscn" id="3"]
+[ext_resource type="Resource" path="res://abilities/ralsei/FluffyFillingAim/FluffyFillingPlusAim.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Fluffy Filling"
+description = "Fase 1: apunta (M1 dispara, X cancela). Necesita 20 TP para entrar; cada disparo cuesta 10 TP. El AIM se cierra tras 2 disparos. Al golpear a un Killer: roba 15 TP + ralentiza. Al golpear a un aliado: otorga 15 TP. Si no golpea nada, se planta como mina. El cooldown aumenta +1.5s por mina activa."
+ability_type = 1
+ability_script = ExtResource("2")
+ability_scene = ExtResource("3")
+action_animation = "item"
+prepare_animation = "magic_prepare"
+can_cancel = true
+cooldown = 12.0
+cooldown_cancel = 5.0
+tp_cost = 20.0
+consume_tp_on_use = false
+move_restriction = 1
+requires_selection = false
+defer_cooldown = true
+is_projectile = true
+projectile_speed = 700.0
+projectile_lifetime = 3.0
+projectile_max_range = 500.0
+evolved_version = ExtResource("4")
+evolvable_by_ally = true
+has_fase2 = true
+fase2_kind = 1
+fase2_charge_time = 0.0
+fase2_cancel_lockout = 1.0
+fase2_mobility = 2
+fase2_mobility_scale = 0.5
+fase2_cancel_on_player = true
+fase2_cancel_on_damage = false
+fase2_cancel_on_stun = true
+fase2_cancel_on_timeout = true
+fase2_timeout = 12.0
+fase2_cancel_cd = 2.0
+fase2_interrupt_cd = 1.0
+fase2_timeout_cd = 1.0
+fase2_fire_tp_cost = 10.0
+fase2_fire_cooldown = 12.0
+fase2_fire_cooldown_fail = 12.0
+fase2_fire_animation = "item"
+fase2_fire_iframes_mode = 0
+fase2_fire_iframes_extra = 0.0
+fase2_fire_cadence = 0.5
+fase2_max_shots = 2
+fase2_entry_tp_cost = 20.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"

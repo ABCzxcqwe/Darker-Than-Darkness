@@ -33,6 +33,8 @@ var _activated_at_msec: int = 0
 func activate(player_node: Node, data: AbilityData, direction: Vector2, slot_index: int = -1) -> void:
 	if not is_instance_valid(player_node):
 		return
+	if not player_node.multiplayer.is_server():
+		return
 
 	_player_node = player_node
 	_caster_id = PlayerLifecycleManager.get_owner_peer_id(player_node)

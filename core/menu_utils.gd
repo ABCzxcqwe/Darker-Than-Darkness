@@ -17,6 +17,20 @@ static func is_any_menu_open(tree: SceneTree, exclude: Node = null) -> bool:
 	return false
 
 
+## True si el evento es un toque o click izquierdo de "presionar".
+## Centraliza la detección para que todos los menús respondan igual en móvil.
+static func is_tap(event: InputEvent) -> bool:
+	if event is InputEventScreenTouch:
+		return event.pressed
+	if event is InputEventMouseButton:
+		# En Android/iOS cada toque también se emula como click; ignoramos el
+		# mouse para no disparar dos veces la misma acción.
+		if OS.has_feature("mobile"):
+			return false
+		return event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	return false
+
+
 ## Prepara un SoulCursor de menú: guarda su padre original y lo oculta
 ## hasta que se coloque por primera vez. Así no se ve el flash en (0,0).
 static func init_soul(soul: Control) -> void:

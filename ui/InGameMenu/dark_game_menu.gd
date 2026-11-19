@@ -95,6 +95,7 @@ const COLOR_GOLD := Color(1, 0.82, 0.3, 1)
 # ── Nodos: contenido de Salir ──────────────────────────────────────────
 @onready var exit_opt_si: Panel = $Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptSi
 @onready var exit_opt_no: Panel = $Root/VBox/ContentPanel/ContentMargin/SalirContent/OptionsRow/OptNo
+@onready var close_btn: Button = $CloseBtn
 
 # ── Estado ─────────────────────────────────────────────────────────────
 var _is_open := false
@@ -131,6 +132,7 @@ func set_hub_mode(enabled: bool, show_stats: bool = false) -> void:
 func _ready() -> void:
 	add_to_group(GroupNames.GAME_MENU)
 	_cache_styles()
+	_wire_touch()
 	_close(true)
 	var slm := get_node_or_null("/root/SettingsManager")
 	if slm and slm.has_signal("setting_changed") and not slm.setting_changed.is_connected(_on_setting_changed):
@@ -308,6 +310,102 @@ func _nav_throttle(key: String) -> bool:
 	return true
 
 
+# ── Toque/click directo (móvil) ──────────────────────────────────────
+## El menú sigue siendo navegable con teclado/mando, pero en pantallas
+## táctiles cada pestaña, fila y opción responde a un toque directo.
+func _wire_touch() -> void:
+	for i in tab_nodes.size():
+		_wire_tap(tab_nodes[i], _on_tab_panel_tapped.bind(i))
+	for tab_id in PANEL_ROWS:
+		var content: Control = content_nodes.get(tab_id)
+		if content == null:
+			continue
+		for row_id in PANEL_ROWS[tab_id]:
+			var row := content.get_node_or_null(ROW_NODE_NAMES[row_id]) as Control
+			if row:
+				_wire_tap(row, _on_pause_row_tapped.bind(str(tab_id), str(row_id)))
+	_wire_tap(exit_opt_si, _on_exit_option_tapped.bind(0))
+	_wire_tap(exit_opt_no, _on_exit_option_tapped.bind(1))
+	if close_btn and not close_btn.pressed.is_connected(_on_close_pressed):
+		close_btn.pressed.connect(_on_close_pressed)
+
+
+## El control raíz recibe el toque y sus hijos decorativos lo ignoran.
+func _wire_tap(control: Control, handler: Callable) -> void:
+	if control == null or control.gui_input.is_connected(handler):
+		return
+	control.mouse_filter = Control.MOUSE_FILTER_STOP
+	_ignore_descendants(control)
+	control.gui_input.connect(handler)
+
+
+func _ignore_descendants(node: Node) -> void:
+	for child in node.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ignore_descendants(child)
+
+
+func _on_tab_panel_tapped(event: InputEvent, idx: int) -> void:
+	if not _is_open or _hidden_tabs.has(idx) or not MenuUtils.is_tap(event):
+		return
+	_tab_idx = idx
+	_in_tabs = true
+	_refresh_tab_highlight()
+	_enter_tab()
+	accept_event()
+
+
+func _on_pause_row_tapped(event: InputEvent, tab_id: String, row_id: String) -> void:
+	if not _is_open or _in_tabs or not MenuUtils.is_tap(event):
+		return
+	if _current_tab() != tab_id:
+		return
+	var rows: Array = PANEL_ROWS.get(tab_id, [])
+	var idx := rows.find(row_id)
+	if idx < 0:
+		return
+	var local_x := 0.0
+	if event is InputEventScreenTouch:
+		local_x = (event as InputEventScreenTouch).position.x
+	elif event is InputEventMouseButton:
+		local_x = (event as InputEventMouseButton).position.x
+	var row := content_nodes[tab_id].get_node_or_null(ROW_NODE_NAMES[row_id]) as Control
+	var width := maxf(row.size.x if row else 0.0, 1.0)
+	var dir := 0
+	if local_x < width * 0.33:
+		dir = -1
+	elif local_x > width * 0.67:
+		dir = 1
+	_row_idx = idx
+	_refresh_panel_highlight()
+	_update_hint()
+	if dir == 0:
+		_confirm_row()
+	else:
+		_adjust_row(dir)
+	accept_event()
+
+
+func _on_exit_option_tapped(event: InputEvent, idx: int) -> void:
+	if not _is_open or _in_tabs or not MenuUtils.is_tap(event):
+		return
+	if _current_tab() != "salir":
+		return
+	_confirm_idx = idx
+	_refresh_exit_confirm()
+	if idx == 0:
+		_on_exit_confirmed()
+	else:
+		_exit_tab()
+	accept_event()
+
+
+func _on_close_pressed() -> void:
+	if _is_open:
+		_close()
+
+
 # ── Apertura / cierre (con animación de entrada y salida) ────────────
 
 func _open() -> void:
@@ -320,6 +418,7 @@ func _open() -> void:
 	center.visible = true
 	hint_center.visible = true
 	content_panel.visible = false
+	close_btn.visible = true
 	_sync_from_settings()
 	_refresh_static_texts()
 	_refresh_tab_highlight()
@@ -400,6 +499,7 @@ func _set_tab_text(idx: int, key: String) -> void:
 
 func _close(instant := false) -> void:
 	_is_open = false
+	close_btn.visible = false
 	if instant:
 		_hide_all()
 		return
@@ -431,6 +531,7 @@ func _animate_tabbar_out() -> void:
 func _hide_all() -> void:
 	overlay.visible = false
 	content_panel.visible = false
+	close_btn.visible = false
 	_hide_all_content()
 	center.visible = false
 	hint_center.visible = false

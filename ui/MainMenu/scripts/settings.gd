@@ -70,6 +70,9 @@ func _ready() -> void:
 	for c in tabs_vbox.get_children():
 		if c is Label:
 			_left_labels.append(c)
+			# Toque/click directo sobre la pestaña (móvil).
+			c.mouse_filter = Control.MOUSE_FILTER_STOP
+			c.gui_input.connect(_on_tab_tapped.bind(_left_labels.size() - 1))
 
 	_sync_from_settings()
 	_refresh_static_texts()
@@ -422,6 +425,53 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancel()
 		vp.set_input_as_handled()
 
+## ── Toque/click directo (móvil) ──────────────────────────────────────
+func _on_tab_tapped(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	if idx < TABS.size() and TABS[idx] == "VOLVER":
+		_in_tabs = true
+		_cancel()
+		accept_event()
+		return
+	_tab_idx = idx
+	_in_tabs = true
+	_build_content(_tab_idx, true)
+	_highlight_tabs()
+	_position_soul_tabs(_tab_idx, false)
+	_play_sfx(SfxId.SELECT)
+	accept_event()
+
+
+func _on_content_row_tapped(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	_in_tabs = false
+	_content_idx = idx
+	_highlight_content()
+	_position_soul_content(_content_idx, false)
+	_confirm()
+	accept_event()
+
+
+## Tocar el valor (< >) avanza/cambia la opción; tocar una casilla la alterna.
+func _on_content_value_tapped(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	var rows: Array = _tab_rows.get(TABS[_tab_idx], [])
+	if idx < 0 or idx >= rows.size():
+		return
+	_in_tabs = false
+	_content_idx = idx
+	_highlight_content()
+	_position_soul_content(_content_idx, false)
+	if str(rows[idx].get("type", "")) == "check":
+		_confirm()
+	else:
+		_adjust_content(1)
+	accept_event()
+
+
 func _move_tab(dir: int) -> void:
 	var ni := clampi(_tab_idx + dir, 0, _left_labels.size() - 1)
 	if ni == _tab_idx:
@@ -728,10 +778,13 @@ func _build_content(tab_idx: int, reset_index: bool = true) -> void:
 	var rows: Array = _tab_rows.get(tab_name, []) if tab_name != "VOLVER" else []
 	var font_res := preload("res://Fonts/deltarune font.ttf")
 
-	for data in rows:
+	for row_i in rows.size():
+		var data: Dictionary = rows[row_i]
 		var row := HBoxContainer.new()
-		row.custom_minimum_size = Vector2(0, 36)
+		row.custom_minimum_size = Vector2(0, 56)
 		row.add_theme_constant_override("separation", 12)
+		row.set_meta("content_index", row_i)
+		row.gui_input.connect(_on_content_row_tapped.bind(row_i))
 
 		var lbl := Label.new()
 		lbl.name = "Label"
@@ -766,6 +819,9 @@ func _build_content(tab_idx: int, reset_index: bool = true) -> void:
 			val.custom_minimum_size = Vector2(260, 0)
 			val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			val.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			val.mouse_filter = Control.MOUSE_FILTER_STOP
+			val.gui_input.connect(_on_content_value_tapped.bind(row_i))
 			val.add_theme_font_override("font", font_res)
 			val.add_theme_font_size_override("font_size", 18)
 			row.add_child(val)

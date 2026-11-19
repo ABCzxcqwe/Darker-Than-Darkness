@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" uid="uid://bodks86qovy6s" path="res://Characters/scripts/AbilityData.gd" id="1"]
+[ext_resource type="Script" path="res://abilities/king/LanzaAim/LanzaAim.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://ndbs3mvoredu" path="res://Hitboxes/King/Lanza/LanzaProjectile.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://c0s1t2np4oujg" path="res://Characters/King/assets/Sprites/lanza_cabeza.png" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Lanza"
+icon = ExtResource("4")
+ability_script = ExtResource("2")
+ability_scene = ExtResource("3")
+action_animation = "king_lanza"
+prepare_animation = "king_lanza_prepare"
+can_cancel = true
+cooldown = 6.5
+cooldown_fail = 3.0
+cooldown_cancel = 3.0
+tp_cost = 12.0
+consume_tp_on_use = false
+move_restriction = 1
+defer_cooldown = true
+base_damage = 10
+range_ = 1800.0
+spawn_delay = 1.0
+attack_type = "normal"
+is_projectile = true
+projectile_speed = 1800.0
+projectile_lifetime = 30.0
+projectile_max_range = 1800.0
+has_fase2 = true
+fase2_kind = 1
+fase2_charge_time = 0.0
+fase2_cancel_lockout = 0.0
+fase2_mobility = 2
+fase2_mobility_scale = 0.5
+fase2_cancel_on_player = true
+fase2_cancel_on_damage = false
+fase2_cancel_on_stun = true
+fase2_cancel_on_timeout = true
+fase2_timeout = 12.0
+fase2_cancel_cd = 3.0
+fase2_interrupt_cd = 3.0
+fase2_timeout_cd = 3.0
+fase2_fire_tp_cost = 12.0
+fase2_fire_cooldown = 6.5
+fase2_fire_cooldown_fail = 3.0
+fase2_fire_animation = "king_lanza"
+fase2_fire_iframes_mode = 0
+fase2_fire_iframes_extra = 0.0
+fase2_fire_cadence = 0.0
+fase2_max_shots = 1
+fase2_entry_tp_cost = 12.0
+metadata/_custom_type_script = "uid://bodks86qovy6s"

@@ -11,6 +11,7 @@ const ALL_HINT_KEYS := ["NET_HINT_LAN", "NET_HINT_ONLINE"]
 @onready var _hint: Label = $CenterContainer/DeltaruneBox/Margin/VBox/HintLabel
 @onready var _title: Label = $CenterContainer/DeltaruneBox/Margin/VBox/Title
 @onready var _footer: Label = $Footer
+@onready var _back: Button = $CenterContainer/DeltaruneBox/Margin/VBox/BackBtn
 
 var _visible_options: Array[String] = []
 var _visible_hints: Array[String] = []
@@ -27,6 +28,12 @@ func _ready() -> void:
 	for c in vbox.get_children():
 		if c is Label:
 			_labels.append(c)
+			# Toque/click directo sobre la opción (móvil).
+			c.mouse_filter = Control.MOUSE_FILTER_STOP
+			c.gui_input.connect(_on_option_gui_input.bind(_labels.size() - 1))
+	var back_btn := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/BackBtn") as BaseButton
+	if back_btn and not back_btn.pressed.is_connected(_go_back):
+		back_btn.pressed.connect(_go_back)
 	for i in _labels.size():
 		if i < _visible_options.size():
 			_labels[i].visible = true
@@ -83,6 +90,9 @@ func _refresh_texts() -> void:
 		_title.text = tr("NET_TITLE")
 	if _footer:
 		_footer.text = tr("MENU_FOOTER")
+	var back_btn := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/BackBtn") as Button
+	if back_btn:
+		back_btn.text = tr("BROWSE_BACK")
 
 func _on_theme_changed(_id: String) -> void:
 	_apply_theme()
@@ -123,6 +133,15 @@ func _apply_theme() -> void:
 		var st: Texture2D = tm.get_soul_texture()
 		if st:
 			_soul.texture = st
+	var back_btn := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/BackBtn") as Button
+	if back_btn:
+		back_btn.add_theme_color_override("font_color", pal.get("selected", Color(0,1,0,1)))
+		if tm.has_method("get_font"):
+			var bf: FontFile = tm.get_font()
+			if bf:
+				back_btn.add_theme_font_override("font", bf)
+		if tm.has_method("make_box_style"):
+			back_btn.add_theme_stylebox_override("normal", tm.make_box_style())
 
 func _rebuild_options() -> void:
 	var nm := get_node_or_null("/root/NetworkManager")
@@ -160,6 +179,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("menu_cancel") or event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_X):
 		_go_back()
 		vp.set_input_as_handled()
+
+## Toque/click directo sobre una opción visible.
+func _on_option_gui_input(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	if idx < 0 or idx >= _visible_options.size():
+		return
+	_index = idx
+	_highlight(_index)
+	_position_soul(_index, false)
+	_confirm()
+	accept_event()
+
 
 func _move(dir: int) -> void:
 	var ni := clampi(_index + dir, 0, _visible_options.size() - 1)

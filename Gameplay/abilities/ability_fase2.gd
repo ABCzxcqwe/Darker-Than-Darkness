@@ -45,6 +45,15 @@ func start_fase2(player_node: Node, data: AbilityData, slot_index: int) -> bool:
 	if abs_svc.is_mode_active(caster_id, slot_index):
 		return false
 
+	# TP mínimo para abrir el AIM (puede ser mayor que el coste por disparo).
+	if data.fase2_entry_tp_cost > 0.0:
+		var tp_svc = GameServiceLocator.tp
+		if not tp_svc or tp_svc.get_tp_for_peer(caster_id) < data.fase2_entry_tp_cost:
+			NetLog.debug(TAG, "Fase2 rechazada: TP insuficiente para entrar | peer: %d | requiere: %s" % [
+				caster_id, data.fase2_entry_tp_cost
+			])
+			return false
+
 	var cd = GameServiceLocator.cooldown
 	var now := Time.get_ticks_msec()
 	var timeout: float = data.fase2_timeout if data.fase2_timeout > 0.0 else 12.0
@@ -80,6 +89,11 @@ func start_fase2(player_node: Node, data: AbilityData, slot_index: int) -> bool:
 		"fire_animation": data.fase2_fire_animation,
 		"fire_cooldown": data.fase2_fire_cooldown,
 		"fire_cooldown_fail": data.fase2_fire_cooldown_fail,
+		"fire_cadence_ms": int(maxf(data.fase2_fire_cadence, 0.0) * 1000.0),
+		"max_shots": maxi(data.fase2_max_shots, 1),
+		"shots_fired": 0,
+		"last_fire_ms": 0,
+		"firing_until_ms": 0,
 		"channel_enabled": data.fase2_channel_enabled,
 		"channel_time": data.fase2_channel_time,
 		"channel_animation": data.fase2_channel_animation,
@@ -197,6 +211,9 @@ func cancel_fase2(peer_id: int, slot_index: int, reason: String) -> bool:
 	# Fase AIM.
 	if reason == "player":
 		if not bool(md.get("cancel_on_player", true)):
+			return false
+		if now < int(md.get("firing_until_ms", 0)):
+			NetLog.debug(TAG, "Cancelación bloqueada: disparo en curso | peer: %d" % peer_id)
 			return false
 		if now < int(md.get("cancel_ready_ms", 0)):
 			NetLog.debug(TAG, "Cancelación en lockout | peer: %d | faltan %dms" % [
@@ -409,6 +426,13 @@ func _end_fase2(peer_id: int, slot_index: int, cooldown: float,
 		cd.release_lock(peer_id, slot_index)
 	if cooldown > 0.0 and cd and cd.has_method("start"):
 		cd.start(peer_id, slot_index, cooldown)
+
+	# Hook de la habilidad: puede sobrescribir el cooldown con un valor dinámico
+	# (ej: Fluffy Filling cuenta minas activas). Se llama después del cd.start
+	# del router para que su valor tenga prioridad.
+	var active_ability := AbilityBase.find_active_for_peer(peer_id, slot_index)
+	if active_ability and active_ability.has_method("on_fase2_end"):
+		active_ability.on_fase2_end(reason, int(md.get("shots_fired", 0)))
 
 	AbilityBase.unregister_active(peer_id, slot_index)
 	NetLog.debug(TAG, "Fase2 cerrada | peer: %d | slot: %d | motivo: %s | cooldown: %ss | phase: %s" % [

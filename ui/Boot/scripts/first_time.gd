@@ -84,6 +84,7 @@ var _player_name := ""
 var _typing := false
 var _skip_typing := false
 var _busy := false  # bloquea input mientras se reproduce una secuencia no interactiva
+var _touch_pick := -1  # selección táctil (móvil) para los menús de esta escena
  
 const TYPE_SPEED := 0.2
 const PART_COUNT := 5
@@ -260,10 +261,19 @@ func _select_part(prompt: String, textures: Array, target_sprite: Sprite2D) -> i
 	var index := textures.size() / 2  # empieza centrado, como en las capturas de referencia
 	_update_part_selection(target_sprite, textures, index)
 	_position_choice_heart(index)
- 
+	_touch_pick = -1
+
 	while true:
 		var input := await _wait_for_menu_input()
 		match input:
+			"touch":
+				var picked := _touch_pick
+				_touch_pick = -1
+				if picked == index:
+					return index
+				index = clampi(picked, 0, textures.size() - 1)
+				_update_part_selection(target_sprite, textures, index)
+				_position_choice_heart(index)
 			"left":
 				if index > 0:
 					index -= 1
@@ -292,6 +302,10 @@ func _ensure_options_row_size(count: int) -> void:
 			tr.custom_minimum_size = Vector2(48, 48)
 			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			# Toque directo: la opción tocada mueve el corazón; tocarla de
+			# nuevo confirma la elección.
+			tr.mouse_filter = Control.MOUSE_FILTER_STOP
+			tr.gui_input.connect(_on_part_option_tapped.bind(current + i))
 			options_row.add_child(tr)
 	elif current > count:
 		for i in (current - count):
@@ -365,19 +379,45 @@ func _ask_name() -> String:
 func _build_menu_list(options: Array) -> void:
 	for c in menu_list.get_children():
 		c.queue_free()
-	for opt in options:
+	for i in options.size():
 		var lbl := Label.new()
-		lbl.text = str(opt)
+		lbl.text = str(options[i])
+		lbl.custom_minimum_size = Vector2(0, 48)
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.add_theme_color_override("font_color", Color.WHITE)
+		# Toque directo: elegir la opción tocada.
+		lbl.mouse_filter = Control.MOUSE_FILTER_STOP
+		lbl.gui_input.connect(_on_menu_option_tapped.bind(i))
 		menu_list.add_child(lbl)
- 
- 
+
+
+func _on_part_option_tapped(event: InputEvent, idx: int) -> void:
+	if not MenuUtils.is_tap(event):
+		return
+	_touch_pick = idx
+	accept_event()
+
+
+func _on_menu_option_tapped(event: InputEvent, idx: int) -> void:
+	if not MenuUtils.is_tap(event):
+		return
+	_touch_pick = idx
+	accept_event()
+
+
 func _run_vertical_menu(count: int) -> int:
 	var index := 0
 	_highlight_menu_index(index)
+	_touch_pick = -1
 	while true:
 		var input := await _wait_for_menu_input()
 		match input:
+			"touch":
+				var picked := _touch_pick
+				_touch_pick = -1
+				index = clampi(picked, 0, count - 1)
+				_highlight_menu_index(index)
+				return index
 			"up":
 				if index > 0:
 					index -= 1
@@ -413,6 +453,8 @@ func _highlight_menu_index(index: int) -> void:
 # =======================================================================
 func _wait_for_menu_input() -> String:
 	while true:
+		if _touch_pick >= 0:
+			return "touch"
 		await get_tree().process_frame
 		if Input.is_action_just_pressed("ui_left"):
 			return "left"

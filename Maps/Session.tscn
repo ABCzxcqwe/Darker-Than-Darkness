@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://ui/Shop/Shop.tscn" id="9_shop"]
 [ext_resource type="Script" path="res://core/interaction/HubInteractable.gd" id="10_interact"]
 [ext_resource type="PackedScene" path="res://Gameplay/camera/CameraRig.tscn" id="11_camrig"]
+[ext_resource type="PackedScene" path="res://ui/GameUI/Scenes/MobileControls.tscn" id="12_mobile"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
 size = Vector2(180, 120)
@@ -98,14 +99,15 @@ vertical_alignment = 1
 
 [node name="ChatPanel" parent="UI" unique_id=191919197 instance=ExtResource("7_chat")]
 layout_mode = 3
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -484.0
-offset_top = 96.0
-offset_right = -24.0
-offset_bottom = 306.0
-grow_horizontal = 0
+anchors_preset = -1
+anchor_left = 0.33
+anchor_right = 0.67
+offset_top = 80.0
+offset_right = 0.0
+offset_bottom = 290.0
+grow_horizontal = 2
+
+[node name="MobileControls" parent="UI" instance=ExtResource("12_mobile")]
 
 [node name="BoardPanel" parent="UI" unique_id=1143499273 instance=ExtResource("6_board_panel")]
 

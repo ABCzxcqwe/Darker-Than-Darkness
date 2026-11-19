@@ -122,6 +122,30 @@ func set_key_label(key_name: String) -> void:
 			set_evolution_stage(current_stage)
 
 
+## Activación táctil: el jugador puede tocar el botón de habilidad del HUD
+## (móvil) y se emite la misma acción ability_N que el teclado/mando.
+func _gui_input(event: InputEvent) -> void:
+	if not (event is InputEventScreenTouch):
+		return
+	if slot_index < 0:
+		return
+	_emit_slot_action(event.pressed)
+	accept_event()
+
+
+func _emit_slot_action(pressed: bool) -> void:
+	var action := "ability_%d" % slot_index
+	if pressed:
+		Input.action_press(action)
+	else:
+		Input.action_release(action)
+	var ev := InputEventAction.new()
+	ev.action = action
+	ev.pressed = pressed
+	ev.strength = 1.0 if pressed else 0.0
+	Input.parse_input_event(ev)
+
+
 func _process(delta: float) -> void:
 	# Reintento de tracking de TP: si el relay no existía en setup (orden de
 	# inicio), sin esto el borde de evolución quedaba congelado para siempre.

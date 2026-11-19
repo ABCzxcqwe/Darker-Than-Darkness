@@ -1,5 +1,10 @@
 extends CharacterBody2D
 
+# Proyectil de la Lanza de King. La misma escena se usa para la versión
+# clásica (Lanza.gd) y para la versión AIM (LanzaAim.gd). La versión AIM
+# usa resolve_with_reason()/cancel_with_reason() para distinguir fallo,
+# hook, agarre y cancelación.
+
 # ── Asignados por HitboxService antes de add_child() ──────────────────
 var attacker_id:  int     = -1
 var attacker_node: Node   = null
@@ -16,15 +21,14 @@ var hitbox_max_range: float = 1200.0
 
 # ── Mecánica de la lanza ─────────────────────────────────────────────
 var origin: Vector2 = Vector2.ZERO          # estómago del Rey (replicado)
-const RETRACT_SPEED: float = 2200.0         # retracción del asta (px/s)
-const HOOK_PULL_SPEED: float = 2400.0       # Rei jalado hacia la pared enganchada (px/s)
-const RETURN_SPEED: float = 3000.0          # retorno al Rey al alcanzar el límite de rango (px/s)
-const ARRIVE_DIST: float   = 40.0           # dist. para considerar "recogido"
-const TILE_SIZE: float     = 96.0           # tamaño del segmento lanza.png
+const RETRACT_SPEED: float = 2200.0
+const HOOK_PULL_SPEED: float = 2400.0
+const RETURN_SPEED: float = 3000.0
+const ARRIVE_DIST: float   = 40.0
+const TILE_SIZE: float     = 96.0
 
-const LANZA_TEX := preload("uid://ksj6jcxhc5yk")       # lanza.png
-const LANZA_CABEZA_TEX := preload("uid://c0s1t2np4oujg") # lanza_cabeza.png
-const HOOK_WALL_SHAPE_SIZE := Vector2(70, 70)            # tamaño colisión gancho (modular)
+const LANZA_CABEZA_TEX := preload("uid://c0s1t2np4oujg")
+const HOOK_WALL_SHAPE_SIZE := Vector2(70, 70)
 
 enum Phase { EXTEND, GRAB, HOOK, RETURN, DONE }
 
@@ -38,6 +42,7 @@ var _caster: Node = null
 var _grabbed: Node = null
 var _grabbed_peer: int = -1
 var _resolved: bool = false
+var _cancel_reason: String = ""
 
 var on_hit_callback: Callable
 var on_end_callback: Callable
@@ -66,12 +71,20 @@ func _ready() -> void:
 	var detector = $HurtboxDetector
 	detector.collision_mask = collision_mask
 	detector.area_entered.connect(_on_area_entered)
-	set_deferred("collision_mask", collision_mask | 1)  # layer 1 = mundo (paredes)
+	set_deferred("collision_mask", collision_mask | 1)
+	if lifetime > 0.0:
+		get_tree().create_timer(lifetime).timeout.connect(_on_lifetime_timeout)
+
+
+func _on_lifetime_timeout() -> void:
+	if _resolved or _phase == Phase.DONE:
+		return
+	if _phase == Phase.EXTEND or _phase == Phase.RETURN:
+		_cancel_reason = "miss_lifetime"
+		_phase = Phase.RETURN
 
 
 func _ensure_wall_collision() -> void:
-	# Fallback modular: si la escena no trae BodyShape (ej. reimport), lo crea en runtime.
-	# Así el gancho no depende 100% del .tscn y mantiene la modularidad HitboxService -> Projectile.
 	if has_node("BodyShape"):
 		return
 	var shape_node := CollisionShape2D.new()
@@ -86,16 +99,17 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 
 
-# ── Fase EXTEND: la cabeza avanza y el asta se estira ────────────────
 func _physics_process(delta: float) -> void:
 	if _resolved or _phase == Phase.DONE:
 		return
 	if not multiplayer.is_server():
 		return
 
-	# Si King fue stuneado mientras la lanza está activa, la habilidad se cancela.
 	if _caster_is_stunned():
-		_resolve(false)
+		if _supports_reasons():
+			cancel_with_reason("stun")
+		else:
+			_resolve(false)
 		return
 
 	match _phase:
@@ -109,6 +123,10 @@ func _physics_process(delta: float) -> void:
 			_return_phase(delta)
 
 
+func _supports_reasons() -> bool:
+	return is_instance_valid(_ability) and _ability.has_method("resolve_with_reason")
+
+
 func _caster_is_stunned() -> bool:
 	var status = GameServiceLocator.status_effect
 	if status and status.has_method("is_stunned"):
@@ -120,13 +138,12 @@ func _caster_is_stunned() -> bool:
 
 func _extend_phase(delta: float) -> void:
 	if speed <= 0.0:
-		_resolve(false)
+		_fail("miss")
 		return
 
 	var dir := _direction
 	var step := speed * delta
 
-	# Limitar por rango máximo.
 	_travel += step
 	if hitbox_max_range > 0.0 and _travel >= hitbox_max_range:
 		_to_return()
@@ -137,7 +154,6 @@ func _extend_phase(delta: float) -> void:
 		if collision:
 			var collider := collision.get_collider()
 			if collider is StaticBody2D or collider is TileMapLayer:
-				# La cabeza queda fijada en el punto de impacto → HOOK.
 				global_position = collision.get_position()
 				_to_hook()
 				return
@@ -145,11 +161,8 @@ func _extend_phase(delta: float) -> void:
 
 func _to_hook() -> void:
 	_phase = Phase.HOOK
-	if is_instance_valid(_caster):
-		_pause_sync(_caster)
 
 
-# ── Fase RETURN: la cabeza regresa al Rey al agotar el rango ─────────
 func _to_return() -> void:
 	_phase = Phase.RETURN
 
@@ -162,10 +175,12 @@ func _return_phase(delta: float) -> void:
 	global_position = global_position.move_toward(king_pos, RETURN_SPEED * delta)
 
 	if global_position.distance_to(king_pos) < ARRIVE_DIST:
-		_resolve(false)
+		if _cancel_reason != "":
+			_resolve_with_reason(_cancel_reason)
+		else:
+			_fail("miss_return")
 
 
-# ── Detección de superviviente ───────────────────────────────────────
 func _on_area_entered(area: Area2D) -> void:
 	if _resolved or _phase != Phase.EXTEND:
 		return
@@ -192,35 +207,36 @@ func _on_area_entered(area: Area2D) -> void:
 	if combat and is_instance_valid(target):
 		combat.apply_damage(_caster, target, damage, attack_type)
 		combat.apply_root(target, 30.0)
-	_pause_sync(target)
+
+	if is_instance_valid(_ability) and _ability.has_method("on_lance_grab"):
+		_ability.on_lance_grab()
 
 
-# ── Fase GRAB: la cabeza retrae y jala al superviviente hacia el Rey ──
 func _grab_phase(delta: float) -> void:
 	if _resolved:
 		return
 
 	var king_pos: Vector2 = _caster.global_position if is_instance_valid(_caster) else origin
 
-	# La cabeza retrae hacia el Rey.
 	global_position = global_position.move_toward(king_pos, RETRACT_SPEED * delta)
 
-	# El superviviente viaja pegado a la punta de la lanza (llegarán juntos al Rey).
 	if is_instance_valid(_grabbed):
 		_grabbed.global_position = global_position
 		_grabbed.rpc("_sync_server_position", global_position)
 
 	if global_position.distance_to(king_pos) < ARRIVE_DIST:
-		_resolve(true)
+		if _supports_reasons():
+			_resolve_with_reason("grab")
+		else:
+			_resolve(true)
 
 
-# ── Fase HOOK: el Rey es jalado hacia la cabeza fijada ───────────────
 func _hook_phase(delta: float) -> void:
 	if _resolved:
 		return
 
 	if not is_instance_valid(_caster):
-		_resolve(false)
+		_fail("miss")
 		return
 
 	var king := _caster
@@ -230,10 +246,41 @@ func _hook_phase(delta: float) -> void:
 	king.rpc("_sync_server_position", np)
 
 	if np.distance_to(global_position) < ARRIVE_DIST:
-		_resolve(true)
+		if _supports_reasons():
+			_resolve_with_reason("hook")
+		else:
+			_resolve(true)
+
+
+# ── Cancelación (solo LanzaAim) ──────────────────────────────────────
+
+## Si está agarrando, suelta en el acto; si está en recorrido/hook, retrae
+## el asta y resuelve al volver a King.
+func cancel_with_reason(reason: String) -> void:
+	if _resolved or _phase == Phase.DONE:
+		return
+	if not _supports_reasons():
+		return
+
+	var phase_tag := "travel"
+	if _phase == Phase.GRAB:
+		phase_tag = "grab"
+	elif _phase == Phase.HOOK:
+		phase_tag = "hook"
+
+	var final_reason: String = "%s_%s" % [reason, phase_tag]
+
+	if _phase == Phase.GRAB:
+		_resolve_with_reason(final_reason)
+		return
+
+	_cancel_reason = final_reason
+	_phase = Phase.RETURN
 
 
 # ── Resolución ───────────────────────────────────────────────────────
+
+## Compatibilidad con la Lanza clásica.
 func _resolve(success: bool) -> void:
 	if _resolved:
 		return
@@ -242,14 +289,9 @@ func _resolve(success: bool) -> void:
 	set_physics_process(false)
 
 	var combat = GameServiceLocator.combat_mediator
-
 	if is_instance_valid(_grabbed):
 		if combat:
 			combat.remove_root(_grabbed)
-		_resume_sync(_grabbed)
-
-	if is_instance_valid(_caster):
-		_resume_sync(_caster)
 
 	if is_instance_valid(_ability) and _ability.has_method("resolve"):
 		_ability.resolve(success)
@@ -260,19 +302,35 @@ func _resolve(success: bool) -> void:
 	queue_free()
 
 
-# ── Helpers de red ──────────────────────────────────────────────────
-func _pause_sync(node: Node) -> void:
-	var sync = node.get_node_or_null("Synchronizer")
-	if sync:
-		sync.set_process(false)
-		sync.set_physics_process(false)
+## Resolución con motivo para LanzaAim.
+func _resolve_with_reason(reason: String) -> void:
+	if _resolved:
+		return
+	_resolved = true
+	_phase = Phase.DONE
+	set_physics_process(false)
+
+	var combat = GameServiceLocator.combat_mediator
+	if is_instance_valid(_grabbed):
+		if combat:
+			combat.remove_root(_grabbed)
+
+	if is_instance_valid(_ability) and _ability.has_method("resolve_with_reason"):
+		_ability.resolve_with_reason(reason)
+	elif is_instance_valid(_ability) and _ability.has_method("resolve"):
+		_ability.resolve(reason.contains("grab") or reason.contains("hook"))
+
+	if on_end_callback.is_valid():
+		on_end_callback.call(0)
+
+	queue_free()
 
 
-func _resume_sync(node: Node) -> void:
-	var sync = node.get_node_or_null("Synchronizer")
-	if sync:
-		sync.set_process(true)
-		sync.set_physics_process(true)
+func _fail(reason: String) -> void:
+	if _supports_reasons():
+		_resolve_with_reason(reason)
+	else:
+		_resolve(false)
 
 
 func _passes_team_filter(target: Node) -> bool:
@@ -291,32 +349,17 @@ func _get_attacker_team() -> String:
 	return ""
 
 
-# ── Render del asta (todos los peers) ────────────────────────────────
+# ── Render de la cabeza (el asta vive en LanzaShaftVisual) ───────────
 func _draw() -> void:
-	var o := origin - global_position            # posición local del estómago
+	var o := origin - global_position
 	var dist := o.length()
 	if dist < 8.0:
 		return
-	var dir := -o.normalized()                   # de estómago → cabeza (dir del mouse)
+	var dir := -o.normalized()
 
-	var seg_w: float = LANZA_TEX.get_width()
-	var seg_h: float = LANZA_TEX.get_height()
 	var head_size: Vector2 = LANZA_CABEZA_TEX.get_size()
 
-	# Rotar el contexto para que el eje +X apunte hacia la punta (mouse).
 	draw_set_transform(Vector2.ZERO, dir.angle(), Vector2.ONE)
-
-	# Asta: rectángulos repetidos en línea recta hacia la cabeza.
-	# Un pequeño solape garantiza tramos largos sin huecos.
-	var step: float = seg_w * 0.9
-	var x: float = dist - seg_w * 0.5
-	while x > 0.0:
-		draw_texture_rect(LANZA_TEX,
-			Rect2(-x - seg_w * 0.5, -seg_h * 0.5, seg_w, seg_h), false)
-		x -= step
-
-	# Cabeza centrada en la punta, orientada con la misma dirección.
 	draw_texture_rect(LANZA_CABEZA_TEX,
 		Rect2(-head_size.x * 0.5, -head_size.y * 0.5, head_size.x, head_size.y), false)
-
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

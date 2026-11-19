@@ -10,6 +10,8 @@ const HURT_FLASH_DURATION_MS: int = 300
 const HEAL_FLASH_DURATION_MS: int = 300
 const LOW_HP_THRESHOLD: float = 0.25
 const INVISIBILITY_ALPHA_SELF: float = 0.5
+## Cadencia local del auto-fire mientras se mantiene M1 durante el AIM.
+const AIM_FIRE_CADENCE_MS: int = 500
 const HEAL_FIELD_SCENE := preload("res://abilities/ralsei/HealPrayer/HealingField.tscn")
 ## Identidad lógica del jugador. Con netfox el nodo Player pertenece al servidor
 ## (autoridad 1) y el dueño real se guarda acá.
@@ -87,6 +89,11 @@ var fase2_pose_animation: String = ""
 var _fase2_charge_ready_at: int = 0
 ## Deadline local (ms) antes del cual X no cancela.
 var _fase2_cancel_ready_at: int = 0
+## Próximo instante local (ms) en el que el auto-fire puede pedir otro disparo.
+var _next_aim_fire_ms: int = 0
+## True mientras se reproduce la animación de disparo de una habilidad AIM.
+## Evita que el dueño local pise la animación con la pose de apuntado.
+var fase2_fire_animating: bool = false
 
 var _vision_scale: float = 1.0
 var _vision_scale_until: int = 0
@@ -310,6 +317,12 @@ func _setup_name_tag() -> void:
 
 
 func _process(_delta: float) -> void:
+	# Auto-fire: mantener M1 durante el AIM dispara a cadencia.
+	if is_local_owner() and health_state == "alive" and not is_pause_menu_open() \
+			and aiming_slot >= 0 and fase2_phase == "aim":
+		if Input.is_action_pressed("confirm"):
+			_try_fire_aiming()
+
 	if not animated_sprite:
 		return
 	if health_state == "dead":
@@ -361,6 +374,8 @@ func _try_revive() -> void:
 
 @rpc("any_peer", "reliable")
 func _request_revive(target_peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
 	var caller_id := multiplayer.get_remote_sender_id()
 	if caller_id != owner_peer_id: return
 
@@ -373,6 +388,8 @@ func _request_revive(target_peer_id: int) -> void:
 
 @rpc("any_peer", "reliable")
 func _request_cancel_revive() -> void:
+	if not multiplayer.is_server():
+		return
 	var caller_id := multiplayer.get_remote_sender_id()
 	if caller_id != owner_peer_id: return
 	GameServiceLocator.revive.cancel_revive(owner_peer_id)
@@ -392,6 +409,26 @@ func _exit_tree() -> void:
 ## el jugador local no actúa (movilidad, habilidades, etc.) pero el mundo sigue.
 func is_pause_menu_open() -> bool:
 	return MenuUtils.is_any_menu_open(get_tree())
+
+
+## Dispara la habilidad de apuntado activa respetando la cadencia local.
+## Un click dispara una vez; mantener M1 dispara cada AIM_FIRE_CADENCE_MS.
+func _try_fire_aiming() -> bool:
+	if not is_local_owner():
+		return false
+	if aiming_slot < 0 or fase2_phase != "aim":
+		return false
+	var now := Time.get_ticks_msec()
+	if now < _fase2_charge_ready_at or now < _next_aim_fire_ms:
+		return false
+
+	var mouse_dir := input_component.get_aim_direction(global_position)
+	if multiplayer.is_server():
+		AbilityRouter.request_ability(aiming_slot, mouse_dir)
+	else:
+		AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
+	_next_aim_fire_ms = now + AIM_FIRE_CADENCE_MS
+	return true
 
 
 func _input(event: InputEvent) -> void:
@@ -464,17 +501,7 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("confirm") and aiming_slot >= 0:
 		if fase2_phase == "channel":
 			return
-		if Time.get_ticks_msec() < _fase2_charge_ready_at:
-			print("[Player] Fase2 aún cargando; M1 ignorado.")
-			return
-		print("[Player] Confirmando habilidad de apuntado | slot: ", aiming_slot)
-		mouse_dir = input_component.get_aim_direction(global_position)
-		if multiplayer.is_server():
-			AbilityRouter.request_ability(aiming_slot, mouse_dir)
-		else:
-			AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
-		# No limpiamos aiming_slot aquí: el servidor confirma el disparo con
-		# _sync_fase2(false). Si lo rechaza (carga/TP), seguimos apuntando.
+		_try_fire_aiming()
 		return
 
 	for action in action_map:
@@ -507,16 +534,7 @@ func _input(event: InputEvent) -> void:
 					return
 
 				if action == "ability_0" or action == "confirm":
-					if now < _fase2_charge_ready_at:
-						print("[Player] Fase2 aún cargando; M1 ignorado.")
-						return
-					print("[Player] M1 detectado en fase2 → fase 2 del slot ", aiming_slot)
-					mouse_dir = input_component.get_aim_direction(global_position)
-					if multiplayer.is_server():
-						AbilityRouter.request_ability(aiming_slot, mouse_dir)
-					else:
-						AbilityRouter.rpc_id(1, "request_ability", aiming_slot, mouse_dir)
-					# No limpiamos aiming_slot: esperamos la confirmación del servidor.
+					_try_fire_aiming()
 					return
 				elif action == "ability_3":
 					if now < _fase2_cancel_ready_at:
@@ -598,7 +616,8 @@ func _open_ability_selection(slot: int, title: String, selection_type: int = 0) 
 			if _pending_selection_slot == slot:
 				_pending_selection_slot = -1
 				if multiplayer.is_server():
-					AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id)
+					if not AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id):
+						_cancel_ability_selection(slot)
 				else:
 					rpc_id(1, "_confirm_ability_selection", slot, target_peer_id),
 		func() -> void:
@@ -633,7 +652,10 @@ func _confirm_ability_selection(slot: int, target_peer_id: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender != 0 and sender != owner_peer_id:
 		return
-	AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id)
+	if not AbilityRouter._dispatch_with_target(slot, target_peer_id, owner_peer_id):
+		# Objetivo inválido, habilidad ya no disponible o caster caído: no dejar
+		# al jugador con la selección/root colgados.
+		_cancel_ability_selection(slot)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -788,8 +810,9 @@ func play_ability_animation(anim_name: String, slot_index: int, facing_right_ove
 
 	animation_component.apply_ability_anim_state(anim_name, facing_right_override, slot_index, AnimState.ABILITY)
 
-	for peer_id in multiplayer.get_peers():
-		rpc_id(peer_id, "_sync_ability_anim", anim_name, facing_right_override, slot_index)
+	# Broadcast a todos los peers. rpc() usa la misma lista de peers que el
+	# servidor, pero evita diferencias entre clientes al replicar animaciones.
+	rpc("_sync_ability_anim", anim_name, facing_right_override, slot_index)
 
 
 @rpc("any_peer", "reliable")
@@ -809,8 +832,7 @@ func play_prepare_animation(anim_name: String, slot_index: int, facing_right_ove
 
 	animation_component.apply_ability_anim_state(anim_name, facing_right_override, slot_index, AnimState.PREPARE)
 
-	for peer_id in multiplayer.get_peers():
-		rpc_id(peer_id, "_sync_prepare_anim", anim_name, facing_right_override, slot_index)
+	rpc("_sync_prepare_anim", anim_name, facing_right_override, slot_index)
 
 
 @rpc("any_peer", "reliable")
@@ -861,6 +883,14 @@ func _sync_ability_hold(hold: bool) -> void:
 	hold_ability_anim = hold
 
 
+@rpc("any_peer", "call_local", "reliable")
+func _sync_fase2_firing(firing: bool) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	fase2_fire_animating = firing
+
+
 ## Visual replicado del área de rezo de Ralsei. No corre lógica de juego:
 ## el servidor se encarga de los ticks y del daño.
 @rpc("any_peer", "call_local", "reliable")
@@ -900,6 +930,18 @@ func _toggle_emote_bar(open: bool) -> void:
 		return
 	if huds[0].has_method("set_emote_bar_visible"):
 		huds[0].set_emote_bar_visible(open)
+
+
+## API táctil: la barra de emotes del HUD envía el slot tocado directamente.
+func request_emote_slot(slot: int) -> void:
+	if not is_local_owner() or health_state != "alive":
+		return
+	_emote_bar_open = false
+	_toggle_emote_bar(false)
+	if multiplayer.is_server():
+		_request_emote(slot)
+	else:
+		rpc_id(1, "_request_emote", slot)
 
 
 @rpc("any_peer", "reliable")
@@ -1219,7 +1261,7 @@ func _rpc_jevil_ghost(pos: Vector2, dir: Vector2) -> void:
 
 # ── Sincronización desde el servidor ──────────────────────────────────
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 	var old_health = health
 
@@ -1235,7 +1277,7 @@ func _sync_health(new_health: int, invincibility_duration_ms: int) -> void:
 		heal_flash_until = Time.get_ticks_msec() + HEAL_FLASH_DURATION_MS
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_speed(new_speed: float) -> void:
 	movement_component.speed = new_speed
 
@@ -1268,12 +1310,14 @@ func _sync_fase2(slot: int, active: bool, phase: String = "aim",
 		fase2_phase = phase
 		_fase2_charge_ready_at = now + int(maxf(charge_remaining, 0.0) * 1000.0)
 		_fase2_cancel_ready_at = now + int(maxf(cancel_lockout_remaining, 0.0) * 1000.0)
+		_next_aim_fire_ms = 0
 	else:
 		aiming_slot = -1
 		fase2_active = false
 		fase2_phase = ""
 		_fase2_charge_ready_at = 0
 		_fase2_cancel_ready_at = 0
+		_next_aim_fire_ms = 0
 
 
 ## Movilidad/animaciones de fase 2. Se separa de _sync_fase2 porque puede
@@ -1304,7 +1348,7 @@ func _sync_invincibility(duration_ms: int) -> void:
 	invincible_until = Time.get_ticks_msec() + duration_ms
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_effect(effect_name: String, active: bool) -> void:
 	if active:
 		active_effects[effect_name] = true
@@ -1367,7 +1411,7 @@ func _update_rage_blink(now: int) -> float:
 	return 1.0
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_vision_reduction(factor: float, duration: float) -> void:
 	if not is_local_owner():
 		return
@@ -1375,7 +1419,7 @@ func _sync_vision_reduction(factor: float, duration: float) -> void:
 	_vision_scale_until = Time.get_ticks_msec() + int(duration * 1000.0)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_state(new_state: String, new_health: int) -> void:
 	var old_health = health
 	health_state = new_state
@@ -1420,7 +1464,7 @@ func _sync_state(new_state: String, new_health: int) -> void:
 		GameServiceLocator.health.player_state_changed.emit(owner_peer_id, new_state)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_escape() -> void:
 	health_state = "escaped"
 	visible = false
@@ -1435,6 +1479,9 @@ func _sync_escape() -> void:
 @rpc("any_peer", "reliable")
 func _request_sprint(sprinting: bool) -> void:
 	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != owner_peer_id:
 		return
 	GameServiceLocator.stamina.set_sprinting(owner_peer_id, sprinting)
 
@@ -1508,7 +1555,7 @@ func _mutate_rollback() -> void:
 		NetworkRollback.mutate(movement_component)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_show_aoe_indicator(center: Vector2) -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:
@@ -1523,7 +1570,7 @@ func _sync_show_aoe_indicator(center: Vector2) -> void:
 	world.add_child(indicator)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_hide_aoe_indicator() -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:
@@ -1533,7 +1580,7 @@ func _sync_hide_aoe_indicator() -> void:
 		existing.queue_free()
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_show_pacify_indicator(center: Vector2, area_radius: float) -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:
@@ -1550,7 +1597,7 @@ func _sync_show_pacify_indicator(center: Vector2, area_radius: float) -> void:
 	world.add_child(indicator)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_hide_pacify_indicator() -> void:
 	var world = get_tree().root.find_child("World", true, false)
 	if not world:

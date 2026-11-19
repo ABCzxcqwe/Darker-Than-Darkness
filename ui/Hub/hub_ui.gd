@@ -34,6 +34,9 @@ func setup(session: Node) -> void:
 	_status_label = session.get_node_or_null("UI/StatusLabel") as Label
 	_prompt_label = session.get_node_or_null("UI/PromptLabel") as Label
 	_game_menu = session.get_node_or_null("UI/DarkGameMenu") as Control
+	var controls_label := session.get_node_or_null("UI/ControlsLabel") as Control
+	if controls_label:
+		controls_label.visible = not _is_touch()
 
 	if _hub_board and _hub_board.has_signal("interacted"):
 		_hub_board.interacted.connect(_on_board_interacted)
@@ -55,6 +58,12 @@ func setup(session: Node) -> void:
 
 	_build_quick_actions()
 	_configure_hub_game_menu()
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm:
+		if tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_arg):
+			tm.theme_changed.connect(_on_theme_arg)
+		if tm.has_signal("palette_changed") and not tm.palette_changed.is_connected(_on_theme_arg):
+			tm.palette_changed.connect(_on_theme_arg)
 
 
 func _connect_board_signals() -> void:
@@ -84,8 +93,14 @@ func on_lobby_changed() -> void:
 func show_prompt(text: String) -> void:
 	if _prompt_label == null:
 		return
+	if _is_touch():
+		text = text.replace("[Z]", "USAR")
 	_prompt_label.text = text
 	_prompt_label.visible = true
+
+
+func _is_touch() -> bool:
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 
 
 func hide_prompt() -> void:
@@ -171,7 +186,7 @@ func open_board_panel() -> void:
 		return
 	hide_prompt()
 	_session.set_local_avatar_controls(false)
-	var can_manage: bool = LobbyManager.is_host or LobbyManager.is_room_host()
+	var can_manage: bool = LobbyManager.is_host or LobbyManager.is_room_host() or multiplayer.is_server()
 	_board_panel.open_panel(can_manage)
 
 
@@ -190,7 +205,7 @@ func _on_map_selected(map_id: String) -> void:
 func _on_board_start_requested() -> void:
 	if not _session.is_active():
 		return
-	if not (LobbyManager.is_host or LobbyManager.is_room_host()):
+	if not (LobbyManager.is_host or LobbyManager.is_room_host() or multiplayer.is_server()):
 		_board_panel.set_status("SOLO EL HOST PUEDE INICIAR")
 		return
 	if LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY or _session.is_match_running():
@@ -201,6 +216,7 @@ func _on_board_start_requested() -> void:
 		_board_panel.set_status("SE NECESITAN 2 JUGADORES ACTIVOS")
 		return
 	LobbyManager.request_start()
+	_board_panel.set_status("INICIANDO PARTIDA...")
 	_board_panel.refresh()
 
 
@@ -322,9 +338,9 @@ func _build_quick_actions() -> void:
 
 	_quick_bar = VBoxContainer.new()
 	_quick_bar.name = "HubQuickActions"
-	_quick_bar.set_anchors_preset(Control.PRESET_CENTER_LEFT)
-	_quick_bar.offset_left = 24.0
-	_quick_bar.offset_right = 224.0
+	_quick_bar.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	_quick_bar.offset_left = -224.0
+	_quick_bar.offset_right = -24.0
 	_quick_bar.offset_top = -150.0
 	_quick_bar.offset_bottom = 150.0
 	_quick_bar.add_theme_constant_override("separation", 10)
@@ -342,20 +358,57 @@ func _build_quick_actions() -> void:
 	_quick_afk_btn.pressed.connect(_on_quick_afk)
 	_quick_bar.add_child(_quick_afk_btn)
 
+	_apply_theme()
 	refresh_quick_actions()
 
 
 func _make_quick_button(text: String) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(200, 42)
+	button.custom_minimum_size = Vector2(200, 52)
 	var font := load("res://Fonts/deltarune font.ttf") as Font
 	if font:
 		button.add_theme_font_override("font", font)
 	button.add_theme_font_size_override("font_size", 18)
-	button.add_theme_color_override("font_color", Color(0.7, 1.0, 0.7, 1.0))
 	button.focus_mode = Control.FOCUS_ALL
 	return button
+
+
+func _on_theme_arg(_arg: Variant = null) -> void:
+	_apply_theme()
+
+
+## Los accesos rápidos del hub siguen la paleta activa (device/light).
+func _apply_theme() -> void:
+	var tm := get_node_or_null("/root/ThemeManager")
+	if tm == null or not tm.has_method("get_palette"):
+		return
+	var pal: Dictionary = tm.get_palette()
+	var selected: Color = pal.get("selected", Color(0, 1, 0, 1))
+	var dim: Color = pal.get("dim", selected)
+	var font: Font = tm.get_font() if tm.has_method("get_font") else null
+	var base: StyleBoxFlat = tm.make_box_style() if tm.has_method("make_box_style") else null
+	var hover: StyleBoxFlat = base.duplicate() if base else null
+	if hover:
+		hover.bg_color = Color(selected.r, selected.g, selected.b, 0.12)
+	var pressed: StyleBoxFlat = base.duplicate() if base else null
+	if pressed:
+		pressed.bg_color = Color(selected.r, selected.g, selected.b, 0.24)
+	for b in [_quick_partida_btn, _quick_spectate_btn, _quick_afk_btn]:
+		if b == null:
+			continue
+		if base:
+			b.add_theme_stylebox_override("normal", base)
+		if hover:
+			b.add_theme_stylebox_override("hover", hover)
+		if pressed:
+			b.add_theme_stylebox_override("pressed", pressed)
+		b.add_theme_color_override("font_color", selected)
+		b.add_theme_color_override("font_hover_color", selected)
+		b.add_theme_color_override("font_pressed_color", selected)
+		b.add_theme_color_override("font_disabled_color", dim)
+		if font:
+			b.add_theme_font_override("font", font)
 
 
 func refresh_quick_actions() -> void:

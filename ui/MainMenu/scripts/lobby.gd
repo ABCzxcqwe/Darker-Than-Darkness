@@ -51,6 +51,7 @@ func _ready() -> void:
 	_apply_theme()
 	_update_address_label()
 	_refresh_static_texts()
+	_wire_touch_controls()
 	var tm := get_node_or_null("/root/ThemeManager")
 	if tm and tm.has_signal("theme_changed") and not tm.theme_changed.is_connected(_on_theme_changed):
 		tm.theme_changed.connect(_on_theme_changed)
@@ -387,6 +388,129 @@ func _player_exists(peer_id: int) -> bool:
 		return false
 	return true
 
+## ── Toque/click directo (móvil) ──────────────────────────────────────
+## Todo botón táctil reutiliza el mismo flujo que el teclado; sólo movemos
+## antes el soul a la opción tocada para que la selección quede coherente.
+func _wire_touch_controls() -> void:
+	_connect_tap(_start_btn, _on_start_tapped)
+	_connect_tap(_leave_btn, _on_leave_tapped)
+	_connect_tap(_btn_spectator, _on_spectator_tapped)
+	_connect_tap(_btn_survivor, _on_survivor_tapped)
+	_connect_tap(_btn_killer, _on_killer_tapped)
+	_connect_tap(_btn_kick, _on_kick_tapped)
+	_connect_tap(_btn_cancel, _on_cancel_action_tapped)
+	_connect_tap(_confirm_yes, _on_confirm_yes_tapped)
+	_connect_tap(_confirm_no, _on_confirm_no_tapped)
+
+
+func _connect_tap(btn: Control, handler: Callable) -> void:
+	var button := btn as BaseButton
+	if button == null:
+		return
+	if not button.pressed.is_connected(handler):
+		button.pressed.connect(handler)
+
+
+func _tap_focus(target: Control) -> void:
+	var idx := _focusables.find(target)
+	if idx < 0:
+		return
+	_index = idx
+	_highlight(_index, false)
+	_position_soul(_index, false)
+
+
+func _tap_action(target: Control) -> void:
+	var idx := _action_focusables.find(target)
+	if idx < 0:
+		return
+	_action_index = idx
+	_highlight_action(_action_index, false)
+	_position_soul_action(_action_index, false)
+
+
+func _on_row_gui_input(event: InputEvent, peer_id: int) -> void:
+	if _action_visible or _confirm_visible:
+		return
+	if not MenuUtils.is_tap(event):
+		return
+	var idx := _player_ids.find(peer_id)
+	if idx < 0 or idx >= _focusables.size():
+		return
+	_index = idx
+	_highlight(_index, false)
+	_position_soul(_index, false)
+	_confirm()
+	accept_event()
+
+
+func _on_start_tapped() -> void:
+	if _action_visible or _confirm_visible:
+		return
+	_tap_focus(_start_btn)
+	_on_start_pressed()
+
+
+func _on_leave_tapped() -> void:
+	if _action_visible or _confirm_visible:
+		return
+	_tap_focus(_leave_btn)
+	_on_leave_pressed()
+
+
+func _on_spectator_tapped() -> void:
+	if not _action_visible or _confirm_visible:
+		return
+	_tap_action(_btn_spectator)
+	_confirm_action()
+
+
+func _on_survivor_tapped() -> void:
+	if not _action_visible or _confirm_visible:
+		return
+	_tap_action(_btn_survivor)
+	_confirm_action()
+
+
+func _on_killer_tapped() -> void:
+	if not _action_visible or _confirm_visible:
+		return
+	_tap_action(_btn_killer)
+	_confirm_action()
+
+
+func _on_kick_tapped() -> void:
+	if not _action_visible or _confirm_visible:
+		return
+	_tap_action(_btn_kick)
+	_confirm_action()
+
+
+func _on_cancel_action_tapped() -> void:
+	if not _action_visible or _confirm_visible:
+		return
+	_tap_action(_btn_cancel)
+	_confirm_action()
+
+
+func _on_confirm_yes_tapped() -> void:
+	if not _confirm_visible:
+		return
+	_confirm_index = 0
+	_highlight_confirm(_confirm_index, false)
+	_position_soul_confirm(_confirm_index, false)
+	_confirm_confirm()
+
+
+func _on_confirm_no_tapped() -> void:
+	if not _confirm_visible:
+		return
+	_confirm_index = 1
+	_highlight_confirm(_confirm_index, false)
+	_position_soul_confirm(_confirm_index, false)
+	_confirm_confirm()
+
+
 func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	var peer_id: int = int(p.get("id", -1))
 	var name_str: String = str(p.get("name", "?"))
@@ -405,9 +529,10 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 
 	# Panel contenedor para highlight
 	var row := PanelContainer.new()
-	row.custom_minimum_size = Vector2(0, 32)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.custom_minimum_size = Vector2(0, 52)
+	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.set_meta("peer_id", peer_id)
+	row.gui_input.connect(_on_row_gui_input.bind(peer_id))
 	# Stylebox transparente por defecto
 	var sb_off := StyleBoxFlat.new()
 	sb_off.bg_color = Color(0,0,0,0)
@@ -428,10 +553,10 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	row.add_child(margin)
 
 	var hbox := HBoxContainer.new()
@@ -450,7 +575,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 		display_name += tr("LOBBY_YOU")
 	name_lbl.text = display_name
 	name_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
-	name_lbl.add_theme_font_size_override("font_size", 16)
+	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.custom_minimum_size = Vector2(180, 0)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.clip_text = true
@@ -463,7 +588,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	var pts_lbl := Label.new()
 	pts_lbl.text = "PTS:%d" % pts
 	pts_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
-	pts_lbl.add_theme_font_size_override("font_size", 13)
+	pts_lbl.add_theme_font_size_override("font_size", 15)
 	pts_lbl.custom_minimum_size = Vector2(70, 0)
 	pts_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pts_lbl.add_theme_color_override("font_color", dim_c)
@@ -474,7 +599,7 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	var spec_lbl := Label.new()
 	spec_lbl.text = tr("LOBBY_SPEC_FMT") % (tr("LOBBY_YES_WORD") if is_spec else tr("LOBBY_NO_WORD"))
 	spec_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
-	spec_lbl.add_theme_font_size_override("font_size", 13)
+	spec_lbl.add_theme_font_size_override("font_size", 15)
 	spec_lbl.custom_minimum_size = Vector2(70, 0)
 	spec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	spec_lbl.add_theme_color_override("font_color", pal.get("hint", dim_c) if is_spec else dim_c)
@@ -484,8 +609,8 @@ func _create_player_row(p: Dictionary, role_tags: Dictionary = {}) -> Control:
 	# Etiqueta unica KILLER / CANDIDATO — solo colores del tema (selected para destacar, dim para vacio)
 	var tag_lbl := Label.new()
 	tag_lbl.add_theme_font_override("font", preload("res://Fonts/deltarune font.ttf"))
-	tag_lbl.add_theme_font_size_override("font_size", 12)
-	tag_lbl.custom_minimum_size = Vector2(110, 0)
+	tag_lbl.add_theme_font_size_override("font_size", 14)
+	tag_lbl.custom_minimum_size = Vector2(120, 0)
 	tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if tag == "killer_forced":
 		tag_lbl.text = "★ KILLER"
@@ -516,22 +641,29 @@ func _refresh_empty(is_empty: bool) -> void:
 			var pal4: Dictionary = tm4.get_palette() if tm4 and tm4.has_method("get_palette") else {}
 			_empty_label.modulate = pal4.get("hint", Color(0,1,0,1))
 
+## Navegación de menús: menu_* (WASD/flechas), move_* y ui_* como respaldo.
+func _nav(event: InputEvent, dir: String) -> bool:
+	return event.is_action_pressed("menu_" + dir) \
+		or event.is_action_pressed("move_" + dir) \
+		or event.is_action_pressed("ui_" + dir)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	var vp := get_viewport()
 	if vp == null:
 		return
 	# Confirm overlay tiene prioridad máxima
 	if _confirm_visible:
-		if event.is_action_pressed("menu_up"):
+		if _nav(event, "up"):
 			_move_confirm(-1)
 			vp.set_input_as_handled()
-		elif event.is_action_pressed("menu_down"):
+		elif _nav(event, "down"):
 			_move_confirm(1)
 			vp.set_input_as_handled()
-		elif event.is_action_pressed("menu_left"):
+		elif _nav(event, "left"):
 			_move_confirm(-1)
 			vp.set_input_as_handled()
-		elif event.is_action_pressed("menu_right"):
+		elif _nav(event, "right"):
 			_move_confirm(1)
 			vp.set_input_as_handled()
 		elif event.is_action_pressed("menu_accept") or event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and event.keycode == KEY_Z):
@@ -542,10 +674,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp.set_input_as_handled()
 		return
 	if _action_visible:
-		if event.is_action_pressed("menu_up"):
+		if _nav(event, "up"):
 			_move_action(-1)
 			vp.set_input_as_handled()
-		elif event.is_action_pressed("menu_down"):
+		elif _nav(event, "down"):
 			_move_action(1)
 			vp.set_input_as_handled()
 		elif event.is_action_pressed("menu_accept") or event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and event.keycode == KEY_Z):
@@ -556,10 +688,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp.set_input_as_handled()
 		return
 	# Lobby normal
-	if event.is_action_pressed("menu_up"):
+	if _nav(event, "up"):
 		_move(-1)
 		vp.set_input_as_handled()
-	elif event.is_action_pressed("menu_down"):
+	elif _nav(event, "down"):
 		_move(1)
 		vp.set_input_as_handled()
 	elif event.is_action_pressed("menu_accept") or event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and event.keycode == KEY_Z):

@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://b7ryspn0ah1l5" path="res://ui/GameUI/Scenes/ChatPanel.tscn" id="8_abcd"]
 [ext_resource type="PackedScene" uid="uid://c10g1t75y5kj2" path="res://ui/GameUI/Scenes/EmoteBar.tscn" id="9_emote"]
 [ext_resource type="Script" uid="uid://0ccneednndmd" path="res://ui/GameUI/Scenes/animated_icon.gd" id="10_icon"]
+[ext_resource type="PackedScene" path="res://ui/GameUI/Scenes/MobileControls.tscn" id="11_mobile"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1uvi"]
 content_margin_left = 3.0
@@ -510,3 +511,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="MobileControls" parent="." instance=ExtResource("11_mobile")]

@@ -416,10 +416,11 @@ func _server_return_to_lobby() -> void:
 	if sender == 0:
 		sender = multiplayer.get_unique_id()
 	var is_local_server := sender == multiplayer.get_unique_id()
-	if sender != LobbyManager.room_host_peer and not is_local_server:
-		NetLog.warn(TAG, "Peer %d intentó forzar el retorno al lobby sin permisos." % sender)
-		return
+	# Cualquier jugador registrado puede volver al lobby desde la pantalla de
+	# estadísticas. Antes solo se permitía al host, así que a los clientes el
+	# botón les quedaba sin efecto.
 	if not is_local_server and not LobbyManager.players.has(sender):
+		NetLog.warn(TAG, "Peer %d intentó volver al lobby sin estar registrado." % sender)
 		return
 	_returning_to_lobby = true
 	NetLog.info(TAG, "El room host ordenó volver al lobby.")

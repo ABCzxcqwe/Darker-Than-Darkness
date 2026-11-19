@@ -37,7 +37,7 @@ const TAG := "game_hud"
 @onready var emote_bar:         HBoxContainer   = $EmoteBar
 
 @onready var dialog_container:  Control         = $DialogContainer
-
+@onready var mobile_controls:   Control         = $MobileControls
 # ── Constantes ─────────────────────────────────────────────────────────
 const CONTEXT_WHEEL_SCENE := preload("res://ui/GameUI/Scenes/ContextWheel.tscn")
 const TIMER_URGENT_SECS  := 15.0
@@ -46,6 +46,19 @@ const COLOR_KILLER:      Color = Color(1.0,  0.27, 0.27)  # rojo
 const FONT_DELTARUNE           := preload("res://Fonts/deltarune font.ttf")
 const EFFECT_NOTIFICATION_SCENE := preload("res://ui/GameUI/Scenes/StatusEffectNotification.tscn")
 const DIALOG_SCENE := preload("res://ui/GameUI/Scenes/GameDialogNotification.tscn")
+
+## Reubicación del HUD cuando los controles táctiles están activos: deja
+## libres las esquinas inferiores para los pulgares. Rect2 en píxeles del
+## viewport base (1440x1080).
+const MOBILE_LAYOUT := {
+	"PlayerPanelWrap": Rect2(29, 49, 403, 124),
+	"ChatPanel": Rect2(24, 200, 504, 210),
+	"AbilityPanel": Rect2(979, 637, 432, 124),
+	"EffectStack": Rect2(634, 594, 230, 300),
+	"TpBar": Rect2(432, 929, 461, 130),
+	"EmoteBar": Rect2(528, 826, 384, 90),
+	"DialogContainer": Rect2(533, 748, 446, 140),
+}
 
 # ── Estado ─────────────────────────────────────────────────────────────
 var _player_node:      Node     = null
@@ -63,6 +76,8 @@ var _dmg_layer:        Control    = null
 var _effect_notifications: Dictionary = {}
 var _dialog_queue: Array[Dictionary] = []
 var _current_dialog: PanelContainer = null
+var _layout_saved: Dictionary = {}
+var _mobile_layout_active: bool = false
 
 signal selection_confirmed(peer_id: int)
 signal selection_cancelled()
@@ -90,6 +105,38 @@ func _ready() -> void:
 
 func _on_input_device_changed(_device: int) -> void:
 	_refresh_revive_labels()
+
+
+## Aplica/restaura la disposición táctil del HUD. La posición normal se
+## guarda la primera vez para poder volver al layout de escritorio (F8).
+func apply_mobile_layout(enabled: bool) -> void:
+	if _mobile_layout_active == enabled:
+		return
+	_mobile_layout_active = enabled
+	for key in MOBILE_LAYOUT:
+		var c := get_node_or_null(key) as Control
+		if c == null:
+			continue
+		if not _layout_saved.has(key):
+			_layout_saved[key] = [
+				c.anchor_left, c.anchor_top, c.anchor_right, c.anchor_bottom,
+				c.offset_left, c.offset_top, c.offset_right, c.offset_bottom,
+			]
+		if enabled:
+			var r: Rect2 = MOBILE_LAYOUT[key]
+			c.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			c.position = r.position
+			c.size = r.size
+		else:
+			var s: Array = _layout_saved[key]
+			c.anchor_left = s[0]
+			c.anchor_top = s[1]
+			c.anchor_right = s[2]
+			c.anchor_bottom = s[3]
+			c.offset_left = s[4]
+			c.offset_top = s[5]
+			c.offset_right = s[6]
+			c.offset_bottom = s[7]
 
 
 func _revive_label_text() -> String:
@@ -122,6 +169,14 @@ func setup(player_node: Node) -> void:
 	_player_node = player_node
 	_my_id = multiplayer.get_unique_id()
 	var my_id := _my_id
+
+	if mobile_controls:
+		mobile_controls.call("setup", player_node)
+		if mobile_controls.has_signal("layout_changed") \
+				and not mobile_controls.is_connected("layout_changed", apply_mobile_layout):
+			mobile_controls.connect("layout_changed", apply_mobile_layout)
+		if mobile_controls.has_method("is_touch_device"):
+			apply_mobile_layout(bool(mobile_controls.call("is_touch_device")))
 
 	if not player_node.character_data:
 		NetLog.warn_parts(TAG, ["[GameHUD] Player sin character_data en setup."])

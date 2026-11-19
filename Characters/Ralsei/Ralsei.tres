@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://cmy02w127p6r1" path="res://Characters/scripts/EmoteData.gd" id="6_juiwq"]
 [ext_resource type="Script" uid="uid://2kq331ai6c40" path="res://Characters/scripts/CharacterData.gd" id="6_qrkhd"]
 [ext_resource type="Texture2D" uid="uid://drwoir6tp161i" path="res://Characters/Ralsei/assets/Sprites/ralsei_panel.png" id="6_t4xhp"]
-[ext_resource type="Resource" uid="uid://qg4vjxg66xfx" path="res://abilities/ralsei/FluffyFilling/FluffyFilling.tres" id="7_fffill"]
+[ext_resource type="Resource" path="res://abilities/ralsei/FluffyFillingAim/FluffyFillingAim.tres" id="7_fffill"]
 
 [resource]
 script = ExtResource("6_qrkhd")

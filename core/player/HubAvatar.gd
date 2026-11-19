@@ -29,6 +29,8 @@ var _nearby: Array[Area2D] = []
 var _current: Node = null
 var _net_target_position := Vector2.ZERO
 var _has_net_target := false
+var _virtual_move := Vector2.ZERO
+var _virtual_move_active := false
 
 
 func _ready() -> void:
@@ -60,6 +62,9 @@ func refresh_name() -> void:
 
 func set_controls_enabled(enabled: bool) -> void:
 	_controls_enabled = enabled
+	if not enabled:
+		_virtual_move_active = false
+		_virtual_move = Vector2.ZERO
 	velocity = Vector2.ZERO
 	set_physics_process(enabled and _can_move)
 	set_process_unhandled_input(enabled and _can_move)
@@ -106,11 +111,22 @@ func _process(delta: float) -> void:
 		)
 
 
+## API táctil: el joystick virtual del hub alimenta el movimiento.
+func set_virtual_move(dir: Vector2) -> void:
+	_virtual_move = dir
+	_virtual_move_active = dir != Vector2.ZERO
+
+
+func clear_virtual_move() -> void:
+	_virtual_move = Vector2.ZERO
+	_virtual_move_active = false
+
+
 func _physics_process(delta: float) -> void:
 	if MenuUtils.is_any_menu_open(get_tree(), self):
 		velocity = Vector2.ZERO
 		return
-	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var dir := _virtual_move if _virtual_move_active else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if dir.length() <= 0.01:
 		dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	if dir.length() > 0.01:
@@ -141,6 +157,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if MenuUtils.is_any_menu_open(get_tree(), self):
 		return
 	if event.is_action_pressed("world_interact") \
+			or event.is_action_pressed("interact") \
 			or event.is_action_pressed("menu_accept") \
 			or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Z):
 		if _current == null or not is_instance_valid(_current):

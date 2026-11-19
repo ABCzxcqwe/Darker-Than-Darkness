@@ -165,6 +165,17 @@ func submit_hub_state(pos: Vector2, flip: bool) -> void:
 
 func on_avatars_synced() -> void:
 	ui.on_lobby_changed()
+	_sync_hub_mobile_controls()
+
+
+## El hub reutiliza la escena de controles táctiles de partida, apuntando al
+## avatar local. En partida el avatar se oculta y los controles se esconden.
+func _sync_hub_mobile_controls() -> void:
+	var controls := get_node_or_null("UI/MobileControls")
+	if controls == null or not controls.has_method("setup"):
+		return
+	var avatar: Node = avatars.get_local_avatar() if avatars else null
+	controls.call("setup", avatar)
 
 
 func _on_lobby_changed() -> void:
@@ -279,6 +290,7 @@ func _set_local_avatar_hub_visible(visible_now: bool, reset_position: bool = fal
 		return
 	avatar.visible = visible_now
 	avatar.set_controls_enabled(visible_now)
+	_sync_hub_mobile_controls()
 	if reset_position and visible_now:
 		avatar.global_position = avatars.get_spawn_position(local_peer_id())
 	var rig := CameraRig.find_for(self)

@@ -30,6 +30,12 @@ func cancel_early() -> void:
 func on_fase2_channel_stop(_reason: String) -> void:
 	pass
 
+## Hook opcional para habilidades con fase 2 (AIM/CHANNEL). Se llama al cerrar
+## la fase con el motivo y el número de disparos realizados en esa apertura.
+## Útil para aplicar cooldowns dinámicos (ej: Fluffy Filling y sus minas).
+func on_fase2_end(_reason: String, _shots_fired: int) -> void:
+	pass
+
 # ── Registro central de instancias activas (genérico, evita hardcode LanzaAbility en Router) ──
 ## OJO: guarda un WeakRef, NO mantiene viva la instancia. Una habilidad con
 ## callbacks diferidos (proyectil, rayo, timer) debe sostenerse por sí misma:

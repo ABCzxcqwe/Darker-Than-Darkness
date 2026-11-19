@@ -65,7 +65,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Tab0" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400009]
-custom_minimum_size = Vector2(300, 28)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
 size_flags_horizontal = 12
 theme_override_fonts/font = ExtResource("2_font")
@@ -73,7 +73,7 @@ theme_override_font_sizes/font_size = 22
 text = "GENERAL"
 
 [node name="Tab1" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400010]
-custom_minimum_size = Vector2(300, 28)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
 size_flags_horizontal = 12
 theme_override_fonts/font = ExtResource("2_font")
@@ -81,7 +81,7 @@ theme_override_font_sizes/font_size = 22
 text = "AUDIO"
 
 [node name="Tab2" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400011]
-custom_minimum_size = Vector2(300, 28)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
 size_flags_horizontal = 12
 theme_override_fonts/font = ExtResource("2_font")
@@ -89,7 +89,7 @@ theme_override_font_sizes/font_size = 22
 text = "VIDEO"
 
 [node name="Tab3" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400013]
-custom_minimum_size = Vector2(300, 28)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
 size_flags_horizontal = 12
 theme_override_fonts/font = ExtResource("2_font")
@@ -97,7 +97,7 @@ theme_override_font_sizes/font_size = 22
 text = "CONTROLES"
 
 [node name="Tab4" type="Label" parent="LeftPanel/Margin/LeftVBox/Tabs" unique_id=9400014]
-custom_minimum_size = Vector2(300, 28)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
 size_flags_horizontal = 12
 theme_override_fonts/font = ExtResource("2_font")

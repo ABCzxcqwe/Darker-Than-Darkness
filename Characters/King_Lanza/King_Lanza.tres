@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://cncuf7y3f1koa" path="res://abilities/kris/Sword/SwordSlash.gd" id="6_sword"]
 [ext_resource type="AudioStream" uid="uid://c800d46l0g5c3" path="res://audio/SFX/snd_dadblast.wav" id="7_3e8eq"]
 [ext_resource type="Resource" uid="uid://chviuq8jxrh6s" path="res://abilities/king/Rugido/Rugido.tres" id="8_rugido"]
-[ext_resource type="Resource" uid="uid://dawt7s6mkntex" path="res://abilities/king/LanzaRango/LanzaRango.tres" id="9_lanza_rango"]
+[ext_resource type="Resource" uid="uid://cqh3sljtgj5t4" path="res://abilities/king/Lanza/Lanza.tres" id="9_lanza"]
 [ext_resource type="AudioStream" uid="uid://qwquo1pnuop7" path="res://Characters/Jevil/assets/Music/Sonic.exe LAYER.ogg" id="9_terror"]
 [ext_resource type="AudioStream" uid="uid://dmsqjlskwn7tx" path="res://Characters/Jevil/assets/Music/Sonic. Exe Chase.ogg" id="10_chase"]
 
@@ -43,7 +43,7 @@ chase_radius = 500.0
 terror_music = ExtResource("9_terror")
 chase_music = ExtResource("10_chase")
 hit_sfx = Array[AudioStream]([ExtResource("7_3e8eq")])
-ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("9_lanza_rango"), ExtResource("8_rugido"), null, null])
+ability_slots = Array[ExtResource("1_ad")]([SubResource("Resource_m1"), ExtResource("9_lanza"), ExtResource("8_rugido"), null, null])
 tp_max = 125.0
 tp_gain_time = 2.0
 stamina_max = 300.0

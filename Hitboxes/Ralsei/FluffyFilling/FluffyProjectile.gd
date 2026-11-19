@@ -82,7 +82,7 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, base_radius * pulse, 0.0, TAU, 48, Color(1.0, 0.0, 0.0, 0.5), 2.0)
 
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func _sync_indicator(should_show: bool) -> void:
 	_show_indicator = should_show
 	if should_show:

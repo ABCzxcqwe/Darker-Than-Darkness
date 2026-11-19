@@ -1,18 +1,11 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/Hub/BoardPanel.gd" id="1_script"]
 [ext_resource type="FontFile" path="res://Fonts/deltarune font.ttf" id="2_font"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0, 0, 0, 0.94)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0, 1, 0, 1)
-
 [node name="BoardPanel" type="Control"]
 visible = false
+z_index = 60
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,8 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
-mouse_filter = 2
+color = Color(0, 0, 0, 0.62)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -40,98 +32,248 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(560, 360)
+custom_minimum_size = Vector2(880, 640)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 18
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 32
-text = "TABLERO"
+theme_override_font_sizes/font_size = 30
+text = "SALA"
 horizontal_alignment = 1
 
-[node name="Separator" type="ColorRect" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 2)
-layout_mode = 2
-color = Color(0, 1, 0, 1)
-
-[node name="Info" type="Label" parent="Center/Panel/Margin/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-text = "ELEGÍ EL MAPA Y INICIÁ LA PARTIDA."
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-
-[node name="MapRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="Tabs" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="PrevMapBtn" type="Button" parent="Center/Panel/Margin/VBox/MapRow"]
-custom_minimum_size = Vector2(52, 44)
+[node name="PlayersTabBtn" type="Button" parent="Center/Panel/Margin/VBox/Tabs"]
+custom_minimum_size = Vector2(220, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
+text = "JUGADORES"
+
+[node name="ConfigTabBtn" type="Button" parent="Center/Panel/Margin/VBox/Tabs"]
+custom_minimum_size = Vector2(220, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "CONFIGURACIÓN"
+
+[node name="TabHint" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "TOCÁ O USÁ IZQ/DER PARA CAMBIAR DE PESTAÑA"
+horizontal_alignment = 1
+
+[node name="Content" type="Control" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(800, 420)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayersTab" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Scroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Content/PlayersTab"]
+custom_minimum_size = Vector2(800, 300)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PlayersList" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Content/PlayersTab/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="AfkBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/PlayersTab"]
+custom_minimum_size = Vector2(800, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = "AFK: NO"
+
+[node name="Actions" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Content/PlayersTab"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SpectatorBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/PlayersTab/Actions"]
+custom_minimum_size = Vector2(188, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "ESPECTADOR"
+
+[node name="SurvivorBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/PlayersTab/Actions"]
+custom_minimum_size = Vector2(188, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "SURVIVOR"
+
+[node name="KillerBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/PlayersTab/Actions"]
+custom_minimum_size = Vector2(188, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "KILLER"
+
+[node name="KickBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/PlayersTab/Actions"]
+custom_minimum_size = Vector2(188, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "EXPULSAR"
+
+[node name="ConfigTab" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="MapRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Content/ConfigTab"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="PrevMapBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MapRow"]
+custom_minimum_size = Vector2(64, 52)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
 text = "<"
 
-[node name="MapLabel" type="Label" parent="Center/Panel/Margin/VBox/MapRow"]
-custom_minimum_size = Vector2(320, 44)
+[node name="MapLabel" type="Label" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MapRow"]
+custom_minimum_size = Vector2(520, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 1, 0.85, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
 text = "MAPA: SIN MAPA"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="NextMapBtn" type="Button" parent="Center/Panel/Margin/VBox/MapRow"]
-custom_minimum_size = Vector2(52, 44)
+[node name="NextMapBtn" type="Button" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MapRow"]
+custom_minimum_size = Vector2(64, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = ">"
 
-[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
-visible = false
+[node name="MaxRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Content/ConfigTab"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0.3, 1)
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MaxTitle" type="Label" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = "MÁXIMO JUGADORES"
+
+[node name="MaxMinus" type="Button" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow"]
+custom_minimum_size = Vector2(56, 48)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "-"
+
+[node name="MaxLabel" type="Label" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow"]
+custom_minimum_size = Vector2(80, 48)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "4"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MaxPlus" type="Button" parent="Center/Panel/Margin/VBox/Content/ConfigTab/MaxRow"]
+custom_minimum_size = Vector2(56, 48)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "+"
+
+[node name="InfoLabel" type="Label" parent="Center/Panel/Margin/VBox/Content/ConfigTab"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="StartBtn" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 44)
+[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox/Content/ConfigTab"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+size_flags_vertical = 3
+
+[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StartBtn" type="Button" parent="Center/Panel/Margin/VBox/Footer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 22
 text = "INICIAR PARTIDA"
 
-[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 38)
+[node name="CancelBtn" type="Button" parent="Center/Panel/Margin/VBox/Footer"]
+visible = false
+custom_minimum_size = Vector2(260, 64)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 0.5, 1)
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "CERRAR [X]"
+text = "CANCELAR INICIO"
+
+[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox/Footer"]
+custom_minimum_size = Vector2(220, 64)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "CERRAR"

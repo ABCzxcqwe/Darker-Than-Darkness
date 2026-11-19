@@ -94,6 +94,11 @@ func _ready() -> void:
 		_name_edit.text_submitted.connect(_on_name_submitted)
 	if _name_edit and not _name_edit.focus_exited.is_connected(_on_name_focus_exited):
 		_name_edit.focus_exited.connect(_on_name_focus_exited)
+	# El panel inicia navegando con WASD/flechas; Z/Enter enfoca el nombre.
+	if _name_edit:
+		_name_edit.release_focus()
+		_name_edit.focus_entered.connect(_on_name_focus_entered)
+	_wire_touch_controls()
 
 func _server_mode_name(mode_id: String) -> String:
 	if mode_id == SERVER_DEDICATED:
@@ -157,12 +162,27 @@ func _build_server_row() -> void:
 	var left := Label.new()
 	left.name = "ServerLeft"
 	left.text = "<"
+	left.custom_minimum_size = Vector2(52, 52)
+	left.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	left.mouse_filter = Control.MOUSE_FILTER_STOP
+	left.add_theme_font_size_override("font_size", 26)
 	_server_label = Label.new()
 	_server_label.name = "ServerLabel"
 	_server_label.text = _server_mode_name(_server_modes[_server_mode_idx])
+	_server_label.custom_minimum_size = Vector2(720, 52)
+	_server_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_server_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_server_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_server_label.add_theme_font_size_override("font_size", 20)
 	var right := Label.new()
 	right.name = "ServerRight"
 	right.text = ">"
+	right.custom_minimum_size = Vector2(52, 52)
+	right.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	right.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	right.mouse_filter = Control.MOUSE_FILTER_STOP
+	right.add_theme_font_size_override("font_size", 26)
 	row.add_child(text)
 	row.add_child(left)
 	row.add_child(_server_label)
@@ -175,6 +195,10 @@ func _build_server_row() -> void:
 	if _server_modes.size() <= 1:
 		left.visible = false
 		right.visible = false
+	_wire_row(row, 4)
+	_wire_value(left, 4, -1)
+	_wire_value(_server_label, 4, 1)
+	_wire_value(right, 4, 1)
 
 func _theme_server_row() -> void:
 	var tm := get_node_or_null("/root/ThemeManager")
@@ -212,6 +236,92 @@ func _on_name_submitted(_text: String) -> void:
 func _on_name_focus_exited() -> void:
 	grab_focus.call_deferred()
 
+func _on_name_focus_entered() -> void:
+	_focus_idx = 0
+	_highlight(_focus_idx)
+	_position_soul(_focus_idx, false)
+
+## ── Toque/click directo (móvil) ──────────────────────────────────────
+## Las filas actúan igual que Z (seleccionar/confirmar) y las flechas
+## "<" ">" cambian el valor. Se reutiliza la lógica de teclado existente.
+func _wire_touch_controls() -> void:
+	var vbox := $CenterContainer/DeltaruneBox/Margin/VBox
+	_wire_row(vbox.get_node_or_null("NameRow"), 0)
+	_wire_row(vbox.get_node_or_null("MapRow"), 1)
+	_wire_row(vbox.get_node_or_null("GameModeRow"), 2)
+	_wire_row(vbox.get_node_or_null("PlayersRow"), 3)
+	_wire_row(vbox.get_node_or_null("ServerRow"), 4)
+	_wire_value(vbox.get_node_or_null("MapRow/MapLeft"), 1, -1)
+	_wire_value(vbox.get_node_or_null("MapRow/MapLabel"), 1, 1)
+	_wire_value(vbox.get_node_or_null("MapRow/MapRight"), 1, 1)
+	_wire_value(vbox.get_node_or_null("GameModeRow/GameModeLeft"), 2, -1)
+	_wire_value(vbox.get_node_or_null("GameModeRow/GameModeLabel"), 2, 1)
+	_wire_value(vbox.get_node_or_null("GameModeRow/GameModeRight"), 2, 1)
+	_wire_value(vbox.get_node_or_null("PlayersRow/PlayersLeft"), 3, -1)
+	_wire_value(vbox.get_node_or_null("PlayersRow/PlayersLabel"), 3, 1)
+	_wire_value(vbox.get_node_or_null("PlayersRow/PlayersRight"), 3, 1)
+	var create_btn := vbox.get_node_or_null("Actions/CreateBtn") as BaseButton
+	if create_btn and not create_btn.pressed.is_connected(_on_action_tapped):
+		create_btn.pressed.connect(_on_action_tapped.bind(5))
+	var back_btn := vbox.get_node_or_null("Actions/BackBtn") as BaseButton
+	if back_btn and not back_btn.pressed.is_connected(_on_action_tapped):
+		back_btn.pressed.connect(_on_action_tapped.bind(6))
+
+
+func _wire_row(row: Control, idx: int) -> void:
+	if row == null or row.has_meta("touch_row"):
+		return
+	row.set_meta("touch_row", idx)
+	row.gui_input.connect(_on_row_tapped.bind(idx))
+
+
+func _wire_value(node: Control, idx: int, dir: int) -> void:
+	if node == null or node.has_meta("touch_dir"):
+		return
+	node.set_meta("touch_dir", dir)
+	node.gui_input.connect(_on_value_tapped.bind(idx, dir))
+
+
+func _on_row_tapped(event: InputEvent, idx: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	_focus_idx = idx
+	_highlight(_focus_idx)
+	_position_soul(_focus_idx, false)
+	_confirm()
+	accept_event()
+
+
+func _on_value_tapped(event: InputEvent, idx: int, dir: int) -> void:
+	if _busy or not MenuUtils.is_tap(event):
+		return
+	_focus_idx = idx
+	_highlight(_focus_idx)
+	_position_soul(_focus_idx, false)
+	match idx:
+		1: _change_map(dir)
+		2: _change_game_mode(dir)
+		3: _change_max_players(dir)
+		4: _change_server_mode(dir)
+	accept_event()
+
+
+func _on_action_tapped(idx: int) -> void:
+	if _busy:
+		return
+	_focus_idx = idx
+	_highlight(_focus_idx)
+	_position_soul(_focus_idx, false)
+	_confirm()
+
+## Navegación de menús: acepta menu_* (WASD/flechas), move_* y ui_*.
+## Así WASD sigue funcionando aunque los bindings de menu_* estén viejos.
+func _nav(event: InputEvent, dir: String) -> bool:
+	return event.is_action_pressed("menu_" + dir) \
+		or event.is_action_pressed("move_" + dir) \
+		or event.is_action_pressed("ui_" + dir)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy:
 		return
@@ -223,22 +333,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.unicode != 0 and event.keycode != KEY_ENTER and event.keycode != KEY_KP_ENTER and event.keycode != KEY_ESCAPE:
 			return
 		# bloquea navegación del soul mientras se tipeabal
-		if event.is_action_pressed("menu_up") or event.is_action_pressed("menu_down"):
+		if _nav(event, "up") or _nav(event, "down"):
 			return
-		if event.is_action_pressed("menu_left") or event.is_action_pressed("menu_right"):
+		if _nav(event, "left") or _nav(event, "right"):
 			return
 		if event.is_action_pressed("menu_cancel") or event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_X):
 			_name_edit.release_focus()
 			grab_focus.call_deferred()
 			vp.set_input_as_handled()
 			return
-	if event.is_action_pressed("menu_up"):
+	if _nav(event, "up"):
 		_move_vert(-1)
 		vp.set_input_as_handled()
-	elif event.is_action_pressed("menu_down"):
+	elif _nav(event, "down"):
 		_move_vert(1)
 		vp.set_input_as_handled()
-	elif event.is_action_pressed("menu_left"):
+	elif _nav(event, "left"):
 		if _focus_idx == 1:
 			_change_map(-1)
 			vp.set_input_as_handled()
@@ -251,7 +361,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif _focus_idx == 4:
 			_change_server_mode(-1)
 			vp.set_input_as_handled()
-	elif event.is_action_pressed("menu_right"):
+	elif _nav(event, "right"):
 		if _focus_idx == 1:
 			_change_map(1)
 			vp.set_input_as_handled()

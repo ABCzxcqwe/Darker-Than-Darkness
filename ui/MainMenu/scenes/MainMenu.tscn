@@ -70,7 +70,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Opt0" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000011]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
@@ -79,7 +79,7 @@ theme_override_font_sizes/font_size = 28
 text = "JUGAR"
 
 [node name="Opt1" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000012]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
@@ -88,7 +88,7 @@ theme_override_font_sizes/font_size = 28
 text = "OPCIONES"
 
 [node name="Opt2" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000013]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
@@ -97,7 +97,7 @@ theme_override_font_sizes/font_size = 28
 text = "EXTRAS"
 
 [node name="Opt3" type="Label" parent="CenterContainer/DeltaruneBox/Margin/VBox/MenuList" unique_id=9000014]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(340, 48)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8

@@ -20,6 +20,8 @@ var current_device: int:
 var _last_aim_dir: Vector2 = Vector2.RIGHT
 var _virtual_aim_dir: Vector2 = Vector2.ZERO
 var _virtual_aim_active: bool = false
+var _virtual_move: Vector2 = Vector2.ZERO
+var _virtual_move_active: bool = false
 
 
 func initialize(body: CharacterBody2D) -> void:
@@ -41,7 +43,25 @@ func _input(event: InputEvent) -> void:
 
 
 func get_move_vector() -> Vector2:
+	if _virtual_move_active:
+		return _virtual_move
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
+
+
+## API táctil: joystick virtual de movimiento.
+func set_virtual_move(dir: Vector2) -> void:
+	_virtual_move = dir
+	_virtual_move_active = dir != Vector2.ZERO
+	current_device = InputDevice.TOUCH
+
+
+func clear_virtual_move() -> void:
+	_virtual_move = Vector2.ZERO
+	_virtual_move_active = false
+
+
+func is_virtual_move_active() -> bool:
+	return _virtual_move_active
 
 
 ## Devuelve la dirección de apuntado según el dispositivo activo.
@@ -50,6 +70,14 @@ func get_move_vector() -> Vector2:
 ## - Táctil: última dirección alimentada por la API virtual.
 func get_aim_direction(from_global_pos: Vector2) -> Vector2:
 	var dir: Vector2
+
+	# El joystick táctil tiene prioridad sobre la detección de dispositivo.
+	# Así funciona también en desktop al probar con F8.
+	if _virtual_aim_active:
+		dir = _virtual_aim_dir
+		if dir != Vector2.ZERO:
+			_last_aim_dir = dir
+		return dir
 
 	match current_device:
 		InputDevice.GAMEPAD:
