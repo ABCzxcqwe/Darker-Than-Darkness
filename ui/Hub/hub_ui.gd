@@ -211,8 +211,7 @@ func _on_board_start_requested() -> void:
 	if LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY or _session.is_match_running():
 		_board_panel.set_status("YA HAY UNA PARTIDA EN CURSO")
 		return
-	var active := LobbyManager.get_active_participants()
-	if active.size() < 2 and not DevMode.is_enabled():
+	if not LobbyManager.can_start_match():
 		_board_panel.set_status("SE NECESITAN 2 JUGADORES ACTIVOS")
 		return
 	LobbyManager.request_start()

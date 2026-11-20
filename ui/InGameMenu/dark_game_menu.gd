@@ -410,6 +410,8 @@ func _on_close_pressed() -> void:
 
 func _open() -> void:
 	_is_open = true
+	# El menú de pausa debe quedar arriba también para input (no solo dibujo).
+	move_to_front()
 	_in_tabs = true
 	_tab_idx = 0
 	while _hidden_tabs.has(_tab_idx) and _tab_idx < TAB_IDS.size() - 1:

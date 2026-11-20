@@ -145,7 +145,7 @@ func _on_ip_focus_exited() -> void:
 ## Los botones y filas de sala reutilizan la selección + _confirm() del
 ## teclado, así no se duplica la lógica de red.
 func _wire_touch_controls() -> void:
-	for path in ["ActionRow/RefreshBtn", "ActionRow/CreateBtn", "ActionRow/BackBtn", "IPRow/ConnectBtn"]:
+	for path in ["ActionRow/RefreshBtn", "ActionRow/CreateBtn", "ActionRow/BackBtn", "ActionRow/ConnectBtn"]:
 		var btn := _controls_container.get_node_or_null(path) as BaseButton
 		if btn and not btn.pressed.is_connected(_on_control_tapped):
 			btn.pressed.connect(_on_control_tapped.bind(btn))
@@ -200,7 +200,7 @@ func _refresh_static_texts() -> void:
 	var footer := get_node_or_null("Footer") as Label
 	if footer:
 		footer.text = tr("BROWSE_FOOTER")
-	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPLabel") as Label
+	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow/IPRow/IPLabel") as Label
 	if ip_label:
 		ip_label.text = tr("BROWSE_IP_LABEL")
 	_refresh_buttons()
@@ -217,7 +217,7 @@ func _refresh_buttons() -> void:
 	var back_btn := cc.get_node_or_null("ActionRow/BackBtn") as Button
 	if back_btn:
 		back_btn.text = tr("BROWSE_BACK")
-	var connect_btn := cc.get_node_or_null("IPRow/ConnectBtn") as Button
+	var connect_btn := cc.get_node_or_null("ActionRow/ConnectBtn") as Button
 	if connect_btn:
 		connect_btn.text = tr("BROWSE_SEARCH") if _mode == MODE_ONLINE else tr("BROWSE_CONNECT")
 
@@ -233,7 +233,7 @@ func _on_setting_changed(key: String, _value: Variant) -> void:
 func _configure_search_row(preserve_text: bool = false) -> void:
 	if _ip_edit == null:
 		return
-	var connect_btn := $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/ConnectBtn as Button
+	var connect_btn := $CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow/ConnectBtn as Button
 	if _mode == MODE_ONLINE:
 		_ip_edit.placeholder_text = tr("BROWSE_PH_SEARCH")
 		if not preserve_text:
@@ -264,7 +264,6 @@ func _rebuild_focusables() -> void:
 			if is_instance_valid(c) and c is HBoxContainer:
 				_focusables.append(c)
 				
-	var ip_row := _controls_container.get_node_or_null("IPRow")
 	var action_row := _controls_container.get_node_or_null("ActionRow")
 
 	# Orden: Actualizar primero entre botones, Connect al final (pedido)
@@ -275,10 +274,11 @@ func _rebuild_focusables() -> void:
 			_focusables.append(action_row.get_node("CreateBtn"))
 		if action_row.has_node("BackBtn"):
 			_focusables.append(action_row.get_node("BackBtn"))
-	if ip_row and is_instance_valid(_ip_edit):
+	if is_instance_valid(_ip_edit):
 		_focusables.append(_ip_edit)
-	if ip_row and ip_row.has_node("ConnectBtn"):
-		_focusables.append(ip_row.get_node("ConnectBtn"))
+	var connect_btn := _controls_container.get_node_or_null("ActionRow/ConnectBtn")
+	if connect_btn:
+		_focusables.append(connect_btn)
 
 
 ## Mantiene _index dentro de rango y recoloca el soul tras reconstruir la lista.
@@ -998,7 +998,7 @@ func _apply_theme() -> void:
 	if footer:
 		footer.add_theme_color_override("font_color", dim_col)
 	# IP row label y input
-	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/IPRow/IPLabel") as Label
+	var ip_label := get_node_or_null("CenterContainer/DeltaruneBox/Margin/VBox/ControlsContainer/ActionRow/IPRow/IPLabel") as Label
 	if ip_label:
 		ip_label.add_theme_color_override("font_color", hint_col)
 	if _ip_edit:
@@ -1008,7 +1008,7 @@ func _apply_theme() -> void:
 		box.add_theme_stylebox_override("panel", tm.make_box_style())
 
 	var btns = [
-		_controls_container.get_node_or_null("IPRow/ConnectBtn"),
+		_controls_container.get_node_or_null("ActionRow/ConnectBtn"),
 		_controls_container.get_node_or_null("ActionRow/RefreshBtn"),
 		_controls_container.get_node_or_null("ActionRow/CreateBtn"),
 		_controls_container.get_node_or_null("ActionRow/BackBtn")

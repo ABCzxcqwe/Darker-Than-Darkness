@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://keif14xrjvov" path="res://ui/GameUI/scripts/mobile_controls.gd" id="1_controls"]
 [ext_resource type="FontFile" uid="uid://dvelfumepo3c0" path="res://Fonts/deltarune font.ttf" id="3_font"]
+[ext_resource type="Script" path="res://ui/GameUI/scripts/mobile_joystick.gd" id="4_joy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 bg_color = Color(0, 0, 0, 0.45)
@@ -60,6 +61,7 @@ offset_top = 496.0
 offset_right = 156.0
 offset_bottom = 600.0
 focus_mode = 0
+toggle_mode = true
 theme_override_colors/font_color = Color(0.92, 0.92, 0.92, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
@@ -149,30 +151,83 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "EMOTE"
 
-[node name="VirtualJoystick" type="VirtualJoystick" parent="." unique_id=576807846]
-custom_maximum_size = Vector2(0, 0)
+[node name="ConfirmBtn" type="Button" parent="." unique_id=570100001]
+custom_minimum_size = Vector2(110, 80)
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.85
-anchor_top = 0.85
-anchor_right = 0.95
-anchor_bottom = 0.95
-grow_horizontal = 2
-grow_vertical = 2
-joystick_size = 180.0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -362.0
+offset_top = -318.0
+offset_right = -252.0
+offset_bottom = -238.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.92, 0.92, 0.92, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "OK"
 
-[node name="move_joy" type="VirtualJoystick" parent="." unique_id=1263169689]
-custom_maximum_size = Vector2(0, 0)
+[node name="CancelBtn" type="Button" parent="." unique_id=570100002]
+custom_minimum_size = Vector2(110, 80)
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.05
-anchor_top = 0.85
-anchor_right = 0.15
-anchor_bottom = 0.95
-grow_horizontal = 2
-grow_vertical = 2
-joystick_size = 180.0
-action_left = &"move_left"
-action_right = &"move_right"
-action_up = &"move_up"
-action_down = &"move_down"
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -242.0
+offset_top = -318.0
+offset_right = -132.0
+offset_bottom = -238.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.92, 0.92, 0.92, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "X"
+
+[node name="AimStick" type="Control" parent="." unique_id=576807846]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -224.0
+offset_top = -232.0
+offset_right = -24.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("4_joy")
+radius = 88.0
+deadzone = 0.2
+
+[node name="MoveStick" type="Control" parent="." unique_id=1263169689]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -232.0
+offset_right = 224.0
+offset_bottom = -32.0
+grow_vertical = 0
+script = ExtResource("4_joy")
+radius = 88.0
+deadzone = 0.2

@@ -21,10 +21,21 @@ var _mouse_active: bool = false
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	focus_mode = Control.FOCUS_NONE
+	visibility_changed.connect(_on_visibility_changed)
+
+
+func _on_visibility_changed() -> void:
+	if not visible and (_touch_index != -1 or _mouse_active):
+		reset_value()
 
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
+		if event.canceled:
+			if event.index == _touch_index:
+				_touch_index = -1
+				_reset()
+			return
 		if event.pressed and _touch_index == -1 and _inside(event.position):
 			_touch_index = event.index
 			_update(event.position)
@@ -57,14 +68,22 @@ func _gui_input(event: InputEvent) -> void:
 		_update(event.position)
 
 
+## Godot documenta `InputEventScreenTouch.position` en coordenadas del
+## viewport, mientras que los eventos de mouse llegan en coordenadas locales
+## del control. Normalizamos ambos casos.
+func _to_local(pos: Vector2) -> Vector2:
+	if Rect2(Vector2.ZERO, size).has_point(pos):
+		return pos
+	return pos - global_position
+
+
 func _inside(pos: Vector2) -> bool:
-	var center := size * 0.5
-	return pos.distance_to(center) <= maxf(size.x, size.y) * 0.5
+	return _to_local(pos).distance_to(size * 0.5) <= maxf(radius, 1.0)
 
 
 func _update(pos: Vector2) -> void:
 	var center := size * 0.5
-	var v := (pos - center) / maxf(radius, 1.0)
+	var v := (_to_local(pos) - center) / maxf(radius, 1.0)
 	if v.length() > 1.0:
 		v = v.normalized()
 	elif v.length() < deadzone:

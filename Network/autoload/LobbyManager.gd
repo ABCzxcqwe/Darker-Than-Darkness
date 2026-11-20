@@ -129,6 +129,12 @@ func get_active_participants() -> Array[int]:
 	return out
 
 
+## Regla única de "se puede iniciar". En builds de prueba se permite 1
+## jugador para poder validar mapas/controles sin un segundo peer.
+func can_start_match() -> bool:
+	return get_active_participants().size() >= 2 or DevMode.allows_solo_match()
+
+
 func request_toggle_afk() -> void:
 	if multiplayer.is_server():
 		_server_toggle_afk()
@@ -680,7 +686,7 @@ func host_start_character_selection() -> void:
 		return
 
 	var active := get_active_participants()
-	if active.size() < 2 and not DevMode.is_enabled():
+	if not can_start_match():
 		return
 
 	var killer_peer_id: int = -1

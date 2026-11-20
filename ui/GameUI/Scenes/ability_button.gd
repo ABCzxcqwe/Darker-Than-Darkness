@@ -124,12 +124,19 @@ func set_key_label(key_name: String) -> void:
 
 ## Activación táctil: el jugador puede tocar el botón de habilidad del HUD
 ## (móvil) y se emite la misma acción ability_N que el teclado/mando.
+## En desktop se acepta click izquierdo para poder probar sin dispositivo.
 func _gui_input(event: InputEvent) -> void:
-	if not (event is InputEventScreenTouch):
+	var pressed := false
+	if event is InputEventScreenTouch:
+		pressed = event.pressed
+	elif event is InputEventMouseButton and not OS.has_feature("mobile") \
+			and event.button_index == MOUSE_BUTTON_LEFT:
+		pressed = event.pressed
+	else:
 		return
 	if slot_index < 0:
 		return
-	_emit_slot_action(event.pressed)
+	_emit_slot_action(pressed)
 	accept_event()
 
 

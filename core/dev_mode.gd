@@ -50,6 +50,15 @@ func is_enabled() -> bool:
 	return enabled
 
 
+## Permite arrancar una partida con un solo jugador en builds de prueba.
+## Sirve para validar controles sin un segundo peer. En TEST/RELEASE el
+## mínimo de 2 jugadores sigue siendo obligatorio.
+func allows_solo_match() -> bool:
+	if OS.has_feature("public_build") or OS.has_feature("test_build"):
+		return false
+	return enabled or OS.is_debug_build()
+
+
 func build_kind() -> String:
 	if OS.has_feature("public_build"):
 		return "release"

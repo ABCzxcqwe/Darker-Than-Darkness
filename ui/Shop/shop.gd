@@ -101,6 +101,8 @@ func open_shop() -> void:
 	if shop_anim == null:
 		return
 	visible = true
+	# Mismo motivo que el tablero: asegurar prioridad de input, no solo z_index.
+	move_to_front()
 	_enter_level(MenuLevel.MAIN)
 	_reset_oneshots()
 	_play(ANIM_IDLE)

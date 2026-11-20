@@ -52,7 +52,9 @@ func _process(_delta: float) -> void:
 			global_position = input_component.get_aim_position(_player.global_position, DEFAULT_RANGE)
 			_restore_mouse()
 		PlayerInputComponent.InputDevice.TOUCH:
-			visible = input_component.is_virtual_aim_active()
+			# Con apuntado "sticky" la retícula sigue visible mientras la
+			# habilidad está en fase 2, aunque el stick se haya soltado.
+			visible = input_component.is_virtual_aim_active() or _is_aiming
 			if visible:
 				global_position = input_component.get_aim_position(_player.global_position, DEFAULT_RANGE)
 			_restore_mouse()

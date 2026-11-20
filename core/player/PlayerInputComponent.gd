@@ -91,6 +91,10 @@ func get_aim_direction(from_global_pos: Vector2) -> Vector2:
 			dir = _virtual_aim_dir
 			if dir != Vector2.ZERO:
 				_last_aim_dir = dir
+			else:
+				# Al soltar el stick conservamos la última dirección: en móvil
+				# se apunta, se suelta y recién ahí se toca CONFIRMAR/habilidad.
+				dir = _last_aim_dir
 		_:
 			dir = player.get_global_mouse_position() - from_global_pos
 			dir = _sanitize_dir(dir)

@@ -83,7 +83,7 @@ func start_match_countdown() -> void:
 		return
 	if LobbyManager.selected_map == "" or not MapRegistry.has_map(LobbyManager.selected_map):
 		return
-	if LobbyManager.get_active_participants().size() < 2 and not DevMode.is_enabled():
+	if not LobbyManager.can_start_match():
 		return
 	_start_countdown_timer.start(NetConfig.MATCH_START_COUNTDOWN)
 	rpc("_sync_start_countdown", NetConfig.MATCH_START_COUNTDOWN)
@@ -109,7 +109,7 @@ func _on_start_countdown_timeout() -> void:
 		return
 	if LobbyManager.current_phase != LobbyManager.GamePhase.LOBBY:
 		return
-	if LobbyManager.get_active_participants().size() < 2 and not DevMode.is_enabled():
+	if not LobbyManager.can_start_match():
 		rpc("_sync_start_countdown_cancelled")
 		return
 	if LobbyManager.get_killer_candidates().is_empty() and LobbyManager.forced_killer_peer == -1:

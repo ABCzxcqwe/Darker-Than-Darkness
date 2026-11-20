@@ -99,6 +99,9 @@ func open_panel(can_manage: bool) -> void:
 	_can_manage = can_manage
 	_auto_map_requested = false
 	visible = true
+	# En Godot el input se resuelve por orden del árbol, no por z_index.
+	# Sin esto, menús ya presentes (p. ej. DarkGameMenu) se comen los clics.
+	move_to_front()
 	_tab = 0
 	_refresh()
 	_set_tab(0)
@@ -371,7 +374,7 @@ func _refresh_config() -> void:
 		_max_plus.disabled = not can_change
 	if _start_btn:
 		var active := LobbyManager.get_active_participants().size()
-		var enough := active >= 2 or DevMode.is_enabled()
+		var enough := LobbyManager.can_start_match()
 		var map_ok := LobbyManager.selected_map != "" and MapRegistry.has_map(LobbyManager.selected_map)
 		var can_start := _can_manage \
 			and LobbyManager.current_phase == LobbyManager.GamePhase.LOBBY \

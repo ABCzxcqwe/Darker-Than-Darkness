@@ -84,7 +84,7 @@ func is_in_game() -> bool:
 
 ## True si es una sesión de pruebas dev con exactamente un jugador no espectador.
 func _is_dev_solo() -> bool:
-	if not DevMode.is_enabled():
+	if not DevMode.allows_solo_match():
 		return false
 	var count := 0
 	for pid in LobbyManager.players:
